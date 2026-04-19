@@ -20,6 +20,7 @@ declare module 'vue' {
     IconButton: typeof import('./src/components/ui/IconButton.vue')['default']
     Info: typeof import('./src/components/ui/Info.vue')['default']
     Input: typeof import('./src/components/ui/Input.vue')['default']
+    LaunchProgressModal: typeof import('./src/components/modals/LaunchProgressModal.vue')['default']
     Modal: typeof import('./src/components/ui/Modal.vue')['default']
     MouseEffect: typeof import('./src/components/effects/MouseEffect.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

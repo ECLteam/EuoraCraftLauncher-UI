@@ -435,50 +435,18 @@ async function quickInstall(versionId: string) {
   installForm.value.loader = 'vanilla'
   installForm.value.loaderVersion = ''
   installForm.value.gamePath = ''
-  await startInstall()
+  // 【待对接】安装功能暂不可用
+  glassMessage.info('安装功能待对接')
+  console.warn('[API] installVersion 待对接')
 }
 
 async function startInstall() {
   if (!installForm.value.mcVersion) return
 
-  isInstalling.value = true
+  // 【待对接】安装功能暂不可用
+  glassMessage.info('安装功能待对接')
+  console.warn('[API] installVersion 待对接')
   showInstallDialog.value = false
-  showProgressDialog.value = true
-  progressMessage.value = '正在下载游戏文件...'
-
-  try {
-    const options: any = {}
-    if (installForm.value.loader && installForm.value.loader !== 'vanilla') {
-      options.loader = installForm.value.loader
-      if (installForm.value.loaderVersion) {
-        options.loaderVersion = installForm.value.loaderVersion
-      }
-    }
-    if (installForm.value.gamePath) {
-      options.gamePath = installForm.value.gamePath
-    }
-
-    const res = await api.installVersion(installForm.value.mcVersion, options)
-
-    if (res.success) {
-      progressMessage.value = t('versions.download.installComplete')
-      glassMessage.success(`${installForm.value.mcVersion} ${t('versions.download.installSuccess')}`)
-      setTimeout(() => {
-        showProgressDialog.value = false
-      }, 1000)
-    } else {
-      progressMessage.value = t('versions.download.installFailed')
-      glassMessage.error(res.message || t('versions.download.installFailed'))
-      showProgressDialog.value = false
-    }
-  } catch (e) {
-    progressMessage.value = t('versions.download.installError')
-    glassMessage.error(t('versions.download.downloadError'))
-    showProgressDialog.value = false
-  } finally {
-    isInstalling.value = false
-    downloading.value = null
-  }
 }
 
 function getVersionTypeLabel(type: string): string {

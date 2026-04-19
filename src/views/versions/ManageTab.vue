@@ -250,6 +250,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useGlassMessage } from '@/composables/useGlassMessage'
+import { globalLaunchProgress } from '@/composables/useLaunchProgress'
 import { api } from '@/utils/api'
 import type { ScannedVersion } from '@/types/api'
 import ContentModal from '@/components/modals/ContentModal.vue'
@@ -517,23 +518,62 @@ const removePath = async (index: number) => {
   )
 }
 
+const { show: showLaunchProgress, hide: hideLaunchProgress, setProgress: setLaunchProgress } = globalLaunchProgress
+
 const handleLaunch = async (version: ScannedVersion) => {
   if (!currentPath.value) return
-  
-  // 直接启动版本（无需先创建并保存实例配置）
+
+  showLaunchProgress({ cancelable: true })
+
   try {
     const launchResult = await api.launchInstance({
       version: version.folder,
       gamePath: currentPath.value.path
     })
-    if (launchResult.success) {
-      message.success(`正在启动 ${version.folder}`)
-    } else {
+
+    if (!launchResult.success || !launchResult.data?.taskId) {
+      setLaunchProgress(0, 'error', launchResult.message || '启动失败')
       message.error(launchResult.message || '启动失败')
+      setTimeout(hideLaunchProgress, 1500)
+      return
     }
+
+    const taskId = launchResult.data.taskId
+
+    // 真实轮询后端进度
+    const pollInterval = setInterval(async () => {
+      try {
+        const statusRes = await api.getLaunchStatus(taskId)
+        if (!statusRes.success || !statusRes.data) {
+          return
+        }
+
+        const status = statusRes.data
+        setLaunchProgress(status.percent, status.stage as any, status.message)
+
+        if (status.error) {
+          clearInterval(pollInterval)
+          setLaunchProgress(status.percent, 'error', status.error)
+          message.error(status.error)
+          setTimeout(hideLaunchProgress, 1500)
+          return
+        }
+
+        if (status.completed) {
+          clearInterval(pollInterval)
+          setLaunchProgress(100, 'success', '启动成功')
+          message.success(`正在启动 ${version.folder}`)
+          setTimeout(hideLaunchProgress, 800)
+        }
+      } catch (pollErr) {
+        console.warn('[Launch] 轮询异常:', pollErr)
+      }
+    }, 500)
   } catch (e) {
     console.error('启动失败:', e)
+    setLaunchProgress(0, 'error', '启动过程中发生错误')
     message.error('启动过程中发生错误')
+    setTimeout(hideLaunchProgress, 1500)
   }
 }
 

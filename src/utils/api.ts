@@ -411,7 +411,11 @@ class ApiService {
   }
 
   async launchInstance(params?: { version: string; gamePath?: string; javaPath?: string; memory?: { min: number; max: number }; javaArgs?: string }) {
-    return this.client.call<{ instanceId: string; version: string }>('launch_instance', params)
+    return this.client.call<{ taskId: string; version: string }>('launch_instance', params)
+  }
+
+  async getLaunchStatus(taskId: string) {
+    return this.client.call<{ stage: string; percent: number; message: string; completed: boolean; error?: string; instanceId?: string }>('get_launch_status', taskId)
   }
 
   async stopInstance(instanceId: string) {

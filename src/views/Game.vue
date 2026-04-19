@@ -278,6 +278,16 @@
         </UiButton>
       </template>
     </ContentModal>
+
+    <LaunchProgressModal
+      :visible="launchProgress.visible"
+      :stage="launchProgress.stage"
+      :percent="launchProgress.percent"
+      :message="launchProgress.message"
+      :cancelable="launchProgress.cancelable"
+      :closable="true"
+      @cancel="handleLaunchProgressCancel"
+    />
   </div>
 </template>
 
@@ -291,15 +301,22 @@ import UiButton from '@/components/ui/Button.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import UiInput from '@/components/ui/Input.vue'
 import ContentModal from '@/components/modals/ContentModal.vue'
+import LaunchProgressModal from '@/components/modals/LaunchProgressModal.vue'
 import SkinRenderer from '@/components/SkinRenderer.vue'
 import { useAccountManager } from '@/composables/useAccountManager'
 import { useVersionManager } from '@/composables/useVersionManager'
+import { globalLaunchProgress } from '@/composables/useLaunchProgress'
 import { api } from '@/utils/api'
 
 const { t } = useI18n()
 
 const account = useAccountManager(t)
 const version = useVersionManager(t)
+const { progress: launchProgress, hide: hideLaunchProgress } = globalLaunchProgress
+
+const handleLaunchProgressCancel = () => {
+  hideLaunchProgress()
+}
 
 const homeLeftRef = ref<HTMLElement | null>(null)
 const homeRightRef = ref<HTMLElement | null>(null)

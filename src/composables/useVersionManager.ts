@@ -1,6 +1,7 @@
 import { ref, reactive } from 'vue'
 import { api } from '@/utils/api'
 import { useGlassMessage } from './useGlassMessage'
+import { globalLaunchProgress } from './useLaunchProgress'
 
 export interface VersionItem {
   id: string
@@ -9,6 +10,7 @@ export interface VersionItem {
 
 export function useVersionManager(t: (key: string, ...args: any[]) => string) {
   const message = useGlassMessage()
+  const { show, hide, setProgress } = globalLaunchProgress
 
   const versions = ref<VersionItem[]>([])
   const selectedVersion = ref<string>('')
@@ -53,7 +55,7 @@ export function useVersionManager(t: (key: string, ...args: any[]) => string) {
     selectedVersion.value = id
   }
 
-  async function launchGame(currentAccount: { id: string } | null) {
+  async function launchGame(currentAccount: { id: string } | null, gamePath?: string) {
     if (!selectedVersion.value) {
       showStatus(t('game.status.selectVersionFirst'), 'error')
       return
@@ -68,16 +70,10 @@ export function useVersionManager(t: (key: string, ...args: any[]) => string) {
     launching.value = true
     showStatus(t('game.status.launching'), 'info')
 
-    try {
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      showStatus(t('game.status.launchSuccess'), 'success')
-      message.success(t('game.status.launchSuccess'))
-    } catch (e) {
-      showStatus(t('game.status.launchError'), 'error')
-      message.error(t('game.status.launchError'))
-    } finally {
-      launching.value = false
-    }
+    // 【待对接】启动功能暂不可用
+    glassMessage.info('启动功能待对接')
+    console.warn('[API] launchInstance 待对接')
+    launching.value = false
   }
 
   function showStatus(msg: string, type: 'info' | 'success' | 'error' = 'info') {
