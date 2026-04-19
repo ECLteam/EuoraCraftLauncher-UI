@@ -53,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, computed, inject, useAttrs } from 'vue'
+import { ref, watch, nextTick, onMounted, computed, inject, useAttrs, readonly, type Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { useI18n } from 'vue-i18n'
@@ -88,25 +88,14 @@ const backgroundRef = ref<HTMLElement | null>(null)
 // 注入用户协议状态
 const agreementAccepted = inject('agreementAccepted', computed(() => true))
 
-// 调试模式：由后端配置控制
-const isDevMode = ref(false)
-
-// 从后端获取调试配置
-onMounted(async () => {
-  try {
-    const res = await api.getLauncherConfig()
-    if (res.success && res.data) {
-      isDevMode.value = res.data.debug === true
-    }
-  } catch {
-    isDevMode.value = false
-  }
-})
+// 调试模式：由 App.vue 从后端加载并提供
+const injectedDevMode = inject<Readonly<Ref<boolean>>>('devMode')
+const isDevMode = computed(() => injectedDevMode?.value ?? false)
 
 const menuItems = computed(() => [
   { path: '/', label: t('sidebar.game'), iconName: 'game' },
   { path: '/versions', label: t('sidebar.versions'), iconName: 'cube' },
-  { path: '/instances', label: t('sidebar.instances'), iconName: 'folder' },
+   { path: '/instances', label: t('sidebar.instances'), iconName: 'folder' },
   { path: '/settings', label: t('sidebar.settings'), iconName: 'settings' }
 ])
 

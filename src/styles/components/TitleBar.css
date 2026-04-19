@@ -48,17 +48,20 @@
 
 .control-btn:hover {
   background-color: var(--bg-surface-hover) !important;
+  border-radius: 50% !important;
 }
 
 .control-btn.close-btn:hover {
   background-color: #e81123 !important;
   color: white !important;
+  border-radius: 50% !important;
 }
 
 /* --- 主题切换按钮 --- */
 .theme-toggle-btn:hover {
   color: var(--color-primary) !important;
   background-color: var(--bg-surface-hover) !important;
+  border-radius: 50% !important;
 }
 
 /* --- 全屏弹窗模式 --- */
@@ -70,6 +73,7 @@
 .modal-close-btn:hover {
   color: var(--text-primary) !important;
   background-color: var(--bg-surface-hover) !important;
+  border-radius: 50% !important;
 }
 
 .modal-close-btn .icon {

@@ -1,6 +1,6 @@
 <template>
   <div class="ui-input-wrapper" :class="{ 'is-focused': isFocused, 'is-disabled': disabled }">
-    <UiIcon v-if="prefixIcon" :name="prefixIcon.replace('icon-', '')" class="prefix-icon" />
+    <UiIcon v-if="leadingIcon" :name="leadingIcon.replace('icon-', '')" class="prefix-icon" />
     
     <input
       ref="inputRef"
@@ -9,6 +9,8 @@
       :placeholder="placeholder"
       :disabled="disabled"
       :readonly="readonly"
+      :id="id"
+      :aria-label="ariaLabel"
       class="ui-input"
       @input="handleInput"
       @focus="isFocused = true"
@@ -16,19 +18,22 @@
       @keydown.enter="$emit('enter')"
     />
     
-    <UiIcon 
-      v-if="clearable && modelValue" 
-      name="close" 
-      class="clear-icon" 
+    <button
+      v-if="clearable && modelValue"
+      type="button"
+      class="clear-icon"
+      aria-label="清空输入"
       @click="handleClear"
-    />
+    >
+      <UiIcon name="close" />
+    </button>
     
     <UiIcon v-if="suffixIcon" :name="suffixIcon.replace('icon-', '')" class="suffix-icon" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = withDefaults(defineProps<{
   modelValue: string | number
@@ -39,6 +44,9 @@ const props = withDefaults(defineProps<{
   clearable?: boolean
   prefixIcon?: string
   suffixIcon?: string
+  id?: string
+  icon?: string
+  ariaLabel?: string
 }>(), {
   type: 'text',
   modelValue: '',
@@ -46,6 +54,8 @@ const props = withDefaults(defineProps<{
   readonly: false,
   clearable: false
 })
+
+const leadingIcon = computed(() => props.icon || props.prefixIcon)
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string | number): void
@@ -74,12 +84,13 @@ const handleClear = () => {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background-color: var(--bg-app);
+  background-color: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   transition: var(--transition-fast);
   width: 100%;
   position: relative;
+  min-height: 40px;
 }
 
 .ui-input-wrapper:hover:not(.is-disabled) {
@@ -89,14 +100,31 @@ const handleClear = () => {
 
 .ui-input-wrapper.is-focused {
   border-color: var(--color-primary);
-  background-color: var(--bg-surface);
-  box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
+  background-color: var(--bg-surface-active);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 .ui-input-wrapper.is-disabled {
   opacity: 0.6;
   cursor: not-allowed;
   background-color: var(--bg-surface-hover);
+}
+
+.clear-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.clear-icon:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .ui-input {

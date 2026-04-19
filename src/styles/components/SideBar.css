@@ -66,8 +66,8 @@
   left: 6px;
   right: 6px;
   height: 38px;
-  background-color: rgba(59, 130, 246, 0.15); /* 稍微加深一点 */
-  border: 1px solid rgba(59, 130, 246, 0.2); /* 添加微弱边框 */
+  background-color: rgba(var(--color-primary-rgb), 0.15); /* 稍微加深一点 */
+  border: 1px solid rgba(var(--color-primary-rgb), 0.2); /* 添加微弱边框 */
   border-radius: var(--radius-md);
   transition: all var(--duration-slow) var(--ease-spring);
   opacity: 0;
@@ -77,8 +77,8 @@
 }
 
 [data-theme="dark"] .active-background {
-  background-color: rgba(96, 165, 250, 0.2);
-  border: 1px solid rgba(96, 165, 250, 0.3);
+  background-color: rgba(var(--color-primary-rgb), 0.2);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.3);
 }
 
 .menu-item {

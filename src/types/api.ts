@@ -86,6 +86,14 @@ export interface LocaleConfig {
   locale: string
 }
 
+export interface MouseEffectConfig {
+  enabled: boolean
+  color: string
+  scale: number
+  opacity: number
+  speed: number
+}
+
 
 
 export interface MinecraftVersion {
@@ -141,10 +149,13 @@ export interface GameInstance {
   modCount: number
   icon?: string
   javaArgs?: string
+  javaPath?: string
   memory: {
     min: number
     max: number
   }
+  isRunning?: boolean
+  createdAt?: string
 }
 
 export interface InstanceCreateRequest {
@@ -251,6 +262,10 @@ export interface ApiMethods {
   get_locale_config(): Promise<ApiResponse<LocaleConfig>>
   update_locale_config(locale: string): Promise<ApiResponse>
   
+  // 鼠标特效配置
+  get_mouse_effect_config(): Promise<ApiResponse<MouseEffectConfig>>
+  update_mouse_effect_config(config: Partial<MouseEffectConfig>): Promise<ApiResponse>
+  
   // 文件选择
   select_directory(): Promise<ApiResponse<{ path: string }>>
   select_file(filters?: { name: string; extensions: string[] }[]): Promise<ApiResponse<{ path: string }>>
@@ -304,8 +319,14 @@ export interface ApiMethods {
     userCode?: string
     verificationUri?: string
     message: string
+    interval?: number
   }>>
-  complete_microsoft_login(): Promise<ApiResponse<{ account?: MinecraftAccount }>>
+  poll_microsoft_login(): Promise<ApiResponse<{
+    status: 'pending' | 'ready' | 'error'
+    message: string
+    retry_after?: number
+  }>>
+  complete_microsoft_login(): Promise<ApiResponse<{ account?: MinecraftAccount; message: string }>>
   switch_account(accountId: string): Promise<ApiResponse>
   remove_account(accountId: string): Promise<ApiResponse>
   refresh_account_profile(accountId: string): Promise<ApiResponse>

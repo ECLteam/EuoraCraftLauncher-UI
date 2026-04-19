@@ -14,14 +14,8 @@ export { default as UiInput } from './Input.vue'
 export { default as UiSwitch } from './Switch.vue'
 export { default as UiTabs } from './Tabs.vue'
 export { default as UiInfo } from './Info.vue'
+export { default as UiSelect } from './Select.vue'
 
 // Modal 组件
 export { default as UiModal } from './Modal.vue'
 export { default as UiGlassMessage } from './GlassMessage.vue'
-
-// Modal 相关 composables
-export { useModal } from './composables/useModal'
-export { useGlassMessage } from './composables/useGlassMessage'
-
-// 全屏模态框状态管理
-export { useFullscreenModal } from './composables/useFullscreenModal'

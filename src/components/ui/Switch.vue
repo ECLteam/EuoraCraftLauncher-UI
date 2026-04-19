@@ -69,15 +69,15 @@ const handleChange = (event: Event) => {
 }
 
 input:checked + .slider {
-  background-color: var(--color-success);
+  background-color: var(--color-primary);
 }
 
 input:checked + .slider:before {
   transform: translateX(16px);
 }
 
-input:focus + .slider {
-  box-shadow: 0 0 1px var(--color-success);
+input:focus-visible + .slider {
+  box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 .is-disabled {

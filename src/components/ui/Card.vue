@@ -1,5 +1,11 @@
 <template>
-  <div class="ui-card" :class="{ 'hoverable': hoverable }">
+  <div 
+    class="ui-card" 
+    :class="{ 'hoverable': hoverable, 'interactive': isInteractive }"
+    :role="isInteractive ? 'button' : undefined"
+    :tabindex="isInteractive ? 0 : undefined"
+    @keydown="handleKeydown"
+  >
     <div v-if="$slots.header || title" class="card-header">
       <slot name="header">
         <div class="header-content">
@@ -23,12 +29,28 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { computed, useAttrs } from 'vue'
+
+const props = defineProps<{
   title?: string
   icon?: string
   hoverable?: boolean
   bodyClass?: string
 }>()
+
+const attrs = useAttrs()
+const isInteractive = computed(() => typeof attrs.onClick === 'function')
+
+const handleKeydown = (event: KeyboardEvent) => {
+  if (!isInteractive.value) return
+  
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault()
+    if (typeof attrs.onClick === 'function') {
+      attrs.onClick(event)
+    }
+  }
+}
 </script>
 
 <style scoped>
@@ -46,6 +68,15 @@ defineProps<{
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
   border-color: var(--color-primary-light);
+}
+
+.ui-card.interactive {
+  cursor: pointer;
+}
+
+.ui-card.interactive:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .card-header {

@@ -22,6 +22,11 @@
   position: relative;
 }
 
+/* 标题栏高度调整 */
+.title-bar {
+  height: 40px;
+}
+
 /* --- 响应式调整 --- */
 @media (max-width: 768px) {
   .sidebar {

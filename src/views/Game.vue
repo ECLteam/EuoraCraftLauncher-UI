@@ -1,17 +1,24 @@
 <template>
   <div class="home-container" ref="homeMainRef">
-    <div class="home-left" ref="homeLeftRef">
-    </div>
+    <div class="home-left" ref="homeLeftRef"></div>
 
     <div class="home-right" ref="homeRightRef">
       <UiCard class="account-card" body-class="account-card-body">
         <div class="account-info">
-          <SkinRenderer class="avatar" :uuid="currentAccount?.uuid" :type-name="currentAccount?.type" :size="36" />
+          <SkinRenderer
+            v-if="account.currentAccount"
+            class="avatar"
+            :uuid="account.currentAccount?.uuid"
+            :username="account.currentAccount?.alias"
+            :type-name="account.currentAccount?.type"
+            :size="36"
+          />
+          <div v-else class="avatar-placeholder"></div>
           <div class="user-details">
-            <div class="name">{{ currentAccount?.alias || 'Steve' }}</div>
-            <div class="type">{{ accountTypeLabel }}</div>
+            <div class="name">{{ account.currentAccount?.alias || t('game.noAccount') }}</div>
+            <div class="type">{{ account.currentAccount ? account.accountTypeLabel : t('game.clickManageToAdd') }}</div>
           </div>
-          <UiButton variant="text" size="sm" icon="settings" @click="openAccountModal">
+          <UiButton variant="text" size="sm" icon="settings" @click="account.openAccountModal">
             {{ t('game.manage') }}
           </UiButton>
         </div>
@@ -19,20 +26,25 @@
 
       <UiCard class="version-card" :title="t('game.gameVersion')" icon="cube" body-class="version-card-body">
         <div class="version-list" ref="versionListRef">
-          <div v-if="loading" class="flex-center" style="padding: 20px;">
+          <div v-if="version.loading" class="flex-center" style="padding: 20px;">
             <span class="text-secondary">{{ t('app.loading') }}</span>
           </div>
-          
-          <div v-else-if="versions.length === 0" class="flex-center" style="padding: 20px;">
+
+          <div v-else-if="version.versions.length === 0" class="flex-center" style="padding: 20px;">
             <span class="text-secondary">{{ t('game.noVersions') }}</span>
           </div>
-          
+
           <div
             v-else
-            v-for="(ver) in versions"
+            v-for="ver in version.versions"
             :key="ver.id"
-            @click="selectVersion(ver.id)"
-            :class="['version-item', { active: selectedVersion === ver.id }]"
+            role="button"
+            tabindex="0"
+            @click="version.selectVersion(ver.id)"
+            @keydown.enter="version.selectVersion(ver.id)"
+            @keydown.space="version.selectVersion(ver.id)"
+            :class="['version-item', { active: version.selectedVersion === ver.id }]"
+            :aria-selected="version.selectedVersion === ver.id"
           >
             <span class="version-name">{{ ver.id }}</span>
             <span class="version-tag">{{ ver.type }}</span>
@@ -42,96 +54,101 @@
         <div class="launch-section">
           <UiButton
             class="launch-btn"
-            @click="launchGame"
-            :disabled="launching || !selectedVersion || !currentAccount"
-            :loading="launching"
+            @click="version.launchGame(account.currentAccount)"
+            :disabled="version.launching || !version.selectedVersion || !account.currentAccount"
+            :loading="version.launching"
             size="lg"
             icon="game"
           >
-            {{ launching ? t('game.launching') : t('game.launch') }}
+            {{ version.launching ? t('game.launching') : t('game.launch') }}
           </UiButton>
         </div>
 
-        <div v-if="statusMsg" :class="['status-msg', `text-${statusType}`]">
-          {{ statusMsg }}
+        <div 
+          v-if="version.statusMsg" 
+          :class="['status-msg', `text-${version.statusType}`]"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {{ version.statusMsg }}
         </div>
       </UiCard>
     </div>
 
-    <!-- 账户管理全屏弹窗 -->
     <ContentModal
-      v-model:visible="showAccountModal"
+      v-model:visible="account.showAccountModal"
       :title="t('game.accountManagement')"
       fullscreen
     >
       <div class="account-manager">
-        <!-- 左侧：账户列表 -->
         <div class="account-list-section">
           <h3 class="section-title">
             <UiIcon name="folder" :size="16" />
             {{ t('game.savedAccounts') }}
           </h3>
           <div class="account-list-card">
-            <!-- 加载状态 -->
-            <div v-if="accountsLoading" class="flex-center" style="padding: 40px;">
+            <div v-if="account.accountsLoading" class="flex-center" style="padding: 40px;">
               <span class="text-secondary">{{ t('app.loading') }}</span>
             </div>
-            
-            <!-- 空状态 -->
-            <div v-else-if="accounts.length === 0" class="empty-state">
+
+            <div v-else-if="account.accounts.length === 0" class="empty-state">
               <UiIcon name="user-x" :size="16" />
               <p class="empty-state-text">{{ t('game.noAccounts') }}</p>
               <p class="text-secondary" style="font-size: 12px;">{{ t('game.noAccountsDesc') }}</p>
             </div>
-            
-            <!-- 账户列表 -->
+
             <div v-else class="account-items">
-              <div 
-                v-for="account in accounts" 
-                :key="account.id"
-                :class="['account-item', { active: account.isCurrent }]"
+              <div
+                v-for="acc in account.accounts"
+                :key="acc.id"
+                role="button"
+                tabindex="0"
+                :class="['account-item', { active: acc.isCurrent }]"
+                @click="account.switchAccount(acc.id)"
+                @keydown.enter="account.switchAccount(acc.id)"
+                @keydown.space="account.switchAccount(acc.id)"
+                :aria-selected="acc.isCurrent"
               >
                 <SkinRenderer
                   class="acc-avatar"
-                  :uuid="account.uuid"
-                  :type-name="account.type"
+                  :uuid="acc.uuid"
+                  :username="acc.alias"
+                  :type-name="acc.type"
                   :size="40"
-                  :data-type="account.type"
                 />
                 <div class="acc-info">
-                  <div class="acc-name">{{ account.alias }}</div>
+                  <div class="acc-name">{{ acc.alias }}</div>
                   <div class="acc-type">
-                    <span :class="['type-badge', account.type]">
-                      {{ account.type === 'microsoft' ? t('game.accountTypeMicrosoft') : t('game.accountTypeOffline') }}
+                    <span :class="['type-badge', acc.type]">
+                      {{ acc.type === 'microsoft' ? t('game.accountTypeMicrosoft') : t('game.accountTypeOffline') }}
                     </span>
-                    <span v-if="account.type === 'microsoft' && account.email" class="acc-email">{{ account.email }}</span>
+                    <span v-if="acc.type === 'microsoft' && acc.email" class="acc-email">{{ acc.email }}</span>
                   </div>
                 </div>
                 <div class="acc-actions">
-                  <span v-if="account.isCurrent" class="acc-status">{{ t('game.current') }}</span>
-                  <UiButton 
+                  <span v-if="acc.isCurrent" class="acc-status">{{ t('game.current') }}</span>
+                  <UiButton
                     v-else
-                    variant="secondary" 
+                    variant="secondary"
                     size="sm"
-                    @click="switchAccount(account.id)"
+                    @click="account.switchAccount(acc.id)"
                   >
                     {{ t('game.switch') }}
                   </UiButton>
-                  <UiButton 
-                    variant="ghost" 
+                  <UiButton
+                    variant="ghost"
                     size="sm"
                     icon="delete"
-                    @click="removeAccount(account.id, account.alias)"
+                    @click="account.removeAccount(acc.id, acc.alias)"
                   />
                 </div>
               </div>
             </div>
           </div>
         </div>
-        
-        <!-- 右侧：添加账户 -->
+
         <div class="account-add-section">
-          <!-- 添加离线账户 -->
           <h3 class="section-title">
             <UiIcon name="add" :size="16" />
             {{ t('game.addOfflineAccount') }}
@@ -140,26 +157,25 @@
             <div class="add-form">
               <div class="form-group">
                 <label class="form-label">{{ t('game.username') }}</label>
-                <UiInput 
-                  v-model="newOfflineUsername" 
-                  :placeholder="t('game.enterUsername')" 
-                  @keyup.enter="addOfflineAccount"
+                <UiInput
+                  v-model="account.newOfflineUsername"
+                  :placeholder="t('game.enterUsername')"
+                  @keyup.enter="account.addOfflineAccount"
                 />
                 <span class="form-hint">{{ t('game.offlineNoPassword') }}</span>
               </div>
-              <UiButton 
-                variant="primary" 
+              <UiButton
+                variant="primary"
                 icon="icon-add"
-                :loading="addingOffline"
-                :disabled="!newOfflineUsername.trim()"
-                @click="addOfflineAccount"
+                :loading="account.addingOffline"
+                :disabled="!account.newOfflineUsername.trim()"
+                @click="account.addOfflineAccount"
               >
                 {{ t('game.addOfflineAccount') }}
               </UiButton>
             </div>
           </div>
 
-          <!-- 添加微软账户 -->
           <h3 class="section-title" style="margin-top: 20px;">
             <UiIcon name="microsoft" :size="16" />
             {{ t('game.addMicrosoftAccount') }}
@@ -169,11 +185,11 @@
               <p class="form-hint" style="margin-bottom: 12px;">
                 {{ t('game.login.step1') }}
               </p>
-              <UiButton 
-                variant="primary" 
+              <UiButton
+                variant="primary"
                 icon="log-in"
-                :loading="startingMicrosoftLogin"
-                @click="startMicrosoftLogin"
+                :loading="account.startingMicrosoftLogin"
+                @click="account.startMicrosoftLogin"
               >
                 {{ t('game.addMicrosoftAccount') }}
               </UiButton>
@@ -181,77 +197,83 @@
           </div>
         </div>
       </div>
-      
+
       <template #footer>
-        <UiButton variant="secondary" @click="showAccountModal = false">{{ t('game.close') }}</UiButton>
+        <UiButton variant="secondary" @click="account.showAccountModal = false">{{ t('game.close') }}</UiButton>
       </template>
     </ContentModal>
 
-    <!-- 微软登录弹窗 -->
     <ContentModal
-      v-model:visible="showMicrosoftLoginModal"
+      v-model:visible="account.showMicrosoftLoginModal"
       :title="t('game.login.title')"
       :closable="false"
     >
       <div class="microsoft-login-content">
-        <div v-if="microsoftLoginStatus === 'pending'" class="login-pending">
+        <div v-if="account.microsoftLoginStatus === 'pending'" class="login-pending">
           <div class="login-step">
-            <p class="step-label">{{ t('game.login.step1') }}</p>
-            <a :href="microsoftLoginData.verificationUri" target="_blank" class="login-link">
-              {{ microsoftLoginData.verificationUri }}
+            <p class="step-label">{{ t('game.login.browserOpened') }}</p>
+            <a :href="account.microsoftLoginData.verificationUri" target="_blank" class="login-link">
+              {{ account.microsoftLoginData.verificationUri }}
             </a>
           </div>
           <div class="login-step">
-            <p class="step-label">{{ t('game.login.step2') }}</p>
+            <p class="step-label">{{ t('game.login.enterCode') }}</p>
             <div class="user-code-box">
-              <code class="user-code">{{ microsoftLoginData.userCode }}</code>
-              <UiButton 
-                variant="secondary" 
+              <code class="user-code">{{ account.microsoftLoginData.userCode }}</code>
+              <UiButton
+                variant="secondary"
                 size="sm"
-                @click="copyUserCode"
+                @click="account.copyUserCode"
               >
-                {{ copiedUserCode ? t('game.login.copied') : t('game.login.copyCode') }}
+                {{ account.copiedUserCode ? t('game.login.copied') : t('game.login.copyCode') }}
               </UiButton>
             </div>
           </div>
-          <p class="login-waiting">{{ t('game.login.waiting') }}</p>
+          <p class="login-waiting">{{ t('game.login.autoDetecting') }}</p>
         </div>
-        
-        <div v-else-if="microsoftLoginStatus === 'loading'" class="login-loading">
+
+        <div v-else-if="account.microsoftLoginStatus === 'loading'" class="login-loading">
           <span class="text-secondary">{{ t('game.login.waiting') }}</span>
         </div>
-        
-        <div v-else-if="microsoftLoginStatus === 'error'" class="login-error">
-          <p class="text-error">{{ microsoftLoginError }}</p>
+
+        <div v-else-if="account.microsoftLoginStatus === 'error'" class="login-error">
+          <p class="text-error">{{ account.microsoftLoginError }}</p>
         </div>
       </div>
-      
+
       <template #footer>
-        <UiButton variant="secondary" @click="cancelMicrosoftLogin">{{ t('common.cancel') }}</UiButton>
-        <UiButton 
-          variant="primary" 
-          :loading="completingMicrosoftLogin"
-          @click="completeMicrosoftLogin"
+        <UiButton variant="secondary" @click="account.cancelMicrosoftLogin">{{ t('common.cancel') }}</UiButton>
+        <UiButton
+          v-if="account.microsoftLoginStatus === 'pending'"
+          variant="primary"
+          @click="account.completeMicrosoftLogin"
+        >
+          {{ t('game.login.complete') }}
+        </UiButton>
+        <UiButton
+          v-else
+          variant="primary"
+          :loading="account.completingMicrosoftLogin"
+          @click="account.completeMicrosoftLogin"
         >
           {{ t('game.login.complete') }}
         </UiButton>
       </template>
     </ContentModal>
 
-    <!-- 删除确认弹窗 -->
     <ContentModal
-      v-model:visible="showDeleteConfirmModal"
+      v-model:visible="account.showDeleteConfirmModal"
       type="confirm"
       :title="t('common.confirm')"
       show-backdrop
     >
-      <p>{{ deleteConfirmMessage }}</p>
-      
+      <p>{{ account.deleteConfirmMessage }}</p>
+
       <template #footer>
-        <UiButton variant="secondary" @click="showDeleteConfirmModal = false">
+        <UiButton variant="secondary" @click="account.showDeleteConfirmModal = false">
           {{ t('common.cancel') }}
         </UiButton>
-        <UiButton variant="danger" :loading="deletingAccount" @click="confirmRemoveAccount">
+        <UiButton variant="danger" :loading="account.deletingAccount" @click="account.confirmRemoveAccount">
           {{ t('common.delete') }}
         </UiButton>
       </template>
@@ -260,341 +282,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
-import { useGlassMessage } from '@/composables/useGlassMessage'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import gsap from 'gsap'
 import '@/styles/views/Game.css'
 import UiCard from '@/components/ui/Card.vue'
 import UiButton from '@/components/ui/Button.vue'
+import UiIcon from '@/components/ui/Icon.vue'
 import UiInput from '@/components/ui/Input.vue'
 import ContentModal from '@/components/modals/ContentModal.vue'
-import { api } from '@/utils/api'
 import SkinRenderer from '@/components/SkinRenderer.vue'
+import { useAccountManager } from '@/composables/useAccountManager'
+import { useVersionManager } from '@/composables/useVersionManager'
+import { api } from '@/utils/api'
 
-const message = useGlassMessage()
 const { t } = useI18n()
 
-// ========== 版本管理 ==========
-const versions = ref<any[]>([])
-const selectedVersion = ref<string>('')
-const loading = ref(false)
-const launching = ref(false)
-const statusMsg = ref<string>('')
-const statusType = ref<'info' | 'success' | 'error'>('info')
-
-// ========== 账户管理 ==========
-const showAccountModal = ref(false)
-const accounts = ref<any[]>([])
-const currentAccount = ref<any>(null)
-const accountsLoading = ref(false)
-
-// 添加离线账户
-const newOfflineUsername = ref('')
-const addingOffline = ref(false)
-
-// 微软登录
-const showMicrosoftLoginModal = ref(false)
-const startingMicrosoftLogin = ref(false)
-const completingMicrosoftLogin = ref(false)
-const microsoftLoginStatus = ref<'pending' | 'loading' | 'error'>('pending')
-const microsoftLoginData = ref<{ userCode: string; verificationUri: string }>({ userCode: '', verificationUri: '' })
-const microsoftLoginError = ref('')
-const copiedUserCode = ref(false)
-
-// 删除确认
-const showDeleteConfirmModal = ref(false)
-const deletingAccount = ref(false)
-const accountToDelete = ref<{ id: string; alias: string } | null>(null)
-const deleteConfirmMessage = computed(() => {
-  if (!accountToDelete.value) return ''
-  return t('game.deleteConfirm', { name: accountToDelete.value.alias })
-})
-
-
-// 账户类型标签
-const accountTypeLabel = computed(() => {
-  if (!currentAccount.value) return t('game.offlineAccount')
-  return currentAccount.value.type === 'microsoft' 
-    ? t('game.microsoftAccount') 
-    : t('game.offlineAccount')
-})
+const account = useAccountManager(t)
+const version = useVersionManager(t)
 
 const homeLeftRef = ref<HTMLElement | null>(null)
 const homeRightRef = ref<HTMLElement | null>(null)
 
-// ========== 版本管理方法 ==========
-async function loadVersions() {
-  loading.value = true
-  try {
-    const configRes = await api.getGameConfig()
-    if (!configRes.success || !configRes.data?.minecraft_paths?.length) {
-      showStatus(t('game.status.noGameDir'), 'error')
-      return
-    }
-    
-    // 将 (string | GamePath)[] 转换为 string[]
-    const stringPaths = configRes.data.minecraft_paths.map(path => 
-      typeof path === 'string' ? path : path.path
-    )
-    const scanRes = await api.scanVersions(stringPaths)
-    if (scanRes.success && scanRes.data) {
-      versions.value = scanRes.data
-        .filter((v: any) => v.status === 'success')
-        .map((v: any) => ({ id: v.folder, type: v.loader_type || 'Vanilla' }))
-      
-      if (versions.value.length > 0 && !selectedVersion.value) {
-        selectedVersion.value = versions.value[0].id
-      }
-      showStatus(t('game.status.foundVersions', { count: versions.value.length }), 'success')
-    } else {
-      showStatus(t('game.status.scanFailed'), 'error')
-    }
-  } catch (e) {
-    showStatus(t('game.status.fetchFailed'), 'error')
-  } finally {
-    loading.value = false
-  }
-}
-
-function selectVersion(id: string) {
-  selectedVersion.value = id
-}
-
-async function launchGame() {
-  if (!selectedVersion.value) {
-    showStatus(t('game.status.selectVersionFirst'), 'error')
-    return
-  }
-  
-  if (!currentAccount.value) {
-    showStatus(t('game.status.noAccount'), 'error')
-    message.error(t('game.status.noAccount'))
-    return
-  }
-  
-  launching.value = true
-  showStatus(t('game.status.launching'), 'info')
-  
-  try {
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    showStatus(t('game.status.launchSuccess'), 'success')
-    message.success(t('game.status.launchSuccess'))
-  } catch (e) {
-    showStatus(t('game.status.launchError'), 'error')
-    message.error(t('game.status.launchError'))
-  } finally {
-    launching.value = false
-  }
-}
-
-function showStatus(msg: string, type: 'info' | 'success' | 'error' = 'info') {
-  statusMsg.value = msg
-  statusType.value = type
-  setTimeout(() => {
-    if (statusMsg.value === msg) {
-      statusMsg.value = ''
-    }
-  }, 5000)
-}
-
-// ========== 账户管理方法 ==========
-async function loadAccounts() {
-  accountsLoading.value = true
-  try {
-    const res = await api.getAccounts()
-    if (res.success && res.data) {
-      accounts.value = res.data.accounts || []
-      currentAccount.value = res.data.current
-    }
-  } catch (e) {
-    console.error('加载账户失败:', e)
-    message.error('加载账户失败')
-  } finally {
-    accountsLoading.value = false
-  }
-}
-
-function openAccountModal() {
-  showAccountModal.value = true
-  loadAccounts()
-}
-
-async function addOfflineAccount() {
-  const username = newOfflineUsername.value.trim()
-  if (!username) {
-    message.error(t('game.status.emptyUsername'))
-    return
-  }
-  
-  addingOffline.value = true
-  try {
-    const res = await api.addOfflineAccount(username)
-    if (res.success) {
-      message.success(t('game.status.accountAdded'))
-      newOfflineUsername.value = ''
-      await loadAccounts()
-    } else {
-      message.error(res.message || t('game.status.accountAddFailed'))
-    }
-  } catch (e) {
-    message.error(t('game.status.accountAddFailed'))
-  } finally {
-    addingOffline.value = false
-  }
-}
-
-async function switchAccount(accountId: string) {
-  try {
-    const res = await api.switchAccount(accountId)
-    if (res.success) {
-      message.success(t('game.status.accountSwitched'))
-      await loadAccounts()
-      // 更新主页面的当前账户显示
-      const accountsRes = await api.getAccounts()
-      if (accountsRes.success && accountsRes.data) {
-        currentAccount.value = accountsRes.data.current
-      }
-    } else {
-      message.error(res.message || t('game.status.accountSwitchFailed'))
-    }
-  } catch (e) {
-    message.error(t('game.status.accountSwitchFailed'))
-  }
-}
-
-function removeAccount(accountId: string, alias: string) {
-  accountToDelete.value = { id: accountId, alias }
-  showDeleteConfirmModal.value = true
-}
-
-async function confirmRemoveAccount() {
-  if (!accountToDelete.value) return
-  
-  deletingAccount.value = true
-  try {
-    const res = await api.removeAccount(accountToDelete.value.id)
-    if (res.success) {
-      message.success(t('game.status.accountRemoved'))
-      showDeleteConfirmModal.value = false
-      await loadAccounts()
-      // 更新主页面的当前账户显示
-      const accountsRes = await api.getAccounts()
-      if (accountsRes.success && accountsRes.data) {
-        currentAccount.value = accountsRes.data.current
-      }
-    } else {
-      message.error(res.message || t('game.status.accountRemoveFailed'))
-    }
-  } catch (e) {
-    message.error(t('game.status.accountRemoveFailed'))
-  } finally {
-    deletingAccount.value = false
-    accountToDelete.value = null
-  }
-}
-
-// ========== 微软登录方法 ==========
-async function startMicrosoftLogin() {
-  startingMicrosoftLogin.value = true
-  try {
-    const res = await api.startMicrosoftLogin()
-    console.log('[Game] startMicrosoftLogin 响应:', res)
-    if (res.success) {
-      if (res.data?.status === 'completed') {
-        // 已经有缓存，直接完成
-        message.success(t('game.login.success'))
-        await loadAccounts()
-      } else if (res.data?.status === 'pending') {
-        // 需要用户到浏览器授权
-        microsoftLoginData.value = {
-          userCode: res.data.userCode || '',
-          verificationUri: res.data.verificationUri || ''
-        }
-        microsoftLoginStatus.value = 'pending'
-        showMicrosoftLoginModal.value = true
-      } else {
-        // 如果有verificationUri和userCode，说明是等待用户验证的状态
-        if (res.data?.verificationUri && res.data?.userCode) {
-          microsoftLoginData.value = {
-            userCode: res.data.userCode,
-            verificationUri: res.data.verificationUri
-          }
-          microsoftLoginStatus.value = 'pending'
-          showMicrosoftLoginModal.value = true
-        } else {
-          // 其他错误情况
-          const errorMessage = res.data?.message || res.message || t('game.login.failed')
-          message.error(errorMessage)
-          console.error('[Game] startMicrosoftLogin 失败:', errorMessage)
-        }
-      }
-    } else {
-      // 处理API调用失败
-      const errorMessage = res.message || t('game.login.failed')
-      message.error(errorMessage)
-      console.error('[Game] startMicrosoftLogin API调用失败:', errorMessage)
-    }
-  } catch (e) {
-    console.error('[Game] startMicrosoftLogin 发生异常:', e)
-    message.error(t('game.login.failed'))
-  } finally {
-    startingMicrosoftLogin.value = false
-  }
-}
-
-async function completeMicrosoftLogin() {
-  completingMicrosoftLogin.value = true
-  microsoftLoginStatus.value = 'loading'
-  try {
-    const res = await api.completeMicrosoftLogin()
-    console.log('[Game] completeMicrosoftLogin 响应:', res)
-    if (res.success && res.data?.account) {
-      message.success(t('game.login.success'))
-      showMicrosoftLoginModal.value = false
-      await loadAccounts()
-      // 更新主页面的当前账户显示
-      const accountsRes = await api.getAccounts()
-      if (accountsRes.success && accountsRes.data) {
-        currentAccount.value = accountsRes.data.current
-      }
-    } else {
-      microsoftLoginStatus.value = 'error'
-      // 优先使用后端返回的错误消息
-      microsoftLoginError.value = res.message || res.data?.message || t('game.login.failed')
-      message.error(microsoftLoginError.value)
-    }
-  } catch (e) {
-    console.error('[Game] completeMicrosoftLogin 错误:', e)
-    microsoftLoginStatus.value = 'error'
-    microsoftLoginError.value = t('game.login.failed')
-    message.error(t('game.login.failed'))
-  } finally {
-    completingMicrosoftLogin.value = false
-  }
-}
-
-function cancelMicrosoftLogin() {
-  showMicrosoftLoginModal.value = false
-  microsoftLoginStatus.value = 'pending'
-  microsoftLoginError.value = ''
-}
-
-async function copyUserCode() {
-  try {
-    await navigator.clipboard.writeText(microsoftLoginData.value.userCode)
-    copiedUserCode.value = true
-    setTimeout(() => {
-      copiedUserCode.value = false
-    }, 2000)
-  } catch (e) {
-    console.error('复制失败:', e)
-  }
-}
-
 onMounted(() => {
   const tl = gsap.timeline({ delay: 0.1 })
-  
+
   tl.fromTo(homeLeftRef.value,
     { x: -30, opacity: 0 },
     { x: 0, opacity: 1, duration: 0.4, ease: 'power2.out' }
@@ -604,21 +316,17 @@ onMounted(() => {
     { x: 0, opacity: 1, duration: 0.4, ease: 'power2.out' },
     '-=0.25'
   )
-  
-  loadVersions()
-  // 加载当前账户
+
+  version.loadVersions()
   api.getCurrentAccount().then(res => {
     if (res.success && res.data) {
-      currentAccount.value = res.data
+      account.currentAccount = res.data
     }
   })
 })
 
-// 离开页面时关闭弹窗
 onBeforeUnmount(() => {
-  showAccountModal.value = false
-  showMicrosoftLoginModal.value = false
-  showDeleteConfirmModal.value = false
+  account.reset()
 })
 </script>
 

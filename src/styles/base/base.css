@@ -9,24 +9,6 @@
   font-display: swap;
 }
 
-/* LXGW WenKai 霞鹜文楷 - 本地备用定义 */
-@font-face {
-  font-family: 'LXGWWenKai';
-  src: url('https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/lxgwwenkai-regular.woff2') format('woff2'),
-       url('https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/lxgwwenkai-regular.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'LXGWWenKai';
-  src: url('https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/lxgwwenkai-bold.woff2') format('woff2'),
-       url('https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/lxgwwenkai-bold.woff') format('woff');
-  font-weight: bold;
-  font-style: normal;
-  font-display: swap;
-}
 
 
 /* ==================== CSS 变量定义 ==================== */
@@ -39,6 +21,7 @@
   
   /* --- 主题色 --- */
   --color-primary: #3b82f6;
+  --color-primary-rgb: 59, 130, 246;
   --color-primary-hover: #60a5fa;
   --color-primary-active: #2563eb;
   --color-primary-light: rgba(59, 130, 246, 0.15);
@@ -57,6 +40,7 @@
   --bg-titlebar: rgba(255, 255, 255, 0.60);
   --bg-overlay: rgba(15, 23, 42, 0.2);
   --bg-card: rgba(255, 255, 255, 0.70);
+  --hover-bg: rgba(var(--color-primary-rgb), 0.08);
 
   /* --- 文本色 --- */
   --text-primary: #0f172a;
@@ -76,6 +60,20 @@
   --shadow-color: rgba(0, 0, 0, 0.05);
   --shadow-strong: rgba(0, 0, 0, 0.1);
   --shadow-modal: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+  /* --- 兼容旧变量命名 --- */
+  --background-primary: var(--bg-app);
+  --background-secondary: var(--bg-surface);
+  --background-tertiary: var(--bg-card);
+  --background-hover: var(--hover-bg);
+  --background-active: var(--bg-surface-active);
+  --text-primary-color: var(--text-primary);
+  --text-secondary-color: var(--text-secondary);
+  --text-disabled-color: var(--text-disabled);
+  --primary-color-alpha: rgba(var(--color-primary-rgb), 0.08);
+  --success-background: rgba(16, 185, 129, 0.08);
+  --warning-background: rgba(245, 158, 11, 0.08);
+  --error-background: rgba(239, 68, 68, 0.08);
 
   /* --- 圆角 - 增大 --- */
   --radius-sm: 0.375rem;
@@ -117,6 +115,7 @@
 /* --- Dark Mode - 同样调整透明度 --- */
 [data-theme="dark"] {
   --color-primary: #60a5fa;
+  --color-primary-rgb: 96, 165, 250;
   --color-primary-hover: #93c5fd;
   --color-primary-active: #3b82f6;
   --color-primary-light: rgba(96, 165, 250, 0.15);
@@ -134,11 +133,26 @@
   --bg-titlebar: rgba(30, 41, 59, 0.60);
   --bg-overlay: rgba(0, 0, 0, 0.6);
   --bg-card: rgba(45, 55, 75, 0.65);
+  --hover-bg: rgba(var(--color-primary-rgb), 0.16);
 
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
   --text-disabled: #64748B;
   --text-on-primary: #0f172a;
+
+  /* --- 兼容旧变量命名 (暗色模式) --- */
+  --background-primary: var(--bg-app);
+  --background-secondary: var(--bg-surface);
+  --background-tertiary: var(--bg-card);
+  --background-hover: var(--hover-bg);
+  --background-active: var(--bg-surface-active);
+  --text-primary-color: var(--text-primary);
+  --text-secondary-color: var(--text-secondary);
+  --text-disabled-color: var(--text-disabled);
+  --primary-color-alpha: rgba(var(--color-primary-rgb), 0.18);
+  --success-background: rgba(52, 211, 153, 0.16);
+  --warning-background: rgba(251, 191, 36, 0.16);
+  --error-background: rgba(248, 113, 113, 0.16);
 
   --border-color: rgba(148, 163, 184, 0.1);
   --border-color-hover: rgba(148, 163, 184, 0.2);
@@ -171,8 +185,8 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  -webkit-user-select: none;
-  user-select: none;
+  -webkit-user-select: auto;
+  user-select: auto;
   transition: background-color 0.3s var(--ease-normal), color 0.3s var(--ease-normal);
 }
 
@@ -207,6 +221,59 @@ code, pre, kbd, samp, .font-mono {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+/* 新增图标类 */
+.icon-lab,
+.icon-flask {
+  /* 实验室/实验图标 */
+}
+
+.icon-fire,
+.icon-flame {
+  /* 火焰/热门图标 */
+}
+
+.icon-grid,
+.icon-apps {
+  /* 网格/应用图标 */
+}
+
+.icon-plus,
+.icon-add {
+  /* 添加图标 */
+}
+
+.icon-trash,
+.icon-delete {
+  /* 删除图标 */
+}
+
+.icon-play,
+.icon-start {
+  /* 播放/开始图标 */
+}
+
+.icon-refresh,
+.icon-reload {
+  /* 刷新图标 */
+}
+
+.icon-spinner,
+.icon-loading {
+  /* 加载中图标 */
+}
+
+/* ==================== 减少动画媒体查询 ==================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 

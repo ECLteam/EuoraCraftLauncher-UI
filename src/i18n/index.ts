@@ -23,7 +23,7 @@ function getLocalStoredLocale(): LocaleCode | null {
 }
 
 // 保存语言设置到本地存储（作为后备）
-function setLocalStoredLocale(locale: LocaleCode): void {
+export function setLocalStoredLocale(locale: LocaleCode): void {
   localStorage.setItem('app-language', locale)
 }
 

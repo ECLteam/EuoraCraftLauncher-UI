@@ -289,10 +289,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useGlassMessage } from '@/composables/useGlassMessage'
-import { supportedLocales, setLocale, getCurrentLocale, type LocaleCode } from '@/i18n'
+import { supportedLocales, setLocale, type LocaleCode } from '@/i18n'
 import { useTheme, type ThemeMode, presetColors } from '@/composables/useTheme'
 import UiButton from '@/components/ui/Button.vue'
 import UiInput from '@/components/ui/Input.vue'
@@ -318,7 +318,7 @@ const {
 
 const currentSettings = computed(() => ({
   mode: props.settings?.mode || 'system',
-  primaryColor: props.settings?.primaryColor || '#87CEEB',
+  primaryColor: props.settings?.primaryColor || '#0078d4',
   blurAmount: props.settings?.blurAmount ?? 6,
   backgroundImage: props.settings?.backgroundImage || '',
   downloadSource: props.settings?.downloadSource || 'official',
@@ -351,12 +351,12 @@ const mouseEffectScale = ref(1.5)
 const mouseEffectOpacity = ref(1.0)
 const mouseEffectSpeed = ref(1.0)
 
-// 从 localStorage 加载配置
-const loadMouseEffectConfig = () => {
+// 从后端加载配置
+const loadMouseEffectConfig = async () => {
   try {
-    const saved = localStorage.getItem('mouseEffect')
-    if (saved) {
-      const config = JSON.parse(saved)
+    const result = await api.getMouseEffectConfig()
+    if (result.success && result.data) {
+      const config = result.data
       mouseEffectEnabled.value = config.enabled ?? false
       mouseEffectColor.value = config.color ?? '45,175,255'
       mouseEffectScale.value = config.scale ?? 1.5
@@ -368,8 +368,8 @@ const loadMouseEffectConfig = () => {
   }
 }
 
-// 保存配置到 localStorage
-const saveMouseEffectConfig = () => {
+// 保存配置到后端
+const saveMouseEffectConfig = async () => {
   const config = {
     enabled: mouseEffectEnabled.value,
     color: mouseEffectColor.value,
@@ -377,7 +377,10 @@ const saveMouseEffectConfig = () => {
     opacity: mouseEffectOpacity.value,
     speed: mouseEffectSpeed.value
   }
-  localStorage.setItem('mouseEffect', JSON.stringify(config))
+  const result = await api.updateMouseEffectConfig(config)
+  if (!result.success) {
+    console.error('保存鼠标效果配置失败:', result.message)
+  }
 }
 
 const toggleMouseEffect = async () => {
@@ -387,10 +390,10 @@ const toggleMouseEffect = async () => {
   window.dispatchEvent(new CustomEvent('mouseEffectChange', { detail: { enabled: mouseEffectEnabled.value } }))
 }
 
-const updateMouseEffectColor = async (value: string) => {
-  mouseEffectColor.value = value
+const updateMouseEffectColor = async (value: string | number) => {
+  mouseEffectColor.value = value.toString()
   await saveMouseEffectConfig()
-  window.dispatchEvent(new CustomEvent('mouseEffectUpdate', { detail: { color: value } }))
+  window.dispatchEvent(new CustomEvent('mouseEffectUpdate', { detail: { color: value.toString() } }))
 }
 
 const updateMouseEffectSettings = async () => {
@@ -419,12 +422,29 @@ const updateField = (field: string, value: any) => {
 const handleThemeChange = async (mode: ThemeMode) => {
   updateField('mode', mode)
   setThemeMode(mode)
+  try {
+    await api.updateThemeConfig({
+      mode,
+      primary_color: currentSettings.value.primaryColor,
+      blur_amount: currentSettings.value.blurAmount
+    })
+  } catch (error) {
+    message.error(t('common.error'))
+  }
 }
 
 const handleColorChange = async (color: string) => {
   updateField('primaryColor', color)
   setPrimaryColor(color)
-  
+  try {
+    await api.updateThemeConfig({
+      mode: currentSettings.value.mode,
+      primary_color: color,
+      blur_amount: currentSettings.value.blurAmount
+    })
+  } catch (error) {
+    message.error(t('common.error'))
+  }
 }
 
 const handleColorInput = (e: Event) => {
@@ -435,7 +455,15 @@ const handleBlurChange = async (e: Event) => {
   const val = parseInt((e.target as HTMLInputElement).value)
   updateField('blurAmount', val)
   setBlurAmount(val)
-  
+  try {
+    await api.updateThemeConfig({
+      mode: currentSettings.value.mode,
+      primary_color: currentSettings.value.primaryColor,
+      blur_amount: val
+    })
+  } catch (error) {
+    message.error(t('common.error'))
+  }
 }
 
 const selectLocalImage = async () => {
@@ -475,47 +503,27 @@ const handleBgImageInput = (val: string | number) => {
     if (strVal.startsWith('http')) {
       try {
         message.loading('Loading...')
-        console.log('[Background] 开始下载图片:', strVal)
-        // 1. 下载网络图片到本地
         const result = await api.loadImageFromUrl(strVal)
         if (result.success && result.data?.path) {
           const localPath = result.data.path
-          console.log('[Background] 图片下载成功, 本地路径:', localPath)
-          // 2. 先更新后端配置，设置新的背景图路径
-          await api.updateBackgroundImage('custom', localPath)
+          const updateResult = await api.updateBackgroundImage('custom', localPath)
           if (!updateResult.success) {
-            console.error('[Background] 更新配置失败:', updateResult.message)
             message.error('更新配置失败: ' + updateResult.message)
             return
           }
-          // 3. 更新前端输入框显示为本地路径
           updateField('backgroundImage', localPath)
-          // 4. 获取背景图数据（此时配置已更新）
-          console.log('[Background] 开始获取背景图数据...')
           const imgData = await api.getBackgroundImage()
-          
+
           if (imgData.success && imgData.data?.base64) {
-            console.log('[Background] Base64 数据长度:', imgData.data.base64.length)
-            console.log('[Background] Base64 数据前100字符:', imgData.data.base64.substring(0, 100))
-            // 5. 设置背景图显示
             setBackgroundImage(imgData.data.base64, localPath)
-            console.log('[Background] setBackgroundImage 调用完成')
-            // 检查 CSS 变量是否正确设置
-            setTimeout(() => {
-              const bgImage = getComputedStyle(document.documentElement).getPropertyValue('--bg-image')
-              console.log('[Background] CSS --bg-image 值:', bgImage.substring(0, 100))
-            }, 100)
             message.success(t('common.success'))
           } else {
-            console.error('[Background] 获取背景图数据失败:', imgData.message)
             message.error('加载背景图失败: ' + imgData.message)
           }
         } else {
-          console.error('[Background] 图片下载失败:', result.message)
           message.error(result.message || t('common.error'))
         }
       } catch (error: any) {
-        console.error('[Background] 处理异常:', error)
         message.error(t('common.error'))
       }
     }

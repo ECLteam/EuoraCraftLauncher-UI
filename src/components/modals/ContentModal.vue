@@ -263,7 +263,6 @@ const togglePageContent = (isOpen: boolean) => {
 
 // 监听 visible 变化
 watch(() => props.visible, (val) => {
-  console.log('[ContentModal] watch visible 变化:', val, 'fullscreen:', props.fullscreen, 'title:', props.title)
   if (val) {
     nextTick(() => {
       modalRef.value?.focus()
@@ -279,7 +278,6 @@ watch(() => props.visible, (val) => {
     togglePageContent(true)
     // 全屏模式下同步更新 TitleBar
     if (props.fullscreen && props.title) {
-      console.log('[ContentModal] 打开全屏弹窗状态')
       fullscreenModal.open(props.title, close)
     }
   } else {
@@ -294,7 +292,6 @@ watch(() => props.visible, (val) => {
     togglePageContent(false)
     // 只有关闭的是全屏弹窗时，才重置全屏弹窗状态
     if (props.fullscreen) {
-      console.log('[ContentModal] 关闭全屏弹窗，重置 fullscreenModal')
       fullscreenModal.reset()
     }
   }

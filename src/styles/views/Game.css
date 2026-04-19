@@ -211,6 +211,15 @@
   border: 1px solid var(--border-color);
 }
 
+.avatar-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 3px;
+  background: var(--bg-surface-hover);
+  border: 1px dashed var(--border-color);
+  flex-shrink: 0;
+}
+
 .user-details {
   display: flex;
   flex-direction: column;
@@ -284,8 +293,8 @@
 /* ==================== 账户管理弹窗内容 - 设置页风格 ==================== */
 .account-manager {
   display: flex;
-  gap: 12px;
-  padding: 12px;
+  gap: 10px;
+  padding: 10px;
   height: 100%;
 }
 
@@ -298,10 +307,10 @@
 }
 
 .section-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 10px 0;
+  margin: 0 0 8px 0;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -317,7 +326,7 @@
   background: var(--bg-surface);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-color);
-  padding: 10px;
+  padding: 8px;
   overflow-y: auto;
 }
 
@@ -330,8 +339,8 @@
 .account-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
+  gap: 8px;
+  padding: 6px 8px;
   background: var(--bg-app);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
@@ -351,14 +360,14 @@
 }
 
 .acc-avatar {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 0;
   background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: white;
   flex-shrink: 0;
@@ -393,9 +402,9 @@
 
 .acc-name {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -404,8 +413,8 @@
 .acc-type {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 11px;
+  gap: 6px;
+  font-size: 10px;
 }
 
 .type-badge {
@@ -453,7 +462,7 @@
 
 /* 右侧：添加账户 - 设置页风格 */
 .account-add-section {
-  width: 240px;
+  width: 220px;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -463,7 +472,7 @@
   background: var(--bg-surface);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-color);
-  padding: 12px;
+  padding: 10px;
 }
 
 .add-form {
@@ -497,7 +506,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
+  padding: 40px 20px;
   color: var(--text-secondary);
   text-align: center;
 }

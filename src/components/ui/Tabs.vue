@@ -1,19 +1,24 @@
 <template>
-  <nav class="ui-tabs" @mouseleave="handleMouseLeave">
+  <nav class="ui-tabs" role="tablist" @mouseleave="handleMouseLeave" @keydown="handleKeydown">
     <div class="active-background" ref="activeBgRef"></div>
     <div class="tabs-indicator" ref="indicatorRef"></div>
-    <div
+    <button
       v-for="(tab, index) in items"
       :key="tab.id"
       :ref="el => { if (el) tabRefs[index] = el as HTMLElement }"
       class="tab-item"
       :class="{ active: modelValue === tab.id }"
+      :id="`tab-${tab.id}`"
+      :aria-selected="modelValue === tab.id"
+      :aria-controls="`panel-${tab.id}`"
+      role="tab"
+      type="button"
       @click="handleClick(tab.id)"
       @mouseenter="handleMouseEnter(index)"
     >
       <i v-if="tab.icon" :class="['icon', tab.icon]" />
       {{ tab.label }}
-    </div>
+    </button>
   </nav>
 </template>
 
@@ -75,6 +80,39 @@ const handleMouseLeave = () => {
 
 const handleClick = (id: string) => {
   emit('update:modelValue', id)
+}
+
+const handleKeydown = (event: KeyboardEvent) => {
+  const currentIndex = props.items.findIndex(t => t.id === props.modelValue)
+  let newIndex = currentIndex
+  
+  switch (event.key) {
+    case 'ArrowLeft':
+    case 'ArrowUp':
+      event.preventDefault()
+      newIndex = currentIndex > 0 ? currentIndex - 1 : props.items.length - 1
+      break
+    case 'ArrowRight':
+    case 'ArrowDown':
+      event.preventDefault()
+      newIndex = currentIndex < props.items.length - 1 ? currentIndex + 1 : 0
+      break
+    case 'Home':
+      event.preventDefault()
+      newIndex = 0
+      break
+    case 'End':
+      event.preventDefault()
+      newIndex = props.items.length - 1
+      break
+    default:
+      return
+  }
+  
+  if (newIndex !== currentIndex) {
+    emit('update:modelValue', props.items[newIndex].id)
+    tabRefs.value[newIndex]?.focus()
+  }
 }
 
 watch(() => props.modelValue, () => {
@@ -151,6 +189,14 @@ onMounted(() => {
   transition: var(--transition-fast);
   z-index: 1;
   user-select: none;
+  border: none;
+  background: transparent;
+  outline: none;
+}
+
+.tab-item:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .tab-item:hover {

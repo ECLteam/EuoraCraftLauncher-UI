@@ -46,26 +46,7 @@ a:hover {
 }
 
 
-/* 滚动条美化 (全局) */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(128, 128, 128, 0.3);
-  border-radius: 4px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(128, 128, 128, 0.5);
-}
 
 /* 背景模糊层 */
 .bg-blur {
@@ -79,9 +60,10 @@ a:hover {
 /* 通用卡片样式 */
 .card {
   background: var(--bg-card);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 20px;
-  box-shadow: 0 4px 12px var(--shadow-color);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
   transition: var(--transition-spring);
 }
 

@@ -9,6 +9,7 @@
     ]"
     :disabled="disabled || loading"
     :title="title"
+    :aria-busy="loading"
     @click="handleClick"
   >
     <!-- 涟漪效果 -->
@@ -19,7 +20,7 @@
       :style="{ left: ripple.x + 'px', top: ripple.y + 'px' }"
     />
     <span v-if="loading" class="loading-spinner"> 
-       <UiIcon name="loading" :size="16" class="spin" /> 
+       <UiIcon name="spinner" :size="16" class="spin" /> 
    </span> 
    <span v-else-if="icon" class="btn-icon"> 
        <UiIcon :name="icon.replace('icon-', '')" :size="16" /> 

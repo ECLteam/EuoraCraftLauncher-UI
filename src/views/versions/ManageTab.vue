@@ -11,7 +11,7 @@
           <UiButton
             variant="primary"
             size="sm"
-            icon="icon-add"
+            icon="add"
             class="add-path-btn compact"
             @click="addNewPath"
           >
@@ -39,16 +39,16 @@
                 variant="ghost"
                 shape="circle"
                 size="sm"
-                icon="icon-edit"
+                icon="settings"
                 :title="t('common.edit')"
                 @click.stop="editPath(index)"
               />
               <UiButton 
-                v-if="!item.protected" 
+                v-if="!item.protected && !item.path.includes('.minecraft')" 
                 variant="ghost"
                 shape="circle"
                 size="sm"
-                icon="icon-trash"
+                icon="trash"
                 :title="t('common.delete')"
                 @click.stop="removePath(index)"
               />
@@ -89,7 +89,7 @@
             <UiInput
               v-model="searchQuery"
               :placeholder="t('versions.manage.searchVersion')"
-              icon="icon-search"
+              icon="search"
               clearable
               class="search-input"
             />
@@ -129,7 +129,7 @@
             >
               <div class="version-card-header">
                 <div class="version-icon">
-                  <UiIcon :name="getLoaderIcon(version.loader_type).replace('icon-', '')" />
+                  <UiIcon :name="getLoaderIcon(version.loader_type)" />
                 </div>
                 <div class="version-info">
                   <h4 class="version-name">{{ version.folder }}</h4>
@@ -140,7 +140,7 @@
                     v-if="version.status === 'success'"
                     variant="primary"
                     size="sm"
-                    icon="icon-play"
+                    icon="play"
                     @click="handleLaunch(version)"
                   >
                     {{ t('common.launch') }}
@@ -180,12 +180,22 @@
       </div>
     </div>
     
+    <!-- 确认弹窗 -->
+    <ContentModal
+      v-model:visible="showConfirmModal"
+      type="confirm"
+      :title="confirmTitle"
+      :content="confirmContent"
+      danger
+      show-backdrop
+      @confirm="handleConfirmAction"
+    />
+
     <!-- 添加/编辑路径对话框 -->
     <ContentModal
       v-model:visible="showPathModal"
       :title="isEditing ? t('versions.manage.editPath') : t('versions.manage.addGamePath')"
       show-backdrop
-      backdrop-blur
     >
       <div class="path-form">
         <div class="form-group">
@@ -267,6 +277,24 @@ const loading = ref(false)
 const refreshLoading = ref(false)
 const searchQuery = ref('')
 const scannedVersions = ref<ScannedVersion[]>([])
+
+// 通用确认弹窗状态
+const showConfirmModal = ref(false)
+const confirmTitle = ref('')
+const confirmContent = ref('')
+const confirmAction = ref<(() => void) | null>(null)
+
+const openConfirm = (title: string, content: string, action: () => void) => {
+  confirmTitle.value = title
+  confirmContent.value = content
+  confirmAction.value = action
+  showConfirmModal.value = true
+}
+
+const handleConfirmAction = () => {
+  confirmAction.value?.()
+  confirmAction.value = null
+}
 
 const currentPath = computed(() => 
   selectedPathIndex.value >= 0 ? gamePaths.value[selectedPathIndex.value] : null
@@ -421,6 +449,13 @@ const savePath = async () => {
       }
       
       gamePaths.value = updatedPaths
+      
+      // 保存到后端
+      await api.updateGameConfig({ 
+        ...configResponse.data, 
+        minecraft_paths: updatedPaths 
+      })
+      
       message.success(isEditing.value ? t('versions.manage.pathUpdated') : t('versions.manage.pathAdded'), 2000)
       
       // 如果是新添加的，选中它
@@ -439,61 +474,99 @@ const savePath = async () => {
 
 const removePath = async (index: number) => {
   const path = gamePaths.value[index]
-  
+
   // 检查是否是受保护路径（默认路径）
   if (path.protected) {
     message.warning(t('versions.manage.protectedPath'))
     return
   }
-  
+
   // 确认删除
-  const confirmed = confirm(t('versions.manage.confirmDeletePath', { name: path.name }))
-  if (!confirmed) return
-  
-  const removed = gamePaths.value[index]
-  gamePaths.value.splice(index, 1)
-  
-  try {
-    const configResponse = await api.getGameConfig()
-    if (configResponse.success && configResponse.data) {
-      await api.updateGameConfig({ 
-        ...configResponse.data, 
-        minecraft_paths: gamePaths.value 
-      })
+  openConfirm(
+    t('common.confirm'),
+    t('versions.manage.confirmDeletePath', { name: path.name }),
+    async () => {
+      const removed = gamePaths.value[index]
+      gamePaths.value.splice(index, 1)
+
+      try {
+        const configResponse = await api.getGameConfig()
+        if (configResponse.success && configResponse.data) {
+          await api.updateGameConfig({
+            ...configResponse.data,
+            minecraft_paths: gamePaths.value
+          })
+        }
+      } catch (error) {
+        console.error(t('versions.manage.updateConfigFailed'), error)
+        // 恢复删除
+        gamePaths.value.splice(index, 0, removed)
+        return
+      }
+
+      // 调整选中索引
+      if (index === selectedPathIndex.value) {
+        selectedPathIndex.value = Math.min(index, gamePaths.value.length - 1)
+        await scanCurrentPath()
+      } else if (index < selectedPathIndex.value) {
+        selectedPathIndex.value--
+      }
+
+      message.success(t('versions.manage.pathRemoved', { name: removed.name }))
     }
-  } catch (error) {
-    console.error(t('versions.manage.updateConfigFailed'), error)
-    // 恢复删除
-    gamePaths.value.splice(index, 0, removed)
-    return
-  }
-  
-  // 调整选中索引
-  if (index === selectedPathIndex.value) {
-    selectedPathIndex.value = Math.min(index, gamePaths.value.length - 1)
-    await scanCurrentPath()
-  } else if (index < selectedPathIndex.value) {
-    selectedPathIndex.value--
-  }
-  
-  message.success(t('versions.manage.pathRemoved', { name: removed.name }))
+  )
 }
 
-const handleLaunch = (version: ScannedVersion) => {
-  message.info(t('versions.manage.preparingLaunch', { folder: version.folder }), 2000)
-  console.log('启动版本:', version)
+const handleLaunch = async (version: ScannedVersion) => {
+  if (!currentPath.value) return
+  
+  // 直接启动版本（无需先创建并保存实例配置）
+  try {
+    const launchResult = await api.launchInstance({
+      version: version.folder,
+      gamePath: currentPath.value.path
+    })
+    if (launchResult.success) {
+      message.success(`正在启动 ${version.folder}`)
+    } else {
+      message.error(launchResult.message || '启动失败')
+    }
+  } catch (e) {
+    console.error('启动失败:', e)
+    message.error('启动过程中发生错误')
+  }
 }
 
-const handleDelete = (version: ScannedVersion) => {
-  console.log('删除版本:', version)
+const handleDelete = async (version: ScannedVersion) => {
+  if (!currentPath.value) return
+
+  openConfirm(
+    t('common.confirm'),
+    t('versions.manage.confirmDeleteVersion', { name: version.folder }),
+    async () => {
+      try {
+        // 调用后端删除版本
+        const result = await api.uninstallVersion(version.folder)
+        if (result.success) {
+          message.success(t('versions.manage.versionDeleted', { name: version.folder }))
+          await scanCurrentPath()
+        } else {
+          message.error(result.message || t('versions.manage.deleteFailed'))
+        }
+      } catch (e) {
+        console.error('删除失败:', e)
+        message.error(t('versions.manage.deleteFailed'))
+      }
+    }
+  )
 }
 
 const getLoaderIcon = (loaderType: string | null) => {
   switch (loaderType?.toLowerCase()) {
-    case 'fabric': return 'icon-lab'
-    case 'forge': return 'icon-fire'
-    case 'quilt': return 'icon-grid'
-    default: return 'icon-cube'
+    case 'fabric': return 'lab'
+    case 'forge': return 'fire'
+    case 'quilt': return 'grid'
+    default: return 'cube'
   }
 }
 

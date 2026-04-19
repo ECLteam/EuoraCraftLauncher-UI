@@ -20,7 +20,7 @@
               :opacity="mouseEffectOpacity"
               :speed="mouseEffectSpeed"
             />
-            
+            <a href="#main-content" class="skip-link">跳到主要内容</a>
             <!-- 主布局 -->
             <div class="app-layout">
               <!-- 顶部栏 - 始终可交互 -->
@@ -42,19 +42,10 @@
                 <main 
                   class="main-content"
                   :class="{ 'content-disabled': !isAgreementAccepted && !agreementLoading }"
+                  id="main-content" tabindex="-1"
                 >
                   <div class="page-container" v-if="isAgreementAccepted">
-                    <router-view v-slot="{ Component }">
-                      <transition 
-                        name="page" 
-                        mode="out-in"
-                        @before-enter="beforeEnter"
-                        @enter="enter"
-                        @leave="leave"
-                      >
-                        <component :is="Component" />
-                      </transition>
-                    </router-view>
+                    <router-view />
                   </div>
                   
                   <!-- 未同意协议时的占位提示 
@@ -66,6 +57,17 @@
                   <!-- 全局消息组件 -->
                   <GlassMessage ref="messageRef" />
                   
+                  <!-- 退出确认弹窗 -->
+                  <ContentModal
+                    v-model:visible="showQuitConfirmModal"
+                    type="confirm"
+                    :title="t('common.confirm')"
+                    :content="t('agreement.quitConfirm')"
+                    danger
+                    show-backdrop
+                    @confirm="handleQuitConfirm"
+                  />
+
                   <!-- 用户协议弹窗 -->
                   <ContentModal
                     :visible="showAgreementModal"
@@ -101,12 +103,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, provide, readonly, watch } from 'vue'
+import { ref, onMounted, computed, provide, readonly, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { 
-  NConfigProvider, 
-  NDialogProvider, 
-  NMessageProvider, 
+import {
+  NConfigProvider,
+  NDialogProvider,
+  NMessageProvider,
   NNotificationProvider,
   zhCN,
   dateZhCN,
@@ -119,16 +121,28 @@ import GlassMessage from '@/components/ui/GlassMessage.vue'
 import ContentModal from '@/components/modals/ContentModal.vue'
 import MouseEffect from '@/components/effects/MouseEffect.vue'
 import { useTheme } from '@/composables/useTheme'
-import { usePageTransition } from '@/composables/useAnimation'
+//import { usePageTransition } from '@/composables/useAnimation'
 import { setMessageRef } from '@/composables/useGlassMessage'
 import { checkUserAgreement, acceptUserAgreement, useUserAgreement } from '@/composables/useUserAgreement'
 import { useFullscreenModal } from '@/composables/useFullscreenModal'
+import { api } from '@/utils/api'
+import { i18n, supportedLocales, setLocalStoredLocale } from '@/i18n'
 
-const { naiveTheme, themeOverrides, initTheme, backgroundImage, backgroundImagePath } = useTheme()
-const { beforeEnter, enter, leave } = usePageTransition()
+const { naiveTheme, themeOverrides, initTheme } = useTheme()
+//const { beforeEnter, enter, leave } = usePageTransition()
 const { locale, t } = useI18n()
 const { isAccepted: isAgreementAccepted, isLoading: agreementLoading, agreementUrl } = useUserAgreement()
 const fullscreenModal = useFullscreenModal()
+
+// 调试模式 - 从后端 launcher 配置读取
+const isDevMode = ref(false)
+provide('devMode', readonly(isDevMode))
+
+// 全局配置缓存 - 在启动时加载，供子组件使用
+const globalGameConfig = ref<any>(null)
+provide('gameConfig', readonly(globalGameConfig) as Readonly<Ref<any>>)
+const globalDownloadConfig = ref<any>(null)
+provide('downloadConfig', readonly(globalDownloadConfig) as Readonly<Ref<any>>)
 
 // 鼠标点击效果配置
 const mouseEffectEnabled = ref(false)
@@ -137,17 +151,20 @@ const mouseEffectScale = ref(1.5)
 const mouseEffectOpacity = ref(1.0)
 const mouseEffectSpeed = ref(1.0)
 
-// 从 localStorage 加载鼠标效果配置
-const loadMouseEffectConfig = () => {
+// 从后端加载鼠标效果配置
+const applyMouseEffectConfig = (config: any) => {
+  mouseEffectEnabled.value = config.enabled ?? false
+  mouseEffectColor.value = config.color ?? '45,175,255'
+  mouseEffectScale.value = config.scale ?? 1.5
+  mouseEffectOpacity.value = config.opacity ?? 1.0
+  mouseEffectSpeed.value = config.speed ?? 1.0
+}
+
+const loadMouseEffectConfig = async () => {
   try {
-    const saved = localStorage.getItem('mouseEffect')
-    if (saved) {
-      const config = JSON.parse(saved)
-      mouseEffectEnabled.value = config.enabled ?? false
-      mouseEffectColor.value = config.color ?? '45,175,255'
-      mouseEffectScale.value = config.scale ?? 1.5
-      mouseEffectOpacity.value = config.opacity ?? 1.0
-      mouseEffectSpeed.value = config.speed ?? 1.0
+    const result = await api.getMouseEffectConfig()
+    if (result.success && result.data) {
+      applyMouseEffectConfig(result.data)
     }
   } catch (e) {
     console.error('加载鼠标效果配置失败:', e)
@@ -156,12 +173,12 @@ const loadMouseEffectConfig = () => {
 
 // 监听设置页面的事件
 const setupMouseEffectListeners = () => {
-  window.addEventListener('mouseEffectChange', (e: any) => {
-    mouseEffectEnabled.value = e.detail.enabled
-    loadMouseEffectConfig()
+  window.addEventListener('mouseEffectChange', async (event: any) => {
+    mouseEffectEnabled.value = event.detail.enabled
+    await loadMouseEffectConfig()
   })
-  window.addEventListener('mouseEffectUpdate', (e: any) => {
-    loadMouseEffectConfig()
+  window.addEventListener('mouseEffectUpdate', async (_event: any) => {
+    await loadMouseEffectConfig()
   })
 }
 
@@ -176,6 +193,7 @@ const naiveDateLocale = computed(() => {
 
 const messageRef = ref<InstanceType<typeof GlassMessage> | null>(null)
 const showAgreementModal = ref(false)
+const showQuitConfirmModal = ref(false)
 
 // 提供协议状态给子组件
 provide('agreementAccepted', readonly(isAgreementAccepted))
@@ -197,33 +215,139 @@ const handleAgreementAccept = async () => {
 }
 
 const handleAgreementReject = () => {
-  if (window.confirm?.(t('agreement.quitConfirm'))) {
-    window.pywebview?.api?.close_window?.()
-  }
+  showQuitConfirmModal.value = true
+}
+
+const handleQuitConfirm = () => {
+  showQuitConfirmModal.value = false
+  ;(window.pywebview?.api as any)?.close_window?.()
 }
 
 onMounted(async () => {
   if (messageRef.value) setMessageRef(messageRef.value)
-  
-  // 加载鼠标效果配置
-  loadMouseEffectConfig()
+
   setupMouseEffectListeners()
-  
+
   const init = async () => {
+    console.log('[App] 开始初始化主题配置...')
     fullscreenModal.reset()
-    await initTheme()
+
+    // 加载所有配置（内部会调用 initTheme 并传入预加载配置）
+    await loadAllConfigs()
     await checkAgreement()
+
+    console.log('[App] 配置初始化完成')
   }
-  
+
+  // 检查 pywebview API 是否可用
   if (window.pywebview?.api) {
+    console.log('[App] pywebview API 已可用，开始初始化')
     await init()
   } else {
-    window.addEventListener('pywebviewready', init)
+    console.log('[App] 等待 pywebviewready 事件...')
+    window.addEventListener('pywebviewready', () => {
+      console.log('[App] pywebviewready 事件触发，开始初始化')
+      init()
+    })
+
+    // 添加超时检查，防止 pywebviewready 事件未触发
+    setTimeout(() => {
+      if (window.pywebview?.api) {
+        console.log('[App] 超时检查：pywebview API 已可用，开始初始化')
+        init()
+      } else {
+        console.warn('[App] 超时检查：pywebview API 仍未可用，尝试使用本地配置')
+        initTheme()
+      }
+    }, 3000)
   }
 })
+
+// 加载所有配置
+const loadAllConfigs = async () => {
+  if (!window.pywebview?.api) return
+
+  try {
+    console.log('[App] 开始加载后端配置...')
+
+    // 同时请求所有配置
+    const [launcherRes, gameRes, downloadRes, localeRes, themeRes, backgroundRes, mouseEffectRes] = await Promise.all([
+      api.getLauncherConfig().catch(() => ({ success: false, data: null })),
+      api.getGameConfig().catch(() => ({ success: false, data: null })),
+      api.getDownloadConfig().catch(() => ({ success: false, data: null })),
+      api.getLocaleConfig().catch(() => ({ success: false, data: null })),
+      api.getThemeConfig().catch(() => ({ success: false, data: null })),
+      api.getBackgroundConfig().catch(() => ({ success: false, data: null })),
+      api.getMouseEffectConfig().catch(() => ({ success: false, data: null }))
+    ])
+
+    // 应用启动器配置（debug 模式等）
+    if (launcherRes.success && launcherRes.data) {
+      isDevMode.value = launcherRes.data.debug === true
+      console.log('[App] 启动器配置加载成功:', launcherRes.data)
+    }
+
+    // 缓存游戏配置供子组件使用
+    if (gameRes.success && gameRes.data) {
+      globalGameConfig.value = gameRes.data
+      console.log('[App] 游戏配置加载成功:', gameRes.data)
+    }
+
+    // 缓存下载配置供子组件使用
+    if (downloadRes.success && downloadRes.data) {
+      globalDownloadConfig.value = downloadRes.data
+      console.log('[App] 下载配置加载成功:', downloadRes.data)
+    }
+
+    // 应用语言配置
+    if (localeRes.success && localeRes.data?.locale) {
+      const locale = localeRes.data.locale
+      if (supportedLocales.some(l => l.code === locale)) {
+        i18n.global.locale.value = locale as any
+        setLocalStoredLocale(locale)
+        document.documentElement.setAttribute('lang', locale)
+        console.log('[App] 语言配置加载成功:', locale)
+      }
+    }
+
+    // 应用鼠标效果配置
+    if (mouseEffectRes.success && mouseEffectRes.data) {
+      applyMouseEffectConfig(mouseEffectRes.data)
+      console.log('[App] 鼠标效果配置加载成功:', mouseEffectRes.data)
+    }
+
+    // 将预加载的主题/背景配置传给 initTheme，避免重复请求
+    await initTheme(themeRes, backgroundRes)
+
+    console.log('[App] 所有配置加载完成')
+  } catch (error) {
+    console.error('[App] 配置加载失败:', error)
+    // 即使预加载失败，仍尝试初始化主题（会使用本地存储回退）
+    await initTheme()
+  }
+}
 </script>
 
 <style>
+/* 跳过链接样式 */
+.skip-link {
+  position: absolute;
+  top: -48px;
+  left: 12px;
+  background: var(--color-primary);
+  color: white;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  font-size: 14px;
+  z-index: 10000;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
 /* 应用根容器 */
 #app {
   position: relative;
@@ -239,7 +363,7 @@ onMounted(async () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #f3f3f3;
+  background-color: var(--bg-app);
   background-image: var(--bg-image);
   background-size: cover;
   background-position: center;
@@ -259,7 +383,7 @@ onMounted(async () => {
 }
 
 [data-theme="dark"] .app-background {
-  background-color: #202020;
+  background-color: var(--bg-app);
 }
 
 [data-theme="dark"] .app-background::after {
@@ -324,7 +448,7 @@ onMounted(async () => {
   pointer-events: auto;
 }
 
-.titlebar-disabled { }
+
 
 /* 内容区 */
 .main-content {
@@ -365,21 +489,23 @@ onMounted(async () => {
 }
 
 /* 页面切换动画 */
-.page-enter-active,
-.page-leave-active {
-  transition: 
-    opacity var(--duration-normal) var(--ease-standard), 
-    transform var(--duration-normal) var(--ease-spring);
+.main-content {
+  position: relative;
 }
-
-.page-enter-from {
-  opacity: 0;
-  transform: translateY(8px);
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -48px;
+  z-index: 2000;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-active);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-md);
 }
-
-.page-leave-to {
-  opacity: 0;
-  transform: translateY(-8px);
+.skip-link:focus {
+  top: 12px;
 }
 
 /* 页面容器 */

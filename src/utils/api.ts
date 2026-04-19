@@ -1,5 +1,3 @@
-
-
 import type {
   ApiResponse,
   PaginatedResponse,
@@ -9,6 +7,7 @@ import type {
   ThemeConfig,
   DownloadConfig,
   LocaleConfig,
+  MouseEffectConfig,
   JavaInstallation,
   MinecraftVersion,
   VersionFilter,
@@ -341,6 +340,15 @@ class ApiService {
     return this.client.call('update_locale_config', locale)
   }
 
+  // 鼠标特效配置
+  async getMouseEffectConfig() {
+    return this.client.call<MouseEffectConfig>('get_mouse_effect_config')
+  }
+
+  async updateMouseEffectConfig(config: Partial<MouseEffectConfig>) {
+    return this.client.call('update_mouse_effect_config', config)
+  }
+
   // 文件选择
   async selectDirectory() {
     return this.client.call<{ path: string }>('select_directory')
@@ -370,7 +378,7 @@ class ApiService {
   }
 
   async installVersion(versionId: string, options?: { gamePath?: string; loader?: string; loaderVersion?: string }) {
-    return this.client.call<DownloadTask>('install_version', versionId, options)
+    return this.client.call<{ version: string; loader: string; gamePath: string }>('install_version', versionId, options)
   }
 
   async uninstallVersion(versionId: string) {
@@ -402,8 +410,16 @@ class ApiService {
     return this.client.call('delete_instance', instanceId)
   }
 
-  async launchInstance(instanceId: string) {
-    return this.client.call<{ pid?: number }>('launch_instance', instanceId)
+  async launchInstance(params?: { version: string; gamePath?: string; javaPath?: string; memory?: { min: number; max: number }; javaArgs?: string }) {
+    return this.client.call<{ instanceId: string; version: string }>('launch_instance', params)
+  }
+
+  async stopInstance(instanceId: string) {
+    return this.client.call('stop_instance', instanceId)
+  }
+
+  async getInstanceLogs(instanceId: string) {
+    return this.client.call<{ logs: string[] }>('get_instance_logs', instanceId)
   }
 
   // 模组管理
@@ -509,7 +525,16 @@ class ApiService {
       userCode?: string
       verificationUri?: string
       message: string
+      interval?: number
     }>('start_microsoft_login')
+  }
+
+  async pollMicrosoftLogin() {
+    return this.client.call<{
+      status: 'pending' | 'ready' | 'error'
+      message: string
+      retry_after?: number
+    }>('poll_microsoft_login')
   }
 
   async completeMicrosoftLogin() {
@@ -520,6 +545,7 @@ class ApiService {
         type: 'microsoft' | 'offline'
         email: string
       }
+      message: string
     }>('complete_microsoft_login')
   }
 

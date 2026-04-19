@@ -80,7 +80,7 @@ watch(() => fullscreenModal.isVisible.value, (val) => {
 }, 
 { immediate: true })*/
 
-const minimize = () => window.pywebview?.api.minimize_window()
-const close = () => window.pywebview?.api.close_window()
+const minimize = () => (window.pywebview?.api as any)?.minimize_window?.()
+const close = () => (window.pywebview?.api as any)?.close_window?.()
 const handleClose = () => fullscreenModal.close()
 </script>

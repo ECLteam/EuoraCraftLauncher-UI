@@ -24,6 +24,7 @@ declare module 'vue' {
     MouseEffect: typeof import('./src/components/effects/MouseEffect.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Select: typeof import('./src/components/ui/Select.vue')['default']
     SideBar: typeof import('./src/components/layout/SideBar.vue')['default']
     SkinRenderer: typeof import('./src/components/SkinRenderer.vue')['default']
     SplitText: typeof import('./src/components/bits/SplitText.vue')['default']
