@@ -221,14 +221,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { api } from '@/utils/api'
+import { api } from '@/api/client'
 import UiButton from '@/components/ui/Button.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import UiInput from '@/components/ui/Input.vue'
 import UiSelect from '@/components/ui/Select.vue'
 import ContentModal from '@/components/modals/ContentModal.vue'
 import { useGlassMessage } from '@/composables/useGlassMessage'
-import { useAutoRefreshCache, CACHE_KEYS, CACHE_GROUPS } from '@/composables/useGlobalCache'
+import { useAutoRefreshCache, CACHE_KEYS, CACHE_GROUPS } from '@/cache/composable'
 import type { MinecraftVersion } from '@/types/api'
 
 const { t } = useI18n()

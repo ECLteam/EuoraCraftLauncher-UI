@@ -296,7 +296,7 @@ import { supportedLocales, setLocale, type LocaleCode } from '@/i18n'
 import { useTheme, type ThemeMode, presetColors } from '@/composables/useTheme'
 import UiButton from '@/components/ui/Button.vue'
 import UiInput from '@/components/ui/Input.vue'
-import { api } from '@/utils/api'
+import { api } from '@/api/client'
 
 const props = defineProps<{
   settings: any

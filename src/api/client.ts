@@ -572,7 +572,6 @@ export const api = new ApiService()
 // 全局诊断函数
 if (typeof window !== 'undefined') {
   (window as any).diagnoseApi = async () => {
-    console.log('=== API 诊断 ===')
     console.log('window:', typeof window !== 'undefined' ? '✓' : '✗')
     console.log('pywebview:', window.pywebview ? '✓' : '✗')
     console.log('api:', window.pywebview?.api ? '✓' : '✗')
@@ -586,7 +585,6 @@ if (typeof window !== 'undefined') {
         console.error('ping 失败:', e)
       }
     }
-    console.log('=== 诊断结束 ===')
   }
 }
 

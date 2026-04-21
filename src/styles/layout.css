@@ -1,33 +1,25 @@
-/* ==================== 全屏弹窗页面替换效果 ==================== */
-/* 页面内容默认状态 */
 .page-container {
   transition: 
     transform var(--duration-slow) var(--ease-smooth),
     opacity var(--duration-normal) var(--ease-standard);
 }
 
-/* 弹窗打开时页面内容右滑离开 */
 .modal-page-slide-out {
   transform: translateX(30%) scale(0.95);
   opacity: 0;
   pointer-events: none;
 }
 
-/* ==================== 布局补充样式 ==================== */
-
-/* 页面切换动画容器 */
 .page-transition-container {
   width: 100%;
   height: 100%;
   position: relative;
 }
 
-/* 标题栏高度调整 */
 .title-bar {
   height: 40px;
 }
 
-/* --- 响应式调整 --- */
 @media (max-width: 768px) {
   .sidebar {
     position: absolute;

@@ -1,6 +1,4 @@
-/* ==================== 基础样式（普通弹窗模式） ==================== */
 .content-modal {
-  /* 固定定位，从顶部栏下方开始 */
   position: fixed;
   top: 42px; /* 顶部栏高度 */
   left: 0;
@@ -11,37 +9,31 @@
   align-items: center;
   justify-content: center;
 
-  /* 默认无背景遮罩 */
   background: transparent;
   border-radius: 0;
 }
 
-/* 显示背景遮罩时 - 亮色模式为白色半透明 */
 .content-modal.has-backdrop {
   background: rgba(255, 255, 255, 0.6);
 }
 
-/* 全屏模式 - 从顶部栏下方开始 */
 .content-modal.is-fullscreen {
   background: transparent;
   align-items: center;
   justify-content: center;
 }
 
-/* 全屏模式显示背景遮罩 */
 .content-modal.is-fullscreen.has-backdrop {
   background: rgba(255, 255, 255, 0.4);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
-/* 确保遮蔽罩不遮住顶部栏 */
 .content-modal.has-backdrop {
   top: 42px !important;
   height: calc(100vh - 42px) !important;
 }
 
-/* ==================== 弹窗容器 ==================== */
 .modal-wrapper {
   display: flex;
   flex-direction: column;
@@ -52,24 +44,20 @@
     0 25px 50px -12px rgba(0, 0, 0, 0.15),
     0 0 0 1px rgba(0, 0, 0, 0.05);
 
-  /* 尺寸限制 */
   min-width: 420px;
   max-width: 90%;
   max-height: 90%;
 
-  /* 动画性能优化 */
   will-change: transform, opacity;
   transform-origin: center center;
 }
 
-/* 全屏模式下的容器 - 与设置页保持一致的紧凑比例 */
 .is-fullscreen .modal-wrapper {
   width: 70vw;
   height: 70vh;
   max-width: 900px;
   max-height: 580px;
   border-radius: var(--radius-lg);
-  /* 半透明背景 */
   background: var(--bg-surface, rgba(255, 255, 255, 0.95));
   backdrop-filter: blur(var(--blur-lg));
   -webkit-backdrop-filter: blur(var(--blur-lg));
@@ -78,12 +66,10 @@
   overflow: hidden;
 }
 
-/* 无标题时的顶部圆角 */
 .modal-wrapper.no-title {
   overflow: hidden;
 }
 
-/* ==================== 头部 ==================== */
 .modal-header {
   flex-shrink: 0;
   display: flex;
@@ -94,7 +80,6 @@
   gap: 12px;
 }
 
-/* 全屏模式下不显示头部（标题在 TitleBar 中显示） */
 .is-fullscreen .modal-header {
   display: none;
 }
@@ -116,7 +101,6 @@
   font-size: 16px;
 }
 
-/* 关闭按钮 */
 .close-btn {
   display: flex;
   align-items: center;
@@ -147,7 +131,6 @@
   line-height: 1;
 }
 
-/* ==================== 内容区域 ==================== */
 .modal-body {
   flex: 1;
   overflow: auto;
@@ -155,12 +138,10 @@
   color: var(--text-primary);
 }
 
-/* 全屏模式内容区 */
 .is-fullscreen .modal-body {
   padding: 12px 16px;
 }
 
-/* ==================== 底部 ==================== */
 .modal-footer {
   flex-shrink: 0;
   display: flex;
@@ -176,11 +157,9 @@
 .is-fullscreen .modal-footer {
   border-radius: 0;
   padding: 12px 20px;
-  /* 全屏时底部 */
   background: var(--bg-surface);
 }
 
-/* ==================== 动画效果 ==================== */
 .modal-enter-active,
 .modal-leave-active {
   transition:
@@ -193,7 +172,6 @@
   opacity: 0;
 }
 
-/* 弹窗内容动画 */
 .modal-enter-active .modal-wrapper {
   transition:
     transform var(--duration-slow) var(--ease-smooth),
@@ -206,7 +184,6 @@
     opacity var(--duration-fast) var(--ease-standard);
 }
 
-/* 普通模式 - 缩放弹入 */
 .content-modal:not(.is-fullscreen) .modal-wrapper {
   transform-origin: center center;
 }
@@ -221,8 +198,6 @@
   opacity: 0;
 }
 
-/* 全屏模式 - 替换式动画 */
-/* 进入：从右侧滑入 */
 .is-fullscreen.modal-enter-from .modal-wrapper {
   transform: translateX(100%);
 }
@@ -231,18 +206,14 @@
   transform: translateX(0);
 }
 
-/* 离开：向左滑出 */
 .is-fullscreen.modal-leave-to .modal-wrapper {
   transform: translateX(-100%);
 }
 
-/* ==================== 暗色主题（使用 data-theme 属性） ==================== */
 [data-theme="dark"] .content-modal {
-  /* 默认无背景遮罩 */
   background: transparent;
 }
 
-/* 暗色主题显示背景遮罩 */
 [data-theme="dark"] .content-modal.has-backdrop {
   background: rgba(0, 0, 0, 0.5);
 }
@@ -265,7 +236,6 @@
 }
 
 [data-theme="dark"] .is-fullscreen .modal-wrapper {
-  /* 暗色全屏背景 */
   background: var(--bg-surface, rgba(30, 41, 59, 0.98));
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -295,7 +265,6 @@
   border-color: var(--border-color, rgba(255, 255, 255, 0.08));
 }
 
-/* ==================== 类型图标 ==================== */
 .header-title {
   display: flex;
   align-items: center;
@@ -323,7 +292,6 @@
   color: var(--color-primary, #1890ff);
 }
 
-/* ==================== 内容文本 ==================== */
 .modal-content-text {
   margin: 0;
   line-height: 1.6;
@@ -331,8 +299,6 @@
   font-size: 14px;
 }
 
-/* ==================== 协议类型按钮样式 ==================== */
-/* 同意按钮 - 不再变色，保留动画 */
 .modal-footer :deep(.btn-primary) {
   transition:
     transform var(--duration-fast) var(--ease-spring),
@@ -348,7 +314,6 @@
   transform: scale(1.1);
 }
 
-/* 不同意按钮 - 不再变色，保留动画 */
 .modal-footer :deep(.btn-secondary) {
   transition:
     transform var(--duration-fast) var(--ease-spring),
@@ -366,12 +331,10 @@
   transform: scale(1.1);
 }
 
-/* 点击反馈 */
 .modal-footer :deep(.ui-btn:active) {
   transform: translateY(0) scale(0.96);
 }
 
-/* ==================== 响应式适配 ==================== */
 @media (max-width: 640px) {
   .content-modal:not(.is-fullscreen) {
     padding: 16px;

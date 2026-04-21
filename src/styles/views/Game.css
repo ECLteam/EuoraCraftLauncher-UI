@@ -1,5 +1,3 @@
-/* ==================== 游戏页面 - 与设置页保持一致的比例 ==================== */
-
 .home-container {
   display: grid;
   grid-template-columns: 1fr 280px;
@@ -10,21 +8,18 @@
   margin: 0 auto;
 }
 
-/* 左侧内容区域 */
 .home-left {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-/* 右侧内容区域 - 设置页风格 */
 .home-right {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-/* 账户卡片 - 设置页 .settings-card 风格 */
 .account-card {
   background-color: var(--bg-surface);
   border-radius: var(--radius-lg);
@@ -36,7 +31,6 @@
   padding: 14px;
 }
 
-/* 版本卡片 - 设置页风格 */
 .version-card {
   flex: 1;
   display: flex;
@@ -59,7 +53,6 @@
   flex-direction: column;
 }
 
-/* --- 卡片基底 - 纯净亚克力，无噪点 --- */
 .info-card {
   position: relative;
   -webkit-backdrop-filter: blur(var(--blur-lg));
@@ -80,7 +73,6 @@
   box-shadow: var(--shadow-md);
 }
 
-/* --- 版本列表 - 设置页风格 --- */
 .version-list {
   flex: 1;
   overflow-y: auto;
@@ -124,7 +116,6 @@
   font-weight: 500;
 }
 
-/* --- 启动按钮 - 设置页风格 --- */
 .launch-section {
   margin-top: 12px;
 }
@@ -184,7 +175,6 @@
   letter-spacing: 0.5px;
 }
 
-/* --- 账户信息 - 扁平简洁 --- */
 .account-info {
   display: flex;
   align-items: center;
@@ -200,7 +190,6 @@
   object-fit: cover;
   display: block;
   flex-shrink: 0;
-  /* 像素化渲染，确保 8x8 像素清晰 */
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   image-rendering: -webkit-crisp-edges;
@@ -237,7 +226,6 @@
   color: var(--text-secondary);
 }
 
-/* --- 状态消息 --- */
 .status-msg {
   font-size: 12px;
   text-align: center;
@@ -249,7 +237,6 @@
 .status-msg.text-error { color: var(--color-error); }
 .status-msg.text-info { color: var(--color-info); }
 
-/* --- 滚动条 --- */
 .version-list::-webkit-scrollbar {
   width: 6px;
 }
@@ -263,7 +250,6 @@
   background: transparent;
 }
 
-/* --- 卡片头部 --- */
 .card-header {
   display: flex;
   align-items: center;
@@ -279,7 +265,6 @@
   font-size: 18px;
 }
 
-/* ==================== 账户信息 - 弹窗内样式 ==================== */
 .account-info {
   display: flex;
   align-items: center;
@@ -290,7 +275,6 @@
   flex: 1;
 }
 
-/* ==================== 账户管理弹窗内容 - 设置页风格 ==================== */
 .account-manager {
   display: flex;
   gap: 10px;
@@ -298,7 +282,6 @@
   height: 100%;
 }
 
-/* 左侧：已保存账户列表 */
 .account-list-section {
   flex: 1;
   display: flex;
@@ -372,7 +355,6 @@
   color: white;
   flex-shrink: 0;
   overflow: hidden;
-  /* 像素化渲染 */
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   image-rendering: -webkit-crisp-edges;
@@ -460,7 +442,6 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* 右侧：添加账户 - 设置页风格 */
 .account-add-section {
   width: 220px;
   display: flex;
@@ -500,7 +481,6 @@
   line-height: 1.4;
 }
 
-/* 空状态 */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -522,7 +502,6 @@
   margin-bottom: 4px;
 }
 
-/* 微软登录弹窗 */
 .microsoft-login-content {
   padding: 8px;
 }

@@ -59,7 +59,7 @@ import { useGlassMessage } from '@/composables/useGlassMessage'
 import { useI18n } from 'vue-i18n'
 import { useFullscreenModal } from '@/composables/useFullscreenModal'
 import UiButton from '@/components/ui/Button.vue'
-import { api } from '@/utils/api'
+import { api } from '@/api/client'
 import '@/styles/components/SideBar.css'
 
 // 禁用自动属性继承，因为组件有多个根元素

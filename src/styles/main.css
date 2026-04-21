@@ -3,24 +3,20 @@
 @import './base.css';
 @import './animations.css';
 @import './layout.css';
-@import '../components/TitleBar.css';
-@import '../components/SideBar.css';
+@import './components/TitleBar.css';
+@import './components/SideBar.css';
 
-/* 全局样式优化 */
 
-/* 移除默认的轮廓线，使用自定义焦点样式 */
 :focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
-/* 文本选区颜色 */
 ::selection {
   background: var(--color-primary);
   color: white;
 }
 
-/* 禁用图片拖拽 */
 img {
   -webkit-user-drag: none; /* Safari, Chrome */
   -moz-user-select: none; /* Firefox */
@@ -28,7 +24,6 @@ img {
   user-select: none; /* Standard */
 }
 
-/* 链接样式 */
 a {
   color: var(--color-primary);
   text-decoration: none;
@@ -40,7 +35,6 @@ a:hover {
   text-decoration: underline;
 }
 
-/* Naive UI 全局覆盖 */
 .n-button {
   font-weight: 500;
 }
@@ -48,16 +42,13 @@ a:hover {
 
 
 
-/* 背景模糊层 */
 .bg-blur {
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  /* 可以在这里添加额外的背景装饰 */
 }
 
-/* 通用卡片样式 */
 .card {
   background: var(--bg-card);
   border-radius: var(--radius-lg);

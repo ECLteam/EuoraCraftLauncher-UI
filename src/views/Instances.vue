@@ -50,7 +50,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { api } from '@/utils/api'
+import { api } from '@/api/client'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import UiIcon from '@/components/ui/Icon.vue'
 import UiIconButton from '@/components/ui/IconButton.vue'

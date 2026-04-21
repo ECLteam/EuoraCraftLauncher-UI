@@ -1,4 +1,3 @@
-/* ==================== 设置页面样式 - 现代亚克力风格 ==================== */
 .settings-container {
   display: flex;
   flex-direction: column;
@@ -25,7 +24,6 @@
   gap: 10px;
 }
 
-/* --- 顶部导航菜单 --- */
 .settings-tabs {
   display: flex;
   background-color: var(--bg-surface);
@@ -98,7 +96,6 @@
   padding: 16px;
 }
 
-/* ==================== GameTab 特定样式 ==================== */
 .tab-pane {
   max-width: 100%;
   margin: 0;
@@ -124,7 +121,6 @@
   color: var(--color-primary);
 }
 
-/* 内存可视化 - 玻璃拟态风格 */
 .memory-visualization {
   margin-top: 8px;
   padding: 16px;
@@ -173,7 +169,6 @@
   color: var(--text-secondary);
 }
 
-/* 滑动条 - 与 Settings.css 保持一致 */
 .slider-wrapper {
   margin: 16px 0;
 }
@@ -208,7 +203,6 @@
   background: var(--color-primary-hover);
 }
 
-/* 内存统计 - 简洁列表 */
 .memory-stats {
   display: flex;
   flex-direction: column;
@@ -265,7 +259,6 @@
   margin: 0;
 }
 
-/* --- 设置分组 --- */
 .settings-group {
   margin-bottom: 24px;
   padding-bottom: 18px;
@@ -293,7 +286,6 @@
   color: var(--color-primary);
 }
 
-/* --- 设置项 --- */
 .setting-item {
   display: flex;
   justify-content: space-between;
@@ -329,7 +321,6 @@
   margin-top: 3px;
 }
 
-/* --- 控件样式 --- */
 .setting-control {
   display: flex;
   align-items: center;
@@ -391,7 +382,6 @@
   background: rgba(255, 255, 255, 0.12);
 }
 
-/* --- 滑块 --- */
 .slider-container {
   display: flex;
   align-items: center;
@@ -434,7 +424,6 @@ input[type="range"]::-webkit-slider-thumb:hover {
   box-shadow: var(--shadow-md);
 }
 
-/* --- 单选按钮组 --- */
 .radio-group {
   display: flex;
   background-color: var(--bg-app);
@@ -468,7 +457,6 @@ input[type="range"]::-webkit-slider-thumb:hover {
   box-shadow: var(--shadow-sm);
 }
 
-/* --- 主题选项 --- */
 .theme-options {
   display: flex;
   gap: 10px;
@@ -535,7 +523,6 @@ input[type="range"]::-webkit-slider-thumb:hover {
   font-weight: 500;
 }
 
-/* --- 颜色预设 --- */
 .color-presets {
   display: flex;
   flex-wrap: wrap;
@@ -618,7 +605,6 @@ input[type="range"]::-webkit-slider-thumb:hover {
   font-weight: 500;
 }
 
-/* --- 底部按钮 --- */
 .settings-footer {
   display: flex;
   justify-content: flex-end;
@@ -685,7 +671,6 @@ input[type="range"]::-webkit-slider-thumb:hover {
   transform: none !important;
 }
 
-/* --- Switch 样式 --- */
 .switch {
   position: relative;
   display: inline-block;
@@ -736,7 +721,6 @@ input:checked + .slider {
   box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
 }
 
-/* --- 关于页面样式 --- */
 .about-section {
   padding: 24px 0;
   display: flex;
@@ -879,7 +863,6 @@ input:checked + .slider {
   color: var(--text-disabled);
 }
 
-/* ==================== 自定义下拉框样式 ==================== */
 .custom-select {
   position: relative;
   width: 200px;
@@ -1006,7 +989,6 @@ input:checked + .slider {
   margin-left: 6px;
 }
 
-/* 暗色主题适配 */
 [data-theme="dark"] .select-trigger {
   background-color: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.1);
@@ -1027,7 +1009,6 @@ input:checked + .slider {
   background-color: rgba(var(--color-primary-rgb, 59, 130, 246), 0.2);
 }
 
-/* ==================== 开关样式 ==================== */
 .switch {
   position: relative;
   display: inline-block;

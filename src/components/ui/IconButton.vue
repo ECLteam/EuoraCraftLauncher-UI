@@ -96,7 +96,6 @@ const handleClick = (event: MouseEvent) => {
 </script>
 
 <style scoped>
-/* ==================== 基础样式 ==================== */
 .icon-btn {
   position: relative;
   display: inline-flex;
@@ -117,7 +116,6 @@ const handleClick = (event: MouseEvent) => {
   opacity: 0.5;
 }
 
-/* ==================== 尺寸变体 ==================== */
 .icon-btn--sm {
   width: 24px;
   height: 24px;
@@ -136,7 +134,6 @@ const handleClick = (event: MouseEvent) => {
   font-size: 16px;
 }
 
-/* ==================== 颜色变体 ==================== */
 /* 默认变体 */
 .icon-btn--default {
   background-color: transparent;
@@ -206,7 +203,6 @@ const handleClick = (event: MouseEvent) => {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* ==================== 悬停动画 ==================== */
 .icon-btn:hover:not(:disabled) {
   transform: translateY(-2px);
 }
@@ -219,7 +215,6 @@ const handleClick = (event: MouseEvent) => {
   transform: translateY(0) scale(0.96);
 }
 
-/* ==================== 图标容器 ==================== */
 .icon-btn__icon,
 .icon-btn__loader {
   display: flex;
@@ -228,7 +223,6 @@ const handleClick = (event: MouseEvent) => {
   transition: transform var(--duration-fast) var(--ease-spring);
 }
 
-/* ==================== 加载动画 ==================== */
 .icon-btn.is-loading .icon-btn__loader {
   animation: spin 1s linear infinite;
 }
@@ -238,7 +232,6 @@ const handleClick = (event: MouseEvent) => {
   to { transform: rotate(360deg); }
 }
 
-/* ==================== 水波纹效果 ==================== */
 .ripple {
   position: absolute;
   width: 20px;
@@ -263,7 +256,6 @@ const handleClick = (event: MouseEvent) => {
   }
 }
 
-/* ==================== 暗色主题适配 ==================== */
 [data-theme="dark"] .icon-btn--default {
   color: var(--text-secondary, #94a3b8);
 }

@@ -138,7 +138,7 @@ import { useI18n } from 'vue-i18n'
 import { useMessage } from 'naive-ui'
 import UiButton from '@/components/ui/Button.vue'
 import UiSwitch from '@/components/ui/Switch.vue'
-import { api } from '@/utils/api'
+import { api } from '@/api/client'
 
 interface JavaInfo {
   path: string

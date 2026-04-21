@@ -306,7 +306,7 @@ import SkinRenderer from '@/components/SkinRenderer.vue'
 import { useAccountManager } from '@/composables/useAccountManager'
 import { useVersionManager } from '@/composables/useVersionManager'
 import { globalLaunchProgress } from '@/composables/useLaunchProgress'
-import { api } from '@/utils/api'
+import { api } from '@/api/client'
 
 const { t } = useI18n()
 

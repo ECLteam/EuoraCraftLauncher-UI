@@ -1,5 +1,5 @@
 import { ref, computed, reactive } from 'vue'
-import { api } from '@/utils/api'
+import { api } from '@/api/client'
 import { useGlassMessage } from './useGlassMessage'
 
 export interface Account {

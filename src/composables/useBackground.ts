@@ -1,5 +1,5 @@
 import { ref, watch } from 'vue'
-import { api } from '@/utils/api'
+import { api } from '@/api/client'
 
 const backgroundConfig = ref({
   type: 'default' as const,

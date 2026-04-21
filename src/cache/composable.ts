@@ -1,8 +1,7 @@
-// ==================== 全局缓存组合式函数 ====================
 // 提供响应式缓存管理，方便Vue组件使用
 
 import { ref, watch, type Ref } from 'vue'
-import { globalCache, type CacheOptions, CACHE_KEYS, CACHE_GROUPS } from '@/utils/globalCache'
+import { globalCache, type CacheOptions, CACHE_KEYS, CACHE_GROUPS } from '@/cache'
 
 /**
  * 缓存钩子返回值接口

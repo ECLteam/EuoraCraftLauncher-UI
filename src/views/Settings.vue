@@ -27,7 +27,7 @@ import UiTabs from '@/components/ui/Tabs.vue'
 import GeneralTab from './settings/GeneralTab.vue'
 import GameTab from './settings/GameTab.vue'
 import AboutTab from './settings/AboutTab.vue'
-import { api } from '@/utils/api'
+import { api } from '@/api/client'
 import { useTheme } from '@/composables/useTheme'
 import type { GamePath } from '@/types/api'
 

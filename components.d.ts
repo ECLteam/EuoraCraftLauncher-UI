@@ -11,7 +11,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    BlurText: typeof import('./src/components/bits/BlurText.vue')['default']
+    BlurText: typeof import('./src/components/animation/BlurText.vue')['default']
     Button: typeof import('./src/components/ui/Button.vue')['default']
     Card: typeof import('./src/components/ui/Card.vue')['default']
     ContentModal: typeof import('./src/components/modals/ContentModal.vue')['default']
@@ -22,13 +22,13 @@ declare module 'vue' {
     Input: typeof import('./src/components/ui/Input.vue')['default']
     LaunchProgressModal: typeof import('./src/components/modals/LaunchProgressModal.vue')['default']
     Modal: typeof import('./src/components/ui/Modal.vue')['default']
-    MouseEffect: typeof import('./src/components/effects/MouseEffect.vue')['default']
+    MouseEffect: typeof import('./src/components/animation/MouseEffect.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Select: typeof import('./src/components/ui/Select.vue')['default']
     SideBar: typeof import('./src/components/layout/SideBar.vue')['default']
     SkinRenderer: typeof import('./src/components/SkinRenderer.vue')['default']
-    SplitText: typeof import('./src/components/bits/SplitText.vue')['default']
+    SplitText: typeof import('./src/components/animation/SplitText.vue')['default']
     Switch: typeof import('./src/components/ui/Switch.vue')['default']
     Tabs: typeof import('./src/components/ui/Tabs.vue')['default']
     TitleBar: typeof import('./src/components/layout/TitleBar.vue')['default']

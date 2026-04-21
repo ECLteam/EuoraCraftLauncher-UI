@@ -1,7 +1,7 @@
 import { ref, computed, watch, type Ref } from 'vue'
 import type { GlobalTheme, GlobalThemeOverrides } from 'naive-ui'
 import { darkTheme } from 'naive-ui'
-import { api } from '@/utils/api'
+import { api } from '@/api/client'
 
 
 function clamp(value: number, min: number, max: number): number {
