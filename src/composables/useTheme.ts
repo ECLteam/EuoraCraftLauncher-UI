@@ -298,7 +298,7 @@ let saveTimer: any = null
 async function saveThemeConfig() {
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(async () => {
-    if (window.pywebview?.api) {
+    if ((window as any).__TAURI__?.pytauri) {
       try {
         await api.updateThemeConfig({
           mode: themeMode.value,
@@ -343,7 +343,7 @@ export async function initTheme(
         localStorage.removeItem(BG_IMAGE_KEY)
       }
       
-      if (window.pywebview?.api) {
+      if ((window as any).__TAURI__?.pytauri) {
         // 优先从后端加载配置，如果传入了预加载配置则直接使用
         const [themeConfig, bgConfig] = await Promise.all([
           preloadedTheme ? Promise.resolve(preloadedTheme) : api.getThemeConfig().catch(() => ({ success: false, data: null })),

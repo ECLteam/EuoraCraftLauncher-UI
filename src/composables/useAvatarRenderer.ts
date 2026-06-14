@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { api } from '@/api/client'
 
 const CACHE_TTL = 30 * 60 * 1000
 
@@ -131,15 +132,14 @@ export function useAvatarRenderer() {
       const name = username?.trim() || 'Player'
 
       // 统一通过后端API获取头像，包括离线玩家
-      const api = (window as any).pywebview?.api
-      if (api?.get_avatar_data_url) {
+      if ((window as any).__TAURI__?.pytauri) {
         try {
           // 对于离线玩家，设置use_default_skin=true
           const useDefaultSkin = !id || accountType.toLowerCase() === 'offline'
           const serverType = useDefaultSkin ? 'Mojang' : accountType
           const uuidToUse = id || '00000000-0000-0000-0000-000000000000'
           
-          const result = await api.get_avatar_data_url(uuidToUse, serverType, undefined, size, useDefaultSkin)
+          const result = await api.getAvatarDataUrl(uuidToUse, serverType, undefined, size, useDefaultSkin)
           if (result?.success && result.data?.dataUrl) {
             const url = result.data.dataUrl
             // 缓存成功获取的头像

@@ -1,18 +1,5 @@
 import { ref, computed } from 'vue'
-
-declare global {
-  interface Window {
-    pywebview?: {
-      api: PyWebViewAPI
-    }
-  }
-}
-
-interface PyWebViewAPI {
-  get_user_agreement_status: () => Promise<{ success: boolean; data?: { accepted: boolean }; message?: string }>
-  save_user_agreement: () => Promise<{ success: boolean; message?: string }>
-  clear_user_agreement: () => Promise<{ success: boolean; message?: string }>
-}
+import { api } from '@/api/client'
 
 const USER_AGREEMENT_KEY = 'euoracraft_user_agreement_accepted'
 const USER_AGREEMENT_URL = 'https://euoracraft.zient.top/guide/user-agreement/'
@@ -36,13 +23,13 @@ export async function checkUserAgreement(): Promise<boolean> {
       return true
     }
 
-    if (!window.pywebview?.api) {
+    if (!(window as any).__TAURI__?.pytauri) {
       state.value.accepted = false
       return false
     }
 
     try {
-      const result = await window.pywebview.api.get_user_agreement_status()
+      const result = await api.getUserAgreementStatus()
       if (result?.success && result?.data?.accepted) {
         state.value.accepted = true
         localStorage.setItem(USER_AGREEMENT_KEY, 'true')
@@ -61,8 +48,8 @@ export async function checkUserAgreement(): Promise<boolean> {
 
 export async function acceptUserAgreement(): Promise<boolean> {
   try {
-    if (window.pywebview?.api) {
-      const result = await window.pywebview.api.save_user_agreement()
+    if ((window as any).__TAURI__?.pytauri) {
+      const result = await api.saveUserAgreement()
       if (!result?.success) {
         throw new Error(result?.message || '保存用户协议失败')
       }
@@ -81,9 +68,9 @@ export async function rejectUserAgreement(): Promise<void> {
   localStorage.removeItem(USER_AGREEMENT_KEY)
   state.value.accepted = false
 
-  if (window.pywebview?.api) {
+  if ((window as any).__TAURI__?.pytauri) {
     try {
-      await window.pywebview.api.clear_user_agreement()
+      await api.clearUserAgreement()
     } catch (e) {
       console.warn('[UserAgreement] 后端清除失败:', e)
     }
@@ -94,7 +81,7 @@ export function useUserAgreement() {
   const isAccepted = computed(() => state.value.accepted)
   const isLoading = computed(() => state.value.loading)
   const agreementUrl = computed(() => USER_AGREEMENT_URL)
-  
+
   return {
     isAccepted,
     isLoading,

@@ -16,7 +16,6 @@ import type {
   ModInfo,
   ModSearchFilter,
   DownloadTask,
-  WindowPosition,
   ScannedVersion,
 } from '@/types/api'
 
@@ -50,28 +49,14 @@ class ApiValidator {
       return false
     }
 
-    if (!window.pywebview) {
-      Logger.error('window.pywebview不存在')
+    const tauri = (window as any).__TAURI__
+    if (!tauri) {
+      Logger.error('window.__TAURI__ 不存在')
       return false
     }
 
-    if (!window.pywebview.api) {
-      Logger.error('window.pywebview.api不存在')
-      return false
-    }
-
-    return true
-  }
-
-  static checkMethod(method: string): boolean {
-    if (!this.checkEnvironment()) {
-      return false
-    }
-
-    const api = window.pywebview!.api as unknown as Record<string, unknown>
-    if (typeof api[method] !== 'function') {
-      Logger.error(`API方法 ${method} 不存在`)
-      Logger.log('可用方法:', Object.keys(window.pywebview!.api))
+    if (!tauri.pytauri) {
+      Logger.error('window.__TAURI__.pytauri 不存在')
       return false
     }
 
@@ -87,7 +72,6 @@ class ApiValidator {
       return false
     }
 
-    // 必须包含success字段
     if (typeof response.success !== 'boolean') {
       return false
     }
@@ -109,10 +93,10 @@ class ApiClient {
 
     try {
       // 环境检查（带重试）
-      let methodReady = false
+      let envReady = false
       for (let i = 0; i < CONFIG.MAX_RETRIES; i++) {
-        if (ApiValidator.checkMethod(method)) {
-          methodReady = true
+        if (ApiValidator.checkEnvironment()) {
+          envReady = true
           break
         }
         if (i < CONFIG.MAX_RETRIES - 1) {
@@ -120,36 +104,34 @@ class ApiClient {
         }
       }
 
-      if (!methodReady) {
-        throw new Error(`API环境未就绪或方法 ${method} 不存在`)
+      if (!envReady) {
+        throw new Error('PyTauri 环境未就绪')
       }
 
       // 执行调用
       Logger.log(`调用 ${method}`, args.length ? '参数:' : '(无参数)', args)
-      
-      const api = window.pywebview!.api as unknown as Record<string, (...args: any[]) => Promise<any>>
-      const rawResult = await api[method](...args)
+
+      const pytauri = (window as any).__TAURI__.pytauri
+      const rawResult = await pytauri.pyInvoke('api_call', { method, args })
       const duration = (performance.now() - startTime).toFixed(2)
 
       // 验证响应格式
       if (!ApiValidator.validateResponse<T>(rawResult)) {
         Logger.warn(`方法 ${method} 返回非标准响应格式:`, rawResult)
-        
-        // 尝试转换为标准格式
+
         const normalizedResponse: ApiResponse<T> = {
           success: true,
           data: rawResult as T,
           message: '响应已自动标准化',
           timestamp: Date.now()
         }
-        
+
         Logger.log(`✓ ${method} 完成 (${duration}ms, 自动标准化):`, normalizedResponse)
         return normalizedResponse
       }
 
-      // 标准响应处理
       const response = rawResult as ApiResponse<T>
-      
+
       if (response.success) {
         Logger.log(`✓ ${method} 成功 (${duration}ms):`, response.data)
       } else {
@@ -162,7 +144,6 @@ class ApiClient {
       const duration = (performance.now() - startTime).toFixed(2)
       Logger.error(`✗ ${method} 异常 (${duration}ms):`, error)
 
-      // 错误响应
       return {
         success: false,
         message: error instanceof Error ? error.message : '未知错误',
@@ -178,13 +159,12 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     for (let attempt = 1; attempt <= CONFIG.MAX_RETRIES; attempt++) {
       const result = await this.call<T>(method, ...args)
-      
+
       if (result.success) {
         return result
       }
 
-      // 如果是网络错误或可重试错误
-      const isRetryable = result.errorCode === 'NETWORK_ERROR' || 
+      const isRetryable = result.errorCode === 'NETWORK_ERROR' ||
                          result.errorCode === 'TIMEOUT_ERROR' ||
                          attempt < CONFIG.MAX_RETRIES
 
@@ -246,22 +226,6 @@ class ApiService {
   }
 
   // 窗口控制
-  async minimizeWindow() {
-    return this.client.call('minimize_window')
-  }
-
-  async closeWindow() {
-    return this.client.call('close_window')
-  }
-
-  async getWindowPosition() {
-    return this.client.call<WindowPosition>('get_window_position')
-  }
-
-  async setWindowPosition(position: Partial<WindowPosition>) {
-    return this.client.call('set_window_position', position)
-  }
-
   // 配置管理
   async getLauncherConfig() {
     return this.client.call<LauncherConfig>('get_launcher_config')
@@ -368,10 +332,8 @@ class ApiService {
   }
 
   async scanVersions(paths: string[]) {
-
     return this.client.call<ScannedVersion[]>('scan_versions_in_path', paths)
   }
-
 
   async getVersionDetails(versionId: string) {
     return this.client.call<MinecraftVersion>('get_version_details', versionId)
@@ -477,6 +439,19 @@ class ApiService {
     }>('diagnose_api')
   }
 
+  // 用户协议
+  async getUserAgreementStatus() {
+    return this.client.call<{ accepted: boolean }>('get_user_agreement_status')
+  }
+
+  async saveUserAgreement() {
+    return this.client.call('save_user_agreement')
+  }
+
+  async clearUserAgreement() {
+    return this.client.call('clear_user_agreement')
+  }
+
   // 账户管理
   async getAccounts() {
     return this.client.call<{
@@ -566,18 +541,17 @@ class ApiService {
   }
 }
 
-// 导出
 export const api = new ApiService()
 
 // 全局诊断函数
 if (typeof window !== 'undefined') {
   (window as any).diagnoseApi = async () => {
+    const tauri = (window as any).__TAURI__
     console.log('window:', typeof window !== 'undefined' ? '✓' : '✗')
-    console.log('pywebview:', window.pywebview ? '✓' : '✗')
-    console.log('api:', window.pywebview?.api ? '✓' : '✗')
-    
-    if (window.pywebview?.api) {
-      console.log('可用方法:', Object.keys(window.pywebview.api))
+    console.log('__TAURI__:', tauri ? '✓' : '✗')
+    console.log('pytauri:', tauri?.pytauri ? '✓' : '✗')
+
+    if (tauri?.pytauri) {
       try {
         const pingResult = await api.ping()
         console.log('ping:', pingResult)

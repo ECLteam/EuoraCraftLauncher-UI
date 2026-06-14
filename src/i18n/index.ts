@@ -46,9 +46,9 @@ export const i18n = createI18n({
 // 从后端加载语言配置
 export async function loadLocaleFromBackend(): Promise<LocaleCode> {
   try {
-    // 检查 pywebview 是否可用
-    if (typeof window !== 'undefined' && window.pywebview?.api?.get_locale_config) {
-      const result = await window.pywebview.api.get_locale_config()
+    // 检查 PyTauri 是否可用
+    if (typeof window !== 'undefined' && (window as any).__TAURI__?.pytauri) {
+      const result = await api.getLocaleConfig()
       if (result.success && result.data?.locale) {
         const locale = result.data.locale as LocaleCode
         if (supportedLocales.some(l => l.code === locale)) {
@@ -77,8 +77,8 @@ export async function setLocale(locale: LocaleCode): Promise<void> {
   
   // 尝试保存到后端
   try {
-    if (typeof window !== 'undefined' && window.pywebview?.api?.update_locale_config) {
-      await window.pywebview.api.update_locale_config(locale)
+    if (typeof window !== 'undefined' && (window as any).__TAURI__?.pytauri) {
+      await api.updateLocaleConfig(locale)
     }
   } catch (error) {
     console.warn('[i18n] 保存语言配置到后端失败:', error)

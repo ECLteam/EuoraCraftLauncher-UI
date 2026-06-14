@@ -192,6 +192,7 @@
     "edit": "编辑",
     "empty": "还没有创建任何实例",
     "createFirst": "创建第一个实例",
+    "launchHint": "点击上方按钮创建第一个实例",
     "create": "创建实例",
     "name": "实例名称",
     "namePlaceholder": "输入实例名称",
@@ -331,6 +332,9 @@
     "ok": "确定",
     "agree": "同意",
     "disagree": "不同意"
+  },
+  "launch": {
+    "title": "启动游戏"
   },
   "dev": {
     "title": "组件调试工具",

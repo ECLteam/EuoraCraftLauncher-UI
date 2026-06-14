@@ -192,6 +192,7 @@
     "edit": "Edit",
     "empty": "No instances created yet",
     "createFirst": "Create first instance",
+    "launchHint": "Click the button above to create your first instance",
     "create": "Create Instance",
     "name": "Instance Name",
     "namePlaceholder": "Enter instance name",
@@ -331,6 +332,9 @@
     "ok": "OK",
     "agree": "Agree",
     "disagree": "Disagree"
+  },
+  "launch": {
+    "title": "Launch Game"
   },
   "dev": {
     "title": "Component Debug Tools",

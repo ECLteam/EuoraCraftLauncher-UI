@@ -218,9 +218,10 @@ const handleAgreementReject = () => {
   showQuitConfirmModal.value = true
 }
 
-const handleQuitConfirm = () => {
+const handleQuitConfirm = async () => {
   showQuitConfirmModal.value = false
-  ;(window.pywebview?.api as any)?.close_window?.()
+  const w = (window as any).__TAURI__?.window?.getCurrentWindow?.()
+  if (w) await w.close()
 }
 
 onMounted(async () => {
@@ -239,33 +240,19 @@ onMounted(async () => {
     console.log('[App] 配置初始化完成')
   }
 
-  // 检查 pywebview API 是否可用
-  if (window.pywebview?.api) {
-    console.log('[App] pywebview API 已可用，开始初始化')
+  // 检查 PyTauri API 是否可用
+  if ((window as any).__TAURI__?.pytauri) {
+    console.log('[App] PyTauri API 已可用，开始初始化')
     await init()
   } else {
-    console.log('[App] 等待 pywebviewready 事件...')
-    window.addEventListener('pywebviewready', () => {
-      console.log('[App] pywebviewready 事件触发，开始初始化')
-      init()
-    })
-
-    // 添加超时检查，防止 pywebviewready 事件未触发
-    setTimeout(() => {
-      if (window.pywebview?.api) {
-        console.log('[App] 超时检查：pywebview API 已可用，开始初始化')
-        init()
-      } else {
-        console.warn('[App] 超时检查：pywebview API 仍未可用，尝试使用本地配置')
-        initTheme()
-      }
-    }, 3000)
+    console.warn('[App] PyTauri API 不可用，尝试使用本地配置')
+    initTheme()
   }
 })
 
 // 加载所有配置
 const loadAllConfigs = async () => {
-  if (!window.pywebview?.api) return
+  if (!(window as any).__TAURI__?.pytauri) return
 
   try {
     console.log('[App] 开始加载后端配置...')

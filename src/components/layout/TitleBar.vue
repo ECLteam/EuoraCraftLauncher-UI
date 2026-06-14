@@ -1,5 +1,5 @@
 <template>
-  <div class="pywebview-drag-region">
+  <div data-tauri-drag-region>
   <header class="title-bar">
     <div class="title-bar-left">
       <!-- 全屏弹窗模式：显示关闭按钮和弹窗标题 -->
@@ -62,8 +62,8 @@ import { useTheme } from '@/composables/useTheme'
 import { useFullscreenModal } from '@/composables/useFullscreenModal'
 import UiButton from '@/components/ui/Button.vue'
 import '@/styles/components/TitleBar.css'
-import { 
-  //watch, 
+import {
+  //watch,
   computed } from 'vue'
 
 const { t } = useI18n()
@@ -77,10 +77,16 @@ const fullscreenModalTitle = computed(() => fullscreenModal.title.value)
 /*
 watch(() => fullscreenModal.isVisible.value, (val) => {
   console.log('[TitleBar] fullscreenModal.isVisible 变化:', val)
-}, 
+},
 { immediate: true })*/
 
-const minimize = () => (window.pywebview?.api as any)?.minimize_window?.()
-const close = () => (window.pywebview?.api as any)?.close_window?.()
+const minimize = async () => {
+  const w = (window as any).__TAURI__?.window?.getCurrentWindow?.()
+  if (w) await w.minimize()
+}
+const close = async () => {
+  const w = (window as any).__TAURI__?.window?.getCurrentWindow?.()
+  if (w) await w.close()
+}
 const handleClose = () => fullscreenModal.close()
 </script>

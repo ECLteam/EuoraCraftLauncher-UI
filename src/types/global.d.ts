@@ -58,8 +58,11 @@ interface PyWebViewAPI {
 }
 
 interface Window {
-  pywebview?: {
-    api: PyWebViewAPI
+  __TAURI__?: {
+    pytauri: {
+      pyInvoke: (command: string, payload?: any) => Promise<any>
+    }
+    [key: string]: any
   }
 }
 

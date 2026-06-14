@@ -233,12 +233,6 @@ export interface ApiMethods {
   // 测试连接
   ping(): Promise<ApiResponse<{ status: string; timestamp: number }>>
   
-  // 窗口控制
-  minimize_window(): Promise<ApiResponse>
-  close_window(): Promise<ApiResponse>
-  get_window_position(): Promise<ApiResponse<WindowPosition>>
-  set_window_position(position: Partial<WindowPosition>): Promise<ApiResponse>
-  
   // 配置管理
   get_launcher_config(): Promise<ApiResponse<LauncherConfig>>
   get_background_config(): Promise<ApiResponse<BackgroundConfig>>

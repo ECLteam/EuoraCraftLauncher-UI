@@ -84,7 +84,7 @@ watch([themeMode, primaryColor, blurAmount, backgroundImagePath], ([newMode, new
 }, { immediate: true })
 
 const initSettings = async () => {
-  if (!window.pywebview?.api) return
+  if (!(window as any).__TAURI__?.pytauri) return
 
   try {
     console.log('开始加载后端配置...')
