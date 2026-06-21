@@ -1,5 +1,5 @@
-import { ref, watch } from 'vue'
-import { api } from '@/api/client'
+import { ref } from 'vue'
+import backend from '@/api/client'
 
 const backgroundConfig = ref({
   type: 'default' as const,
@@ -10,15 +10,20 @@ const backgroundConfig = ref({
 
 export function useBackground() {
   const loadBackgroundConfig = async () => {
-    const result = await api.getBackgroundConfig()
-    if (result.success && result.data) {
-      backgroundConfig.value = { ...backgroundConfig.value, ...result.data }
+    const result = await backend.config.get('ui')
+    if (result.success && result.data?.background) {
+      backgroundConfig.value = { ...backgroundConfig.value, ...result.data.background }
     }
     return backgroundConfig.value
   }
 
   const updateBackground = async (type: string, path: string) => {
-    const result = await api.updateBackgroundImage(type, path)
+    const cfg = await backend.config.get('ui')
+    const ui = cfg.data || {}
+    const result = await backend.config.set('ui', {
+      ...ui,
+      background: { ...(ui.background || {}), type, path },
+    })
     if (result.success) {
       backgroundConfig.value.type = type as any
       backgroundConfig.value.path = path
@@ -27,11 +32,11 @@ export function useBackground() {
   }
 
   const loadFromUrl = async (url: string) => {
-    return api.loadImageFromUrl(url)
+    return backend.command('image_save_url', { url })
   }
 
   const selectLocal = async () => {
-    return api.selectLocalImage()
+    return backend.command('select_image')
   }
 
   return {

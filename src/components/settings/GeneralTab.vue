@@ -1,47 +1,10 @@
 <template>
   <div class="tab-pane">
+    <!-- 外观 -->
     <div class="settings-group">
-      <div class="group-title">
-        <UiIcon name="brush" />
-        {{ t('settings.general') }}
-      </div>
-
-      <!-- 语言选择 -->
-      <div class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label">{{ t('settings.language') }}</div>
-          <div class="setting-desc">Language / 语言</div>
-        </div>
-        <div class="setting-control">
-          <div class="custom-select" :class="{ open: isLangOpen }" ref="langSelectRef">
-            <div class="select-trigger" @click="toggleLangOpen">
-              <span class="selected-text">
-                <span class="lang-option">
-                  <span class="lang-flag">{{ selectedLanguage?.flag }}</span>
-                  <span class="lang-name">{{ selectedLanguage?.name }}</span>
-                </span>
-              </span>
-              <UiIcon name="arrow-right" class="select-arrow" :class="{ rotated: isLangOpen }" />
-            </div>
-            <transition name="select-dropdown">
-              <div v-show="isLangOpen" class="select-dropdown">
-                <div
-                  v-for="lang in supportedLocales"
-                  :key="lang.code"
-                  class="select-option"
-                  :class="{ active: currentLocale === lang.code }"
-                  @click="handleLanguageChange(lang.code)"
-                >
-                  <div class="option-content">
-                    <span class="lang-flag">{{ lang.flag }}</span>
-                    <span class="lang-name">{{ lang.name }}</span>
-                  </div>
-                  <UiIcon v-if="currentLocale === lang.code" name="check" class="check-icon" />
-                </div>
-              </div>
-            </transition>
-          </div>
-        </div>
+      <div class="group-header">
+        <UiIcon name="brush" class="group-icon" />
+        <span class="group-title">{{ t('settings.appearance') }}</span>
       </div>
 
       <div class="setting-item theme-setting-item">
@@ -56,9 +19,7 @@
               :class="{ active: currentSettings.mode === 'light' }"
               @click="handleThemeChange('light')"
             >
-              <div class="theme-icon-wrapper">
-                <UiIcon name="sun" />
-              </div>
+              <UiIcon name="sun" class="theme-icon" />
               <span class="theme-label">{{ t('settings.themeLight') }}</span>
             </div>
             <div
@@ -66,9 +27,7 @@
               :class="{ active: currentSettings.mode === 'dark' }"
               @click="handleThemeChange('dark')"
             >
-              <div class="theme-icon-wrapper">
-                <UiIcon name="moon" />
-              </div>
+              <UiIcon name="moon" class="theme-icon" />
               <span class="theme-label">{{ t('settings.themeDark') }}</span>
             </div>
             <div
@@ -76,31 +35,9 @@
               :class="{ active: currentSettings.mode === 'system' }"
               @click="handleThemeChange('system')"
             >
-              <div class="theme-icon-wrapper">
-                <UiIcon name="settings" />
-              </div>
+              <UiIcon name="settings" class="theme-icon" />
               <span class="theme-label">{{ t('settings.themeSystem') }}</span>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label">{{ t('settings.backgroundBlur') }}</div>
-          <div class="setting-desc">{{ t('settings.backgroundBlur') }} (0-20px)</div>
-        </div>
-        <div class="setting-control">
-          <div class="slider-container">
-            <input 
-              type="range" 
-              :value="currentSettings.blurAmount"
-              min="0" 
-              max="20" 
-              step="1"
-              @change="handleBlurChange"
-            />
-            <span class="slider-value">{{ currentSettings.blurAmount }} px</span>
           </div>
         </div>
       </div>
@@ -149,12 +86,89 @@
               @update:model-value="handleBgImageInput"
               :placeholder="t('settings.background') + ' URL'"
             />
-            <UiButton variant="secondary" @click="selectLocalImage">{{ t('common.browse') }}</UiButton>
+            <UiButton variant="secondary" size="sm" @click="selectLocalImage">{{ t('common.browse') }}</UiButton>
           </div>
         </div>
       </div>
 
-      <!-- 鼠标点击效果 -->
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">{{ t('settings.backgroundBlur') }}</div>
+          <div class="setting-desc">{{ t('settings.backgroundBlur') }} (0-20px)</div>
+        </div>
+        <div class="setting-control">
+          <div class="slider-container">
+            <input 
+              type="range" 
+              :value="currentSettings.blurAmount"
+              min="0" 
+              max="20" 
+              step="1"
+              @change="handleBlurChange"
+            />
+            <span class="slider-value">{{ currentSettings.blurAmount }} px</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 语言与交互 -->
+    <div class="settings-group">
+      <div class="group-header">
+        <UiIcon name="globe" class="group-icon" />
+        <span class="group-title">{{ t('settings.language') }}</span>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">{{ t('settings.language') }}</div>
+          <div class="setting-desc">Language / 语言</div>
+        </div>
+        <div class="setting-control">
+          <div class="custom-select" :class="{ open: isLangOpen }" ref="langSelectRef">
+            <div class="select-trigger" @click="toggleLangOpen">
+              <span class="selected-text">
+                <span class="lang-option">
+                  <span class="lang-flag">{{ selectedLanguage?.flag }}</span>
+                  <span class="lang-name">{{ selectedLanguage?.name }}</span>
+                </span>
+              </span>
+              <UiIcon name="arrow-right" class="select-arrow" :class="{ rotated: isLangOpen }" />
+            </div>
+            <transition name="select-dropdown">
+              <div v-show="isLangOpen" class="select-dropdown">
+                <div
+                  v-for="lang in supportedLocales"
+                  :key="lang.code"
+                  class="select-option"
+                  :class="{ active: currentLocale === lang.code }"
+                  @click="handleLanguageChange(lang.code)"
+                >
+                  <div class="option-content">
+                    <span class="lang-flag">{{ lang.flag }}</span>
+                    <span class="lang-name">{{ lang.name }}</span>
+                  </div>
+                  <UiIcon v-if="currentLocale === lang.code" name="check" class="check-icon" />
+                </div>
+              </div>
+            </transition>
+          </div>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">{{ t('settings.topNav') }}</div>
+          <div class="setting-desc">{{ t('settings.topNavDesc') }}</div>
+        </div>
+        <div class="setting-control">
+          <label class="switch">
+            <input type="checkbox" v-model="topNavEnabled" />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
       <div class="setting-item">
         <div class="setting-info">
           <div class="setting-label">鼠标点击效果</div>
@@ -172,66 +186,69 @@
         </div>
       </div>
 
-      <div v-if="mouseEffectEnabled" class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label">效果颜色</div>
-          <div class="setting-desc">RGB 颜色值 (例如: 45,175,255)</div>
-        </div>
-        <div class="setting-control">
-          <UiInput 
-            v-model="mouseEffectColor"
-            @update:model-value="updateMouseEffectColor"
-            placeholder="45,175,255"
-            style="width: 140px"
-          />
-        </div>
-      </div>
-
-      <div v-if="mouseEffectEnabled" class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label">效果大小</div>
-          <div class="setting-desc">调整火花大小</div>
-        </div>
-        <div class="setting-control">
-          <div class="slider-container">
-            <input 
-              type="range" 
-              v-model.number="mouseEffectScale"
-              min="0.5" 
-              max="3" 
-              step="0.1"
-              @change="updateMouseEffectSettings"
+      <template v-if="mouseEffectEnabled">
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">效果颜色</div>
+            <div class="setting-desc">RGB 颜色值 (例如: 45,175,255)</div>
+          </div>
+          <div class="setting-control">
+            <UiInput 
+              v-model="mouseEffectColor"
+              @update:model-value="updateMouseEffectColor"
+              placeholder="45,175,255"
+              style="width: 140px"
             />
-            <span class="slider-value">{{ mouseEffectScale.toFixed(1) }}</span>
           </div>
         </div>
-      </div>
 
-      <div v-if="mouseEffectEnabled" class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label">不透明度</div>
-          <div class="setting-desc">调整效果透明度</div>
-        </div>
-        <div class="setting-control">
-          <div class="slider-container">
-            <input 
-              type="range" 
-              v-model.number="mouseEffectOpacity"
-              min="0.1" 
-              max="1" 
-              step="0.1"
-              @change="updateMouseEffectSettings"
-            />
-            <span class="slider-value">{{ Math.round(mouseEffectOpacity * 100) }}%</span>
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">效果大小</div>
+            <div class="setting-desc">调整火花大小</div>
+          </div>
+          <div class="setting-control">
+            <div class="slider-container">
+              <input 
+                type="range" 
+                v-model.number="mouseEffectScale"
+                min="0.5" 
+                max="3" 
+                step="0.1"
+                @change="updateMouseEffectSettings"
+              />
+              <span class="slider-value">{{ mouseEffectScale.toFixed(1) }}</span>
+            </div>
           </div>
         </div>
-      </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">不透明度</div>
+            <div class="setting-desc">调整效果透明度</div>
+          </div>
+          <div class="setting-control">
+            <div class="slider-container">
+              <input 
+                type="range" 
+                v-model.number="mouseEffectOpacity"
+                min="0.1" 
+                max="1" 
+                step="0.1"
+                @change="updateMouseEffectSettings"
+              />
+              <span class="slider-value">{{ Math.round(mouseEffectOpacity * 100) }}%</span>
+            </div>
+          </div>
+        </div>
+      </template>
     </div>
 
+    <!-- 下载 -->
     <div class="settings-group">
-      <div class="group-title">
-        <UiIcon name="download" />
-        {{ t('settings.downloadSource') }}
+      <div class="group-header">
+        <UiIcon name="download" class="group-icon" />
+        <span class="group-title">{{ t('settings.download') }}</span>
       </div>
 
       <div class="setting-item">
@@ -243,7 +260,7 @@
           <div class="custom-select" :class="{ open: isOpen }" ref="selectRef">
             <div class="select-trigger" @click="toggleOpen">
               <span class="selected-text">{{ selectedDownloadSource?.label || '请选择' }}</span>
-                <UiIcon name="arrow-right" class="select-arrow" :class="{ rotated: isOpen }" />
+              <UiIcon name="arrow-right" class="select-arrow" :class="{ rotated: isOpen }" />
             </div>
             <transition name="select-dropdown">
               <div v-show="isOpen" class="select-dropdown">
@@ -294,9 +311,10 @@ import { useI18n } from 'vue-i18n'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { supportedLocales, setLocale, type LocaleCode } from '@/i18n'
 import { useTheme, type ThemeMode, presetColors } from '@/composables/useTheme'
+import { useTopNav } from '@/composables/useTopNav'
 import UiButton from '@/components/ui/Button.vue'
 import UiInput from '@/components/ui/Input.vue'
-import { api } from '@/api/client'
+import backend from '@/api/client'
 
 const props = defineProps<{
   settings: any
@@ -315,6 +333,8 @@ const {
   setBackgroundImage,
   setBlurAmount,
 } = useTheme()
+
+const { topNavEnabled, toggleTopNav } = useTopNav()
 
 const currentSettings = computed(() => ({
   mode: props.settings?.mode || 'system',
@@ -351,12 +371,11 @@ const mouseEffectScale = ref(1.5)
 const mouseEffectOpacity = ref(1.0)
 const mouseEffectSpeed = ref(1.0)
 
-// 从后端加载配置
 const loadMouseEffectConfig = async () => {
   try {
-    const result = await api.getMouseEffectConfig()
-    if (result.success && result.data) {
-      const config = result.data
+    const result = await backend.config.get('ui')
+    if (result.success && result.data?.mouse_effect) {
+      const config = result.data.mouse_effect
       mouseEffectEnabled.value = config.enabled ?? false
       mouseEffectColor.value = config.color ?? '45,175,255'
       mouseEffectScale.value = config.scale ?? 1.5
@@ -368,25 +387,32 @@ const loadMouseEffectConfig = async () => {
   }
 }
 
-// 保存配置到后端
 const saveMouseEffectConfig = async () => {
-  const config = {
-    enabled: mouseEffectEnabled.value,
-    color: mouseEffectColor.value,
-    scale: mouseEffectScale.value,
-    opacity: mouseEffectOpacity.value,
-    speed: mouseEffectSpeed.value
-  }
-  const result = await api.updateMouseEffectConfig(config)
-  if (!result.success) {
-    console.error('保存鼠标效果配置失败:', result.message)
+  try {
+    const uiRes = await backend.config.get('ui')
+    const ui = uiRes.data || {}
+    const config = {
+      enabled: mouseEffectEnabled.value,
+      color: mouseEffectColor.value,
+      scale: mouseEffectScale.value,
+      opacity: mouseEffectOpacity.value,
+      speed: mouseEffectSpeed.value
+    }
+    const result = await backend.config.set('ui', {
+      ...ui,
+      mouse_effect: config
+    })
+    if (!result.success) {
+      console.error('保存鼠标效果配置失败:', result.message)
+    }
+  } catch (e) {
+    console.error('保存鼠标效果配置失败:', e)
   }
 }
 
 const toggleMouseEffect = async () => {
   mouseEffectEnabled.value = !mouseEffectEnabled.value
   await saveMouseEffectConfig()
-  // 触发自定义事件通知 App.vue 更新
   window.dispatchEvent(new CustomEvent('mouseEffectChange', { detail: { enabled: mouseEffectEnabled.value } }))
 }
 
@@ -423,10 +449,15 @@ const handleThemeChange = async (mode: ThemeMode) => {
   updateField('mode', mode)
   setThemeMode(mode)
   try {
-    await api.updateThemeConfig({
-      mode,
-      primary_color: currentSettings.value.primaryColor,
-      blur_amount: currentSettings.value.blurAmount
+    const uiCfg = (await backend.config.get('ui')).data || {}
+    await backend.config.set('ui', {
+      ...uiCfg,
+      theme: {
+        ...uiCfg.theme,
+        mode,
+        primary_color: currentSettings.value.primaryColor,
+        blur_amount: currentSettings.value.blurAmount
+      }
     })
   } catch (error) {
     message.error(t('common.error'))
@@ -437,10 +468,15 @@ const handleColorChange = async (color: string) => {
   updateField('primaryColor', color)
   setPrimaryColor(color)
   try {
-    await api.updateThemeConfig({
-      mode: currentSettings.value.mode,
-      primary_color: color,
-      blur_amount: currentSettings.value.blurAmount
+    const uiCfg = (await backend.config.get('ui')).data || {}
+    await backend.config.set('ui', {
+      ...uiCfg,
+      theme: {
+        ...uiCfg.theme,
+        mode: currentSettings.value.mode,
+        primary_color: color,
+        blur_amount: currentSettings.value.blurAmount
+      }
     })
   } catch (error) {
     message.error(t('common.error'))
@@ -456,10 +492,15 @@ const handleBlurChange = async (e: Event) => {
   updateField('blurAmount', val)
   setBlurAmount(val)
   try {
-    await api.updateThemeConfig({
-      mode: currentSettings.value.mode,
-      primary_color: currentSettings.value.primaryColor,
-      blur_amount: val
+    const uiCfg = (await backend.config.get('ui')).data || {}
+    await backend.config.set('ui', {
+      ...uiCfg,
+      theme: {
+        ...uiCfg.theme,
+        mode: currentSettings.value.mode,
+        primary_color: currentSettings.value.primaryColor,
+        blur_amount: val
+      }
     })
   } catch (error) {
     message.error(t('common.error'))
@@ -468,12 +509,13 @@ const handleBlurChange = async (e: Event) => {
 
 const selectLocalImage = async () => {
   try {
-    const result = await api.selectLocalImage()
+    const result = await backend.command('select_image')
     if (result.success && result.data?.path) {
       updateField('backgroundImage', result.data.path)
-      await api.updateBackgroundImage('custom', result.data.path)
+      const uiCfg = (await backend.config.get('ui')).data || {}
+      await backend.config.set('ui', { ...uiCfg, background: { ...(uiCfg.background || {}), type: 'custom', path: result.data.path } })
       
-      const imgData = await api.getBackgroundImage()
+      const imgData = await backend.command('image_read_file', { path: result.data.path })
       if (imgData.success && imgData.data?.base64) {
         setBackgroundImage(imgData.data.base64, result.data.path)
       }
@@ -486,7 +528,6 @@ const selectLocalImage = async () => {
   }
 }
 
-// 防抖
 let bgTimer: any = null
 const handleBgImageInput = (val: string | number) => {
   const strVal = String(val)
@@ -496,23 +537,21 @@ const handleBgImageInput = (val: string | number) => {
   bgTimer = setTimeout(async () => {
     if (!strVal) {
       setBackgroundImage('', '')
-      await api.updateBackgroundImage('none', '')
+      const uiNone = (await backend.config.get('ui')).data || {}
+      await backend.config.set('ui', { ...uiNone, background: { type: 'none', path: '' } })
       return
     }
     
     if (strVal.startsWith('http')) {
       try {
         message.loading('Loading...')
-        const result = await api.loadImageFromUrl(strVal)
+        const result = await backend.command('image_save_url', {url: strVal})
         if (result.success && result.data?.path) {
           const localPath = result.data.path
-          const updateResult = await api.updateBackgroundImage('custom', localPath)
-          if (!updateResult.success) {
-            message.error('更新配置失败: ' + updateResult.message)
-            return
-          }
+          const uiCfg2 = (await backend.config.get('ui')).data || {}
+          await backend.config.set('ui', { ...uiCfg2, background: { type: 'custom', path: localPath } })
           updateField('backgroundImage', localPath)
-          const imgData = await api.getBackgroundImage()
+          const imgData = await backend.command('image_read_file', { path: localPath })
 
           if (imgData.success && imgData.data?.base64) {
             setBackgroundImage(imgData.data.base64, localPath)
@@ -535,7 +574,7 @@ const handleDownloadSourceChange = async (value: 'official' | 'bmclapi') => {
   isOpen.value = false
   
   try {
-    await api.updateDownloadConfig({
+    await backend.config.set('download', {
       mirror_source: value,
       download_threads: currentSettings.value.downloadThreads
     })
@@ -549,7 +588,7 @@ const handleThreadsChange = async (e: Event) => {
   updateField('downloadThreads', val)
   
   try {
-    await api.updateDownloadConfig({
+    await backend.config.set('download', {
       mirror_source: currentSettings.value.downloadSource,
       download_threads: val
     })
@@ -580,7 +619,13 @@ onUnmounted(() => {
 const handleLanguageChange = async (langCode: LocaleCode) => {
   isLangOpen.value = false
   await setLocale(langCode)
+  try {
+    const uiCfg = (await backend.config.get('ui')).data || {}
+    await backend.config.set('ui', { ...uiCfg, locale: langCode })
+  } catch (e) {
+    console.error('保存语言配置失败:', e)
+  }
 }
 </script>
 
-<style scoped src="@/styles/views/Settings.css"></style>
+<style scoped src="@/styles/GeneralTab.css"></style>

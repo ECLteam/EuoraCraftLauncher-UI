@@ -62,14 +62,4 @@ watch(() => props.text, () => {
   </div>
 </template>
 
-<style scoped>
-.split-text {
-  display: inline-block;
-  perspective: 400px;
-}
-
-.char {
-  transform-origin: 50% 100%;
-  will-change: transform, opacity;
-}
-</style>
+<style scoped src="@/styles/SplitText.css"></style>

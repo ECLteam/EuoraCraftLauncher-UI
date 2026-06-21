@@ -188,13 +188,26 @@ class GlobalCache {
     }
   }
 
+  private cleanupTimer: ReturnType<typeof setInterval> | null = null
+
   /**
    * 定期清理过期缓存
    */
   startCleanup(interval: number = 5 * 60 * 1000): void {
-    setInterval(() => {
+    this.stopCleanup()
+    this.cleanupTimer = setInterval(() => {
       this.cleanupExpired()
     }, interval)
+  }
+
+  /**
+   * 停止定期清理
+   */
+  stopCleanup(): void {
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer)
+      this.cleanupTimer = null
+    }
   }
 
   /**

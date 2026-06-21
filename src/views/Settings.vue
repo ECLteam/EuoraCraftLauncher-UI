@@ -1,33 +1,22 @@
 <template>
   <div class="settings-container" ref="mainRef">
-    <UiTabs v-model="activeTab" :items="tabs" />
-    
     <div class="settings-card">
       <div class="settings-content">
-  
-        <div v-show="activeTab === 'general'" class="tab-wrapper">
-          <GeneralTab :settings="settings" @update:settings="handleUpdateSettings" />
-        </div>
-        <div v-show="activeTab === 'game'" class="tab-wrapper">
-          <GameTab :settings="settings" @update:settings="handleUpdateSettings" />
-        </div>
-        <div v-show="activeTab === 'about'" class="tab-wrapper">
-          <AboutTab />
-        </div>
+        <router-view v-slot="{ Component }">
+          <Transition name="tab-fade" mode="out-in">
+            <component :is="Component" :settings="settings" @update:settings="handleUpdateSettings" />
+          </Transition>
+        </router-view>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed, watch, inject, type Ref } from 'vue'
+import { ref, reactive, onMounted, watch, inject, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import gsap from 'gsap'
-import UiTabs from '@/components/ui/Tabs.vue'
-import GeneralTab from './settings/GeneralTab.vue'
-import GameTab from './settings/GameTab.vue'
-import AboutTab from './settings/AboutTab.vue'
-import { api } from '@/api/client'
+import backend from '@/api/client'
 import { useTheme } from '@/composables/useTheme'
 import type { GamePath } from '@/types/api'
 
@@ -39,13 +28,6 @@ const injectedGameConfig = inject<Readonly<Ref<any>>>('gameConfig', null as any)
 const injectedDownloadConfig = inject<Readonly<Ref<any>>>('downloadConfig', null as any)
 
 const mainRef = ref<HTMLElement | null>(null)
-const activeTab = ref('general')
-
-const tabs = computed(() => [
-  { id: 'general', label: t('settings.general'), icon: 'icon-settings' },
-  { id: 'game', label: t('settings.game'), icon: 'icon-game' },
-  { id: 'about', label: t('settings.about'), icon: 'icon-info' }
-])
 
 // 从全局预加载配置计算初始游戏路径
 const getInitialGamePath = () => {
@@ -90,16 +72,15 @@ const initSettings = async () => {
     console.log('开始加载后端配置...')
 
     // 同时请求所有配置
-    const [themeRes, backgroundRes, gameRes, downloadRes] = await Promise.all([
-      api.getThemeConfig().catch(() => null),
-      api.getBackgroundConfig().catch(() => null),
-      api.getGameConfig().catch(() => null),
-      api.getDownloadConfig().catch(() => null)
+    const [uiRes, gameRes, downloadRes] = await Promise.all([
+      backend.config.get('ui').catch(() => null),
+      backend.config.get('game').catch(() => null),
+      backend.config.get('download').catch(() => null)
     ])
 
     // 应用主题配置（仅在值发生变化时才更新主题，避免不必要的重绘）
-    if (themeRes && themeRes.success && themeRes.data) {
-      const data = themeRes.data
+    if (uiRes && uiRes.success && uiRes.data?.theme) {
+      const data = uiRes.data.theme
       const newMode = data.mode || 'system'
       const newColor = data.primary_color || '#0078d4'
       const newBlur = data.blur_amount ?? 6
@@ -123,8 +104,8 @@ const initSettings = async () => {
     }
 
     // 应用背景配置（仅在值发生变化时才更新）
-    if (backgroundRes && backgroundRes.success && backgroundRes.data) {
-      const data = backgroundRes.data
+    if (uiRes && uiRes.success && uiRes.data?.background) {
+      const data = uiRes.data.background
       const newPath = data.path || ''
 
       if (settings.backgroundImage !== newPath) {
@@ -181,33 +162,4 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.settings-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-  padding: 0;
-}
-
-.settings-card {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background-color: var(--bg-surface);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-color);
-  overflow: hidden;
-  margin-top: 10px;
-}
-
-.settings-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-}
-
-.tab-wrapper {
-  height: 100%;
-}
-</style>
+<style scoped src="@/styles/Settings.css"></style>

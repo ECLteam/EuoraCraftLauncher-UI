@@ -66,11 +66,6 @@ const openLink = (url: string) => {
 }*/
 </script>
 
-<style scoped src="@/styles/views/Settings.css"></style>
+<style scoped src="@/styles/Settings.css"></style>
 
-<style scoped>
-.tab-pane {
-  max-width: 680px;
-  margin: 0 auto;
-}
-</style>
+<style scoped src="@/styles/AboutTab.css"></style>

@@ -82,4 +82,4 @@ const handleClick = (event: MouseEvent) => {
 }
 </script>
 
-<style scoped src="@/styles/components/Button.css"></style>
+<style scoped src="@/styles/Button.css"></style>

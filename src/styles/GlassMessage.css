@@ -1,0 +1,141 @@
+.glass-message-container {
+  position: fixed;
+  bottom: var(--s-xl);
+  left: var(--s-xl);
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-md);
+  pointer-events: none;
+  width: 320px;
+}
+
+.glass-message {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-md);
+  padding: var(--s-lg);
+  background: var(--bg-surface);
+  backdrop-filter: blur(var(--blur-lg));
+  -webkit-backdrop-filter: blur(var(--blur-lg));
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
+  pointer-events: all;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--duration-normal) var(--ease-spring);
+}
+
+.glass-message.success { border-left: 4px solid var(--success); }
+.glass-message.error   { border-left: 4px solid var(--error); }
+.glass-message.warning { border-left: 4px solid var(--warning); }
+.glass-message.info    { border-left: 4px solid var(--info); }
+.glass-message.loading { border-left: 4px solid var(--info); }
+
+.message-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.glass-message.success .message-icon { color: var(--success); }
+.glass-message.error   .message-icon { color: var(--error); }
+.glass-message.warning .message-icon { color: var(--warning); }
+.glass-message.info    .message-icon { color: var(--info); }
+.glass-message.loading .message-icon { color: var(--info); }
+
+.message-content {
+  flex: 1;
+  min-width: 0;
+  padding-right: var(--s-sm);
+}
+
+.message-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--s-xs);
+  line-height: 1.4;
+}
+
+.message-body {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.close-btn {
+  position: absolute;
+  top: var(--s-sm);
+  right: var(--s-sm);
+  width: 20px;
+  height: 20px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-disabled);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-sm);
+  opacity: 0;
+  transition: all var(--duration-fast) var(--ease-standard);
+  padding: 0;
+}
+
+.glass-message:hover .close-btn {
+  opacity: 1;
+}
+
+.close-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-hover);
+  transform: translateY(-1px);
+}
+
+.message-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--bg-active);
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  transition: width 0.1s linear;
+}
+
+.glass-message.success .progress-bar { background: var(--success); }
+.glass-message.error   .progress-bar { background: var(--error); }
+.glass-message.warning .progress-bar { background: var(--warning); }
+.glass-message.info    .progress-bar { background: var(--info); }
+.glass-message.loading .progress-bar { background: var(--info); }
+
+.message-list-enter-active,
+.message-list-leave-active {
+  transition: all var(--duration-slow) var(--ease-spring);
+}
+
+.message-list-enter-from {
+  opacity: 0;
+  transform: translateX(-30px) scale(0.9);
+}
+
+.message-list-leave-to {
+  opacity: 0;
+  transform: translateX(30px) scale(0.9);
+}
+
+.message-list-move {
+  transition: transform var(--duration-normal) var(--ease-standard);
+}

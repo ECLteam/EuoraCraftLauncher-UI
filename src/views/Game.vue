@@ -295,10 +295,10 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import gsap from 'gsap'
-import '@/styles/views/Game.css'
 import UiCard from '@/components/ui/Card.vue'
 import UiButton from '@/components/ui/Button.vue'
 import UiIcon from '@/components/ui/Icon.vue'
+import '@/styles/Game.css'
 import UiInput from '@/components/ui/Input.vue'
 import ContentModal from '@/components/modals/ContentModal.vue'
 import LaunchProgressModal from '@/components/modals/LaunchProgressModal.vue'
@@ -306,7 +306,7 @@ import SkinRenderer from '@/components/SkinRenderer.vue'
 import { useAccountManager } from '@/composables/useAccountManager'
 import { useVersionManager } from '@/composables/useVersionManager'
 import { globalLaunchProgress } from '@/composables/useLaunchProgress'
-import { api } from '@/api/client'
+import backend from '@/api/client'
 
 const { t } = useI18n()
 
@@ -335,7 +335,7 @@ onMounted(() => {
   )
 
   version.loadVersions()
-  api.getCurrentAccount().then(res => {
+  backend.command('accounts_current').then(res => {
     if (res.success && res.data) {
       account.currentAccount = res.data
     }
@@ -347,4 +347,4 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style scoped src="@/styles/views/Game.css"></style>
+<style scoped src="@/styles/Game.css"></style>

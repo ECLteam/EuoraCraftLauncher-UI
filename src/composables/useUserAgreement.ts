@@ -1,7 +1,6 @@
 import { ref, computed } from 'vue'
-import { api } from '@/api/client'
+import backend from '@/api/client'
 
-const USER_AGREEMENT_KEY = 'euoracraft_user_agreement_accepted'
 const USER_AGREEMENT_URL = 'https://euoracraft.zient.top/guide/user-agreement/'
 
 interface UserAgreementState {
@@ -17,28 +16,21 @@ const state = ref<UserAgreementState>({
 export async function checkUserAgreement(): Promise<boolean> {
   state.value.loading = true
   try {
-    const localAccepted = localStorage.getItem(USER_AGREEMENT_KEY) === 'true'
-    if (localAccepted) {
+    if (!(window as any).__TAURI__?.pytauri) {
       state.value.accepted = true
       return true
     }
 
-    if (!(window as any).__TAURI__?.pytauri) {
-      state.value.accepted = false
-      return false
+    const result = await backend.command('user_agreement_get')
+    if (result?.success && result?.data?.accepted) {
+      state.value.accepted = true
+      return true
     }
 
-    try {
-      const result = await api.getUserAgreementStatus()
-      if (result?.success && result?.data?.accepted) {
-        state.value.accepted = true
-        localStorage.setItem(USER_AGREEMENT_KEY, 'true')
-        return true
-      }
-    } catch (e) {
-      console.warn('[UserAgreement] 后端查询失败:', e)
-    }
-
+    state.value.accepted = false
+    return false
+  } catch (e) {
+    console.warn('[UserAgreement] 后端查询失败:', e)
     state.value.accepted = false
     return false
   } finally {
@@ -48,14 +40,15 @@ export async function checkUserAgreement(): Promise<boolean> {
 
 export async function acceptUserAgreement(): Promise<boolean> {
   try {
-    if ((window as any).__TAURI__?.pytauri) {
-      const result = await api.saveUserAgreement()
-      if (!result?.success) {
-        throw new Error(result?.message || '保存用户协议失败')
-      }
+    if (!(window as any).__TAURI__?.pytauri) {
+      state.value.accepted = true
+      return true
     }
 
-    localStorage.setItem(USER_AGREEMENT_KEY, 'true')
+    const result = await backend.command('user_agreement_save')
+    if (!result?.success) {
+      throw new Error(result?.message || '保存用户协议失败')
+    }
     state.value.accepted = true
     return true
   } catch (e) {
@@ -65,12 +58,11 @@ export async function acceptUserAgreement(): Promise<boolean> {
 }
 
 export async function rejectUserAgreement(): Promise<void> {
-  localStorage.removeItem(USER_AGREEMENT_KEY)
   state.value.accepted = false
 
   if ((window as any).__TAURI__?.pytauri) {
     try {
-      await api.clearUserAgreement()
+      await backend.command('user_agreement_clear')
     } catch (e) {
       console.warn('[UserAgreement] 后端清除失败:', e)
     }

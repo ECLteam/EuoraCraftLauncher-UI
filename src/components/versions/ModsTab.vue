@@ -127,3 +127,4 @@ onMounted(() => {
   })
 })
 </script>
+<style scoped src="@/styles/ModsTab.css"></style>

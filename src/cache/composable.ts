@@ -152,14 +152,23 @@ export function useAutoRefreshCache<T = any>(
   }
 
   // 自动刷新逻辑
+  let autoRefreshTimer: ReturnType<typeof setInterval> | null = null
+
   if (autoRefresh && cacheOptions.ttl) {
     const refreshInterval = Math.min(cacheOptions.ttl, 5 * 60 * 1000) // 最多5分钟刷新一次
-    
-    setInterval(() => {
+
+    autoRefreshTimer = setInterval(() => {
       if (isValid.value) {
         fetchData(true).catch(console.error)
       }
     }, refreshInterval)
+  }
+
+  const stopAutoRefresh = () => {
+    if (autoRefreshTimer) {
+      clearInterval(autoRefreshTimer)
+      autoRefreshTimer = null
+    }
   }
 
   return {
@@ -170,7 +179,8 @@ export function useAutoRefreshCache<T = any>(
     deleteCache: cache.deleteCache,
     refresh: cache.refresh,
     isValid: cache.isValid,
-    fetchData
+    fetchData,
+    stopAutoRefresh
   }
 }
 

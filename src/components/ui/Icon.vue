@@ -85,10 +85,4 @@ const getIconName = (iconName: string) => {
 }
 </script>
 
-<style scoped>
-.icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-</style>
+<style scoped src="@/styles/Icon.css"></style>

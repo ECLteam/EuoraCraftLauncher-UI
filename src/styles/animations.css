@@ -1,391 +1,95 @@
-:root {
-  --duration-instant: 0.1s;    /* 即时反馈，如按钮点击 */
-  --duration-fast: 0.15s;      /* 快速响应，如 hover 状态 */
-  --duration-normal: 0.25s;    /* 标准过渡，如弹窗、切换 */
-  --duration-slow: 0.35s;      /* 慢速动画，如页面切换 */
-  --duration-slower: 0.5s;     /* 更慢动画，如复杂过渡 */
-  
-  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);     /* 标准 Material 缓动 */
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);  /* 弹性效果 */
-  --ease-smooth: cubic-bezier(0.25, 0.8, 0.25, 1);   /* 平滑减速 */
-  --ease-emphasis: cubic-bezier(0.2, 0, 0, 1);       /* 强调效果 */
-  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55); /* 弹跳效果 */
-  
-  --transition-fast: all var(--duration-fast) var(--ease-standard);
-  --transition-normal: all var(--duration-normal) var(--ease-standard);
-  --transition-slow: all var(--duration-slow) var(--ease-smooth);
-  --transition-spring: all var(--duration-normal) var(--ease-spring);
-  --transition-emphasis: all var(--duration-normal) var(--ease-emphasis);
-}
+/* ================================================================
+   SnowLuma 动画系统
+   ================================================================ */
 
-.fade-in {
-  animation: fadeIn var(--duration-normal) var(--ease-standard) forwards;
-}
-
-.fade-out {
-  animation: fadeOut var(--duration-fast) var(--ease-standard) forwards;
-}
-
-@keyframes fadeIn {
+@keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-
-@keyframes fadeOut {
+@keyframes fade-out {
   from { opacity: 1; }
   to { opacity: 0; }
 }
-
-.scale-in {
-  animation: scaleIn var(--duration-normal) var(--ease-spring) forwards;
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
 }
-
-.scale-out {
-  animation: scaleOut var(--duration-fast) var(--ease-standard) forwards;
+@keyframes scale-out {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.92); }
 }
-
-@keyframes scaleIn {
-  from { 
-    opacity: 0; 
-    transform: scale(0.92); 
-  }
-  to { 
-    opacity: 1; 
-    transform: scale(1); 
-  }
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-
-@keyframes scaleOut {
-  from { 
-    opacity: 1; 
-    transform: scale(1); 
-  }
-  to { 
-    opacity: 0; 
-    transform: scale(0.96); 
-  }
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-16px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-
-.slide-up {
-  animation: slideUp var(--duration-normal) var(--ease-spring) forwards;
+@keyframes slide-left {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
 }
-
-.slide-down {
-  animation: slideDown var(--duration-normal) var(--ease-spring) forwards;
+@keyframes slide-right {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
 }
-
-.slide-left {
-  animation: slideLeft var(--duration-normal) var(--ease-spring) forwards;
-}
-
-.slide-right {
-  animation: slideRight var(--duration-normal) var(--ease-spring) forwards;
-}
-
-@keyframes slideUp {
-  from { 
-    opacity: 0; 
-    transform: translateY(20px); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
-  }
-}
-
-@keyframes slideDown {
-  from { 
-    opacity: 0; 
-    transform: translateY(-20px); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
-  }
-}
-
-@keyframes slideLeft {
-  from { 
-    opacity: 0; 
-    transform: translateX(20px); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateX(0); 
-  }
-}
-
-@keyframes slideRight {
-  from { 
-    opacity: 0; 
-    transform: translateX(-20px); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateX(0); 
-  }
-}
-
-.blur-in {
-  animation: blurIn var(--duration-slow) var(--ease-smooth) forwards;
-}
-
-@keyframes blurIn {
-  from { 
-    opacity: 0; 
-    filter: blur(10px);
-    transform: translateY(10px);
-  }
-  to { 
-    opacity: 1; 
-    filter: blur(0);
-    transform: translateY(0);
-  }
-}
-
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-.spin-slow {
-  animation: spin 2s linear infinite;
-}
-
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
-
-.pulse {
-  animation: pulse 2s var(--ease-standard) infinite;
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(122, 168, 240, 0.3); }
+  50% { box-shadow: 0 0 0 6px rgba(122, 168, 240, 0); }
+}
+@keyframes shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
+/* 工具类 */
+.fade-in { animation: fade-in var(--duration-normal) var(--ease-standard) forwards; }
+.scale-in { animation: scale-in var(--duration-normal) var(--ease-spring) forwards; }
+.slide-up { animation: slide-up var(--duration-normal) var(--ease-standard) forwards; }
+.slide-left { animation: slide-left var(--duration-normal) var(--ease-standard) forwards; }
+.spin { animation: spin 1s linear infinite; }
 
-.bounce {
-  animation: bounce var(--duration-slower) var(--ease-bounce) forwards;
-}
+/* 页面过渡 */
+.page-enter-active { transition: opacity var(--duration-normal) var(--ease-standard), transform var(--duration-normal) var(--ease-standard); }
+.page-leave-active { transition: opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard); }
+.page-enter-from { opacity: 0; transform: translateY(8px) scale(0.98); }
+.page-leave-to { opacity: 0; transform: translateY(-8px) scale(0.98); }
 
-@keyframes bounce {
-  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-10px); }
-  60% { transform: translateY(-5px); }
-}
+/* 弹窗过渡 */
+.modal-enter-active { transition: opacity var(--duration-slow) var(--ease-out); }
+.modal-leave-active { transition: opacity var(--duration-normal) var(--ease-standard); }
+.modal-enter-from { opacity: 0; }
+.modal-leave-to { opacity: 0; }
 
-.shake {
-  animation: shake 0.5s var(--ease-standard);
-}
+.modal-scale-enter-active { transition: all var(--duration-slow) var(--ease-spring); }
+.modal-scale-leave-active { transition: all var(--duration-fast) var(--ease-standard); }
+.modal-scale-enter-from { opacity: 0; transform: scale(0.92); }
+.modal-scale-leave-to { opacity: 0; transform: scale(0.96); }
 
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-  20%, 40%, 60%, 80% { transform: translateX(5px); }
-}
+/* 列表过渡 */
+.list-enter-active { transition: all var(--duration-normal) var(--ease-spring); }
+.list-leave-active { transition: all var(--duration-fast) var(--ease-standard); }
+.list-enter-from { opacity: 0; transform: translateX(-12px); }
+.list-leave-to { opacity: 0; transform: translateX(12px); }
+.list-move { transition: transform var(--duration-normal) var(--ease-standard); }
 
-.transition-fast {
-  transition: var(--transition-fast);
-}
+/* 消息过渡 */
+.message-enter-active { transition: all var(--duration-slow) var(--ease-spring); }
+.message-leave-active { transition: all var(--duration-fast) var(--ease-standard); }
+.message-enter-from { opacity: 0; transform: translateX(-24px) scale(0.92); }
+.message-leave-to { opacity: 0; transform: translateX(24px) scale(0.92); }
+.message-move { transition: transform var(--duration-normal) var(--ease-standard); }
 
-.transition-normal {
-  transition: var(--transition-normal);
-}
-
-.transition-slow {
-  transition: var(--transition-slow);
-}
-
-.transition-spring {
-  transition: var(--transition-spring);
-}
-
-.transition-colors {
-  transition: color var(--duration-fast) var(--ease-standard),
-              background-color var(--duration-fast) var(--ease-standard),
-              border-color var(--duration-fast) var(--ease-standard);
-}
-
-.transition-transform {
-  transition: transform var(--duration-fast) var(--ease-spring);
-}
-
-.transition-opacity {
-  transition: opacity var(--duration-fast) var(--ease-standard);
-}
-
-.transition-shadow {
-  transition: box-shadow var(--duration-normal) var(--ease-standard);
-}
-
-.page-enter-active,
-.page-leave-active {
-  transition: 
-    opacity var(--duration-normal) var(--ease-standard),
-    transform var(--duration-normal) var(--ease-spring);
-}
-
-.page-enter-from {
-  opacity: 0;
-  transform: translateY(8px);
-}
-
-.page-leave-to {
-  opacity: 0;
-  transform: translateY(-8px);
-}
-
-.modal-enter-active {
-  transition: 
-    opacity var(--duration-normal) var(--ease-standard),
-    backdrop-filter var(--duration-normal) var(--ease-standard);
-}
-
-.modal-leave-active {
-  transition: 
-    opacity var(--duration-fast) var(--ease-standard),
-    backdrop-filter var(--duration-fast) var(--ease-standard);
-}
-
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
-
-.modal-scale-enter-active {
-  transition: all var(--duration-normal) var(--ease-spring);
-}
-
-.modal-scale-leave-active {
-  transition: all var(--duration-fast) var(--ease-standard);
-}
-
-.modal-scale-enter-from,
-.modal-scale-leave-to {
-  opacity: 0;
-  transform: scale(0.92);
-}
-
-.modal-slide-enter-active {
-  transition: all var(--duration-slow) var(--ease-smooth);
-}
-
-.modal-slide-leave-active {
-  transition: all var(--duration-normal) var(--ease-standard);
-}
-
-.modal-slide-enter-from {
-  opacity: 0;
-  transform: translateX(100%);
-}
-
-.modal-slide-leave-to {
-  opacity: 0;
-  transform: translateX(-100%);
-}
-
-.list-enter-active,
-.list-leave-active {
-  transition: all var(--duration-normal) var(--ease-spring);
-}
-
-.list-enter-from,
-.list-leave-to {
-  opacity: 0;
-  transform: translateX(-20px);
-}
-
-.list-leave-to {
-  transform: translateX(20px);
-}
-
-.list-move {
-  transition: transform var(--duration-normal) var(--ease-spring);
-}
-
-.message-enter-active {
-  transition: all var(--duration-normal) var(--ease-spring);
-}
-
-.message-leave-active {
-  transition: all var(--duration-normal) var(--ease-standard);
-}
-
-.message-enter-from {
-  opacity: 0;
-  transform: translateX(-30px) scale(0.9);
-}
-
-.message-leave-to {
-  opacity: 0;
-  transform: translateX(30px) scale(0.9);
-  margin-top: -76px;
-}
-
-.message-move {
-  transition: transform var(--duration-normal) var(--ease-standard);
-}
-
-.stagger-fade > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-fade > *:nth-child(2) { animation-delay: 50ms; }
-.stagger-fade > *:nth-child(3) { animation-delay: 100ms; }
-.stagger-fade > *:nth-child(4) { animation-delay: 150ms; }
-.stagger-fade > *:nth-child(5) { animation-delay: 200ms; }
-.stagger-fade > *:nth-child(6) { animation-delay: 250ms; }
-.stagger-fade > *:nth-child(7) { animation-delay: 300ms; }
-.stagger-fade > *:nth-child(8) { animation-delay: 350ms; }
-
-.btn-feedback:active {
-  transform: scale(0.96);
-  transition: transform var(--duration-instant) var(--ease-standard);
-}
-
-.card-hover {
-  transition: 
-    transform var(--duration-fast) var(--ease-spring),
-    box-shadow var(--duration-normal) var(--ease-standard);
-}
-
-.card-hover:hover {
-  transform: translateY(-2px);
-}
-
-.link-underline {
-  position: relative;
-  text-decoration: none;
-}
-
-.link-underline::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: currentColor;
-  transition: width var(--duration-fast) var(--ease-standard);
-}
-
-.link-underline:hover::after {
-  width: 100%;
-}
-
-.focus-ring:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--color-primary-light), 0 0 0 4px var(--color-primary);
-  transition: box-shadow var(--duration-fast) var(--ease-standard);
-}
-
-.gpu-accelerated {
-  will-change: transform, opacity;
-  transform: translateZ(0);
-}
+/* 骨架屏 */
+.skeleton-pulse { animation: skeleton-pulse 1.8s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

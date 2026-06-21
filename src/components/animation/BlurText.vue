@@ -71,12 +71,4 @@ const getElements = () => {
   </div>
 </template>
 
-<style scoped>
-.blur-text {
-  display: inline-block;
-}
-
-.element {
-  will-change: transform, filter, opacity;
-}
-</style>
+<style scoped src="@/styles/BlurText.css"></style>

@@ -117,62 +117,48 @@
           </div>
 
           <!-- 版本列表 -->
-          <div v-else class="versions-grid">
+          <div v-else class="versions-strip">
             <div
               v-for="version in filteredVersions"
-              :key="version.folder"
-              class="version-card"
+              :key="version.versionId"
+              class="version-strip-item"
               :class="{
-                'status-success': version.status === 'success',
-                'status-failure': version.status === 'failure'
+                'strip-success': !version.isBroken,
+                'strip-failure': version.isBroken
               }"
             >
-              <div class="version-card-header">
-                <div class="version-icon">
-                  <UiIcon :name="getLoaderIcon(version.loader_type)" />
-                </div>
-                <div class="version-info">
-                  <h4 class="version-name">{{ version.folder }}</h4>
-                  <p class="version-id">{{ version.version || t('versions.manage.unknownVersion') }}</p>
-                </div>
-                <div class="version-actions">
-                  <UiButton
-                    v-if="version.status === 'success'"
-                    variant="primary"
-                    size="sm"
-                    icon="play"
-                    @click="handleLaunch(version)"
-                  >
-                    {{ t('common.launch') }}
-                  </UiButton>
-                  <UiButton
-                    variant="ghost"
-                    shape="circle"
-                    size="sm"
-                    icon="icon-trash"
-                    :title="t('common.delete')"
-                    @click="handleDelete(version)"
-                  />
-                </div>
+              <div class="strip-icon">
+                <UiIcon :name="getLoaderIcon(version.primaryLoader)" />
               </div>
-
-              <div class="version-details">
-                <div class="detail-row">
-                  <span class="detail-label">{{ t('versions.manage.loader') }}</span>
-                  <span class="badge" :class="'badge-' + getLoaderClass(version.loader_type)">
-                    {{ getLoaderName(version.loader_type) }}
-                  </span>
-                </div>
-                <div class="detail-row">
-                  <span class="detail-label">{{ t('versions.manage.status') }}</span>
-                  <span class="badge" :class="version.status === 'success' ? 'badge-success' : 'badge-error'">
-                    {{ version.status === 'success' ? t('versions.manage.statusAvailable') : t('versions.manage.statusBroken') }}
-                  </span>
-                </div>
-                <div v-if="version.error" class="error-message">
-                  <UiIcon name="warning" />
-                  <span>{{ version.error }}</span>
-                </div>
+              <span class="strip-name">{{ version.versionId }}</span>
+              <span class="strip-mcver">{{ version.vanillaName || t('versions.manage.unknownVersion') }}</span>
+              <span class="badge" :class="'badge-' + getLoaderClass(version.primaryLoader)">
+                {{ getLoaderName(version.primaryLoader) }}
+              </span>
+              <span class="badge" :class="version.isBroken ? 'badge-error' : 'badge-success'">
+                {{ version.isBroken ? t('versions.manage.statusBroken') : t('versions.manage.statusAvailable') }}
+              </span>
+              <div v-if="version.error" class="strip-error" :title="version.error">
+                <UiIcon name="warning" />
+              </div>
+              <div class="strip-actions">
+                <UiButton
+                  v-if="!version.isBroken"
+                  variant="primary"
+                  size="sm"
+                  icon="play"
+                  @click="handleLaunch(version)"
+                >
+                  {{ t('common.launch') }}
+                </UiButton>
+                <UiButton
+                  variant="ghost"
+                  shape="circle"
+                  size="sm"
+                  icon="icon-trash"
+                  :title="t('common.delete')"
+                  @click="handleDelete(version)"
+                />
               </div>
             </div>
           </div>
@@ -251,7 +237,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { globalLaunchProgress } from '@/composables/useLaunchProgress'
-import { api } from '@/api/client'
+import backend from '@/api/client'
 import type { ScannedVersion } from '@/types/api'
 import ContentModal from '@/components/modals/ContentModal.vue'
 import UiButton from '@/components/ui/Button.vue'
@@ -331,7 +317,7 @@ onBeforeUnmount(() => {
 
 const fetchGamePaths = async () => {
   try {
-    const response = await api.getGameConfig()
+    const response = await backend.config.get('game')
     if (response.success && response.data) {
       const paths = response.data.minecraft_paths || []
       // 兼容旧格式（字符串数组）
@@ -362,7 +348,7 @@ const scanCurrentPath = async () => {
   
   loading.value = true
   try {
-    const response = await api.scanVersions([currentPath.value.path])
+    const response = await backend.command('scan_versions', {paths: [currentPath.value.path]})
     if (response.success) {
       // 为每个版本标记所属路径
       scannedVersions.value = (response.data || []).map((v: ScannedVersion) => ({
@@ -404,7 +390,7 @@ const editPath = (index: number) => {
 
 const browseForPath = async () => {
   try {
-    const response = await api.selectDirectory()
+    const response = await backend.command('select_directory')
     if (response.success && response.data?.path) {
       pathForm.value.path = response.data.path
       // 如果名称未填写，自动生成
@@ -428,7 +414,7 @@ const savePath = async () => {
   if (!pathForm.value.name || !pathForm.value.path) return
   
   try {
-    const configResponse = await api.getGameConfig()
+    const configResponse = await backend.config.get('game')
     if (configResponse.success && configResponse.data) {
       let updatedPaths = [...gamePaths.value]
       
@@ -452,7 +438,7 @@ const savePath = async () => {
       gamePaths.value = updatedPaths
       
       // 保存到后端
-      await api.updateGameConfig({ 
+      await backend.config.set('game', { 
         ...configResponse.data, 
         minecraft_paths: updatedPaths 
       })
@@ -491,9 +477,9 @@ const removePath = async (index: number) => {
       gamePaths.value.splice(index, 1)
 
       try {
-        const configResponse = await api.getGameConfig()
+        const configResponse = await backend.config.get('game')
         if (configResponse.success && configResponse.data) {
-          await api.updateGameConfig({
+          await backend.config.set('game', {
             ...configResponse.data,
             minecraft_paths: gamePaths.value
           })
@@ -526,8 +512,8 @@ const handleLaunch = async (version: ScannedVersion) => {
   showLaunchProgress({ cancelable: true })
 
   try {
-    const launchResult = await api.launchInstance({
-      version: version.folder,
+    const launchResult = await backend.command('launch_instance', {
+      version: version.versionId,
       gamePath: currentPath.value.path
     })
 
@@ -543,7 +529,7 @@ const handleLaunch = async (version: ScannedVersion) => {
     // 真实轮询后端进度
     const pollInterval = setInterval(async () => {
       try {
-        const statusRes = await api.getLaunchStatus(taskId)
+        const statusRes = await backend.command('get_launch_status', taskId)
         if (!statusRes.success || !statusRes.data) {
           return
         }
@@ -562,7 +548,7 @@ const handleLaunch = async (version: ScannedVersion) => {
         if (status.completed) {
           clearInterval(pollInterval)
           setLaunchProgress(100, 'success', '启动成功')
-          message.success(`正在启动 ${version.folder}`)
+          message.success(`正在启动 ${version.versionId}`)
           setTimeout(hideLaunchProgress, 800)
         }
       } catch (pollErr) {
@@ -582,13 +568,13 @@ const handleDelete = async (version: ScannedVersion) => {
 
   openConfirm(
     t('common.confirm'),
-    t('versions.manage.confirmDeleteVersion', { name: version.folder }),
+    t('versions.manage.confirmDeleteVersion', { name: version.versionId }),
     async () => {
       try {
         // 调用后端删除版本
-        const result = await api.uninstallVersion(version.folder)
+        const result = await backend.command('uninstall_version', {version_id: version.versionId})
         if (result.success) {
-          message.success(t('versions.manage.versionDeleted', { name: version.folder }))
+          message.success(t('versions.manage.versionDeleted', { name: version.versionId }))
           await scanCurrentPath()
         } else {
           message.error(result.message || t('versions.manage.deleteFailed'))
@@ -611,7 +597,7 @@ const getLoaderIcon = (loaderType: string | null) => {
 }
 
 const getLoaderName = (loaderType: string | null) => {
-  if (!loaderType || loaderType === 'Unknown' || loaderType === 'release' || loaderType === 'snapshot') {
+  if (!loaderType || loaderType === 'Unknown' || loaderType === 'release' || loaderType === 'snapshot' || loaderType === 'Vanilla') {
     return t('versions.manage.vanilla')
   }
   return loaderType.charAt(0).toUpperCase() + loaderType.slice(1)
@@ -619,10 +605,11 @@ const getLoaderName = (loaderType: string | null) => {
 
 const getLoaderClass = (loaderType: string | null) => {
   switch (loaderType?.toLowerCase()) {
-    case 'fabric': return 'fabric'
-    case 'forge': return 'forge'
-    case 'quilt': return 'quilt'
-    default: return 'vanilla'
+    case 'fabric': return 'fabric';
+    case 'forge': return 'forge';
+    case 'quilt': return 'quilt';
+    default: return 'vanilla';
   }
 }
 </script>
+<style scoped src="@/styles/ManageTab.css"></style>

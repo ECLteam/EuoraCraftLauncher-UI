@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { api } from '@/api/client'
+import backend from '@/api/client'
 
 const CACHE_TTL = 30 * 60 * 1000
 
@@ -139,7 +139,7 @@ export function useAvatarRenderer() {
           const serverType = useDefaultSkin ? 'Mojang' : accountType
           const uuidToUse = id || '00000000-0000-0000-0000-000000000000'
           
-          const result = await api.getAvatarDataUrl(uuidToUse, serverType, undefined, size, useDefaultSkin)
+          const result = await backend.command('avatar_data_url', { uuid: uuidToUse, type_name: serverType, size, use_default_skin: useDefaultSkin })
           if (result?.success && result.data?.dataUrl) {
             const url = result.data.dataUrl
             // 缓存成功获取的头像

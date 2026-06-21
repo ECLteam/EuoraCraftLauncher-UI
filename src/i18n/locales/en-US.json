@@ -5,6 +5,8 @@
   },
   "sidebar": {
     "toggle": "Toggle Sidebar",
+    "collapse": "Collapse Sidebar",
+    "expand": "Expand Sidebar",
     "game": "Game",
     "versions": "Versions",
     "instances": "Instances",
@@ -286,6 +288,8 @@
     "checkUpdate": "Check for Updates",
     "appearance": "Appearance",
     "download": "Download",
+    "topNav": "Horizontal Title Bar",
+    "topNavDesc": "Hide sidebar and show navigation menu in the title bar",
     "sourceOfficial": "Official",
     "sourceBmclapiDesc": "China mirror, fast speed"
   },

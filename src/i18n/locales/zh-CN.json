@@ -5,6 +5,8 @@
   },
   "sidebar": {
     "toggle": "切换侧边栏",
+    "collapse": "收起侧边栏",
+    "expand": "展开侧边栏",
     "game": "游戏",
     "versions": "版本",
     "instances": "实例管理",
@@ -286,6 +288,8 @@
     "checkUpdate": "检查更新",
     "appearance": "外观设置",
     "download": "下载设置",
+    "topNav": "横向标题栏",
+    "topNavDesc": "开启后侧边栏隐藏，顶部标题栏显示导航菜单",
     "sourceOfficial": "官方源",
     "sourceBmclapiDesc": "国内镜像，速度较快"
   },

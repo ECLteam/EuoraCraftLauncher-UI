@@ -1,11 +1,13 @@
+/* ================================================================
+   布局系统
+   ================================================================ */
+
 .page-container {
-  transition: 
-    transform var(--duration-slow) var(--ease-smooth),
-    opacity var(--duration-normal) var(--ease-standard);
+  transition: transform var(--duration-slow) var(--ease-smooth), opacity var(--duration-normal) var(--ease-standard);
 }
 
 .modal-page-slide-out {
-  transform: translateX(30%) scale(0.95);
+  transform: translateX(25%) scale(0.96);
   opacity: 0;
   pointer-events: none;
 }
@@ -16,38 +18,28 @@
   position: relative;
 }
 
-.title-bar {
-  height: 40px;
-}
-
+/* 移动端侧边栏 */
 @media (max-width: 768px) {
   .sidebar {
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
+    position: fixed;
+    inset: 0 auto 0 0;
     transform: translateX(-100%);
-    transition: transform 0.3s var(--ease-spring);
+    transition: transform var(--duration-normal) var(--ease-smooth);
     width: 240px;
-    box-shadow: var(--shadow-lg);
+    z-index: 100;
   }
-
   .sidebar.expanded {
     transform: translateX(0);
   }
-
   .sidebar-overlay {
-    position: absolute;
+    position: fixed;
     inset: 0;
-    background-color: var(--bg-overlay);
-    z-index: 899;
+    background: var(--bg-overlay);
+    z-index: 90;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s ease;
-    -webkit-backdrop-filter: blur(2px);
-    backdrop-filter: blur(2px);
+    transition: opacity var(--duration-normal) var(--ease-standard);
   }
-
   .sidebar.expanded + .sidebar-overlay {
     opacity: 1;
     pointer-events: auto;

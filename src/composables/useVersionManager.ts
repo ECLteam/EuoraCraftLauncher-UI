@@ -1,5 +1,5 @@
 import { ref, reactive } from 'vue'
-import { api } from '@/api/client'
+import backend from '@/api/client'
 import { useGlassMessage } from './useGlassMessage'
 import { globalLaunchProgress } from './useLaunchProgress'
 
@@ -22,20 +22,21 @@ export function useVersionManager(t: (key: string, ...args: any[]) => string) {
   async function loadVersions() {
     loading.value = true
     try {
-      const configRes = await api.getGameConfig()
-      if (!configRes.success || !configRes.data?.minecraft_paths?.length) {
+      const configRes = await backend.config.get('game')
+      const minecraftPaths = configRes.data?.minecraft_paths ?? []
+      if (!minecraftPaths.length) {
         showStatus(t('game.status.noGameDir'), 'error')
         return
       }
 
-      const stringPaths = configRes.data.minecraft_paths.map((path: any) =>
+      const stringPaths = minecraftPaths.map((path: any) =>
         typeof path === 'string' ? path : path.path
       )
-      const scanRes = await api.scanVersions(stringPaths)
+      const scanRes = await backend.command('scan_versions', { paths: stringPaths })
       if (scanRes.success && scanRes.data) {
         versions.value = scanRes.data
-          .filter((v: any) => v.status === 'success')
-          .map((v: any) => ({ id: v.folder, type: v.loader_type || 'Vanilla' }))
+          .filter((v: any) => !v.isBroken)
+          .map((v: any) => ({ id: v.versionId || v.id, type: v.primaryLoader || 'Vanilla' }))
 
         if (versions.value.length > 0 && !selectedVersion.value) {
           selectedVersion.value = versions.value[0].id
@@ -71,7 +72,7 @@ export function useVersionManager(t: (key: string, ...args: any[]) => string) {
     showStatus(t('game.status.launching'), 'info')
 
     // 【待对接】启动功能暂不可用
-    glassMessage.info('启动功能待对接')
+    message.info('启动功能待对接')
     console.warn('[API] launchInstance 待对接')
     launching.value = false
   }

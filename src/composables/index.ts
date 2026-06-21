@@ -1,3 +1,5 @@
+export { useAppInit } from './useAppInit'
+export { useMouseEffect } from './useMouseEffect'
 export { useAccountManager, type Account } from './useAccountManager'
 export { useAnimation, useFadeIn, useStagger, usePageTransition, useButtonFeedback } from './useAnimation'
 export { useAvatarRenderer, renderOfflineAvatar, loadAvatarImage, getAvatarUrl } from './useAvatarRenderer'

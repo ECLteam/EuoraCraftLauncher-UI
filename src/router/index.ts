@@ -4,9 +4,27 @@ import type { RouteRecordRaw } from 'vue-router'
 
 const routes: RouteRecordRaw[] = [
   { path: '/',        name: 'game',    component: () => import('@/views/Game.vue') },
-  { path: '/versions', name: 'versions', component: () => import('@/views/Versions.vue') },
+  {
+    path: '/versions',
+    component: () => import('@/views/Versions.vue'),
+    redirect: '/versions/manage',
+    children: [
+      { path: 'manage', name: 'versions-manage', component: () => import('@/components/versions/ManageTab.vue') },
+      { path: 'versions', name: 'versions-versions', component: () => import('@/components/versions/VersionsTab.vue') },
+      { path: 'mods', name: 'versions-mods', component: () => import('@/components/versions/ModsTab.vue') },
+    ]
+  },
   { path: '/instances', name: 'instances', component: () => import('@/views/Instances.vue') },
-  { path: '/settings',name:'settings', component: () => import('@/views/Settings.vue') },
+  {
+    path: '/settings',
+    component: () => import('@/views/Settings.vue'),
+    redirect: '/settings/general',
+    children: [
+      { path: 'general', name: 'settings-general', component: () => import('@/components/settings/GeneralTab.vue') },
+      { path: 'game', name: 'settings-game', component: () => import('@/components/settings/GameTab.vue') },
+      { path: 'about', name: 'settings-about', component: () => import('@/components/settings/AboutTab.vue') },
+    ]
+  },
   { path: '/dev', name: 'dev', component: () => import('@/views/DevTools.vue'), meta: { devOnly: true } },
 ]
 

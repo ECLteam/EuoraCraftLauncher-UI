@@ -87,7 +87,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, useId } from 'vue'
 import { useFullscreenModal } from '@/composables/useFullscreenModal'
 import { useI18n } from 'vue-i18n'
 import UiButton from '@/components/ui/Button.vue'
@@ -177,7 +177,14 @@ const fullscreenModal = useFullscreenModal()
 
 // Refs
 const modalRef = ref<HTMLElement | null>(null)
-const titleId = computed(() => `modal-title-${Math.random().toString(36).slice(2, 9)}`)
+const titleId = computed(() => `modal-title-${useId()}`)
+
+// 保存 keydown 处理函数引用，确保正确移除
+const keydownHandler = (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && props.visible && props.closable) {
+    close()
+  }
+}
 
 // Computed
 const showHeader = computed(() => props.title || props.closable || slots.header)
@@ -230,13 +237,6 @@ const handleBackdropClick = () => {
   // 点击外部不再关闭弹窗
 }
 
-// 键盘 ESC 关闭
-const handleKeydown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && props.visible && props.closable) {
-    close()
-  }
-}
-
 // 生命周期钩子
 const onAfterEnter = () => {
   emit('opened')
@@ -267,7 +267,7 @@ watch(() => props.visible, (val) => {
     nextTick(() => {
       modalRef.value?.focus()
     })
-    document.addEventListener('keydown', handleKeydown)
+    document.addEventListener('keydown', keydownHandler)
     if (props.lockScroll) {
       const mainContent = document.querySelector('.main-content') as HTMLElement | null
       if (mainContent) {
@@ -281,7 +281,7 @@ watch(() => props.visible, (val) => {
       fullscreenModal.open(props.title, close)
     }
   } else {
-    document.removeEventListener('keydown', handleKeydown)
+    document.removeEventListener('keydown', keydownHandler)
     if (props.lockScroll) {
       const mainContent = document.querySelector('.main-content') as HTMLElement | null
       if (mainContent) {
@@ -304,4 +304,4 @@ defineExpose({
 })
 </script>
 
-<style scoped src="@/styles/components/ContentModal.css"></style>
+<style scoped src="@/styles/ContentModal.css"></style>

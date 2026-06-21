@@ -111,15 +111,4 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.mouse-effect-iframe {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 9999;
-  background: transparent;
-  border: none;
-}
-</style>
+<style scoped src="@/styles/MouseEffect.css"></style>

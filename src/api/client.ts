@@ -1,565 +1,241 @@
-import type {
-  ApiResponse,
-  PaginatedResponse,
-  LauncherConfig,
-  BackgroundConfig,
-  GameConfig,
-  ThemeConfig,
-  DownloadConfig,
-  LocaleConfig,
-  MouseEffectConfig,
-  JavaInstallation,
-  MinecraftVersion,
-  VersionFilter,
-  GameInstance,
-  InstanceCreateRequest,
-  ModInfo,
-  ModSearchFilter,
-  DownloadTask,
-  ScannedVersion,
-} from '@/types/api'
+/**
+ * 通用 API 客户端。
+ *
+ * 三组操作 + 事件系统 + 文件系统：
+ *
+ *   backend.config.get/set/getAll/getMany
+ *   backend.command(name, params)
+ *   backend.on/off(event, cb)
+ *   backend.fs.readDir/readFile/exists
+ *   backend.file.resolve
+ *
+ * 前端定义所有数据类型。社区替换前端时只需保持接口不变。
+ */
+
+import type { ApiResponse } from '@/types/api'
 
 const CONFIG = {
   DEBUG: import.meta.env.DEV,
-  MAX_RETRIES: 3,
-  RETRY_DELAY: 1000,
-  TIMEOUT: 30000
 } as const
 
 class Logger {
-  static log(...args: any[]) {
-    if (CONFIG.DEBUG) {
-      console.log('[API]', ...args)
+  static log(...args: any[]) { CONFIG.DEBUG && console.log('[API]', ...args) }
+  static error(...args: any[]) { console.error('[API Error]', ...args) }
+}
+
+// ── 环境检测 ──────────────────────────────────────────────────────
+
+function getTauri(): any {
+  return (window as any).__TAURI__
+}
+
+function checkEnv(): boolean {
+  return !!getTauri()?.pytauri
+}
+
+function getCore(): any {
+  return getTauri()?.core
+}
+
+// ── IPC 调用 ──────────────────────────────────────────────────────
+
+async function invoke(method: string, ...payloads: any[]): Promise<any> {
+  const tauri = getTauri()
+  return tauri.pytauri.pyInvoke('api_call', { method, args: payloads })
+}
+
+async function call<T = any>(method: string, ...args: any[]): Promise<ApiResponse<T>> {
+  const start = performance.now()
+  try {
+    if (!checkEnv()) throw new Error('PyTauri 环境未就绪')
+    const raw = await invoke(method, ...args)
+    const dur = (performance.now() - start).toFixed(1)
+    if (!raw || typeof raw !== 'object') {
+      return { success: true, data: raw as T, message: '自动标准化', timestamp: Date.now() }
     }
-  }
-
-  static error(...args: any[]) {
-    console.error('[API Error]', ...args)
-  }
-
-  static warn(...args: any[]) {
-    console.warn('[API Warn]', ...args)
+    Logger.log(`${raw.success ? '✓' : '✗'} ${method} (${dur}ms)`)
+    return raw as ApiResponse<T>
+  } catch (e) {
+    Logger.error(`${method}:`, e)
+    return { success: false, message: (e as Error)?.message || '未知错误', timestamp: Date.now() }
   }
 }
 
-class ApiValidator {
-  static checkEnvironment(): boolean {
-    if (typeof window === 'undefined') {
-      Logger.error('window对象不存在')
-      return false
-    }
+// ── 事件侦听 ──────────────────────────────────────────────────────
 
-    const tauri = (window as any).__TAURI__
-    if (!tauri) {
-      Logger.error('window.__TAURI__ 不存在')
-      return false
-    }
+const _eventCleanups = new Map<string, Set<() => void>>()
 
-    if (!tauri.pytauri) {
-      Logger.error('window.__TAURI__.pytauri 不存在')
-      return false
-    }
-
-    return true
+function onEvent(event: string, cb: (payload: any) => void) {
+  const core = getCore()
+  if (!core?.listen) {
+    console.warn('[API] Tauri event.listen 不可用')
+    return () => {}
   }
-
-  static validateResponse<T>(response: any): response is ApiResponse<T> {
-    if (response === null || response === undefined) {
-      return false
-    }
-
-    if (typeof response !== 'object') {
-      return false
-    }
-
-    if (typeof response.success !== 'boolean') {
-      return false
-    }
-
-    return true
+  const unlisten = core.listen(event, (e: any) => cb(e.payload))
+  if (!_eventCleanups.has(event)) {
+    _eventCleanups.set(event, new Set())
   }
+  _eventCleanups.get(event)!.add(unlisten)
+  return unlisten
 }
 
-class ApiClient {
-  private retryCount = 0
-  private requestQueue: Array<() => Promise<any>> = []
-  private isProcessingQueue = false
+function offEvent(event: string) {
+  const cleanups = _eventCleanups.get(event)
+  if (!cleanups) return
+  for (const fn of cleanups) {
+    try { fn() } catch {}
+  }
+  cleanups.clear()
+}
 
-  async call<T = any>(
-    method: string,
-    ...args: any[]
-  ): Promise<ApiResponse<T>> {
-    const startTime = performance.now()
+// ── 文件路径转可访问 URL ──────────────────────────────────────────
 
+async function resolveFileUrl(path: string): Promise<string | null> {
+  // 先校验路径
+  const res = await call<{ path: string }>('exec_action', { name: 'file_resolve', params: { path } })
+  if (!res.success || !res.data?.path) return null
+
+  // 尝试 Tauri asset protocol
+  const core = getCore()
+  if (core?.convertFileSrc) {
     try {
-      // 环境检查（带重试）
-      let envReady = false
-      for (let i = 0; i < CONFIG.MAX_RETRIES; i++) {
-        if (ApiValidator.checkEnvironment()) {
-          envReady = true
-          break
-        }
-        if (i < CONFIG.MAX_RETRIES - 1) {
-          await this.delay(CONFIG.RETRY_DELAY)
-        }
-      }
-
-      if (!envReady) {
-        throw new Error('PyTauri 环境未就绪')
-      }
-
-      // 执行调用
-      Logger.log(`调用 ${method}`, args.length ? '参数:' : '(无参数)', args)
-
-      const pytauri = (window as any).__TAURI__.pytauri
-      const rawResult = await pytauri.pyInvoke('api_call', { method, args })
-      const duration = (performance.now() - startTime).toFixed(2)
-
-      // 验证响应格式
-      if (!ApiValidator.validateResponse<T>(rawResult)) {
-        Logger.warn(`方法 ${method} 返回非标准响应格式:`, rawResult)
-
-        const normalizedResponse: ApiResponse<T> = {
-          success: true,
-          data: rawResult as T,
-          message: '响应已自动标准化',
-          timestamp: Date.now()
-        }
-
-        Logger.log(`✓ ${method} 完成 (${duration}ms, 自动标准化):`, normalizedResponse)
-        return normalizedResponse
-      }
-
-      const response = rawResult as ApiResponse<T>
-
-      if (response.success) {
-        Logger.log(`✓ ${method} 成功 (${duration}ms):`, response.data)
-      } else {
-        Logger.error(`✗ ${method} 失败 (${duration}ms):`, response.message)
-      }
-
-      return response
-
-    } catch (error) {
-      const duration = (performance.now() - startTime).toFixed(2)
-      Logger.error(`✗ ${method} 异常 (${duration}ms):`, error)
-
-      return {
-        success: false,
-        message: error instanceof Error ? error.message : '未知错误',
-        errorCode: 'EXECUTION_ERROR',
-        timestamp: Date.now()
-      }
-    }
+      return core.convertFileSrc(res.data.path)
+    } catch {}
   }
-
-  async callWithRetry<T = any>(
-    method: string,
-    ...args: any[]
-  ): Promise<ApiResponse<T>> {
-    for (let attempt = 1; attempt <= CONFIG.MAX_RETRIES; attempt++) {
-      const result = await this.call<T>(method, ...args)
-
-      if (result.success) {
-        return result
-      }
-
-      const isRetryable = result.errorCode === 'NETWORK_ERROR' ||
-                         result.errorCode === 'TIMEOUT_ERROR' ||
-                         attempt < CONFIG.MAX_RETRIES
-
-      if (isRetryable) {
-        Logger.warn(`方法 ${method} 第 ${attempt} 次尝试失败，${CONFIG.RETRY_DELAY}ms后重试:`, result.message)
-        await this.delay(CONFIG.RETRY_DELAY * attempt)
-      } else {
-        break
-      }
-    }
-
-    return {
-      success: false,
-      message: `方法 ${method} 重试 ${CONFIG.MAX_RETRIES} 次后仍失败`,
-      errorCode: 'MAX_RETRIES_EXCEEDED',
-      timestamp: Date.now()
-    }
-  }
-
-  private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
-  }
-
-  async callQueued<T = any>(
-    method: string,
-    ...args: any[]
-  ): Promise<ApiResponse<T>> {
-    return new Promise((resolve) => {
-      this.requestQueue.push(async () => {
-        const result = await this.call<T>(method, ...args)
-        resolve(result)
-      })
-
-      this.processQueue()
-    })
-  }
-
-  private async processQueue() {
-    if (this.isProcessingQueue || this.requestQueue.length === 0) {
-      return
-    }
-
-    this.isProcessingQueue = true
-
-    while (this.requestQueue.length > 0) {
-      const task = this.requestQueue.shift()!
-      await task()
-    }
-
-    this.isProcessingQueue = false
-  }
+  return null
 }
 
-class ApiService {
-  private client = new ApiClient()
+// ══════════════════════════════════════════════════════════════════
+//  CommandMap — 类型安全的命令名称与参数映射
+//  社区前端替换时只需更新此映射即可获得完整类型提示。
+// ══════════════════════════════════════════════════════════════════
 
-  async ping() {
-    return this.client.call<{ status: string; timestamp: number }>('ping')
-  }
+interface CommandMap {
+  ping: undefined
 
-  // 窗口控制
-  // 配置管理
-  async getLauncherConfig() {
-    return this.client.call<LauncherConfig>('get_launcher_config')
-  }
+  // Java
+  java_scan: undefined
+  java_list: undefined
 
-  async getBackgroundConfig() {
-    return this.client.call<BackgroundConfig>('get_background_config')
-  }
+  // 游戏版本
+  minecraft_versions: { filter_type?: string }
+  scan_versions: { paths?: any }
+  uninstall_version: { version_id: string; game_path?: string }
 
-  async getBackgroundImage() {
-    return this.client.call<{ base64: string; path: string; type: string }>('get_background_image')
-  }
-
-  async updateBackgroundConfig(config: Partial<BackgroundConfig>) {
-    return this.client.call('update_background_config', config)
-  }
-
-  async updateBackgroundImage(imageType: string, imagePath: string) {
-    return this.client.call('update_background_image', imageType, imagePath)
-  }
-
-  async loadImageFromUrl(url: string) {
-    return this.client.call<{ path: string }>('load_image_from_url', url)
-  }
-
-  async fetchImageDataUrl(url: string) {
-    return this.client.call<{ dataUrl: string }>('fetch_image_data_url', url)
-  }
-
-  async getAvatarDataUrl(uuid: string, typeName: string = 'Mojang', customServer?: string, size: number = 64, useDefaultSkin: boolean = false) {
-    return this.client.call<{ dataUrl: string }>('get_avatar_data_url', uuid, typeName, customServer, size, useDefaultSkin)
-  }
-
-  async selectLocalImage() {
-    return this.client.call<{ path: string }>('select_local_image')
-  }
-
-  async selectJavaExecutable() {
-    return this.client.call<{ path: string }>('select_java_executable')
-  }
-
-  async getGameConfig() {
-    return this.client.call<GameConfig>('get_game_config')
-  }
-
-  async updateGameConfig(config: Partial<GameConfig>) {
-    return this.client.call('update_game_config', config)
-  }
-
-  async getJavaList() {
-    return this.client.call<JavaInstallation[]>('get_java_list')
-  }
-
-  async getThemeConfig() {
-    return this.client.call<ThemeConfig>('get_theme_config')
-  }
-
-  async updateThemeConfig(config: Partial<ThemeConfig>) {
-    return this.client.call('update_theme_config', config)
-  }
-
-  async getDownloadConfig() {
-    return this.client.call<DownloadConfig>('get_download_config')
-  }
-
-  async updateDownloadConfig(config: Partial<DownloadConfig>) {
-    return this.client.call('update_download_config', config)
-  }
-
-  // 语言配置
-  async getLocaleConfig() {
-    return this.client.call<LocaleConfig>('get_locale_config')
-  }
-
-  async updateLocaleConfig(locale: string) {
-    return this.client.call('update_locale_config', locale)
-  }
-
-  // 鼠标特效配置
-  async getMouseEffectConfig() {
-    return this.client.call<MouseEffectConfig>('get_mouse_effect_config')
-  }
-
-  async updateMouseEffectConfig(config: Partial<MouseEffectConfig>) {
-    return this.client.call('update_mouse_effect_config', config)
-  }
-
-  // 文件选择
-  async selectDirectory() {
-    return this.client.call<{ path: string }>('select_directory')
-  }
-
-  async selectFile(filters?: { name: string; extensions: string[] }[]) {
-    return this.client.call<{ path: string }>('select_file', filters)
-  }
-
-  // 版本管理
-  async getMinecraftVersions(filter?: VersionFilter) {
-    return this.client.call<MinecraftVersion[]>('get_minecraft_versions', filter)
-  }
-
-  async getFabricVersions() {
-    return this.client.call<string[]>('get_fabric_versions')
-  }
-
-  async scanVersions(paths: string[]) {
-    return this.client.call<ScannedVersion[]>('scan_versions_in_path', paths)
-  }
-
-  async getVersionDetails(versionId: string) {
-    return this.client.call<MinecraftVersion>('get_version_details', versionId)
-  }
-
-  async installVersion(versionId: string, options?: { gamePath?: string; loader?: string; loaderVersion?: string }) {
-    return this.client.call<{ version: string; loader: string; gamePath: string }>('install_version', versionId, options)
-  }
-
-  async uninstallVersion(versionId: string) {
-    return this.client.call('uninstall_version', versionId)
-  }
-
-  async checkVersionUpdate(versionId: string) {
-    return this.client.call<{ updateAvailable: boolean; latestVersion?: string }>('check_version_update', versionId)
-  }
-
-  // 实例管理
-  async getGameInstances() {
-    return this.client.call<GameInstance[]>('get_game_instances')
-  }
-
-  async getInstanceDetails(instanceId: string) {
-    return this.client.call<GameInstance>('get_instance_details', instanceId)
-  }
-
-  async createInstance(request: InstanceCreateRequest) {
-    return this.client.call<GameInstance>('create_instance', request)
-  }
-
-  async updateInstance(instanceId: string, updates: Partial<GameInstance>) {
-    return this.client.call('update_instance', instanceId, updates)
-  }
-
-  async deleteInstance(instanceId: string) {
-    return this.client.call('delete_instance', instanceId)
-  }
-
-  async launchInstance(params?: { version: string; gamePath?: string; javaPath?: string; memory?: { min: number; max: number }; javaArgs?: string }) {
-    return this.client.call<{ taskId: string; version: string }>('launch_instance', params)
-  }
-
-  async getLaunchStatus(taskId: string) {
-    return this.client.call<{ stage: string; percent: number; message: string; completed: boolean; error?: string; instanceId?: string }>('get_launch_status', taskId)
-  }
-
-  async stopInstance(instanceId: string) {
-    return this.client.call('stop_instance', instanceId)
-  }
-
-  async getInstanceLogs(instanceId: string) {
-    return this.client.call<{ logs: string[] }>('get_instance_logs', instanceId)
-  }
-
-  // 模组管理
-  async getInstanceMods(instanceId: string) {
-    return this.client.call<ModInfo[]>('get_instance_mods', instanceId)
-  }
-
-  async searchMods(filter: ModSearchFilter) {
-    return this.client.call<PaginatedResponse<ModInfo>>('search_mods', filter)
-  }
-
-  async installMod(instanceId: string, modId: string) {
-    return this.client.call<DownloadTask>('install_mod', instanceId, modId)
-  }
-
-  async uninstallMod(instanceId: string, modId: string) {
-    return this.client.call('uninstall_mod', instanceId, modId)
-  }
-
-  async toggleMod(instanceId: string, modId: string, enabled: boolean) {
-    return this.client.call('toggle_mod', instanceId, modId, enabled)
-  }
-
-  // 下载管理
-  async getDownloadTasks() {
-    return this.client.call<DownloadTask[]>('get_download_tasks')
-  }
-
-  async getDownloadTask(taskId: string) {
-    return this.client.call<DownloadTask>('get_download_task', taskId)
-  }
-
-  async pauseDownloadTask(taskId: string) {
-    return this.client.call('pause_download_task', taskId)
-  }
-
-  async resumeDownloadTask(taskId: string) {
-    return this.client.call('resume_download_task', taskId)
-  }
-
-  async cancelDownloadTask(taskId: string) {
-    return this.client.call('cancel_download_task', taskId)
-  }
-
-  // 诊断工具
-  async diagnoseApi() {
-    return this.client.call<{
-      environment: Record<string, any>
-      apiMethods: string[]
-      connectivity: boolean
-    }>('diagnose_api')
-  }
+  // 账户
+  accounts_list: undefined
+  accounts_current: undefined
+  accounts_add_offline: { username: string }
+  accounts_start_microsoft_login: undefined
+  accounts_poll_microsoft_login: undefined
+  accounts_complete_microsoft_login: undefined
+  accounts_switch: { account_id: string }
+  accounts_remove: { account_id: string }
+  accounts_refresh_profile: { account_id: string }
 
   // 用户协议
-  async getUserAgreementStatus() {
-    return this.client.call<{ accepted: boolean }>('get_user_agreement_status')
-  }
+  user_agreement_get: undefined
+  user_agreement_save: undefined
+  user_agreement_clear: undefined
 
-  async saveUserAgreement() {
-    return this.client.call('save_user_agreement')
-  }
+  // 图片
+  image_fetch_data_url: { url: string }
+  image_save_url: { url: string }
+  image_read_file: { path: string }
+  avatar_data_url: { uuid: string; type_name?: string; size?: number; use_default_skin?: boolean; avatar_type?: string }
 
-  async clearUserAgreement() {
-    return this.client.call('clear_user_agreement')
-  }
+  // 文件选择
+  select_directory: undefined
+  select_java: undefined
+  select_image: undefined
 
-  // 账户管理
-  async getAccounts() {
-    return this.client.call<{
-      accounts: Array<{
-        id: string
-        alias: string
-        type: 'microsoft' | 'offline'
-        email: string
-        uuid: string
-        isCurrent: boolean
-        skinUrl?: string
-      }>
-      current: {
-        id: string
-        alias: string
-        type: 'microsoft' | 'offline'
-        email: string
-        uuid: string
-        skinUrl?: string
-      } | null
-    }>('get_accounts')
-  }
+  // 游戏实例
+  instances_list: undefined
+  instance_stop: { instance_id: string }
 
-  async getCurrentAccount() {
-    return this.client.call<{
-      id: string
-      alias: string
-      type: 'microsoft' | 'offline'
-      email: string
-      uuid: string
-      skinUrl?: string
-    } | null>('get_current_account')
-  }
+  // 启动器信息
+  launcher_info: undefined
+  list_sections: undefined
 
-  async addOfflineAccount(username: string) {
-    return this.client.call<{
-      account?: {
-        id: string
-        alias: string
-        type: 'microsoft' | 'offline'
-        email: string
-        uuid: string
-      }
-    }>('add_offline_account', username)
-  }
+  // 批量配置
+  config_get_all: undefined
+  config_get_many: { sections: string[] }
 
-  async startMicrosoftLogin() {
-    return this.client.call<{
-      status: 'pending' | 'completed' | 'error'
-      userCode?: string
-      verificationUri?: string
-      message: string
-      interval?: number
-    }>('start_microsoft_login')
-  }
+  // 文件系统
+  fs_read_dir: { path: string }
+  fs_read_file: { path: string; mode?: 'text' | 'base64' }
+  fs_exists: { path: string }
 
-  async pollMicrosoftLogin() {
-    return this.client.call<{
-      status: 'pending' | 'ready' | 'error'
-      message: string
-      retry_after?: number
-    }>('poll_microsoft_login')
-  }
-
-  async completeMicrosoftLogin() {
-    return this.client.call<{
-      account?: {
-        id: string
-        alias: string
-        type: 'microsoft' | 'offline'
-        email: string
-      }
-      message: string
-    }>('complete_microsoft_login')
-  }
-
-  async switchAccount(accountId: string) {
-    return this.client.call('switch_account', accountId)
-  }
-
-  async removeAccount(accountId: string) {
-    return this.client.call('remove_account', accountId)
-  }
-
-  async refreshAccountProfile(accountId: string) {
-    return this.client.call('refresh_account_profile', accountId)
-  }
+  // 文件路径
+  file_resolve: { path: string }
 }
 
-export const api = new ApiService()
+// ══════════════════════════════════════════════════════════════════
+//  导出
+// ══════════════════════════════════════════════════════════════════
 
-// 全局诊断函数
-if (typeof window !== 'undefined') {
-  (window as any).diagnoseApi = async () => {
-    const tauri = (window as any).__TAURI__
-    console.log('window:', typeof window !== 'undefined' ? '✓' : '✗')
-    console.log('__TAURI__:', tauri ? '✓' : '✗')
-    console.log('pytauri:', tauri?.pytauri ? '✓' : '✗')
+export const backend = {
 
-    if (tauri?.pytauri) {
-      try {
-        const pingResult = await api.ping()
-        console.log('ping:', pingResult)
-      } catch (e) {
-        console.error('ping 失败:', e)
-      }
-    }
-  }
+  /** 配置存取 — 前端定义结构，后端只持久化 */
+  config: {
+    get<T = any>(section: string) { return call<{ [k: string]: any } & T>('config_get', section) },
+    set(section: string, data: any) { return call('config_set', section, data) },
+    list() { return call<string[]>('config_list') },
+
+    /** 一次拉取全部配置 */
+    getAll() { return call<Record<string, any>>('config_get_all') },
+
+    /** 一次拉取多个分区 */
+    getMany(sections: string[]) { return call<Record<string, any>>('config_get_many', sections) },
+  },
+
+  /** 后端动作 — 类型安全 */
+  command<T = any>(name: keyof CommandMap, params?: CommandMap[keyof CommandMap]) {
+    return call<T>('exec_action', { name, params })
+  },
+
+  /** 事件 — 后端主动推送 */
+  on(event: string, cb: (payload: any) => void) {
+    return onEvent(event, cb)
+  },
+
+  off(event: string) {
+    offEvent(event)
+  },
+
+  /** 文件系统 */
+  fs: {
+    readDir(path: string) {
+      return call<{ name: string; is_dir: boolean; size: number; mtime: number }[]>('exec_action', {
+        name: 'fs_read_dir', params: { path },
+      })
+    },
+    readFile(path: string, mode: 'text' | 'base64' = 'text') {
+      return call<{ content: string; size: number }>('exec_action', {
+        name: 'fs_read_file', params: { path, mode },
+      })
+    },
+    exists(path: string) {
+      return call<{ exists: boolean; is_dir: boolean; is_file: boolean }>('exec_action', {
+        name: 'fs_exists', params: { path },
+      })
+    },
+  },
+
+  /** 文件路径工具 */
+  file: {
+    /** 将本地文件路径转为可在 <img>/<video> 中直接使用的 URL */
+    async toUrl(path: string): Promise<string | null> {
+      return resolveFileUrl(path)
+    },
+
+    /** 路径规整与存在性校验 */
+    resolve(path: string) {
+      return call<{ path: string; is_dir: boolean; is_file: boolean; mime: string }>('exec_action', {
+        name: 'file_resolve', params: { path },
+      })
+    },
+  },
 }
 
-export default api
+export default backend

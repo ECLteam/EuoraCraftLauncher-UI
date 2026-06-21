@@ -1,5 +1,5 @@
-import { ref, computed, reactive } from 'vue'
-import { api } from '@/api/client'
+import { ref, computed, reactive, onScopeDispose } from 'vue'
+import backend from '@/api/client'
 import { useGlassMessage } from './useGlassMessage'
 
 export interface Account {
@@ -42,6 +42,10 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
   let pollTimer: ReturnType<typeof setInterval> | null = null
   let pollInterval = 5000
 
+  onScopeDispose(() => {
+    stopPolling()
+  })
+
   const accountTypeLabel = computed(() => {
     return currentAccount.value?.type === 'microsoft'
       ? t('game.microsoftAccount')
@@ -51,7 +55,7 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
   async function loadAccounts() {
     accountsLoading.value = true
     try {
-      const res = await api.getAccounts()
+      const res = await backend.command('accounts_list')
       if (res.success && res.data) {
         accounts.value = res.data.accounts || []
         currentAccount.value = res.data.current
@@ -77,7 +81,7 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
 
     addingOffline.value = true
     try {
-      const res = await api.addOfflineAccount(username)
+      const res = await backend.command('accounts_add_offline', { username })
       if (res.success) {
         message.success(t('game.status.accountAdded'))
         newOfflineUsername.value = ''
@@ -94,11 +98,11 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
 
   async function switchAccount(accountId: string) {
     try {
-      const res = await api.switchAccount(accountId)
+      const res = await backend.command('accounts_switch', { account_id: accountId })
       if (res.success) {
         message.success(t('game.status.accountSwitched'))
         await loadAccounts()
-        const accountsRes = await api.getAccounts()
+        const accountsRes = await backend.command('accounts_list')
         if (accountsRes.success && accountsRes.data) {
           currentAccount.value = accountsRes.data.current
         }
@@ -120,12 +124,12 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
 
     deletingAccount.value = true
     try {
-      const res = await api.removeAccount(accountToDelete.value.id)
+      const res = await backend.command('accounts_remove', { account_id: accountToDelete.value.id })
       if (res.success) {
         message.success(t('game.status.accountRemoved'))
         showDeleteConfirmModal.value = false
         await loadAccounts()
-        const accountsRes = await api.getAccounts()
+        const accountsRes = await backend.command('accounts_list')
         if (accountsRes.success && accountsRes.data) {
           currentAccount.value = accountsRes.data.current
         }
@@ -143,7 +147,7 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
   async function startMicrosoftLogin() {
     startingMicrosoftLogin.value = true
     try {
-      const res = await api.startMicrosoftLogin()
+      const res = await backend.command('accounts_start_microsoft_login')
       if (res.success) {
         if (res.data?.status === 'completed') {
           message.success(t('game.login.success'))
@@ -192,7 +196,7 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
     }
 
     try {
-      const res = await api.pollMicrosoftLogin()
+      const res = await backend.command('accounts_poll_microsoft_login')
       if (res.success) {
         if (res.data?.status === 'ready') {
           stopPolling()
@@ -218,12 +222,12 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
     completingMicrosoftLogin.value = true
     microsoftLoginStatus.value = 'loading'
     try {
-      const res = await api.completeMicrosoftLogin()
+      const res = await backend.command('accounts_complete_microsoft_login')
       if (res.success && res.data?.account) {
         message.success(t('game.login.success'))
         showMicrosoftLoginModal.value = false
         await loadAccounts()
-        const accountsRes = await api.getAccounts()
+        const accountsRes = await backend.command('accounts_list')
         if (accountsRes.success && accountsRes.data) {
           currentAccount.value = accountsRes.data.current
         }

@@ -59,4 +59,4 @@ watch(() => props.typeName, updateAvatar)
 watch(() => props.size, updateAvatar)
 </script>
 
-<style scoped src="@/styles/components/SkinRenderer.css"></style>
+<style scoped src="@/styles/SkinRenderer.css"></style>

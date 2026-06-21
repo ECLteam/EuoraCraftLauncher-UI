@@ -1,109 +1,205 @@
 <template>
-  <aside class="sidebar" :class="[attrs.class, { expanded: isExpanded, 'modal-hidden': isFullscreenModalVisible || !agreementAccepted }]">
-    <UiButton 
-      variant="ghost"
-      shape="circle"
-      size="md"
-      icon="menu"
-      :title="t('sidebar.toggle')"
-      @click="toggleSidebar"
-      class="toggle-btn"
-    />
-    
+  <aside
+    class="sidebar"
+    :class="{
+      collapsed: isCollapsed,
+      expanded: isExpanded,
+      'modal-hidden': isFullscreenModalVisible || !agreementAccepted || topNavEnabled
+    }"
+  >
+    <!-- 折叠切换按钮 -->
+    <button
+      class="sidebar-toggle"
+      :title="isCollapsed ? t('sidebar.expand') : t('sidebar.collapse')"
+      @click="toggleCollapse"
+    >
+      <UiIcon :name="isCollapsed ? 'chevron-down' : 'menu'" :size="18" />
+    </button>
+
+    <!-- 导航区域 -->
     <nav class="sidebar-nav" @mouseleave="handleMouseLeave">
-      <div class="active-background" ref="backgroundRef"></div>
-      <div class="active-indicator" ref="indicatorRef"></div>
-      
-      <a
-        v-for="(item, index) in menuItems" 
-        :key="item.path"
-        class="menu-item"
-        :class="{ active: route.path === item.path || (item.path !== '/' && route.path.startsWith(item.path)) }"
-        @mouseenter="handleMouseEnter(index)"
-        @click.prevent="handleItemClick(item)"
-      >
-        <UiIcon :name="item.iconName" :size="20" />
-        <span class="text">{{ item.label }}</span>
-      </a>
+      <div v-if="!isCollapsed" class="sidebar-active-bg" ref="activeBgRef"></div>
+      <div v-if="!isCollapsed" class="sidebar-active-indicator" ref="indicatorRef"></div>
+
+      <template v-for="(item, index) in menuItems" :key="item.path">
+        <button
+          class="sidebar-item"
+          :class="{
+            active: route.path === item.path
+              || (item.path !== '/' && route.path.startsWith(item.path))
+          }"
+          :title="isCollapsed ? item.label : undefined"
+          @mouseenter="!isCollapsed && handleMouseEnter(index)"
+          @click.prevent="handleItemClick(item)"
+        >
+          <span class="sidebar-item-icon">
+            <UiIcon :name="item.iconName" :size="20" />
+          </span>
+          <span class="sidebar-item-text">{{ item.label }}</span>
+          <span
+            v-if="!isCollapsed && itemHasSubItems(item.path)"
+            class="sidebar-item-chevron"
+            :class="{ expanded: isMenuExpanded(item.path) }"
+            @click.stop="toggleMenu(item.path)"
+          >
+            <UiIcon name="chevron-down" :size="14" />
+          </span>
+        </button>
+
+        <!-- 子菜单项 -->
+        <div
+          v-if="!isCollapsed && itemHasSubItems(item.path)"
+          class="sidebar-sub-items"
+          :class="{ expanded: isMenuExpanded(item.path) }"
+        >
+          <button
+            v-for="sub in getSubItems(item.path)"
+            :key="sub.path"
+            class="sidebar-item sidebar-sub-item"
+            :class="{ active: route.path === sub.path }"
+            @click.prevent="handleSubItemClick(sub.path)"
+          >
+            <span class="sidebar-item-icon">
+              <UiIcon :name="sub.iconName" :size="16" />
+            </span>
+            <span class="sidebar-item-text">{{ sub.label }}</span>
+          </button>
+        </div>
+      </template>
     </nav>
-    
+
+    <!-- 底部 -->
     <div class="sidebar-footer">
-      <a
+      <button
         v-if="isDevMode"
-        class="menu-item"
+        class="sidebar-item"
         :class="{ active: route.path === '/dev' }"
-        :title="t('sidebar.debugTitle')"
+        :title="isCollapsed ? t('sidebar.debug') : t('sidebar.debugTitle')"
         @click.prevent="handleItemClick({ path: '/dev' })"
       >
-        <UiIcon name="bug" :size="20" />
-        <span class="text">{{ t('sidebar.debug') }}</span>
-      </a>
-      <a
-        class="menu-item"
-        :title="t('sidebar.help')"
+        <span class="sidebar-item-icon">
+          <UiIcon name="bug" :size="20" />
+        </span>
+        <span class="sidebar-item-text">{{ t('sidebar.debug') }}</span>
+      </button>
+      <button
+        class="sidebar-item"
+        :title="isCollapsed ? t('sidebar.help') : undefined"
         @click.prevent="openHelp"
       >
-        <UiIcon name="help" :size="20" />
-        <span class="text">{{ t('sidebar.help') }}</span>
-      </a>
+        <span class="sidebar-item-icon">
+          <UiIcon name="help" :size="20" />
+        </span>
+        <span class="sidebar-item-text">{{ t('sidebar.help') }}</span>
+      </button>
     </div>
   </aside>
-  
+
+  <!-- 移动端遮罩 -->
   <div class="sidebar-overlay" @click="isExpanded = false"></div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, computed, inject, useAttrs, readonly, type Ref } from 'vue'
+import { ref, watch, nextTick, onMounted, computed, inject, readonly, type Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { useI18n } from 'vue-i18n'
 import { useFullscreenModal } from '@/composables/useFullscreenModal'
-import UiButton from '@/components/ui/Button.vue'
-import { api } from '@/api/client'
-import '@/styles/components/SideBar.css'
+import { useTopNav } from '@/composables/useTopNav'
+import { useTheme } from '@/composables/useTheme'
+import UiIcon from '@/components/ui/Icon.vue'
+import '@/styles/SideBar.css'
 
-// 禁用自动属性继承，因为组件有多个根元素
-defineOptions({
-  inheritAttrs: false
+defineOptions({ inheritAttrs: false })
+
+const { sidebarCollapsed, setSidebarCollapsed } = useTheme()
+const isCollapsed = computed({
+  get: () => sidebarCollapsed.value,
+  set: (val) => setSidebarCollapsed(val),
 })
-
-const attrs = useAttrs()
-
 const isExpanded = ref(false)
 const route = useRoute()
 const router = useRouter()
 const message = useGlassMessage()
 const { t } = useI18n()
 const fullscreenModal = useFullscreenModal()
-// 使用计算属性包装，确保模板中正确解包
+const { topNavEnabled } = useTopNav()
 const isFullscreenModalVisible = computed(() => fullscreenModal.isVisible.value)
 
-// 调试：监听 fullscreenModal 变化（必须在 fullscreenModal 初始化之后）
-watch(() => fullscreenModal.isVisible.value, (val) => {
-  console.log('[SideBar] fullscreenModal.isVisible 变化:', val)
-}, { immediate: true })
 const indicatorRef = ref<HTMLElement | null>(null)
-const backgroundRef = ref<HTMLElement | null>(null)
+const activeBgRef = ref<HTMLElement | null>(null)
 
-// 注入用户协议状态
 const agreementAccepted = inject('agreementAccepted', computed(() => true))
-
-// 调试模式：由 App.vue 从后端加载并提供
 const injectedDevMode = inject<Readonly<Ref<boolean>>>('devMode')
 const isDevMode = computed(() => injectedDevMode?.value ?? false)
 
 const menuItems = computed(() => [
   { path: '/', label: t('sidebar.game'), iconName: 'game' },
   { path: '/versions', label: t('sidebar.versions'), iconName: 'cube' },
-   { path: '/instances', label: t('sidebar.instances'), iconName: 'folder' },
+  { path: '/instances', label: t('sidebar.instances'), iconName: 'folder' },
   { path: '/settings', label: t('sidebar.settings'), iconName: 'settings' }
 ])
 
+// 子菜单定义
+const settingsSubItems = computed(() => [
+  { path: '/settings/general', label: t('settings.general'), iconName: 'settings' },
+  { path: '/settings/game', label: t('settings.game'), iconName: 'game' },
+  { path: '/settings/about', label: t('settings.about'), iconName: 'info' },
+])
+
+const versionsSubItems = computed(() => [
+  { path: '/versions/manage', label: t('versions.manageTab'), iconName: 'settings' },
+  { path: '/versions/versions', label: t('versions.versions'), iconName: 'cube' },
+  { path: '/versions/mods', label: t('versions.modsTab'), iconName: 'cube' },
+])
+
+const subItemsMap = computed(() => ({
+  '/settings': settingsSubItems.value,
+  '/versions': versionsSubItems.value,
+}))
+
+const itemHasSubItems = (path: string) => {
+  return path in subItemsMap.value
+}
+
+const getSubItems = (path: string) => {
+  return subItemsMap.value[path] || []
+}
+
+// 展开/折叠状态
+const expandedMenus = ref<Set<string>>(new Set())
+
+const isMenuExpanded = (path: string) => {
+  return expandedMenus.value.has(path)
+}
+
+const toggleMenu = (path: string) => {
+  const newSet = new Set(expandedMenus.value)
+  if (newSet.has(path)) {
+    newSet.delete(path)
+  } else {
+    newSet.add(path)
+  }
+  expandedMenus.value = newSet
+}
+
+const handleItemClick = (item: { path: string }) => {
+  if (!canNavigate()) return
+  if (itemHasSubItems(item.path)) {
+    toggleMenu(item.path)
+  }
+  router.push(item.path)
+}
+
+const toggleCollapse = () => {
+  isCollapsed.value = !isCollapsed.value
+}
+
+// 移动端展开
 const toggleSidebar = () => {
   isExpanded.value = !isExpanded.value
 }
 
-// 同步侧边栏展开状态到 body，供全局消息组件使用
 watch(isExpanded, (val) => {
   if (val) {
     document.body.classList.add('sidebar-expanded')
@@ -112,7 +208,6 @@ watch(isExpanded, (val) => {
   }
 }, { immediate: true })
 
-// 检查是否可以导航
 const canNavigate = () => {
   if (!agreementAccepted.value) {
     message.warning(t('agreement.acceptRequired'))
@@ -121,47 +216,48 @@ const canNavigate = () => {
   return true
 }
 
-const handleItemClick = (item: { path: string }) => {
-  if (!canNavigate()) {
-    return
-  }
-  // 允许导航
-  router.push(item.path)
+const handleSubItemClick = (path: string) => {
+  if (!canNavigate()) return
+  router.push(path)
 }
 
-
 const openHelp = () => {
-  if (!canNavigate()) {
-    return
-  }
+  if (!canNavigate()) return
   message.info(t('sidebar.helpMessage'))
 }
 
+const ITEM_HEIGHT = 42
+
 const updateIndicator = (index: number) => {
-  const top = index * 44
+  if (isCollapsed.value) return
+  const top = 2 + index * (ITEM_HEIGHT + 2)
   if (indicatorRef.value) {
-    indicatorRef.value.style.top = `${top + 8}px`
+    indicatorRef.value.style.top = `${top + 10}px`
+    indicatorRef.value.style.height = `${ITEM_HEIGHT - 20}px`
     indicatorRef.value.style.opacity = '1'
   }
 }
 
-const updateBackground = (index: number) => {
-  const top = index * 44
-  if (backgroundRef.value) {
-    backgroundRef.value.style.top = `${top}px`
-    backgroundRef.value.style.opacity = '1'
+const updateActiveBg = (index: number) => {
+  if (isCollapsed.value) return
+  const top = 2 + index * (ITEM_HEIGHT + 2)
+  if (activeBgRef.value) {
+    activeBgRef.value.style.top = `${top}px`
+    activeBgRef.value.style.height = `${ITEM_HEIGHT}px`
+    activeBgRef.value.style.opacity = '1'
   }
 }
 
-const getActiveIndex = (path: string) => {
+const getActiveIndex = (path: string): number => {
   let index = menuItems.value.findIndex(item => item.path === path)
   if (index !== -1) return index
-  
+
   if (path !== '/') {
-    index = menuItems.value.findIndex(item => item.path !== '/' && path.startsWith(item.path))
+    index = menuItems.value.findIndex(
+      item => item.path !== '/' && path.startsWith(item.path)
+    )
     if (index !== -1) return index
   }
-  
   return -1
 }
 
@@ -182,15 +278,24 @@ watch(
   () => route.path,
   (newPath) => {
     const index = getActiveIndex(newPath)
-    if (index !== -1) {
-      nextTick(() => {
+    nextTick(() => {
+      if (index !== -1) {
         updateIndicator(index)
-        updateBackground(index)
-      })
-    } else {
-      if (indicatorRef.value) indicatorRef.value.style.opacity = '0'
-      if (backgroundRef.value) backgroundRef.value.style.opacity = '0'
-    }
+        updateActiveBg(index)
+      } else {
+        if (indicatorRef.value) indicatorRef.value.style.opacity = '0'
+        if (activeBgRef.value) activeBgRef.value.style.opacity = '0'
+      }
+      // 自动展开当前子路由对应的父菜单
+      for (const parentPath of Object.keys(subItemsMap.value)) {
+        if (newPath.startsWith(parentPath)) {
+          const newSet = new Set(expandedMenus.value)
+          newSet.add(parentPath)
+          expandedMenus.value = newSet
+          break
+        }
+      }
+    })
   },
   { immediate: true }
 )
@@ -200,8 +305,9 @@ onMounted(() => {
   if (index !== -1) {
     setTimeout(() => {
       updateIndicator(index)
-      updateBackground(index)
+      updateActiveBg(index)
     }, 100)
   }
 })
 </script>
+

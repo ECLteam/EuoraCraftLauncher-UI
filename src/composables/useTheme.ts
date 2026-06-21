@@ -1,7 +1,7 @@
 import { ref, computed, watch, type Ref } from 'vue'
 import type { GlobalTheme, GlobalThemeOverrides } from 'naive-ui'
 import { darkTheme } from 'naive-ui'
-import { api } from '@/api/client'
+import backend from '@/api/client'
 
 
 function clamp(value: number, min: number, max: number): number {
@@ -74,49 +74,44 @@ interface ThemeState {
   followSystem: boolean
 }
 
-const THEME_KEY = 'euoracraft-theme'
-const COLOR_KEY = 'euoracraft-primary-color'
-const BG_IMAGE_KEY = 'euoracraft-bg-image'
-const BLUR_KEY = 'euoracraft-blur-amount'
 
-// 预设主题色
+
+// 预设主题色（SnowLuma 柔和色系）
 export const presetColors = [
-  //{ name: '天蓝色', value: '#87CEEB' },
-  //{ name: '樱花粉', value: '#FFB6C1' },
-  //{ name: '薄荷绿', value: '#98E4D6' },
-  //{ name: '薰衣草紫', value: '#E6E6FA' },
-  { name: '默认蓝', value: '#0078d4' },
-  { name: '极客绿', value: '#107c10' },
-  { name: '活力橙', value: '#FF9F43' },
-  { name: '热情红', value: '#FF6B6B' },
+  { name: '天空蓝', value: '#7aa8f0' },
+  { name: '樱花粉', value: '#f0a8c8' },
+  { name: '薰衣草', value: '#b8a0e0' },
+  { name: '薄荷绿', value: '#7dd4b0' },
+  { name: '蜜桃橙', value: '#f0b080' },
+  { name: '云朵白', value: '#8a8a9a' },
 ]
 
 const themeColors = {
   light: {
-    success: '#52C41A',
-    warning: '#FAAD14',
-    error: '#FF6B6B',
-    info: '#0078d4',
-    background: 'rgba(248, 250, 252, 0.65)',
-    backgroundHover: 'rgba(255, 255, 255, 0.8)',
-    surface: 'rgba(255, 255, 255, 0.9)',
-    text: '#1E293B',
-    textSecondary: '#64748B',
-    border: 'rgba(0, 120, 212, 0.3)',
-    shadow: 'rgba(0, 120, 212, 0.2)',
+    success: '#7dd4a0',
+    warning: '#f0d070',
+    error: '#f08080',
+    info: '#7aa8f0',
+    background: 'rgba(255, 255, 255, 0.55)',
+    backgroundHover: 'rgba(255, 255, 255, 0.70)',
+    surface: 'rgba(255, 255, 255, 0.55)',
+    text: '#2d2d3a',
+    textSecondary: '#8a8a9a',
+    border: 'rgba(0, 0, 0, 0.06)',
+    shadow: 'rgba(100, 120, 180, 0.08)',
   },
   dark: {
-    success: '#6DD576',
-    warning: '#FFD666',
-    error: '#FF7875',
-    info: '#0078d4',
-    background: 'rgba(15, 23, 42, 0.65)',
-    backgroundHover: 'rgba(30, 41, 59, 0.8)',
-    surface: 'rgba(30, 41, 59, 0.9)',
-    text: '#F1F5F9',
-    textSecondary: '#94A3B8',
-    border: 'rgba(0, 120, 212, 0.2)',
-    shadow: 'rgba(0, 0, 0, 0.4)',
+    success: '#7dd4a0',
+    warning: '#f0d070',
+    error: '#f08080',
+    info: '#7aa8f0',
+    background: 'rgba(30, 30, 40, 0.55)',
+    backgroundHover: 'rgba(40, 40, 55, 0.70)',
+    surface: 'rgba(30, 30, 40, 0.55)',
+    text: '#ececf1',
+    textSecondary: '#8a8a9a',
+    border: 'rgba(255, 255, 255, 0.06)',
+    shadow: 'rgba(0, 0, 0, 0.35)',
   }
 } as const
 
@@ -203,11 +198,13 @@ function createThemeOverrides(isDark: boolean, primary: string): GlobalThemeOver
 let systemThemeListenerInitialized = false
 let initThemePromise: Promise<void> | null = null
 
-const themeMode = ref<ThemeMode>('system')
-const primaryColor = ref('#0078d4') // 默认蓝色
-const backgroundImage = ref('') // 默认无背景图
-const backgroundImagePath = ref('') // 背景图路径
-const blurAmount = ref(6)
+const themeMode = ref<ThemeMode>('system')  // 与后端默认一致
+const primaryColor = ref('#7aa8f0')  // 默认天空蓝（预设色板第一个）
+const backgroundImage = ref('')
+const backgroundImagePath = ref('')
+const blurAmount = ref(6)  // 与后端默认一致
+const sidebarCollapsed = ref(true)
+const titlebarHidden = ref(true)  // 默认侧边栏模式
 const isDark = ref(false)
 const systemDark = ref(false)
 
@@ -252,21 +249,17 @@ function updateTheme() {
   const primaryScale = createPrimaryScale(primaryColor.value)
   
   document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
-  document.documentElement.style.setProperty('--color-primary', primaryScale.primary)
-  document.documentElement.style.setProperty('--color-primary-rgb', primaryScale.primaryRgb)
-  document.documentElement.style.setProperty('--color-primary-hover', primaryScale.primaryHover)
-  document.documentElement.style.setProperty('--color-primary-active', primaryScale.primaryPressed)
-  document.documentElement.style.setProperty('--color-primary-light', primaryScale.primaryLight)
+  document.documentElement.style.setProperty('--primary', primaryScale.primary)
+  document.documentElement.style.setProperty('--primary-rgb', primaryScale.primaryRgb)
+  document.documentElement.style.setProperty('--primary-hover', primaryScale.primaryHover)
+  document.documentElement.style.setProperty('--primary-active', primaryScale.primaryPressed)
+  document.documentElement.style.setProperty('--primary-alpha', primaryScale.primaryLight)
   document.documentElement.style.setProperty('--bg-image', backgroundImage.value ? `url("${backgroundImage.value}")` : 'none')
   document.documentElement.style.setProperty('--bg-blur', `${blurAmount.value}px`)
 
-  localStorage.setItem(THEME_KEY, JSON.stringify({
-    mode: themeMode.value,
-    followSystem: themeMode.value === 'system'
-  }))
-  localStorage.setItem(COLOR_KEY, primaryColor.value)
-  localStorage.setItem(BG_IMAGE_KEY, backgroundImagePath.value)
-  localStorage.setItem(BLUR_KEY, blurAmount.value.toString())
+  document.documentElement.setAttribute('data-sidebar-collapsed', sidebarCollapsed.value ? '1' : '0')
+  document.documentElement.setAttribute('data-titlebar-hidden', titlebarHidden.value ? '1' : '0')
+
 }
 
 function setThemeMode(mode: ThemeMode) {
@@ -294,28 +287,40 @@ function setBlurAmount(amount: number) {
   saveThemeConfig()
 }
 
+function setSidebarCollapsed(val: boolean) {
+  sidebarCollapsed.value = val
+  updateTheme()
+  saveThemeConfig()
+}
+
+function setTitlebarHidden(val: boolean) {
+  titlebarHidden.value = val
+  updateTheme()
+  saveThemeConfig()
+}
+
 let saveTimer: any = null
 async function saveThemeConfig() {
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(async () => {
     if ((window as any).__TAURI__?.pytauri) {
       try {
-        await api.updateThemeConfig({
-          mode: themeMode.value,
-          primary_color: primaryColor.value,
-          blur_amount: blurAmount.value
+        const uiRes = await backend.config.get('ui')
+        const ui = uiRes.data || {}
+        await backend.config.set('ui', {
+          ...ui,
+          theme: {
+            mode: themeMode.value,
+            primary_color: primaryColor.value,
+            blur_amount: blurAmount.value,
+            sidebar_collapsed: sidebarCollapsed.value,
+            titlebar_hidden: titlebarHidden.value,
+          },
         })
       } catch (error) {
         console.error('保存主题配置失败:', error)
       }
     }
-    localStorage.setItem(THEME_KEY, JSON.stringify({
-      mode: themeMode.value,
-      followSystem: themeMode.value === 'system'
-    }))
-    localStorage.setItem(COLOR_KEY, primaryColor.value)
-    localStorage.setItem(BG_IMAGE_KEY, backgroundImagePath.value)
-    localStorage.setItem(BLUR_KEY, blurAmount.value.toString())
   }, 100)
 }
 
@@ -328,49 +333,37 @@ function toggleTheme() {
 }
 
 export async function initTheme(
-  preloadedTheme?: { success: boolean; data: any } | null,
-  preloadedBg?: { success: boolean; data: any } | null
+  preloadedUi?: { success: boolean; data: any } | null
 ): Promise<void> {
-  // 如果没有预加载配置且已经在初始化中，则等待
-  if (!preloadedTheme && !preloadedBg && initThemePromise) {
+  // 如果已经在初始化中，则等待
+  if (!preloadedUi && initThemePromise) {
     return initThemePromise
   }
 
   const promise = (async () => {
     try {
-      const savedBgImage = localStorage.getItem(BG_IMAGE_KEY)
-      if (savedBgImage?.startsWith('data:') && savedBgImage.length > 1000) {
-        localStorage.removeItem(BG_IMAGE_KEY)
-      }
-      
       if ((window as any).__TAURI__?.pytauri) {
-        // 优先从后端加载配置，如果传入了预加载配置则直接使用
-        const [themeConfig, bgConfig] = await Promise.all([
-          preloadedTheme ? Promise.resolve(preloadedTheme) : api.getThemeConfig().catch(() => ({ success: false, data: null })),
-          preloadedBg ? Promise.resolve(preloadedBg) : api.getBackgroundConfig().catch(() => ({ success: false, data: null }))
-        ])
+        const uiConfig = preloadedUi
+          ? Promise.resolve(preloadedUi)
+          : await backend.config.get('ui').catch(() => ({ success: false, data: null }))
         
-        // 应用主题配置
-        if (themeConfig.success && themeConfig.data) {
-          themeMode.value = themeConfig.data.mode as ThemeMode || 'system'
-          primaryColor.value = themeConfig.data.primary_color || '#0078d4'
-          blurAmount.value = themeConfig.data.blur_amount || 6
-        } else {
-          // 后端配置失败，回退到本地存储
-          const saved = localStorage.getItem(THEME_KEY)
-          if (saved) themeMode.value = (JSON.parse(saved) as ThemeState).mode
-          primaryColor.value = localStorage.getItem(COLOR_KEY) || '#0078d4'
-          blurAmount.value = parseInt(localStorage.getItem(BLUR_KEY) || '6')
-        }
-        
-        // 应用背景图配置
-        if (bgConfig.success && bgConfig.data) {
-          backgroundImagePath.value = bgConfig.data.path || ''
+        // 应用主题配置（从 ui.theme 读取）
+        if (uiConfig.success && uiConfig.data) {
+          const themeData = uiConfig.data.theme || {}
+          themeMode.value = themeData.mode as ThemeMode || 'system'
+          primaryColor.value = themeData.primary_color || '#7aa8f0'
+          blurAmount.value = themeData.blur_amount ?? 6
+          sidebarCollapsed.value = themeData.sidebar_collapsed ?? true
+          titlebarHidden.value = themeData.titlebar_hidden ?? false
+          
+          // 应用背景图配置（从 ui.background 读取）
+          const bgData = uiConfig.data.background || {}
+          backgroundImagePath.value = bgData.path || ''
           
           // 加载背景图片数据
-          if (bgConfig.data.path && bgConfig.data.type !== 'default') {
+          if (bgData.path && bgData.type !== 'default') {
             try {
-              const imgData = await api.getBackgroundImage()
+              const imgData = await backend.command('image_read_file', { path: bgData.path })
               if (imgData.success && imgData.data?.base64) {
                 backgroundImage.value = imgData.data.base64
               }
@@ -380,33 +373,16 @@ export async function initTheme(
             }
           }
           
-          // 应用背景模糊设置
-          if (typeof bgConfig.data.blur === 'number') {
-            blurAmount.value = bgConfig.data.blur
-          }
-        } else {
-          // 后端配置失败，回退到本地存储
-          const savedPath = localStorage.getItem(BG_IMAGE_KEY)
-          if (savedPath && !savedPath.startsWith('data:')) {
-            backgroundImagePath.value = savedPath
+          // 应用背景模糊设置（ui.background.blur 优先，否则用 ui.theme.blur_amount）
+          if (typeof bgData.blur === 'number') {
+            blurAmount.value = bgData.blur
           }
         }
-      } else {
-        // 没有后端API，使用本地存储
-        const saved = localStorage.getItem(THEME_KEY)
-        if (saved) themeMode.value = (JSON.parse(saved) as ThemeState).mode
-        primaryColor.value = localStorage.getItem(COLOR_KEY) || '#0078d4'
-        const savedPath = localStorage.getItem(BG_IMAGE_KEY)
-        if (savedPath && !savedPath.startsWith('data:')) {
-          backgroundImagePath.value = savedPath
-        }
-        const savedBlur = localStorage.getItem(BLUR_KEY)
-        if (savedBlur) blurAmount.value = parseInt(savedBlur)
       }
     } catch (error) {
       console.error('初始化主题失败:', error)
       themeMode.value = 'system'
-      primaryColor.value = '#0078d4'
+      primaryColor.value = '#7aa8f0'
       backgroundImage.value = ''
       blurAmount.value = 6
     }
@@ -419,7 +395,7 @@ export async function initTheme(
   })()
 
   // 只有在没有预加载配置时才缓存 Promise（表示首次本地初始化）
-  if (!preloadedTheme && !preloadedBg) {
+  if (!preloadedUi) {
     initThemePromise = promise
   }
 
@@ -433,6 +409,8 @@ export function useTheme() {
     backgroundImage,
     backgroundImagePath,
     blurAmount,
+    sidebarCollapsed,
+    titlebarHidden,
     isDark,
     naiveTheme,
     themeOverrides,
@@ -441,9 +419,11 @@ export function useTheme() {
     setPrimaryColor,
     setBackgroundImage,
     setBlurAmount,
+    setSidebarCollapsed,
+    setTitlebarHidden,
     toggleTheme,
     initTheme,
-    updateTheme, // 导出updateTheme以便直接调用而不触发保存
+    updateTheme,
   }
 }
 

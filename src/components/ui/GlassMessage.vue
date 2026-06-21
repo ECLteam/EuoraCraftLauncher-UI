@@ -11,9 +11,7 @@
           @mouseleave="resumeTimer(msg)"
         >
           <div class="message-icon">
-            <n-icon size="20" :color="getIconColor(msg.type)">
-              <component :is="getIcon(msg.type)" />
-            </n-icon>
+            <Icon :icon="getIcon(msg.type)" width="20" height="20" :style="{ color: getIconColor(msg.type) }" />
           </div>
 
           <div class="message-content">
@@ -48,14 +46,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { NIcon } from 'naive-ui'
+import { Icon } from '@iconify/vue'
 import UiButton from '@/components/ui/Button.vue'
-import {
-  CheckmarkCircleOutline,
-  CloseCircleOutline,
-  WarningOutline,
-  InformationCircleOutline
-} from '@vicons/ionicons5'
 
 export type MessageType = 'success' | 'error' | 'warning' | 'info' | 'loading'
 
@@ -82,19 +74,19 @@ const progressMap = ref<Record<string, number>>({})
 const timerMap = ref<Record<string, any>>({})
 
 const getIcon = (type: MessageType) => ({
-  success: CheckmarkCircleOutline,
-  error: CloseCircleOutline,
-  warning: WarningOutline,
-  info: InformationCircleOutline,
-  loading: InformationCircleOutline
+  success: 'mdi:check-circle-outline',
+  error: 'mdi:close-circle-outline',
+  warning: 'mdi:alert-circle-outline',
+  info: 'mdi:information-outline',
+  loading: 'mdi:loading'
 }[type])
 
 const getIconColor = (type: MessageType) => ({
-  success: '#10b981',
-  error: '#ef4444',
-  warning: '#f59e0b',
-  info: '#3b82f6',
-  loading: '#3b82f6'
+  success: '#4ade80',
+  error: '#f87171',
+  warning: '#fbbf24',
+  info: '#60a5fa',
+  loading: '#60a5fa'
 }[type])
 
 const getProgressColor = (type: MessageType) => getIconColor(type)
@@ -189,4 +181,4 @@ defineExpose({
 })
 </script>
 
-<style scoped src="@/styles/components/GlassMessage.css"></style>
+<style scoped src="@/styles/GlassMessage.css"></style>
