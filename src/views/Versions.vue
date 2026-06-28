@@ -2,7 +2,7 @@
   <div class="versions-container">
     <div class="versions-content" ref="contentRef">
       <router-view v-slot="{ Component }">
-        <Transition name="tab-fade" mode="out-in">
+        <Transition name="page" mode="out-in">
           <component :is="Component" />
         </Transition>
       </router-view>

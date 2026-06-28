@@ -6,6 +6,7 @@ interface LaunchProgressState {
   percent: number
   message: string
   cancelable: boolean
+  canceled: boolean
 }
 
 const state = ref<LaunchProgressState>({
@@ -14,6 +15,7 @@ const state = ref<LaunchProgressState>({
   percent: 0,
   message: '',
   cancelable: true,
+  canceled: false,
 })
 
 const STAGES = {
@@ -37,14 +39,26 @@ export function useLaunchProgress() {
       percent: 0,
       message: '',
       cancelable: options?.cancelable ?? true,
+      canceled: false,
     }
   }
 
   const hide = () => {
     state.value.visible = false
+    state.value.canceled = false
+  }
+
+  const cancel = () => {
+    state.value.canceled = true
+    state.value.visible = false
+    state.value.percent = 0
+    state.value.stage = STAGES.error
+    state.value.message = '已取消'
   }
 
   const setProgress = (percent: number, stageKey?: keyof typeof STAGES, message?: string) => {
+    // 已取消则忽略进度更新
+    if (state.value.canceled) return
     state.value.percent = Math.max(0, Math.min(100, percent))
     if (stageKey) {
       state.value.stage = STAGES[stageKey] || stageKey
@@ -55,10 +69,12 @@ export function useLaunchProgress() {
   }
 
   const setStage = (stageKey: keyof typeof STAGES | string) => {
+    if (state.value.canceled) return
     state.value.stage = STAGES[stageKey as keyof typeof STAGES] || stageKey
   }
 
   const setMessage = (message: string) => {
+    if (state.value.canceled) return
     state.value.message = message
   }
 
@@ -66,6 +82,7 @@ export function useLaunchProgress() {
     progress: readonly(state),
     show,
     hide,
+    cancel,
     setProgress,
     setStage,
     setMessage,

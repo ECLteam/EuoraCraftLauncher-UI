@@ -44,9 +44,7 @@
                 >
                   <div class="page-container" v-if="isAgreementAccepted">
                     <router-view v-slot="{ Component, route: currentRoute }">
-                      <Transition :name="'page'" mode="out-in">
-                        <component :is="Component" :key="currentRoute.path" />
-                      </Transition>
+                      <component :is="Component" :key="currentRoute.matched[0]?.path || currentRoute.path" />
                     </router-view>
                   </div>
                   
@@ -94,6 +92,36 @@
                       </a>
                     </div>
                   </ContentModal>
+
+                  <!-- 主密码设置弹窗 -->
+                  <n-modal
+                    v-model:show="showPasswordModal"
+                    :mask-closable="false"
+                    preset="card"
+                    title="设置主密码"
+                    class="password-modal"
+                    style="width: 420px"
+                  >
+                    <n-form-item label="主密码">
+                      <n-input
+                        v-model:value="passwordInput"
+                        type="password"
+                        placeholder="请输入至少8位密码"
+                        @keydown.enter="handleSetPassword"
+                      />
+                    </n-form-item>
+                    <n-form-item label="确认密码">
+                      <n-input
+                        v-model:value="passwordConfirm"
+                        type="password"
+                        placeholder="请再次输入密码"
+                        @keydown.enter="handleSetPassword"
+                      />
+                    </n-form-item>
+                    <template #footer>
+                      <n-button type="primary" @click="handleSetPassword">确认</n-button>
+                    </template>
+                  </n-modal>
                 </main>
               </div>
             </div>
@@ -112,6 +140,10 @@ import {
   NDialogProvider,
   NMessageProvider,
   NNotificationProvider,
+  NModal,
+  NFormItem,
+  NInput,
+  NButton,
   zhCN,
   dateZhCN,
   enUS,
@@ -129,6 +161,7 @@ import { checkUserAgreement, acceptUserAgreement, useUserAgreement } from '@/com
 import { useFullscreenModal } from '@/composables/useFullscreenModal'
 import backend from '@/api/client'
 import { i18n, supportedLocales } from '@/i18n'
+import { useGlassMessage } from '@/composables/useGlassMessage'
 
 import { useAppInit } from '@/composables/useAppInit'
 import { useMouseEffect } from '@/composables/useMouseEffect'
@@ -144,6 +177,9 @@ const fullscreenModal = useFullscreenModal()
 const messageRef = ref<InstanceType<typeof GlassMessage> | null>(null)
 const showAgreementModal = ref(false)
 const showQuitConfirmModal = ref(false)
+const showPasswordModal = ref(false)
+const passwordInput = ref('')
+const passwordConfirm = ref('')
 
 provide('agreementAccepted', readonly(isAgreementAccepted))
 
@@ -181,7 +217,43 @@ const handleQuitConfirm = async () => {
   if (w) await w.close()
 }
 
+const handleSetPassword = async () => {
+  if (passwordInput.value.length < 8) {
+    useGlassMessage().warning('密码长度至少8位')
+    return
+  }
+  if (passwordInput.value !== passwordConfirm.value) {
+    useGlassMessage().warning('两次输入的密码不一致')
+    return
+  }
+  const result = await backend.command('set_master_password', { password: passwordInput.value })
+  if (result.success) {
+    useGlassMessage().success('主密码设置成功')
+    showPasswordModal.value = false
+    passwordInput.value = ''
+    passwordConfirm.value = ''
+  } else {
+    useGlassMessage().warning(result.message || '设置失败')
+  }
+}
+
 let cleanupContextMenuListeners: (() => void) | null = null
+const unlistenNotify = backend.on('launcher:notify', (payload: any) => {
+  const glass = useGlassMessage()
+  if (payload.type === 'warning') {
+    glass.warning(payload.message, 8000)
+  } else if (payload.type === 'info') {
+    glass.info(payload.message, 8000)
+  }
+})
+const unlistenAgreement = backend.on('launcher:agreement_required', () => {
+  if (!isAgreementAccepted.value) {
+    showAgreementModal.value = true
+  }
+})
+const unlistenPassword = backend.on('keyring:password_required', () => {
+  showPasswordModal.value = true
+})
 
 function setupContextMenuListeners() {
   const isEditable = (target: EventTarget | null): boolean => {
@@ -240,6 +312,12 @@ onMounted(async () => {
       useMouseEffect().applyConfig(mouseEffectRes.data)
     }
 
+    // 主动查询密钥环状态（事件可能在监听器注册前已发射）
+    const keyringRes = await backend.command('get_keyring_info')
+    if (keyringRes?.success && keyringRes.data?.needs_password) {
+      showPasswordModal.value = true
+    }
+
     console.log('[App] 配置初始化完成')
   } else {
     console.warn('[App] PyTauri API 不可用，尝试使用本地配置')
@@ -250,6 +328,9 @@ onMounted(async () => {
 onUnmounted(() => {
   disposeMouseEffect()
   cleanupContextMenuListeners?.()
+  unlistenNotify()
+  unlistenAgreement()
+  unlistenPassword()
 })
 </script>
 

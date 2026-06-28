@@ -1,35 +1,62 @@
 <template>
-  <div class="settings-container" ref="mainRef">
-    <div class="settings-card">
-      <div class="settings-content">
-        <router-view v-slot="{ Component }">
-          <Transition name="tab-fade" mode="out-in">
-            <component :is="Component" :settings="settings" @update:settings="handleUpdateSettings" />
-          </Transition>
-        </router-view>
+  <div class="settings-page">
+    <!-- 左侧导航 - 固定200px -->
+    <div class="settings-nav">
+      <div class="nav-header">
+        <h2 class="nav-title">
+          <UiIcon name="settings" :size="18" />
+          {{ t('settings.title') }}
+        </h2>
       </div>
+      <div class="nav-list">
+        <router-link
+          v-for="item in navItems"
+          :key="item.path"
+          :to="item.path"
+          :class="['nav-item', { active: isActive(item.path) }]"
+        >
+          <span class="nav-indicator"></span>
+          <UiIcon :name="item.icon" :size="18" class="nav-icon" />
+          <span class="nav-label">{{ item.label }}</span>
+        </router-link>
+      </div>
+    </div>
+
+    <!-- 右侧内容区 -->
+    <div class="settings-content">
+      <router-view v-slot="{ Component }">
+        <Transition name="page" mode="out-in">
+          <component :is="Component" :settings="settings" @update:settings="handleUpdateSettings" />
+        </Transition>
+      </router-view>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch, inject, type Ref } from 'vue'
+import { ref, reactive, computed, onMounted, inject, type Ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import gsap from 'gsap'
-import backend from '@/api/client'
 import { useTheme } from '@/composables/useTheme'
-import type { GamePath } from '@/types/api'
+import UiIcon from '@/components/ui/Icon.vue'
+import backend from '@/api/client'
 
+const route = useRoute()
 const { t } = useI18n()
 const { themeMode, primaryColor, blurAmount, backgroundImagePath, updateTheme } = useTheme()
 
-// 从 App.vue 注入的全局配置（启动时已预加载）
 const injectedGameConfig = inject<Readonly<Ref<any>>>('gameConfig', null as any)
 const injectedDownloadConfig = inject<Readonly<Ref<any>>>('downloadConfig', null as any)
 
-const mainRef = ref<HTMLElement | null>(null)
+const navItems = computed(() => [
+  { path: '/settings/general', icon: 'brush', label: t('settings.general') },
+  { path: '/settings/download', icon: 'download', label: t('settings.download') },
+  { path: '/settings/game', icon: 'game', label: t('settings.gameSettings') },
+  { path: '/settings/about', icon: 'info', label: t('settings.about') },
+])
 
-// 从全局预加载配置计算初始游戏路径
+const isActive = (path: string) => route.path === path
+
 const getInitialGamePath = () => {
   const paths = injectedGameConfig?.value?.minecraft_paths
   if (!paths?.length) return './.minecraft'
@@ -56,110 +83,110 @@ const settings = reactive({
 const handleUpdateSettings = (updates: any) => {
   Object.assign(settings, updates)
 }
-
-// 监听主题相关设置变化
-watch([themeMode, primaryColor, blurAmount, backgroundImagePath], ([newMode, newColor, newBlur, newBgPath]) => {
-  settings.mode = newMode
-  settings.primaryColor = newColor
-  settings.blurAmount = newBlur
-  settings.backgroundImage = newBgPath
-}, { immediate: true })
-
-const initSettings = async () => {
-  if (!(window as any).__TAURI__?.pytauri) return
-
-  try {
-    console.log('开始加载后端配置...')
-
-    // 同时请求所有配置
-    const [uiRes, gameRes, downloadRes] = await Promise.all([
-      backend.config.get('ui').catch(() => null),
-      backend.config.get('game').catch(() => null),
-      backend.config.get('download').catch(() => null)
-    ])
-
-    // 应用主题配置（仅在值发生变化时才更新主题，避免不必要的重绘）
-    if (uiRes && uiRes.success && uiRes.data?.theme) {
-      const data = uiRes.data.theme
-      const newMode = data.mode || 'system'
-      const newColor = data.primary_color || '#0078d4'
-      const newBlur = data.blur_amount ?? 6
-
-      const themeChanged =
-        settings.mode !== newMode ||
-        settings.primaryColor !== newColor ||
-        settings.blurAmount !== newBlur
-
-      settings.mode = newMode
-      settings.primaryColor = newColor
-      settings.blurAmount = newBlur
-
-      if (themeChanged) {
-        themeMode.value = settings.mode as any
-        primaryColor.value = settings.primaryColor
-        blurAmount.value = settings.blurAmount
-        updateTheme()
-        console.log('主题配置已更新:', { mode: settings.mode, color: settings.primaryColor, blur: settings.blurAmount })
-      }
-    }
-
-    // 应用背景配置（仅在值发生变化时才更新）
-    if (uiRes && uiRes.success && uiRes.data?.background) {
-      const data = uiRes.data.background
-      const newPath = data.path || ''
-
-      if (settings.backgroundImage !== newPath) {
-        settings.backgroundImage = newPath
-        backgroundImagePath.value = newPath
-        updateTheme()
-        console.log('背景配置已更新:', newPath)
-      }
-    }
-
-    // 应用游戏配置
-    if (gameRes && gameRes.success && gameRes.data) {
-      const data = gameRes.data
-      settings.javaAutoSelect = data.java_auto ?? true
-      settings.javaPath = data.java_path || ''
-      settings.memory = data.memory_size ?? 4096
-      settings.fullscreen = data.fullscreen ?? false
-
-      // 处理游戏路径配置
-      const firstPath = data.minecraft_paths?.[0]
-      if (typeof firstPath === 'string') {
-        settings.gamePath = firstPath
-      } else if (firstPath && typeof firstPath === 'object' && 'path' in firstPath) {
-        settings.gamePath = (firstPath as GamePath).path
-      } else {
-        settings.gamePath = './.minecraft'
-      }
-
-      console.log('游戏配置已应用:', { javaAuto: settings.javaAutoSelect, memory: settings.memory })
-    }
-
-    // 应用下载配置
-    if (downloadRes && downloadRes.success && downloadRes.data) {
-      const data = downloadRes.data
-      settings.downloadSource = data.mirror_source || 'official'
-      settings.downloadThreads = data.download_threads ?? 4
-
-      console.log('下载配置已应用:', { source: settings.downloadSource, threads: settings.downloadThreads })
-    }
-
-    console.log('所有配置加载完成')
-  } catch (error) {
-    console.error('加载配置失败:', error)
-  }
-}
-
-onMounted(() => {
-  gsap.fromTo(mainRef.value,
-    { opacity: 0, y: 10 },
-    { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }
-  )
-  
-  initSettings()
-})
 </script>
 
-<style scoped src="@/styles/Settings.css"></style>
+<style scoped>
+.settings-page {
+  display: flex;
+  height: 100%;
+  gap: 0;
+}
+
+/* 左侧导航 */
+.settings-nav {
+  width: 200px;
+  min-width: 200px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin-right: var(--s-lg);
+}
+
+.nav-header {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  height: 48px;
+  border-bottom: 1px solid var(--divider);
+  flex-shrink: 0;
+}
+
+.nav-title {
+  display: flex;
+  align-items: center;
+  gap: var(--s-sm);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.nav-list {
+  flex: 1;
+  padding: var(--s-sm) 0;
+  overflow-y: auto;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  gap: var(--s-sm);
+  position: relative;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.nav-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.nav-item.active {
+  color: var(--primary);
+  background: var(--primary-alpha);
+}
+
+.nav-indicator {
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--primary);
+  opacity: 0;
+}
+
+.nav-item.active .nav-indicator {
+  opacity: 1;
+}
+
+.nav-icon {
+  flex-shrink: 0;
+}
+
+.nav-label {
+  white-space: nowrap;
+}
+
+/* 右侧内容区 */
+.settings-content {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--s-xl);
+  overflow-y: auto;
+}
+
+
+</style>

@@ -202,6 +202,7 @@ const themeMode = ref<ThemeMode>('system')  // 与后端默认一致
 const primaryColor = ref('#7aa8f0')  // 默认天空蓝（预设色板第一个）
 const backgroundImage = ref('')
 const backgroundImagePath = ref('')
+const backgroundOpacity = ref(0.2)  // 背景图透明度，默认 0.2（对应亮度 20%）
 const blurAmount = ref(6)  // 与后端默认一致
 const sidebarCollapsed = ref(true)
 const titlebarHidden = ref(true)  // 默认侧边栏模式
@@ -255,6 +256,7 @@ function updateTheme() {
   document.documentElement.style.setProperty('--primary-active', primaryScale.primaryPressed)
   document.documentElement.style.setProperty('--primary-alpha', primaryScale.primaryLight)
   document.documentElement.style.setProperty('--bg-image', backgroundImage.value ? `url("${backgroundImage.value}")` : 'none')
+  document.documentElement.style.setProperty('--bg-opacity', String(backgroundOpacity.value))
   document.documentElement.style.setProperty('--bg-blur', `${blurAmount.value}px`)
 
   document.documentElement.setAttribute('data-sidebar-collapsed', sidebarCollapsed.value ? '1' : '0')
@@ -285,6 +287,11 @@ function setBlurAmount(amount: number) {
   blurAmount.value = amount
   updateTheme()
   saveThemeConfig()
+}
+
+function setBackgroundOpacity(opacity: number) {
+  backgroundOpacity.value = opacity
+  updateTheme()
 }
 
 function setSidebarCollapsed(val: boolean) {
@@ -359,7 +366,7 @@ export async function initTheme(
           // 应用背景图配置（从 ui.background 读取）
           const bgData = uiConfig.data.background || {}
           backgroundImagePath.value = bgData.path || ''
-          
+
           // 加载背景图片数据
           if (bgData.path && bgData.type !== 'default') {
             try {
@@ -372,10 +379,15 @@ export async function initTheme(
               backgroundImage.value = ''
             }
           }
-          
+
           // 应用背景模糊设置（ui.background.blur 优先，否则用 ui.theme.blur_amount）
           if (typeof bgData.blur === 'number') {
             blurAmount.value = bgData.blur
+          }
+
+          // 应用背景透明度（ui.background.opacity）
+          if (typeof bgData.opacity === 'number') {
+            backgroundOpacity.value = bgData.opacity
           }
         }
       }
@@ -408,6 +420,7 @@ export function useTheme() {
     primaryColor,
     backgroundImage,
     backgroundImagePath,
+    backgroundOpacity,
     blurAmount,
     sidebarCollapsed,
     titlebarHidden,
@@ -419,6 +432,7 @@ export function useTheme() {
     setPrimaryColor,
     setBackgroundImage,
     setBlurAmount,
+    setBackgroundOpacity,
     setSidebarCollapsed,
     setTitlebarHidden,
     toggleTheme,
@@ -433,6 +447,7 @@ export const globalThemeState = {
   primaryColor,
   backgroundImage,
   backgroundImagePath,
+  backgroundOpacity,
   blurAmount,
   isDark,
   naiveTheme,
@@ -441,7 +456,7 @@ export const globalThemeState = {
   setThemeMode,
   setPrimaryColor,
   setBackgroundImage,
-  setBlurAmount,
+  setBackgroundOpacity,
   toggleTheme,
   initTheme,
 }

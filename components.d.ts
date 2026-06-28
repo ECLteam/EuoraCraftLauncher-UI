@@ -12,6 +12,7 @@ declare module 'vue' {
     Button: typeof import('./src/components/ui/Button.vue')['default']
     Card: typeof import('./src/components/ui/Card.vue')['default']
     ContentModal: typeof import('./src/components/modals/ContentModal.vue')['default']
+    DownloadTab: typeof import('./src/components/settings/DownloadTab.vue')['default']
     GameTab: typeof import('./src/components/settings/GameTab.vue')['default']
     GeneralTab: typeof import('./src/components/settings/GeneralTab.vue')['default']
     GlassMessage: typeof import('./src/components/ui/GlassMessage.vue')['default']

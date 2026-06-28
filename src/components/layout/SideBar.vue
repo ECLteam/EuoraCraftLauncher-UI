@@ -227,10 +227,33 @@ const openHelp = () => {
 }
 
 const ITEM_HEIGHT = 42
+const ITEM_GAP = 2
+const ITEM_CYCLE = ITEM_HEIGHT + ITEM_GAP * 2 // 42 + 2 + 2 = 46px per collapsed item cycle
 
-const updateIndicator = (index: number) => {
+/** 计算目标菜单项在侧边栏中的实际视觉偏移量（考虑子菜单展开高度） */
+const getVisualOffset = (targetPath: string): number => {
+  let offset = 2 // padding-top of sidebar-nav
+  for (const item of menuItems.value) {
+    if (item.path === targetPath) {
+      return offset
+    }
+    offset += ITEM_CYCLE
+    // 如果该菜单项的子菜单展开，累加子菜单高度
+    if (expandedMenus.value.has(item.path)) {
+      const subs = getSubItems(item.path)
+      if (subs.length > 0) {
+        // 子菜单容器 margin: 2px 0 → 4px，子项 34px + 间距 1px
+        offset += 4 + subs.length * 34 + (subs.length - 1) * 1
+      }
+    }
+  }
+  return -1
+}
+
+const updateIndicator = (targetPath: string) => {
   if (isCollapsed.value) return
-  const top = 2 + index * (ITEM_HEIGHT + 2)
+  const top = getVisualOffset(targetPath)
+  if (top === -1) return
   if (indicatorRef.value) {
     indicatorRef.value.style.top = `${top + 10}px`
     indicatorRef.value.style.height = `${ITEM_HEIGHT - 20}px`
@@ -238,9 +261,10 @@ const updateIndicator = (index: number) => {
   }
 }
 
-const updateActiveBg = (index: number) => {
+const updateActiveBg = (targetPath: string) => {
   if (isCollapsed.value) return
-  const top = 2 + index * (ITEM_HEIGHT + 2)
+  const top = getVisualOffset(targetPath)
+  if (top === -1) return
   if (activeBgRef.value) {
     activeBgRef.value.style.top = `${top}px`
     activeBgRef.value.style.height = `${ITEM_HEIGHT}px`
@@ -248,27 +272,31 @@ const updateActiveBg = (index: number) => {
   }
 }
 
-const getActiveIndex = (path: string): number => {
-  let index = menuItems.value.findIndex(item => item.path === path)
-  if (index !== -1) return index
-
+const getActivePath = (): string => {
+  const path = route.path
+  // 先精确匹配
+  const exact = menuItems.value.find(item => item.path === path)
+  if (exact) return exact.path
+  // 前缀匹配
   if (path !== '/') {
-    index = menuItems.value.findIndex(
+    const prefix = menuItems.value.find(
       item => item.path !== '/' && path.startsWith(item.path)
     )
-    if (index !== -1) return index
+    if (prefix) return prefix.path
   }
-  return -1
+  return ''
 }
 
 const handleMouseEnter = (index: number) => {
-  updateIndicator(index)
+  if (index < menuItems.value.length) {
+    updateIndicator(menuItems.value[index].path)
+  }
 }
 
 const handleMouseLeave = () => {
-  const index = getActiveIndex(route.path)
-  if (index !== -1) {
-    updateIndicator(index)
+  const activePath = getActivePath()
+  if (activePath) {
+    updateIndicator(activePath)
   } else {
     if (indicatorRef.value) indicatorRef.value.style.opacity = '0'
   }
@@ -277,11 +305,11 @@ const handleMouseLeave = () => {
 watch(
   () => route.path,
   (newPath) => {
-    const index = getActiveIndex(newPath)
     nextTick(() => {
-      if (index !== -1) {
-        updateIndicator(index)
-        updateActiveBg(index)
+      const activePath = getActivePath()
+      if (activePath) {
+        updateIndicator(activePath)
+        updateActiveBg(activePath)
       } else {
         if (indicatorRef.value) indicatorRef.value.style.opacity = '0'
         if (activeBgRef.value) activeBgRef.value.style.opacity = '0'
@@ -300,12 +328,27 @@ watch(
   { immediate: true }
 )
 
+// 子菜单展开/折叠时重新计算指示器位置
+watch(
+  () => [...expandedMenus.value],
+  () => {
+    nextTick(() => {
+      const activePath = getActivePath()
+      if (activePath) {
+        updateIndicator(activePath)
+        updateActiveBg(activePath)
+      }
+    })
+  },
+  { deep: true }
+)
+
 onMounted(() => {
-  const index = getActiveIndex(route.path)
-  if (index !== -1) {
+  const activePath = getActivePath()
+  if (activePath) {
     setTimeout(() => {
-      updateIndicator(index)
-      updateActiveBg(index)
+      updateIndicator(activePath)
+      updateActiveBg(activePath)
     }, 100)
   }
 })

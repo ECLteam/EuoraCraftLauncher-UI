@@ -12,7 +12,7 @@ const FRONTEND_CONFIG_DEFAULTS: Record<string, Record<string, any>> = {
   },
   ui: {
     locale: 'zh-CN',
-    background: { type: 'default', path: '', opacity: 0.8, blur: 0 },
+    background: { type: 'default', path: '', opacity: 0.2, blur: 0 },
     theme: {
       mode: 'system',
       primary_color: '#7aa8f0',

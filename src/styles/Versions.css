@@ -171,6 +171,7 @@
   gap: var(--s-sm);
   flex: 1;
   overflow: hidden;
+  align-items: flex-start;
 }
 
 .path-info .icon {

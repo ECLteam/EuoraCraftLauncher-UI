@@ -3,7 +3,7 @@
    ================================================================ */
 
 .page-container {
-  transition: transform var(--duration-slow) var(--ease-smooth), opacity var(--duration-normal) var(--ease-standard);
+  transition: opacity 150ms ease-out;
 }
 
 .modal-page-slide-out {
@@ -24,8 +24,8 @@
     position: fixed;
     inset: 0 auto 0 0;
     transform: translateX(-100%);
-    transition: transform var(--duration-normal) var(--ease-smooth);
-    width: 240px;
+    transition: transform 150ms ease-out;
+    width: var(--sidebar-w-expanded);
     z-index: 100;
   }
   .sidebar.expanded {
@@ -38,7 +38,7 @@
     z-index: 90;
     opacity: 0;
     pointer-events: none;
-    transition: opacity var(--duration-normal) var(--ease-standard);
+    transition: opacity 150ms ease-out;
   }
   .sidebar.expanded + .sidebar-overlay {
     opacity: 1;

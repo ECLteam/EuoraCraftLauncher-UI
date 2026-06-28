@@ -166,8 +166,10 @@
   background: var(--bg-app);
   border-radius: var(--r-sm);
   color: var(--text-secondary);
-  min-width: 20px;
+  min-width: 24px;
   text-align: center;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .path-item.active .category-count {

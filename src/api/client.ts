@@ -66,17 +66,24 @@ async function call<T = any>(method: string, ...args: any[]): Promise<ApiRespons
 const _eventCleanups = new Map<string, Set<() => void>>()
 
 function onEvent(event: string, cb: (payload: any) => void) {
-  const core = getCore()
-  if (!core?.listen) {
+  const tauri = getTauri()
+  const eventApi = tauri?.event
+  if (!eventApi?.listen) {
     console.warn('[API] Tauri event.listen 不可用')
     return () => {}
   }
-  const unlisten = core.listen(event, (e: any) => cb(e.payload))
+  let realUnlisten: (() => void) | null = null
+  eventApi.listen(event, (e: any) => cb(e.payload)).then((unlistenFn: () => void) => {
+    realUnlisten = unlistenFn
+  })
+  const wrappedUnlisten = () => {
+    if (realUnlisten) realUnlisten()
+  }
   if (!_eventCleanups.has(event)) {
     _eventCleanups.set(event, new Set())
   }
-  _eventCleanups.get(event)!.add(unlisten)
-  return unlisten
+  _eventCleanups.get(event)!.add(wrappedUnlisten)
+  return wrappedUnlisten
 }
 
 function offEvent(event: string) {
@@ -119,7 +126,9 @@ interface CommandMap {
 
   // 游戏版本
   minecraft_versions: { filter_type?: string }
-  scan_versions: { paths?: any }
+  fabric_versions: { game_version: string }
+  scan_versions: { path?: any }
+  install_version: { version_id: string; options?: any }
   uninstall_version: { version_id: string; game_path?: string }
 
   // 账户
@@ -151,10 +160,14 @@ interface CommandMap {
 
   // 游戏实例
   instances_list: undefined
+  launch_instance: { version_id: string; options?: any }
   instance_stop: { instance_id: string }
 
   // 启动器信息
   launcher_info: undefined
+  set_master_password: { password: string }
+  get_keyring_info: undefined
+  clear_keyring: undefined
   list_sections: undefined
 
   // 批量配置
@@ -231,7 +244,7 @@ export const backend = {
 
     /** 路径规整与存在性校验 */
     resolve(path: string) {
-      return call<{ path: string; is_dir: boolean; is_file: boolean; mime: string }>('exec_action', {
+      return call<{ path: string }>('exec_action', {
         name: 'file_resolve', params: { path },
       })
     },
