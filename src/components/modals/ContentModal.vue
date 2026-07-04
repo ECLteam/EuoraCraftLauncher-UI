@@ -50,7 +50,7 @@
           </main>
 
           <!-- 底部按钮区域 - 根据类型自动显示（协议类型在全屏模式下也显示） -->
-          <footer v-if="showFooter && (!fullscreen || type === 'agreement')" class="modal-footer">
+          <footer v-if="showFooter && (!fullscreen || type === 'agreement' || !!$slots.footer)" class="modal-footer">
             <slot name="footer">
               <!-- 协议类型：同意/不同意 -->
               <template v-if="type === 'agreement'">

@@ -1,60 +1,68 @@
 <template>
   <div class="manage-page">
-    <!-- 左侧路径列表 - 固定240px -->
-    <div class="path-panel">
-      <div class="panel-header">
-        <h3 class="panel-title">
-          <UiIcon name="folder" :size="16" />
-          {{ t('versions.manage.gamePath') }}
-        </h3>
-        <button class="btn-add" @click="addNewPath" :title="t('common.add')">
-          <UiIcon name="add" :size="16" />
-        </button>
-      </div>
+    <!-- 统一容器：路径列表 + 版本列表 -->
+    <div class="manage-container">
+      <!-- 左侧路径列表 -->
+      <div class="path-panel">
+        <div class="panel-header">
+          <h3 class="panel-title">
+            <UiIcon name="folder" :size="16" />
+            {{ t('versions.manage.gamePath') }}
+          </h3>
+          <button class="btn-add" @click="addNewPath" :title="t('common.add')">
+            <UiIcon name="add" :size="16" />
+          </button>
+        </div>
 
-      <div class="path-list">
-        <div
-          v-for="(item, index) in gamePaths"
-          :key="index"
-          :class="['path-item', { active: selectedPathIndex === index }]"
-          @click="selectPath(index)"
-        >
-          <div class="path-indicator"></div>
-          <UiIcon name="folder" :size="16" class="path-icon" />
-          <div class="path-info">
-            <span class="path-name" :title="item.path">{{ item.name || t('versions.manage.unnamedPath') }}</span>
-            <span
-              :class="['path-version-count', { 'is-empty': getPathVersionCount(item.path) === 0 }]"
-            >
-              {{ t('versions.manage.versionCount', { count: getPathVersionCount(item.path) }) }}
-            </span>
+        <div class="path-list">
+          <div
+            v-for="(item, index) in gamePaths"
+            :key="index"
+            :class="['path-item', { active: selectedPathIndex === index }]"
+            @click="selectPath(index)"
+          >
+            <div class="path-indicator"></div>
+            <UiIcon name="folder" :size="16" class="path-icon" />
+            <div class="path-info">
+              <div class="path-name-row">
+                <span class="path-name">{{ item.name || t('versions.manage.unnamedPath') }}</span>
+                <span
+                  :class="['path-version-count', { 'is-empty': getPathVersionCount(item.path) === 0 }]"
+                >
+                  {{ t('versions.manage.versionCount', { count: getPathVersionCount(item.path) }) }}
+                </span>
+              </div>
+              <span class="path-location" :title="item.path">{{ item.path }}</span>
+            </div>
+            <div v-if="!item.protected" class="path-actions">
+              <button
+                class="path-action-btn"
+                :title="t('common.edit')"
+                @click.stop="editPath(index)"
+              >
+                <UiIcon name="settings" :size="14" />
+              </button>
+              <button
+                class="path-action-btn path-action-delete"
+                :title="t('common.delete')"
+                @click.stop="removePath(index)"
+              >
+                <UiIcon name="trash" :size="14" />
+              </button>
+            </div>
           </div>
-          <div v-if="!item.protected" class="path-actions">
-            <button
-              class="path-action-btn"
-              :title="t('common.edit')"
-              @click.stop="editPath(index)"
-            >
-              <UiIcon name="settings" :size="14" />
-            </button>
-            <button
-              class="path-action-btn path-action-delete"
-              :title="t('common.delete')"
-              @click.stop="removePath(index)"
-            >
-              <UiIcon name="trash" :size="14" />
-            </button>
-          </div>
+        </div>
+
+        <div class="panel-footer">
+          <span class="footer-text">{{ t('versions.manage.pathCount', { count: gamePaths.length }) }}</span>
         </div>
       </div>
 
-      <div class="panel-footer">
-        <span class="footer-text">{{ t('versions.manage.pathCount', { count: gamePaths.length }) }}</span>
-      </div>
-    </div>
+      <!-- 分隔线 -->
+      <div class="path-divider"></div>
 
-    <!-- 右侧版本列表 -->
-    <div class="version-panel">
+      <!-- 右侧版本列表 -->
+      <div class="version-panel">
       <div class="panel-header">
         <div class="header-left">
           <h3 class="panel-title">
@@ -166,6 +174,7 @@
           </div>
         </div>
       </div>
+    </div>
     </div>
 
     <!-- 确认弹窗 -->
@@ -518,8 +527,16 @@ const handleLaunch = async (version: ScannedVersion) => {
       setLaunchProgress(Math.max(15, pct), 'downloading_assets', msg)
     } else if (phase === 'checking') {
       setLaunchProgress(-1, 'checking_files', msg)
+    } else if (phase === 'files_checked') {
+      setLaunchProgress(50, 'files_checked', msg)
     } else if (phase === 'building_args') {
       setLaunchProgress(typeof pct === 'number' ? pct : 90, 'building_params', msg)
+    } else if (phase === 'args_built') {
+      setLaunchProgress(75, 'args_built', msg)
+    } else if (phase === 'natives_done') {
+      setLaunchProgress(85, 'natives_done', msg)
+    } else if (phase === 'about_to_launch') {
+      setLaunchProgress(92, 'about_to_launch', msg)
     } else if (phase === 'launching') {
       setLaunchProgress(typeof pct === 'number' ? pct : 95, 'launching', msg)
     } else {
@@ -619,16 +636,26 @@ const getLoaderClass = (loaderType: string | null) => {
 <style scoped>
 .manage-page {
   display: flex;
-  gap: 0;
   height: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* 统一容器：路径 + 版本在一个卡片内 */
+.manage-container {
+  flex: 1;
+  display: flex;
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
+  overflow: hidden;
 }
 
 /* 左侧路径面板 */
 .path-panel {
-  width: 240px;
-  min-width: 240px;
-  background: #FFFFFF;
-  border-right: 1px solid #E0E0E0;
+  width: 200px;
+  min-width: 200px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -637,13 +664,13 @@ const getLoaderClass = (loaderType: string | null) => {
 .path-panel > .panel-header {
   height: 40px;
   padding: 0 12px;
-  border-bottom: 1px solid #E0E0E0;
+  border-bottom: 1px solid var(--glass-divider);
 }
 
 .path-panel > .panel-header .panel-title {
   font-size: 13px;
   font-weight: 600;
-  color: #1A1A1A;
+  color: var(--text-primary);
   gap: 6px;
 }
 
@@ -665,21 +692,26 @@ const getLoaderClass = (loaderType: string | null) => {
 }
 
 .path-item:hover:not(.active) {
-  background: #F0F1F3;
+  background: var(--glass-item-hover);
 }
 
+/* 选中态：浅色 #F5F8FF / 深色 rgba(74,127,217,0.12) */
 .path-item.active {
   background: #F5F8FF;
+}
+
+[data-theme="dark"] .path-item.active {
+  background: rgba(74, 127, 217, 0.12);
 }
 
 .path-indicator {
   position: absolute;
   left: 0;
-  top: 8px;
-  bottom: 8px;
+  top: 12px;
+  bottom: 12px;
   width: 3px;
   border-radius: 0 2px 2px 0;
-  background: #4A7FD9;
+  background: var(--primary);
   opacity: 0;
   transition: opacity 150ms ease-out;
 }
@@ -693,15 +725,11 @@ const getLoaderClass = (loaderType: string | null) => {
   height: 18px;
   min-width: 18px;
   margin-top: 1px;
-  color: #8A8A8A;
+  color: var(--text-tertiary);
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.path-item.active .path-icon {
-  color: #8A8A8A;
 }
 
 .path-info {
@@ -712,32 +740,63 @@ const getLoaderClass = (loaderType: string | null) => {
   gap: 2px;
 }
 
+/* 名称行：名称 + 版本数 */
+.path-name-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 名称 13px font-weight 500 */
 .path-name {
   font-size: 13px;
   font-weight: 500;
-  color: #1A1A1A;
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+/* 选中态名称加粗不换色 */
 .path-item.active .path-name {
   font-weight: 600;
+  color: var(--text-secondary);
 }
 
+/* 版本数 11px */
 .path-version-count {
   font-size: 11px;
   font-weight: 400;
-  color: #8A8A8A;
-  align-self: flex-end;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
 }
 
+/* 路径位置：超出部分 ... 截断 */
+.path-location {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* "0 个版本" 用特定颜色 */
 .path-version-count.is-empty {
   color: #AAAAAA;
 }
 
+[data-theme="dark"] .path-version-count.is-empty {
+  color: #555860;
+}
+
+/* 浅色选中 #5C5C5C / 深色选中 #A0A3A8 */
 .path-item.active .path-version-count {
   color: #5C5C5C;
+}
+
+[data-theme="dark"] .path-item.active .path-version-count {
+  color: #A0A3A8;
 }
 
 .path-actions {
@@ -758,30 +817,55 @@ const getLoaderClass = (loaderType: string | null) => {
   justify-content: center;
   width: 22px;
   height: 22px;
-  border-radius: 4px;
+  border-radius: var(--r-xs);
   border: none;
   background: transparent;
-  color: #8A8A8A;
+  color: var(--text-tertiary);
   cursor: pointer;
   transition: all 150ms ease-out;
 }
 
 .path-action-btn:hover {
-  background: #E8E8E8;
-  color: #1A1A1A;
+  background: var(--glass-item-hover);
+  color: var(--text-primary);
 }
 
 .path-action-delete:hover {
-  color: #E85D5D;
+  color: var(--error);
+}
+
+/* 分隔线：加宽 + 加深颜色，增强分界感 */
+.path-divider {
+  width: 2px;
+  background: var(--border);
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* 上下边框延伸 */
+.path-divider::before,
+.path-divider::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+}
+
+.path-divider::before {
+  top: 0;
+  background: var(--border);
+}
+
+.path-divider::after {
+  bottom: 0;
+  background: var(--border);
 }
 
 /* 右侧版本面板 */
 .version-panel {
   flex: 1;
-  margin-left: var(--s-lg);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  min-width: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -839,18 +923,18 @@ const getLoaderClass = (loaderType: string | null) => {
   justify-content: center;
   width: 28px;
   height: 28px;
-  border-radius: 6px;
-  border: 1px solid #E0E0E0;
-  background: #FFFFFF;
-  color: #8A8A8A;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-tertiary);
   cursor: pointer;
   transition: all 150ms ease-out;
 }
 
 .btn-add:hover {
-  background: #EBF1FA;
-  border-color: #4A7FD9;
-  color: #4A7FD9;
+  background: var(--primary-alpha);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .btn-add:active {
@@ -899,7 +983,7 @@ const getLoaderClass = (loaderType: string | null) => {
 .panel-footer {
   height: 28px;
   padding: 0 12px;
-  border-top: 1px solid #E0E0E0;
+  border-top: 1px solid var(--divider);
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -908,7 +992,7 @@ const getLoaderClass = (loaderType: string | null) => {
 .footer-text {
   font-size: 10px;
   font-weight: 400;
-  color: #8A8A8A;
+  color: var(--text-tertiary);
 }
 
 /* 版本内容 */

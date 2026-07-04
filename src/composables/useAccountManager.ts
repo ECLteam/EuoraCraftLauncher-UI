@@ -102,10 +102,6 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
       if (res.success) {
         message.success(t('game.status.accountSwitched'))
         await loadAccounts()
-        const accountsRes = await backend.command('accounts_list')
-        if (accountsRes.success && accountsRes.data) {
-          currentAccount.value = accountsRes.data.current
-        }
       } else {
         message.error(res.message || t('game.status.accountSwitchFailed'))
       }
@@ -129,10 +125,6 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
         message.success(t('game.status.accountRemoved'))
         showDeleteConfirmModal.value = false
         await loadAccounts()
-        const accountsRes = await backend.command('accounts_list')
-        if (accountsRes.success && accountsRes.data) {
-          currentAccount.value = accountsRes.data.current
-        }
       } else {
         message.error(res.message || t('game.status.accountRemoveFailed'))
       }
@@ -227,10 +219,6 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
         message.success(t('game.login.success'))
         showMicrosoftLoginModal.value = false
         await loadAccounts()
-        const accountsRes = await backend.command('accounts_list')
-        if (accountsRes.success && accountsRes.data) {
-          currentAccount.value = accountsRes.data.current
-        }
       } else {
         microsoftLoginStatus.value = 'error'
         microsoftLoginError.value = res.message || res.data?.message || t('game.login.failed')

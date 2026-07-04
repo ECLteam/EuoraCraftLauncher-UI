@@ -1,58 +1,32 @@
 <template>
   <div class="install-page">
-    <!-- 左侧类型筛选 - 280px -->
-    <div class="filter-panel">
-      <div class="filter-header">
-        <h3 class="filter-title">
-          <UiIcon name="filter" :size="16" />
-          {{ t('versions.download.type') }}
-        </h3>
-      </div>
+    <!-- 顶部栏：类型筛选 + 搜索 -->
+    <div class="panel-header">
+      <UiSelect
+        v-model="selectedCategory"
+        :options="categoryOptions"
+        class="category-select"
+      />
 
-      <div class="filter-list">
-        <div
-          v-for="category in categories"
-          :key="category.id"
-          :class="['filter-item', { active: selectedCategory === category.id }]"
-          @click="selectedCategory = category.id"
-        >
-          <div class="filter-indicator"></div>
-          <UiIcon :name="category.icon" :size="16" class="filter-icon" />
-          <span class="filter-name">{{ category.name }}</span>
-          <span class="filter-count">{{ getCategoryCount(category.id) }}</span>
-        </div>
-      </div>
-
-      <div class="filter-footer">
-        <span class="footer-text">{{ t('versions.download.categoryCount', { count: allVersions?.length || 0 }) }}</span>
+      <div class="header-right">
+        <span v-if="filteredVersions.length > 0" class="version-count-badge">
+          {{ t('versions.download.versionCount', { count: filteredVersions.length }) }}
+        </span>
+        <button class="btn-refresh" @click="fetchVersions">
+          <UiIcon name="refresh" :size="14" />
+          {{ t('versions.download.refreshList') }}
+        </button>
+        <UiInput
+          v-model="searchQuery"
+          :placeholder="t('versions.download.searchVersion')"
+          clearable
+          class="search-input"
+        />
       </div>
     </div>
 
-    <!-- 右侧版本列表 -->
+    <!-- 版本列表 -->
     <div class="version-panel">
-      <div class="panel-header">
-        <div class="header-left">
-          <h3 class="panel-title">
-            <UiIcon name="cube" :size="16" />
-            {{ currentCategoryName }}
-          </h3>
-          <span v-if="filteredVersions.length > 0" class="version-count-badge">
-            {{ t('versions.download.versionCount', { count: filteredVersions.length }) }}
-          </span>
-        </div>
-        <div class="header-right">
-          <button class="btn-refresh" @click="fetchVersions">
-            <UiIcon name="refresh" :size="14" />
-            {{ t('versions.download.refreshList') }}
-          </button>
-          <UiInput
-            v-model="searchQuery"
-            :placeholder="t('versions.download.searchVersion')"
-            clearable
-            class="search-input"
-          />
-        </div>
-      </div>
 
       <div class="version-content">
         <!-- 加载中 -->
@@ -111,18 +85,11 @@
                   <button
                     class="btn-install"
                     :title="t('versions.download.install')"
-                    @click="quickInstall(version.id)"
+                    @click="openInstallWithVersion(version.id)"
                     :disabled="downloading === version.id"
                   >
                     <UiIcon name="download" :size="16" />
                     <span class="btn-install-text">{{ t('versions.download.install') }}</span>
-                  </button>
-                  <button
-                    class="btn-advanced"
-                    :title="t('versions.download.advanced')"
-                    @click="openInstallWithVersion(version.id)"
-                  >
-                    <UiIcon name="settings" :size="14" />
                   </button>
                 </div>
               </div>
@@ -136,10 +103,21 @@
     <ContentModal
       v-model:visible="showInstallDialog"
       :title="t('versions.download.installTitle')"
+      show-backdrop
+      fullscreen
     >
       <div class="form-group">
         <label>{{ t('versions.download.mcVersion') }} <span class="required">*</span></label>
         <div class="version-display">{{ installForm.mcVersion }}</div>
+      </div>
+
+      <div class="form-group">
+        <label>{{ t('versions.download.versionName') }}</label>
+        <UiInput
+          v-model="installForm.versionName"
+          :placeholder="defaultVersionName"
+        />
+        <p class="form-hint">{{ t('versions.download.versionNameHint') }}</p>
       </div>
 
       <div class="form-group">
@@ -150,7 +128,7 @@
             :key="loader.value"
             class="loader-btn"
             :class="{ active: installForm.loader === loader.value }"
-            @click="installForm.loader = loader.value"
+            @click="selectLoader(loader.value)"
           >
             <UiIcon :name="loader.icon" />
             <span>{{ loader.label }}</span>
@@ -163,16 +141,17 @@
         <UiSelect
           v-model="installForm.loaderVersion"
           :options="getLoaderVersionOptions(installForm.loader)"
-          placeholder="最新版本"
+          :placeholder="loaderVersionsLoading ? '加载中...' : '最新版本'"
         />
       </div>
 
       <div class="form-group">
         <label>{{ t('versions.download.gameDir') }}</label>
-        <div class="input-with-button">
-          <UiInput v-model="installForm.gamePath" :placeholder="t('instances.gamePathPlaceholder')" readonly />
-          <UiButton variant="ghost" size="sm" @click="selectGamePath">{{ t('common.browse') }}</UiButton>
-        </div>
+        <UiSelect
+          v-model="installForm.gamePath"
+          :options="gamePaths"
+          :placeholder="t('instances.gamePathPlaceholder')"
+        />
       </div>
 
       <template #footer>
@@ -215,7 +194,6 @@ import UiSelect from '@/components/ui/Select.vue'
 import ContentModal from '@/components/modals/ContentModal.vue'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { useAutoRefreshCache, CACHE_KEYS, CACHE_GROUPS } from '@/cache/composable'
-import { globalCache } from '@/cache'
 import type { MinecraftVersion } from '@/types/api'
 
 const { t } = useI18n()
@@ -245,21 +223,36 @@ const {
 )
 
 const fabricVersions = ref<string[]>([])
+const loaderVersionsLoading = ref(false)
 
 async function loadFabricVersions(gameVersion: string) {
   if (!gameVersion) {
     fabricVersions.value = []
     return
   }
+  loaderVersionsLoading.value = true
   try {
     const res = await backend.command('fabric_versions', { game_version: gameVersion })
+    console.log('[FabricVersions]', gameVersion, 'success:', res.success, 'data keys:', res.data ? Object.keys(res.data) : null)
     if (res.success && res.data) {
       const list = Array.isArray(res.data) ? res.data : (res.data.all || [])
-      fabricVersions.value = list.map((v: any) => v.LoaderVersion || v.version || String(v)).slice(0, 20)
+      console.log('[FabricVersions] list length:', list.length, 'first item:', list[0])
+      const mapped = list.map((v: any) => v.LoaderVersion || v.version || String(v)).filter(Boolean)
+      console.log('[FabricVersions] mapped:', mapped.slice(0, 5))
+      fabricVersions.value = mapped.slice(0, 20)
+      if (mapped.length === 0) {
+        glassMessage.warning(t('versions.download.noLoaderVersions', { loader: 'Fabric' }))
+      }
+    } else {
+      glassMessage.error(res.message || t('versions.download.fetchFabricFailed'))
+      fabricVersions.value = []
     }
-  } catch (e) {
+  } catch (e: any) {
     console.error(t('versions.download.fetchFabricFailed'), e)
+    glassMessage.error(t('versions.download.fetchFabricFailed'))
     fabricVersions.value = []
+  } finally {
+    loaderVersionsLoading.value = false
   }
 }
 
@@ -275,6 +268,7 @@ const progressMessage = ref('准备安装...')
 
 const installForm = ref({
   mcVersion: '',
+  versionName: '',
   loader: 'vanilla',
   loaderVersion: '',
   gamePath: ''
@@ -294,6 +288,13 @@ const currentCategoryName = computed(() => {
   return cat ? cat.name : t('versions.download.installNew')
 })
 
+const categoryOptions = computed(() =>
+  categories.map(c => ({
+    value: c.id,
+    label: `${c.name} (${getCategoryCount(c.id)})`,
+  }))
+)
+
 const loaders = [
   { value: 'vanilla', label: '原版', icon: 'cube' },
   { value: 'fabric', label: 'Fabric', icon: 'grid' },
@@ -309,7 +310,7 @@ const aprilFoolsVersions = [
 
 function isAprilFools(versionId: string | null | undefined): boolean {
   if (!versionId) return false
-  return aprilFoolsVersions.some(v => versionId.toLowerCase().includes(v.toLowerCase()))
+  return aprilFoolsVersions.some(v => versionId.toLowerCase() === v.toLowerCase())
 }
 
 function getCategoryCount(categoryId: string): number {
@@ -374,32 +375,106 @@ function getLoaderLabel(loader: string): string {
   return found ? found.label : loader
 }
 
-async function selectGamePath() {
+const defaultGamePath = ref('')
+const gamePaths = ref<{ value: string; label: string }[]>([])
+
+async function loadDefaultGamePath() {
   try {
-    const res = await backend.command('select_directory')
-    if (res.success && res.data) installForm.value.gamePath = res.data.path
-  } catch (e) { console.error('选择目录失败:', e) }
+    const res = await backend.config.get('game')
+    if (res.success && res.data) {
+      const data = res.data
+      // 构建路径下拉选项
+      const paths = data.minecraft_paths || []
+      gamePaths.value = paths.map((p: any) => {
+        const pathStr = typeof p === 'string' ? p : (p.path || '')
+        const name = typeof p === 'object' ? (p.name || pathStr) : pathStr
+        return { value: pathStr, label: name }
+      })
+
+      // 优先使用上次选择的路径
+      if (data.last_install_path) {
+        defaultGamePath.value = data.last_install_path
+      } else if (paths.length > 0) {
+        const first = paths[0]
+        defaultGamePath.value = typeof first === 'string' ? first : (first.path || '')
+      }
+    }
+  } catch (e) {
+    console.error('加载默认游戏路径失败:', e)
+  }
+}
+
+async function saveLastInstallPath(path: string) {
+  if (!path) return
+  try {
+    const res = await backend.config.get('game')
+    const gameCfg = (res.success && res.data) ? res.data : {}
+    await backend.config.set('game', { ...gameCfg, last_install_path: path })
+  } catch (e) {
+    console.error('保存安装路径失败:', e)
+  }
 }
 
 function openInstallWithVersion(versionId: string) {
-  installForm.value = { mcVersion: versionId, loader: 'vanilla', loaderVersion: '', gamePath: '' }
+  installForm.value = { mcVersion: versionId, versionName: '', loader: 'vanilla', loaderVersion: '', gamePath: defaultGamePath.value }
   showInstallDialog.value = true
-  fetchLoaderVersions()
 }
+
+const defaultVersionName = computed(() => {
+  const { mcVersion, loader, loaderVersion } = installForm.value
+  if (loader === 'vanilla' || !loader) return mcVersion
+  if (!loaderVersion) return `${mcVersion}-${loader}`
+  return `${mcVersion}-${loader}-${loaderVersion}`
+})
+
+function selectLoader(loader: string) {
+  installForm.value.loader = loader
+  installForm.value.loaderVersion = ''
+  fabricVersions.value = []
+  if (loader !== 'vanilla') {
+    fetchLoaderVersions()
+  }
+}
+
+// 选择加载器版本后自动更新默认版本名
+watch(() => installForm.value.loaderVersion, () => {
+  installForm.value.versionName = ''
+})
 
 let unlistenInstallProgress: (() => void) | null = null
 
 async function doInstall() {
   const versionId = installForm.value.mcVersion
+  const versionName = installForm.value.versionName?.trim() || defaultVersionName.value
   const loader = installForm.value.loader
   const loaderVersion = installForm.value.loaderVersion
-  const gamePath = installForm.value.gamePath || undefined
+  const gamePath = installForm.value.gamePath || defaultGamePath.value
 
+  if (!versionId) {
+    glassMessage.warning(t('versions.download.noVersionId'))
+    return
+  }
+
+  // 校验版本文件夹冲突
+  try {
+    const versionDirName = versionName
+    const checkPath = `${gamePath}/versions/${versionDirName}`
+    const existsRes = await backend.command('fs_exists', { path: checkPath })
+    if (existsRes?.data?.exists) {
+      glassMessage.error(t('versions.download.versionConflict', { version: versionDirName }))
+      return
+    }
+  } catch (e) {
+    console.warn('版本冲突校验失败:', e)
+  }
+
+  showInstallDialog.value = false
   showProgressDialog.value = true
   progressMessage.value = t('versions.download.preparingInstall')
   downloading.value = versionId
 
-  // 监听安装进度
+  // 监听安装进度（先清理旧的监听器，避免泄漏）
+  if (unlistenInstallProgress) unlistenInstallProgress()
   unlistenInstallProgress = backend.on('game:install_progress', (payload: any) => {
     if (payload.phase === 'done') {
       progressMessage.value = t('versions.download.installComplete')
@@ -417,18 +492,21 @@ async function doInstall() {
   })
 
   try {
-    const options: any = { loader_type: loader }
+    const params: { version_id: string; version_name?: string; loader_type?: string; fabric_version?: string; game_path?: string } = {
+      version_id: versionId,
+      loader_type: loader,
+    }
+    if (versionName !== versionId) {
+      params.version_name = versionName
+    }
     if (loader === 'fabric' && loaderVersion) {
-      options.fabric_version = loaderVersion
+      params.fabric_version = loaderVersion
     }
     if (gamePath) {
-      options.game_path = gamePath
+      params.game_path = gamePath
     }
 
-    const result = await backend.command('install_version', {
-      version_id: versionId,
-      options
-    })
+    const result = await backend.command('install_version', params)
 
     if (!result.success) {
       progressMessage.value = result.message || t('versions.download.installFailed')
@@ -444,17 +522,8 @@ async function doInstall() {
   }
 }
 
-async function quickInstall(versionId: string) {
-  installForm.value.mcVersion = versionId
-  installForm.value.loader = 'vanilla'
-  installForm.value.loaderVersion = ''
-  installForm.value.gamePath = ''
-  await doInstall()
-}
-
 async function startInstall() {
   if (!installForm.value.mcVersion) return
-  showInstallDialog.value = false
   await doInstall()
 }
 
@@ -514,24 +583,8 @@ watch(filteredVersions, (newVal) => {
   })
 })
 
-watch(() => installForm.value.mcVersion, (mcVersion) => {
-  if (installForm.value.loader === 'fabric' && mcVersion) {
-    loadFabricVersions(mcVersion)
-  }
-})
-
-watch(() => installForm.value.loader, (loader) => {
-  if (loader === 'fabric' && installForm.value.mcVersion) {
-    loadFabricVersions(installForm.value.mcVersion)
-  } else if (loader !== 'fabric') {
-    installForm.value.loaderVersion = ''
-  }
-})
-
 onMounted(() => {
-  // 清除旧格式缓存（后端已改为扁平数组格式）
-  globalCache.delete(CACHE_KEYS.VERSIONS)
-
+  loadDefaultGamePath()
   fetchVersions()
   nextTick(() => {
     if (scrollContainerRef.value) {
@@ -553,120 +606,16 @@ onUnmounted(() => {
 <style scoped>
 .install-page {
   display: flex;
-  gap: 0;
+  flex-direction: column;
   height: 100%;
-}
-
-/* 左侧筛选面板 */
-.filter-panel {
-  width: 280px;
-  min-width: 280px;
-  display: flex;
-  flex-direction: column;
-}
-
-.filter-header {
-  padding: 0 0 12px 0;
-}
-
-.filter-title {
-  display: flex;
-  align-items: center;
-  gap: var(--s-sm);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-/* 筛选列表 - 无卡片包裹 */
-.filter-list {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.filter-item {
-  display: flex;
-  align-items: center;
-  height: 40px;
-  padding: 0 12px;
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
   border-radius: var(--r-sm);
-  cursor: pointer;
-  position: relative;
-  transition: background 150ms ease-out;
-  gap: 10px;
-}
-
-.filter-item:hover {
-  background: var(--bg-hover);
-}
-
-.filter-item.active {
-  background: var(--primary-alpha);
-}
-
-.filter-indicator {
-  position: absolute;
-  left: 0;
-  top: 4px;
-  bottom: 4px;
-  width: 3px;
-  border-radius: 0 2px 2px 0;
-  background: var(--primary);
-  opacity: 0;
-  transition: opacity 150ms ease-out;
-}
-
-.filter-item.active .filter-indicator {
-  opacity: 1;
-}
-
-.filter-icon {
-  color: var(--text-secondary);
-  flex-shrink: 0;
-  margin-left: 8px;
-}
-
-.filter-item.active .filter-icon {
-  color: var(--primary);
-}
-
-.filter-name {
-  flex: 1;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.filter-count {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  text-align: right;
-}
-
-.filter-footer {
-  padding: 12px 0 0;
-}
-
-.footer-text {
-  font-size: 12px;
-  color: var(--text-tertiary);
-}
-
-/* 右侧版本面板 */
-.version-panel {
-  flex: 1;
-  margin-left: var(--s-lg);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
 }
 
+/* 顶部栏：类型筛选 + 搜索 */
 .panel-header {
   display: flex;
   align-items: center;
@@ -675,48 +624,142 @@ onUnmounted(() => {
   height: 48px;
   border-bottom: 1px solid var(--divider);
   flex-shrink: 0;
+  gap: 12px;
 }
 
-.panel-title {
+.category-select {
+  width: 160px;
+  flex-shrink: 0;
+  height: 32px;
+}
+
+.category-select :deep(.select-trigger) {
+  height: 32px;
+}
+
+.header-right {
   display: flex;
   align-items: center;
-  gap: var(--s-sm);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
+  gap: 8px;
+  flex-shrink: 0;
 }
-
-.header-left { display: flex; align-items: center; gap: var(--s-sm); }
-.header-right { display: flex; align-items: center; gap: var(--s-sm); }
 
 .version-count-badge {
   font-size: 12px;
   color: var(--text-tertiary);
-  background: var(--bg-base-alt);
-  padding: 2px 8px;
-  border-radius: var(--r-xs);
+  white-space: nowrap;
 }
-
-.search-input { width: 200px; }
 
 .btn-refresh {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 12px;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
-  color: var(--text-secondary);
+  height: 32px;
+  padding: 0 10px;
   font-size: 12px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
   cursor: pointer;
-  transition: all 150ms ease-out;
+  white-space: nowrap;
+  transition: all 150ms;
 }
 
 .btn-refresh:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.search-input {
+  width: 130px;
+  flex-shrink: 0;
+}
+
+.search-input :deep(.ui-input-wrapper) {
+  height: 28px;
+  min-height: 28px;
+  padding: 0 8px;
+}
+
+.search-input :deep(.ui-input) {
+  font-size: 12px;
+}
+
+/* ── 安装弹窗 ── */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.required {
+  color: var(--error);
+}
+
+.form-hint {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.version-display {
+  padding: 8px 12px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.loader-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.loader-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--bg-base);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.loader-btn:hover {
   border-color: var(--primary);
   color: var(--primary);
+}
+
+.loader-btn.active {
+  border-color: var(--primary);
+  background: var(--primary-alpha);
+  color: var(--primary);
+}
+
+/* 版本列表容器 */
+.version-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .btn-primary {
@@ -736,7 +779,6 @@ onUnmounted(() => {
 
 .btn-primary:hover { background: var(--primary-hover); }
 
-/* 版本内容 */
 .version-content {
   flex: 1;
   overflow: hidden;
@@ -852,28 +894,31 @@ onUnmounted(() => {
   display: inline;
 }
 
-.btn-advanced {
+/* 进度弹窗 */
+.progress-body {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--r-xs);
-  border: none;
-  background: transparent;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  transition: all 150ms ease-out;
-  opacity: 0;
+  gap: var(--s-md);
+  padding: var(--s-xl) 0;
 }
 
-.version-item:hover .btn-advanced {
-  opacity: 1;
+.progress-ring {
+  color: var(--primary);
 }
 
-.btn-advanced:hover {
+.progress-text {
+  font-size: 15px;
+  font-weight: 500;
   color: var(--text-primary);
-  background: var(--bg-hover);
+  margin: 0;
+}
+
+.progress-subtext {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  margin: 0;
 }
 
 /* 徽章 */

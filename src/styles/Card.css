@@ -1,8 +1,10 @@
 .ui-card {
-  background: var(--bg-surface);
-  border-radius: var(--r-md);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-xs);
+  background: var(--card-bg);
+  border-radius: var(--r-sm);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-left: none;
+  border-right: none;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -11,7 +13,6 @@
 
 .ui-card.hoverable:hover {
   transform: translateY(-1px);
-  box-shadow: var(--shadow-hover);
   border-color: var(--border-hover);
 }
 

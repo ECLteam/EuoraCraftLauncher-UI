@@ -15,14 +15,16 @@
   position: absolute;
 }
 
+/* 非 iOS 风格开关：圆角 16px 整体，32px 宽 */
 .slider {
   position: relative;
   display: inline-block;
-  width: 36px;
+  width: 32px;
   height: 20px;
-  background: var(--text-disabled);
+  background: #D0D0D0;
   transition: all var(--duration-normal) var(--ease-standard);
-  border-radius: var(--r-full);
+  border-radius: 16px;
+  flex-shrink: 0;
 }
 
 .slider:before {
@@ -32,10 +34,9 @@
   width: 16px;
   left: 2px;
   bottom: 2px;
-  background: var(--bg-elevated);
-  box-shadow: var(--shadow-sm);
+  background: #FFFFFF;
   transition: all var(--duration-normal) var(--ease-standard);
-  border-radius: var(--r-full);
+  border-radius: 50%;
 }
 
 input:checked + .slider {
@@ -43,7 +44,7 @@ input:checked + .slider {
 }
 
 input:checked + .slider:before {
-  transform: translateX(16px);
+  transform: translateX(12px);
 }
 
 input:focus-visible + .slider {
@@ -58,4 +59,21 @@ input:focus-visible + .slider {
 .switch-label {
   font-size: 13px;
   color: var(--text-primary);
+}
+
+/* 深色模式 */
+[data-theme="dark"] .slider {
+  background: #4A4D55;
+}
+
+[data-theme="dark"] .slider:before {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+[data-theme="dark"] input:checked + .slider {
+  background: var(--primary);
+}
+
+[data-theme="dark"] input:checked + .slider:before {
+  background: #FFFFFF;
 }

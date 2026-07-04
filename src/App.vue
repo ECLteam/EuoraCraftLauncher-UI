@@ -12,16 +12,8 @@
             <!-- 背景层 -->
             <div class="app-background"></div>
             
-            <!-- 鼠标点击效果 -->
-            <MouseEffect 
-              :enabled="mouseEffectEnabled" 
-              :color="mouseEffectColor"
-              :scale="mouseEffectScale"
-              :opacity="mouseEffectOpacity"
-              :speed="mouseEffectSpeed"
-            />
-            <a href="#main-content" class="skip-link">跳到主要内容</a>
             <!-- 主布局 -->
+            <a href="#main-content" class="skip-link">跳到主要内容</a>
             <div class="app-layout">
               <!-- 顶部栏 - 始终可交互 -->
               <TitleBar 
@@ -35,6 +27,9 @@
                 :class="{ 'app-body-disabled': !isAgreementAccepted && !agreementLoading }"
               >
                 <SideBar />
+
+                <!-- 插件：侧栏扩展插槽 -->
+                <div id="plugin-slot-sidebar-extra" class="plugin-slot-container plugin-sidebar-slot"></div>
                 
                 <!-- 内容区 - 全屏弹窗仅覆盖此区域 -->
                 <main 
@@ -46,6 +41,8 @@
                     <router-view v-slot="{ Component, route: currentRoute }">
                       <component :is="Component" :key="currentRoute.matched[0]?.path || currentRoute.path" />
                     </router-view>
+                    <!-- 插件：页面底部插槽 -->
+                    <div id="plugin-slot-page-bottom" class="plugin-slot-container"></div>
                   </div>
                   
                   <!-- 未同意协议时的占位提示 
@@ -153,26 +150,27 @@ import TitleBar from '@/components/layout/TitleBar.vue'
 import SideBar from '@/components/layout/SideBar.vue'
 import GlassMessage from '@/components/ui/GlassMessage.vue'
 import ContentModal from '@/components/modals/ContentModal.vue'
-import MouseEffect from '@/components/animation/MouseEffect.vue'
 import { useTheme } from '@/composables/useTheme'
 //import { usePageTransition } from '@/composables/useAnimation'
-import { setMessageRef } from '@/composables/useGlassMessage'
+import { setMessageRef, useGlassMessage } from '@/composables/useGlassMessage'
 import { checkUserAgreement, acceptUserAgreement, useUserAgreement } from '@/composables/useUserAgreement'
 import { useFullscreenModal } from '@/composables/useFullscreenModal'
+import { initPluginBridge, destroyPluginBridge } from '@/composables/usePluginBridge'
 import backend from '@/api/client'
-import { i18n, supportedLocales } from '@/i18n'
-import { useGlassMessage } from '@/composables/useGlassMessage'
+import { i18n } from '@/i18n'
+import { useRouter } from 'vue-router'
 
 import { useAppInit } from '@/composables/useAppInit'
-import { useMouseEffect } from '@/composables/useMouseEffect'
+import { initMouseEffectBridge, destroyMouseEffectBridge } from '@/composables/useMouseEffectBridge'
 
+const router = useRouter()
 const { naiveTheme, themeOverrides, initTheme } = useTheme()
 const { isDevMode, globalGameConfig, globalDownloadConfig, init: initApp } = useAppInit()
-const { enabled: mouseEffectEnabled, color: mouseEffectColor, scale: mouseEffectScale, opacity: mouseEffectOpacity, speed: mouseEffectSpeed, init: initMouseEffect, dispose: disposeMouseEffect } = useMouseEffect()
 
 const { locale, t } = useI18n()
 const { isAccepted: isAgreementAccepted, isLoading: agreementLoading, agreementUrl } = useUserAgreement()
 const fullscreenModal = useFullscreenModal()
+const message = useGlassMessage()
 
 const messageRef = ref<InstanceType<typeof GlassMessage> | null>(null)
 const showAgreementModal = ref(false)
@@ -219,31 +217,30 @@ const handleQuitConfirm = async () => {
 
 const handleSetPassword = async () => {
   if (passwordInput.value.length < 8) {
-    useGlassMessage().warning('密码长度至少8位')
+    message.warning('密码长度至少8位')
     return
   }
   if (passwordInput.value !== passwordConfirm.value) {
-    useGlassMessage().warning('两次输入的密码不一致')
+    message.warning('两次输入的密码不一致')
     return
   }
   const result = await backend.command('set_master_password', { password: passwordInput.value })
   if (result.success) {
-    useGlassMessage().success('主密码设置成功')
+    message.success('主密码设置成功')
     showPasswordModal.value = false
     passwordInput.value = ''
     passwordConfirm.value = ''
   } else {
-    useGlassMessage().warning(result.message || '设置失败')
+    message.warning(result.message || '设置失败')
   }
 }
 
 let cleanupContextMenuListeners: (() => void) | null = null
 const unlistenNotify = backend.on('launcher:notify', (payload: any) => {
-  const glass = useGlassMessage()
   if (payload.type === 'warning') {
-    glass.warning(payload.message, 8000)
+    message.warning(payload.message, 8000)
   } else if (payload.type === 'info') {
-    glass.info(payload.message, 8000)
+    message.info(payload.message, 8000)
   }
 })
 const unlistenAgreement = backend.on('launcher:agreement_required', () => {
@@ -253,6 +250,21 @@ const unlistenAgreement = backend.on('launcher:agreement_required', () => {
 })
 const unlistenPassword = backend.on('keyring:password_required', () => {
   showPasswordModal.value = true
+})
+
+// 插件 CSS 注入：创建或更新 <style> 标签
+const unlistenCssInject = backend.on('plugin:css_injected', (payload: any) => {
+  const pluginName = payload?.plugin || 'unknown'
+  const css = payload?.css || ''
+  const id = `plugin-css-${pluginName}`
+  let styleEl = document.getElementById(id) as HTMLStyleElement | null
+  if (!styleEl) {
+    styleEl = document.createElement('style')
+    styleEl.id = id
+    styleEl.setAttribute('data-plugin', pluginName)
+    document.head.appendChild(styleEl)
+  }
+  styleEl.textContent = css
 })
 
 function setupContextMenuListeners() {
@@ -298,7 +310,7 @@ function setupContextMenuListeners() {
 onMounted(async () => {
   if (messageRef.value) setMessageRef(messageRef.value)
 
-  initMouseEffect()
+  initMouseEffectBridge()
   cleanupContextMenuListeners = setupContextMenuListeners()
 
   await checkAgreement()
@@ -307,16 +319,19 @@ onMounted(async () => {
     console.log('[App] PyTauri API 已可用，开始初始化')
     fullscreenModal.reset()
 
-    const { mouseEffectRes } = await initApp()
-    if (mouseEffectRes?.success && mouseEffectRes.data) {
-      useMouseEffect().applyConfig(mouseEffectRes.data)
-    }
+    await initApp()
 
     // 主动查询密钥环状态（事件可能在监听器注册前已发射）
     const keyringRes = await backend.command('get_keyring_info')
     if (keyringRes?.success && keyringRes.data?.needs_password) {
       showPasswordModal.value = true
     }
+
+    // 通知后端前端已就绪，触发插件 on_frontend_ready 回调
+    backend.command('frontend_ready').catch(() => {})
+
+    // 初始化插件桥接（监听路由注册、HTML注入、脚本注入）
+    initPluginBridge({} as any, router)
 
     console.log('[App] 配置初始化完成')
   } else {
@@ -326,12 +341,38 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  disposeMouseEffect()
+  destroyMouseEffectBridge()
   cleanupContextMenuListeners?.()
   unlistenNotify()
   unlistenAgreement()
   unlistenPassword()
+  unlistenCssInject()
+  destroyPluginBridge()
 })
 </script>
 
 <style src="@/styles/app.css"></style>
+
+<style scoped>
+.plugin-slot-container {
+  width: 100%;
+}
+
+.plugin-slot-container:empty {
+  display: none;
+}
+
+.plugin-sidebar-slot {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 200px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.plugin-sidebar-slot .plugin-slot-item {
+  pointer-events: auto;
+}
+</style>

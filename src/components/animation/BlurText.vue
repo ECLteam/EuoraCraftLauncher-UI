@@ -27,12 +27,10 @@ const animate = () => {
   gsap.fromTo(elements,
     { 
       opacity: 0,
-      filter: 'blur(10px)',
       y: yOffset
     },
     {
       opacity: 1,
-      filter: 'blur(0px)',
       y: 0,
       duration: 0.5,
       stagger: props.delay / 1000,

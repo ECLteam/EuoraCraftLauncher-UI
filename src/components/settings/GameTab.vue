@@ -109,7 +109,6 @@
               min="1024"
               :max="maxMemory"
               step="256"
-              @input="onMemoryChange"
               @change="saveConfig"
               class="slider-input"
             />
@@ -161,9 +160,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useGlassMessage } from '@/composables/useGlassMessage'
+import { useClickOutside } from '@/composables/useClickOutside'
 import UiIcon from '@/components/ui/Icon.vue'
 import backend from '@/api/client'
 
@@ -303,8 +303,6 @@ const loadGameConfig = async () => {
   }
 }
 
-const onMemoryChange = () => {}
-
 const saveConfig = async () => {
   try {
     const config = {
@@ -369,20 +367,11 @@ const browseJava = async () => {
   }
 }
 
-const handleClickOutside = (e: MouseEvent) => {
-  if (javaSelectRef.value && !javaSelectRef.value.contains(e.target as Node)) {
-    isJavaOpen.value = false
-  }
-}
+useClickOutside(javaSelectRef, () => { isJavaOpen.value = false })
 
 onMounted(() => {
   loadJavaList()
   loadGameConfig()
-  document.addEventListener('click', handleClickOutside)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
 })
 </script>
 

@@ -21,9 +21,10 @@
 }
 
 .account-card {
-  background-color: var(--bg-surface);
-  border-radius: var(--r-md);
-  border: 1px solid var(--border);
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
   overflow: hidden;
 }
 
@@ -35,9 +36,10 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-surface);
-  border-radius: var(--r-md);
-  border: 1px solid var(--border);
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
   overflow: hidden;
 }
 
@@ -55,20 +57,17 @@
 
 .info-card {
   position: relative;
-  background: var(--bg-surface);
-  border-radius: var(--r-md);
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
   padding: var(--s-lg);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
-  transition:
-    transform var(--duration-fast) var(--ease-standard),
-    box-shadow var(--duration-fast) var(--ease-standard);
+  transition: transform var(--duration-fast) var(--ease-standard);
   overflow: hidden;
 }
 
 .info-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-hover);
   border-color: var(--border-hover);
 }
 
@@ -82,7 +81,7 @@
 
 .version-item {
   padding: var(--s-sm) var(--s-md);
-  border-radius: var(--r-md);
+  border-radius: var(--r-sm);
   background: var(--bg-base);
   border: 1px solid var(--border);
   cursor: pointer;
@@ -97,7 +96,6 @@
 .version-item:hover {
   border-color: var(--border-hover);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
 }
 
 .version-item.active {
@@ -110,7 +108,7 @@
 .version-tag {
   font-size: 10px;
   padding: var(--s-xs) var(--s-sm);
-  border-radius: var(--r-sm);
+  border-radius: var(--r-xs);
   background: var(--bg-hover);
   color: var(--text-secondary);
   font-weight: 500;
@@ -125,7 +123,7 @@
   width: 100%;
   height: var(--row-h);
   border: none;
-  border-radius: var(--r-md);
+  border-radius: var(--r-sm);
   cursor: pointer;
   background: var(--primary);
   transition: all var(--duration-fast) var(--ease-standard);
@@ -137,7 +135,6 @@
 .launch-btn:hover {
   background: var(--primary-hover);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-hover);
 }
 
 .launch-btn:active {
@@ -150,7 +147,6 @@
   color: var(--text-disabled);
   cursor: not-allowed;
   transform: none;
-  box-shadow: none;
 }
 
 .launch-btn-content {
@@ -304,9 +300,10 @@
 
 .account-list-card {
   flex: 1;
-  background: var(--bg-surface);
-  border-radius: var(--r-md);
-  border: 1px solid var(--border);
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
   padding: var(--s-sm);
   overflow-y: auto;
 }
@@ -323,7 +320,7 @@
   gap: var(--s-sm);
   padding: var(--s-xs) var(--s-sm);
   background: var(--bg-base);
-  border-radius: var(--r-md);
+  border-radius: var(--r-sm);
   border: 1px solid var(--border);
   transition: all var(--duration-fast) var(--ease-standard);
 }
@@ -331,7 +328,6 @@
 .account-item:hover {
   border-color: var(--border-hover);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-xs);
 }
 
 .account-item.active {
@@ -394,7 +390,7 @@
 
 .type-badge {
   padding: var(--s-xs) var(--s-sm);
-  border-radius: var(--r-sm);
+  border-radius: var(--r-xs);
   font-weight: 500;
   font-size: 10px;
 }
@@ -439,9 +435,10 @@
 }
 
 .add-account-card {
-  background: var(--bg-surface);
-  border-radius: var(--r-md);
-  border: 1px solid var(--border);
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
   padding: var(--s-md);
 }
 
@@ -519,7 +516,7 @@
   word-break: break-all;
   padding: var(--s-sm) var(--s-md);
   background: var(--bg-base);
-  border-radius: var(--r-md);
+  border-radius: var(--r-sm);
   border: 1px solid var(--border);
   text-decoration: none;
   transition: all var(--duration-fast) var(--ease-standard);
@@ -528,7 +525,6 @@
 .login-link:hover {
   border-color: var(--border-hover);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
 }
 
 .user-code-box {
@@ -537,7 +533,7 @@
   gap: var(--s-md);
   padding: var(--s-sm) var(--s-md);
   background: var(--bg-base);
-  border-radius: var(--r-md);
+  border-radius: var(--r-sm);
   border: 1px solid var(--border);
 }
 

@@ -63,7 +63,7 @@ async function call<T = any>(method: string, ...args: any[]): Promise<ApiRespons
 
 // ── 事件侦听 ──────────────────────────────────────────────────────
 
-const _eventCleanups = new Map<string, Set<() => void>>()
+const _eventCleanups = new Map<string, Map<(payload: any) => void, () => void>>()
 
 function onEvent(event: string, cb: (payload: any) => void) {
   const tauri = getTauri()
@@ -72,27 +72,53 @@ function onEvent(event: string, cb: (payload: any) => void) {
     console.warn('[API] Tauri event.listen 不可用')
     return () => {}
   }
+
   let realUnlisten: (() => void) | null = null
-  eventApi.listen(event, (e: any) => cb(e.payload)).then((unlistenFn: () => void) => {
+  const pendingUnlisten: (() => void)[] = []
+
+  const listenPromise = eventApi.listen(event, (e: any) => cb(e.payload)).then((unlistenFn: () => void) => {
     realUnlisten = unlistenFn
+    // 若在此之前已有取消请求，立即执行
+    for (const fn of pendingUnlisten) {
+      try { fn() } catch {}
+    }
+    pendingUnlisten.length = 0
   })
+
   const wrappedUnlisten = () => {
-    if (realUnlisten) realUnlisten()
+    if (realUnlisten) {
+      realUnlisten()
+    } else {
+      // 尚未就绪，加入待取消队列
+      pendingUnlisten.push(() => {
+        if (realUnlisten) realUnlisten()
+      })
+    }
   }
+
   if (!_eventCleanups.has(event)) {
-    _eventCleanups.set(event, new Set())
+    _eventCleanups.set(event, new Map())
   }
-  _eventCleanups.get(event)!.add(wrappedUnlisten)
+  _eventCleanups.get(event)!.set(cb, wrappedUnlisten)
+
   return wrappedUnlisten
 }
 
-function offEvent(event: string) {
+function offEvent(event: string, cb?: (payload: any) => void) {
   const cleanups = _eventCleanups.get(event)
   if (!cleanups) return
-  for (const fn of cleanups) {
-    try { fn() } catch {}
+  if (cb) {
+    const unlisten = cleanups.get(cb)
+    if (unlisten) {
+      try { unlisten() } catch {}
+      cleanups.delete(cb)
+    }
+  } else {
+    for (const fn of cleanups.values()) {
+      try { fn() } catch {}
+    }
+    cleanups.clear()
   }
-  cleanups.clear()
 }
 
 // ── 文件路径转可访问 URL ──────────────────────────────────────────
@@ -127,8 +153,8 @@ interface CommandMap {
   // 游戏版本
   minecraft_versions: { filter_type?: string }
   fabric_versions: { game_version: string }
-  scan_versions: { path?: any }
-  install_version: { version_id: string; options?: any }
+  scan_versions: { path?: string | string[] }
+  install_version: { version_id: string; loader_type?: string; fabric_version?: string; game_path?: string }
   uninstall_version: { version_id: string; game_path?: string }
 
   // 账户
@@ -160,8 +186,23 @@ interface CommandMap {
 
   // 游戏实例
   instances_list: undefined
-  launch_instance: { version_id: string; options?: any }
+  launch_instance: { version_id: string; game_path?: string }
+  cancel_launch: undefined
   instance_stop: { instance_id: string }
+
+  // 插件
+  plugin_list: undefined
+  plugin_info: { plugin_name: string }
+  plugin_enable: { plugin_name: string }
+  plugin_disable: { plugin_name: string; force?: boolean }
+  plugin_unload: { plugin_name: string }
+  plugin_reload: { plugin_name: string; cascade?: boolean }
+  plugin_install: { plugin_path: string }
+  plugin_get_routes: { plugin_id?: string }
+  plugin_get_slots: Record<string, never>
+  plugin_call_command: { plugin_id: string; command: string; args?: Record<string, unknown> }
+  plugin_get_settings: { plugin_name: string }
+  plugin_update_setting: { plugin_name: string; key: string; value: unknown }
 
   // 启动器信息
   launcher_info: undefined
@@ -169,6 +210,7 @@ interface CommandMap {
   get_keyring_info: undefined
   clear_keyring: undefined
   list_sections: undefined
+  frontend_ready: undefined
 
   // 批量配置
   config_get_all: undefined
@@ -203,8 +245,8 @@ export const backend = {
   },
 
   /** 后端动作 — 类型安全 */
-  command<T = any>(name: keyof CommandMap, params?: CommandMap[keyof CommandMap]) {
-    return call<T>('exec_action', { name, params })
+  command<K extends keyof CommandMap>(name: K, params?: CommandMap[K]) {
+    return call('exec_action', { name, params })
   },
 
   /** 事件 — 后端主动推送 */
@@ -212,8 +254,8 @@ export const backend = {
     return onEvent(event, cb)
   },
 
-  off(event: string) {
-    offEvent(event)
+  off(event: string, cb?: (payload: any) => void) {
+    offEvent(event, cb)
   },
 
   /** 文件系统 */

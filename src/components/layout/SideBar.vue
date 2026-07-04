@@ -66,6 +66,23 @@
           </button>
         </div>
       </template>
+
+      <!-- 插件注册的导航项 -->
+      <template v-if="!isCollapsed">
+        <div v-for="pRoute in pluginRoutesList" :key="pRoute.path" class="sidebar-plugin-divider"></div>
+        <button
+          v-for="pRoute in pluginRoutesList"
+          :key="'btn-' + pRoute.path"
+          class="sidebar-item"
+          :class="{ active: route.path === `/plugin/${pRoute.plugin}${pRoute.path}` }"
+          @click.prevent="handleSubItemClick(`/plugin/${pRoute.plugin}${pRoute.path}`)"
+        >
+          <span class="sidebar-item-icon">
+            <UiIcon :name="pRoute.icon || 'plugin'" :size="16" />
+          </span>
+          <span class="sidebar-item-text">{{ pRoute.title }}</span>
+        </button>
+      </template>
     </nav>
 
     <!-- 底部 -->
@@ -108,6 +125,7 @@ import { useFullscreenModal } from '@/composables/useFullscreenModal'
 import { useTopNav } from '@/composables/useTopNav'
 import { useTheme } from '@/composables/useTheme'
 import UiIcon from '@/components/ui/Icon.vue'
+import { pluginRoutes } from '@/composables/usePluginBridge'
 import '@/styles/SideBar.css'
 
 defineOptions({ inheritAttrs: false })
@@ -118,6 +136,7 @@ const isCollapsed = computed({
   set: (val) => setSidebarCollapsed(val),
 })
 const isExpanded = ref(false)
+const pluginRoutesList = computed(() => pluginRoutes.value)
 const route = useRoute()
 const router = useRouter()
 const message = useGlassMessage()
@@ -136,7 +155,7 @@ const isDevMode = computed(() => injectedDevMode?.value ?? false)
 const menuItems = computed(() => [
   { path: '/', label: t('sidebar.game'), iconName: 'game' },
   { path: '/versions', label: t('sidebar.versions'), iconName: 'cube' },
-  { path: '/instances', label: t('sidebar.instances'), iconName: 'folder' },
+  { path: '/plugins', label: t('sidebar.plugins'), iconName: 'puzzle' },
   { path: '/settings', label: t('sidebar.settings'), iconName: 'settings' }
 ])
 
@@ -193,11 +212,6 @@ const handleItemClick = (item: { path: string }) => {
 
 const toggleCollapse = () => {
   isCollapsed.value = !isCollapsed.value
-}
-
-// 移动端展开
-const toggleSidebar = () => {
-  isExpanded.value = !isExpanded.value
 }
 
 watch(isExpanded, (val) => {

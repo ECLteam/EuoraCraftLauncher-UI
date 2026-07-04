@@ -3,7 +3,6 @@ import type { GlobalTheme, GlobalThemeOverrides } from 'naive-ui'
 import { darkTheme } from 'naive-ui'
 import backend from '@/api/client'
 
-
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
 }
@@ -20,7 +19,7 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
   hex = normalizeHex(hex)
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
   if (!result) throw new Error('Invalid hex color')
-  
+
   return {
     r: parseInt(result[1], 16),
     g: parseInt(result[2], 16),
@@ -35,12 +34,12 @@ function rgbToHex(r: number, g: number, b: number): string {
 function mix(color1: string, color2: string, weight: number = 0.5): string {
   const rgb1 = hexToRgb(color1)
   const rgb2 = hexToRgb(color2)
-  
+
   const w = clamp(weight, 0, 1)
   const r = Math.round(rgb1.r * (1 - w) + rgb2.r * w)
   const g = Math.round(rgb1.g * (1 - w) + rgb2.g * w)
   const b = Math.round(rgb1.b * (1 - w) + rgb2.b * w)
-  
+
   return rgbToHex(r, g, b)
 }
 
@@ -57,7 +56,7 @@ function createPrimaryScale(baseColor: string): {
   primaryRgb: string
 } {
   const rgb = hexToRgb(baseColor)
-  
+
   return {
     primary: baseColor,
     primaryHover: mix(baseColor, isDark.value ? '#ffffff' : '#000000', 0.15),
@@ -74,51 +73,49 @@ interface ThemeState {
   followSystem: boolean
 }
 
-
-
-// 预设主题色（SnowLuma 柔和色系）
+// 预设主题色（EuoraCraft 品牌色系）
 export const presetColors = [
-  { name: '天空蓝', value: '#7aa8f0' },
-  { name: '樱花粉', value: '#f0a8c8' },
-  { name: '薰衣草', value: '#b8a0e0' },
-  { name: '薄荷绿', value: '#7dd4b0' },
-  { name: '蜜桃橙', value: '#f0b080' },
-  { name: '云朵白', value: '#8a8a9a' },
+  { name: '品牌蓝', value: '#4A7FD9' },
+  { name: '天空蓝', value: '#5B9BD5' },
+  { name: '薄荷绿', value: '#52A37F' },
+  { name: '珊瑚橙', value: '#D4755B' },
+  { name: '薰衣草', value: '#8B7FD9' },
+  { name: '石墨灰', value: '#6A6D74' },
 ]
 
 const themeColors = {
   light: {
-    success: '#7dd4a0',
-    warning: '#f0d070',
-    error: '#f08080',
-    info: '#7aa8f0',
-    background: 'rgba(255, 255, 255, 0.55)',
-    backgroundHover: 'rgba(255, 255, 255, 0.70)',
-    surface: 'rgba(255, 255, 255, 0.55)',
-    text: '#2d2d3a',
-    textSecondary: '#8a8a9a',
+    success: '#52c41a',
+    warning: '#faad14',
+    error: '#E55C5C',
+    info: '#4A7FD9',
+    background: 'rgba(255, 255, 255, 0.92)',
+    backgroundHover: 'rgba(255, 255, 255, 0.96)',
+    surface: 'rgba(255, 255, 255, 0.92)',
+    text: '#1A1A1A',
+    textSecondary: '#5C5C5C',
     border: 'rgba(0, 0, 0, 0.06)',
-    shadow: 'rgba(100, 120, 180, 0.08)',
+    shadow: 'none',
   },
   dark: {
-    success: '#7dd4a0',
-    warning: '#f0d070',
-    error: '#f08080',
-    info: '#7aa8f0',
-    background: 'rgba(30, 30, 40, 0.55)',
-    backgroundHover: 'rgba(40, 40, 55, 0.70)',
-    surface: 'rgba(30, 30, 40, 0.55)',
-    text: '#ececf1',
-    textSecondary: '#8a8a9a',
-    border: 'rgba(255, 255, 255, 0.06)',
-    shadow: 'rgba(0, 0, 0, 0.35)',
+    success: '#52c41a',
+    warning: '#faad14',
+    error: '#E55C5C',
+    info: '#4A7FD9',
+    background: 'rgba(35, 38, 45, 0.92)',
+    backgroundHover: 'rgba(45, 48, 55, 0.96)',
+    surface: 'rgba(35, 38, 45, 0.92)',
+    text: '#E8E9EB',
+    textSecondary: '#A0A3A8',
+    border: 'rgba(255, 255, 255, 0.08)',
+    shadow: 'none',
   }
 } as const
 
 function createThemeOverrides(isDark: boolean, primary: string): GlobalThemeOverrides {
   const baseColors = isDark ? themeColors.dark : themeColors.light
   const primaryScale = createPrimaryScale(primary)
-  
+
   return {
     common: {
       primaryColor: primaryScale.primary,
@@ -198,14 +195,14 @@ function createThemeOverrides(isDark: boolean, primary: string): GlobalThemeOver
 let systemThemeListenerInitialized = false
 let initThemePromise: Promise<void> | null = null
 
-const themeMode = ref<ThemeMode>('system')  // 与后端默认一致
-const primaryColor = ref('#7aa8f0')  // 默认天空蓝（预设色板第一个）
+const themeMode = ref<ThemeMode>('system')
+const primaryColor = ref('#4A7FD9')  // 默认品牌蓝
 const backgroundImage = ref('')
 const backgroundImagePath = ref('')
-const backgroundOpacity = ref(0.2)  // 背景图透明度，默认 0.2（对应亮度 20%）
-const blurAmount = ref(6)  // 与后端默认一致
+const backgroundOpacity = ref(0.2)  // 默认 20% 亮度
+const blurAmount = ref(0)  // 禁用 backdrop-filter blur
 const sidebarCollapsed = ref(true)
-const titlebarHidden = ref(true)  // 默认侧边栏模式
+const titlebarHidden = ref(true)
 const isDark = ref(false)
 const systemDark = ref(false)
 
@@ -220,7 +217,7 @@ const themeOverrides = computed<GlobalThemeOverrides>(() => {
 const colors = computed(() => {
   const baseColors = isDark.value ? themeColors.dark : themeColors.light
   const primaryScale = createPrimaryScale(primaryColor.value)
-  
+
   return {
     ...baseColors,
     ...primaryScale
@@ -231,7 +228,7 @@ const colors = computed(() => {
 function initSystemThemeListener() {
   const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
   systemDark.value = mediaQuery.matches
-  
+
   mediaQuery.addEventListener('change', (e) => {
     systemDark.value = e.matches
     if (themeMode.value === 'system') {
@@ -246,9 +243,9 @@ function updateTheme() {
   } else {
     isDark.value = themeMode.value === 'dark'
   }
-  
+
   const primaryScale = createPrimaryScale(primaryColor.value)
-  
+
   document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
   document.documentElement.style.setProperty('--primary', primaryScale.primary)
   document.documentElement.style.setProperty('--primary-rgb', primaryScale.primaryRgb)
@@ -257,11 +254,10 @@ function updateTheme() {
   document.documentElement.style.setProperty('--primary-alpha', primaryScale.primaryLight)
   document.documentElement.style.setProperty('--bg-image', backgroundImage.value ? `url("${backgroundImage.value}")` : 'none')
   document.documentElement.style.setProperty('--bg-opacity', String(backgroundOpacity.value))
-  document.documentElement.style.setProperty('--bg-blur', `${blurAmount.value}px`)
+  document.documentElement.style.setProperty('--bg-blur', '0px')
 
   document.documentElement.setAttribute('data-sidebar-collapsed', sidebarCollapsed.value ? '1' : '0')
   document.documentElement.setAttribute('data-titlebar-hidden', titlebarHidden.value ? '1' : '0')
-
 }
 
 function setThemeMode(mode: ThemeMode) {
@@ -319,7 +315,7 @@ async function saveThemeConfig() {
           theme: {
             mode: themeMode.value,
             primary_color: primaryColor.value,
-            blur_amount: blurAmount.value,
+            blur_amount: 0,
             sidebar_collapsed: sidebarCollapsed.value,
             titlebar_hidden: titlebarHidden.value,
           },
@@ -342,7 +338,6 @@ function toggleTheme() {
 export async function initTheme(
   preloadedUi?: { success: boolean; data: any } | null
 ): Promise<void> {
-  // 如果已经在初始化中，则等待
   if (!preloadedUi && initThemePromise) {
     return initThemePromise
   }
@@ -353,21 +348,18 @@ export async function initTheme(
         const uiConfig = preloadedUi
           ? Promise.resolve(preloadedUi)
           : await backend.config.get('ui').catch(() => ({ success: false, data: null }))
-        
-        // 应用主题配置（从 ui.theme 读取）
+
         if (uiConfig.success && uiConfig.data) {
           const themeData = uiConfig.data.theme || {}
           themeMode.value = themeData.mode as ThemeMode || 'system'
-          primaryColor.value = themeData.primary_color || '#7aa8f0'
-          blurAmount.value = themeData.blur_amount ?? 6
+          primaryColor.value = themeData.primary_color || '#4A7FD9'
+          blurAmount.value = 0
           sidebarCollapsed.value = themeData.sidebar_collapsed ?? true
           titlebarHidden.value = themeData.titlebar_hidden ?? false
-          
-          // 应用背景图配置（从 ui.background 读取）
+
           const bgData = uiConfig.data.background || {}
           backgroundImagePath.value = bgData.path || ''
 
-          // 加载背景图片数据
           if (bgData.path && bgData.type !== 'default') {
             try {
               const imgData = await backend.command('image_read_file', { path: bgData.path })
@@ -380,12 +372,6 @@ export async function initTheme(
             }
           }
 
-          // 应用背景模糊设置（ui.background.blur 优先，否则用 ui.theme.blur_amount）
-          if (typeof bgData.blur === 'number') {
-            blurAmount.value = bgData.blur
-          }
-
-          // 应用背景透明度（ui.background.opacity）
           if (typeof bgData.opacity === 'number') {
             backgroundOpacity.value = bgData.opacity
           }
@@ -394,11 +380,11 @@ export async function initTheme(
     } catch (error) {
       console.error('初始化主题失败:', error)
       themeMode.value = 'system'
-      primaryColor.value = '#7aa8f0'
+      primaryColor.value = '#4A7FD9'
       backgroundImage.value = ''
-      blurAmount.value = 6
+      blurAmount.value = 0
     }
-    
+
     if (!systemThemeListenerInitialized) {
       initSystemThemeListener()
       systemThemeListenerInitialized = true
@@ -406,7 +392,6 @@ export async function initTheme(
     updateTheme()
   })()
 
-  // 只有在没有预加载配置时才缓存 Promise（表示首次本地初始化）
   if (!preloadedUi) {
     initThemePromise = promise
   }

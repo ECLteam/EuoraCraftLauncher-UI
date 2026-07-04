@@ -108,7 +108,6 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useGlassMessage } from '@/composables/useGlassMessage'
-import { useRouter } from 'vue-router'
 import UiButton from '@/components/ui/Button.vue'
 import UiInput from '@/components/ui/Input.vue'
 import UiCard from '@/components/ui/Card.vue'
@@ -116,13 +115,11 @@ import ContentModal from '@/components/modals/ContentModal.vue'
 
 const { t } = useI18n()
 const message = useGlassMessage()
-const router = useRouter()
 
 const showNormalModal = ref(false)
 const showFullscreenModal = ref(false)
 const showNestedModal = ref(false)
 const inputValue = ref('')
-const isDevMode = ref(false)
 
 const showMsg = (type: 'info' | 'success' | 'warning' | 'error') => {
   const messages: Record<string, string> = {

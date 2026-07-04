@@ -20,13 +20,6 @@ const FRONTEND_CONFIG_DEFAULTS: Record<string, Record<string, any>> = {
       sidebar_collapsed: true,
       titlebar_hidden: true,
     },
-    mouse_effect: {
-      enabled: false,
-      color: '45,175,255',
-      scale: 1.5,
-      opacity: 1.0,
-      speed: 1.0,
-    },
   },
 }
 
@@ -91,7 +84,6 @@ export function useAppInit() {
       const gameRes = { success: true, data: data.game ?? null }
       const downloadRes = { success: true, data: data.download ?? null }
       const uiRes = { success: true, data: data.ui ?? null }
-      const mouseEffectRes = { success: true, data: data.ui?.mouse_effect ?? null }
 
       if (launcherRes.success && launcherRes.data) {
         isDevMode.value = launcherRes.data.debug === true
@@ -119,22 +111,22 @@ export function useAppInit() {
 
       console.log('[AppInit] 所有配置加载完成')
 
-      return { uiRes, mouseEffectRes }
+      return { uiRes }
     } catch (error) {
       console.error('[AppInit] 配置加载失败:', error)
-      return { uiRes: { success: false, data: null }, mouseEffectRes: { success: false, data: null } }
+      return { uiRes: { success: false, data: null } }
     }
   }
 
   const init = async () => {
     if ((window as any).__TAURI__?.pytauri) {
-      const { uiRes, mouseEffectRes } = await loadAllConfigs()
+      const { uiRes } = await loadAllConfigs()
       await initTheme(uiRes)
-      return { uiRes, mouseEffectRes }
+      return { uiRes }
     } else {
       console.warn('[AppInit] PyTauri API 不可用，尝试使用本地配置')
       await initTheme()
-      return { uiRes: { success: false, data: null }, mouseEffectRes: { success: false, data: null } }
+      return { uiRes: { success: false, data: null } }
     }
   }
 

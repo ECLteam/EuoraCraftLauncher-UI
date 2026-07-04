@@ -1,6 +1,6 @@
 // 提供响应式缓存管理，方便Vue组件使用
 
-import { ref, watch, type Ref } from 'vue'
+import { ref, onScopeDispose, type Ref } from 'vue'
 import { globalCache, type CacheOptions, CACHE_KEYS, CACHE_GROUPS } from '@/cache'
 
 /**
@@ -89,19 +89,8 @@ export function useGlobalCache<T = any>(
     loadFromCache()
   }
 
-  // 监听缓存变化（用于多个组件共享同一缓存的情况）
-  watch(
-    () => globalCache.get<T>(key),
-    (newValue) => {
-      if (newValue !== null) {
-        data.value = newValue
-        isValid.value = true
-      } else {
-        data.value = defaultValue
-        isValid.value = false
-      }
-    }
-  )
+  // 注意：globalCache 基于 Map，非响应式，无法通过 watch 监听其变化。
+  // 跨组件缓存同步需依赖 setCache/deleteCache 方法手动更新 data ref。
 
   // 初始化加载
   loadFromCache()
@@ -170,6 +159,9 @@ export function useAutoRefreshCache<T = any>(
       autoRefreshTimer = null
     }
   }
+
+  // 组件作用域销毁时自动清理定时器
+  onScopeDispose(() => stopAutoRefresh())
 
   return {
     data: cache.data,

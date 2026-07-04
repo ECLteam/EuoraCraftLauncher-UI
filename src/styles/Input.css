@@ -5,8 +5,7 @@
   padding: var(--s-sm) var(--s-md);
   background: var(--bg-elevated);
   border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  box-shadow: var(--shadow-xs);
+  border-radius: var(--r-sm);
   transition: all var(--duration-fast) var(--ease-standard);
   width: 100%;
   position: relative;
@@ -15,21 +14,17 @@
 
 .ui-input-wrapper:hover:not(.is-disabled) {
   border-color: var(--border-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-hover);
 }
 
 .ui-input-wrapper.is-focused {
   border-color: var(--border-focus);
   box-shadow: var(--glow-focus);
-  transform: translateY(-1px);
 }
 
 .ui-input-wrapper.is-disabled {
   opacity: 0.5;
   cursor: not-allowed;
   background: var(--bg-hover);
-  box-shadow: none;
   transform: none;
 }
 

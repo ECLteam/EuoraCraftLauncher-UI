@@ -25,6 +25,7 @@ declare module 'vue' {
     Modal: typeof import('./src/components/ui/Modal.vue')['default']
     ModsTab: typeof import('./src/components/versions/ModsTab.vue')['default']
     MouseEffect: typeof import('./src/components/animation/MouseEffect.vue')['default']
+    PluginSettingsTab: typeof import('./src/components/settings/PluginSettingsTab.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Select: typeof import('./src/components/ui/Select.vue')['default']

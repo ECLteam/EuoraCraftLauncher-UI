@@ -4,11 +4,10 @@
   gap: 2px;
   padding: 3px;
   background: var(--bg-elevated);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-sm);
   position: relative;
   margin-bottom: 0;
   border: 1px solid var(--border);
-  box-shadow: var(--shadow-xs);
   width: fit-content;
 }
 
@@ -27,8 +26,7 @@
 .active-background {
   position: absolute;
   background: var(--primary-alpha);
-  border-radius: var(--r-md);
-  box-shadow: var(--shadow-xs);
+  border-radius: var(--r-sm);
   transition: all var(--duration-normal) var(--ease-standard);
   pointer-events: none;
   opacity: 0;

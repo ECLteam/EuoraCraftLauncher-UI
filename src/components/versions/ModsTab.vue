@@ -91,8 +91,6 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useGlassMessage } from '@/composables/useGlassMessage'
-import UiButton from '@/components/ui/Button.vue'
-import UiInput from '@/components/ui/Input.vue'
 
 interface Mod {
   id: string
@@ -279,9 +277,10 @@ onMounted(() => {
 /* 列表 */
 .mods-list {
   flex: 1;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
   overflow-y: auto;
   padding: var(--s-lg);
 }
@@ -379,17 +378,21 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-/* 开关：非iOS风格 */
+/* 开关：非iOS风格，32px宽20px高 */
 .toggle-switch {
   position: relative;
   width: 32px;
-  height: 18px;
-  border-radius: 9px;
+  height: 20px;
+  border-radius: 16px;
   border: none;
   background: #D0D0D0;
   cursor: pointer;
   padding: 0;
   transition: background 150ms ease-out;
+}
+
+[data-theme="dark"] .toggle-switch {
+  background: #4A4D55;
 }
 
 .toggle-switch.active {
@@ -400,16 +403,19 @@ onMounted(() => {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: #FFFFFF;
   transition: transform 150ms ease-out;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .toggle-switch:not(.active) .toggle-knob {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .toggle-switch.active .toggle-knob {
-  transform: translateX(14px);
+  transform: translateX(12px);
 }
 
 /* 悬停操作按钮 */

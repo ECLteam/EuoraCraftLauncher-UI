@@ -14,7 +14,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'mods', name: 'versions-mods', component: () => import('@/components/versions/ModsTab.vue') },
     ]
   },
-  { path: '/instances', name: 'instances', component: () => import('@/views/Instances.vue') },
+  { path: '/plugins', name: 'plugins', component: () => import('@/views/Plugins.vue') },
   {
     path: '/settings',
     component: () => import('@/views/Settings.vue'),
@@ -23,6 +23,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'general', name: 'settings-general', component: () => import('@/components/settings/GeneralTab.vue') },
       { path: 'download', name: 'settings-download', component: () => import('@/components/settings/DownloadTab.vue') },
       { path: 'game', name: 'settings-game', component: () => import('@/components/settings/GameTab.vue') },
+      { path: 'plugins', name: 'settings-plugins', component: () => import('@/components/settings/PluginSettingsTab.vue') },
       { path: 'about', name: 'settings-about', component: () => import('@/components/settings/AboutTab.vue') },
     ]
   },

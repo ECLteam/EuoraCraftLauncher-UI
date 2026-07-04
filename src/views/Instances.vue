@@ -255,9 +255,7 @@ async function launchInstance(instance: Instance) {
   try {
     const result = await backend.command('launch_instance', {
       version_id: instance.version || instance.id,
-      options: {
-        game_path: instance.gamePath
-      }
+      game_path: instance.gamePath
     })
     if (!result.success) {
       message.error(result.message || t('instances.launchFailed'))
@@ -529,9 +527,10 @@ onUnmounted(() => {
 }
 
 .instance-card {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
   overflow: hidden;
   cursor: pointer;
   transition: all 150ms ease-out;
@@ -671,10 +670,9 @@ onUnmounted(() => {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   border-bottom: 1px solid var(--divider);
-  background: var(--bg-elevated);
-  border-radius: var(--r-md) var(--r-md) 0 0;
-  border: 1px solid var(--border);
-  border-bottom-color: var(--divider);
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
 }
 
 .list-row {
@@ -682,9 +680,7 @@ onUnmounted(() => {
   align-items: center;
   padding: 0 16px;
   height: 56px;
-  background: var(--bg-elevated);
-  border-left: 1px solid var(--border);
-  border-right: 1px solid var(--border);
+  background: var(--card-bg);
   border-bottom: 1px solid var(--divider);
   cursor: pointer;
   transition: background 150ms ease-out;
@@ -695,8 +691,8 @@ onUnmounted(() => {
 }
 
 .list-row:last-child {
-  border-radius: 0 0 var(--r-md) var(--r-md);
-  border-bottom: 1px solid var(--border);
+  border-radius: 0 0 var(--r-sm) var(--r-sm);
+  border-bottom: var(--card-border-bottom);
 }
 
 .list-row.running {

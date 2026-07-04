@@ -114,7 +114,7 @@ onMounted(loadKeyringInfo)
   width: 72px;
   height: 72px;
   margin: 0 auto 16px;
-  border-radius: var(--r-md);
+  border-radius: var(--r-sm);
   background: var(--primary);
   color: var(--text-on-primary);
   font-size: 28px;
@@ -127,13 +127,13 @@ onMounted(loadKeyringInfo)
 
 .about-title-text {
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 4px;
 }
 
 .about-version {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-tertiary);
   margin: 0 0 12px;
   font-family: var(--font-mono);
@@ -153,18 +153,25 @@ onMounted(loadKeyringInfo)
   margin-bottom: 24px;
 }
 
+/* GitHub 按钮：幽灵样式圆角 6px */
 .link-item {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
   border-radius: var(--r-sm);
-  border: 1px solid var(--border);
+  border: 1px solid #E0E0E0;
+  background: #FFFFFF;
   color: var(--text-secondary);
   font-size: 13px;
   text-decoration: none;
   cursor: pointer;
   transition: all 150ms ease-out;
+}
+
+[data-theme="dark"] .link-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .link-item:hover {
@@ -200,14 +207,19 @@ onMounted(loadKeyringInfo)
   gap: 6px;
 }
 
+/* TECH STACK 标签：小圆角 4px */
 .tech-tag {
   padding: 3px 10px;
   border-radius: var(--r-xs);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
+  background: #F0F1F3;
   font-size: 11px;
-  color: var(--text-secondary);
+  color: #5C5C5C;
   font-weight: 500;
+}
+
+[data-theme="dark"] .tech-tag {
+  background: rgba(255, 255, 255, 0.08);
+  color: #A0A3A8;
 }
 
 /* 密钥环管理 */

@@ -5,7 +5,7 @@
   min-width: var(--sidebar-w-expanded);
   height: 100%;
   background: var(--glass-bg-sidebar);
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--glass-border);
   transition: width 150ms ease-out,
               min-width 150ms ease-out;
   overflow: hidden;
@@ -53,7 +53,7 @@
 }
 
 .sidebar-toggle:hover {
-  background: var(--bg-hover);
+  background: var(--glass-item-hover);
   color: var(--text-primary);
 }
 
@@ -98,7 +98,7 @@
   left: 8px;
   right: 8px;
   border-radius: var(--r-sm);
-  background: var(--primary-alpha);
+  background: var(--glass-item-active-bg);
   transition: top 150ms ease-out,
               height 150ms ease-out,
               opacity 150ms ease-out;
@@ -141,7 +141,7 @@
 
 .sidebar-item:hover {
   color: var(--text-primary);
-  background: var(--bg-hover);
+  background: var(--glass-item-hover);
 }
 
 .sidebar-item:active {
@@ -150,18 +150,18 @@
 }
 
 .sidebar-item.active {
-  color: var(--primary);
+  color: var(--text-primary);
   font-weight: 600;
   background: transparent;
 }
 
 .sidebar.collapsed .sidebar-item.active {
-  background: var(--primary-alpha);
+  background: var(--glass-item-active-bg);
   color: var(--primary);
 }
 
 .sidebar-item.active:hover {
-  color: var(--primary-hover);
+  color: var(--text-primary);
 }
 
 /* ========== 子菜单项 ========== */
@@ -184,7 +184,7 @@
 
 .sidebar-item-chevron:hover {
   opacity: 1 !important;
-  background: var(--bg-hover);
+  background: var(--glass-item-hover);
 }
 
 .sidebar-item-chevron.expanded {
@@ -228,9 +228,9 @@
 }
 
 .sidebar-sub-item.active {
-  color: var(--primary);
+  color: var(--text-primary);
   font-weight: 500;
-  background: var(--primary-alpha);
+  background: var(--glass-item-active-bg);
 }
 
 .sidebar-sub-item.active .sidebar-item-icon {
@@ -273,7 +273,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  border-top: 1px solid var(--divider);
+  border-top: 1px solid var(--glass-divider);
   margin-top: auto;
   flex-shrink: 0;
 }
@@ -309,7 +309,7 @@
     transition: transform 150ms ease-out;
     width: var(--sidebar-w-expanded);
     min-width: var(--sidebar-w-expanded);
-    border-right: 1px solid var(--border);
+    border-right: 1px solid var(--glass-border);
   }
 
   .sidebar.expanded {
@@ -320,4 +320,12 @@
     opacity: 1;
     pointer-events: auto;
   }
+}
+
+/* ========== 插件导航项 ========== */
+
+.sidebar-plugin-divider {
+  height: 1px;
+  background: var(--divider);
+  margin: 6px 16px;
 }

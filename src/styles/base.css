@@ -7,8 +7,8 @@
 }
 
 /* ================================================================
-   SnowLuma Design System v2.0
-   完整设计令牌系统
+   EuoraCraft Design System
+   非模糊亚克力质感、小圆角、利落专业
    ================================================================ */
 
 :root {
@@ -20,13 +20,14 @@
   --font-mono: "JetBrains Mono", "SF Mono", "Fira Mono", "Droid Sans Mono", monospace;
 
   /* ================================================================
-     品牌色：EuoraCraft 设计系统
+     品牌色
      ================================================================ */
   --primary: #4A7FD9;
   --primary-hover: #3D6EC2;
   --primary-active: #3560A8;
   --primary-alpha: #EBF1FA;
   --primary-alpha-strong: rgba(74, 127, 217, 0.20);
+  --primary-alpha-dark: rgba(74, 127, 217, 0.15);
 
   --accent: #4A7FD9;
   --accent-hover: #3D6EC2;
@@ -44,21 +45,21 @@
   --info-alpha: rgba(74, 127, 217, 0.12);
 
   /* ================================================================
-     背景层
+     背景层（浅色模式）
      ================================================================ */
   --bg-base: #F0F1F3;
   --bg-base-alt: #E8E9EB;
   --bg-elevated: #FFFFFF;
-  --bg-surface: rgba(255, 255, 255, 0.95);
+  --bg-surface: rgba(255, 255, 255, 0.92);
   --bg-surface-solid: #FFFFFF;
-  --bg-hover: #E8E9EB;
+  --bg-hover: #F0F1F3;
   --bg-hover-strong: rgba(74, 127, 217, 0.06);
   --bg-active: rgba(74, 127, 217, 0.08);
   --bg-overlay: rgba(0, 0, 0, 0.25);
   --bg-overlay-strong: rgba(0, 0, 0, 0.40);
 
   /* ================================================================
-     文字系统
+     文字系统（浅色模式）
      ================================================================ */
   --text-primary: #1A1A1A;
   --text-secondary: #5C5C5C;
@@ -78,7 +79,16 @@
   --divider: #E0E0E0;
 
   /* ================================================================
-     阴影系统：不使用阴影，仅保留最小值
+     卡片材质（浅色模式）
+     - 非模糊亚克力：用纯色透明度模拟
+     ================================================================ */
+  --card-bg: rgba(255, 255, 255, 0.92);
+  --card-border-top: 1px solid rgba(255, 255, 255, 0.6);
+  --card-border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  --card-shadow: none;
+
+  /* ================================================================
+     阴影系统：最小化，不使用阴影表达层次
      ================================================================ */
   --shadow-xs: none;
   --shadow-sm: none;
@@ -86,16 +96,15 @@
   --shadow-lg: none;
   --shadow-xl: none;
   --shadow-hover: none;
-  --shadow-hover-pink: none;
 
   /* ================================================================
-     圆角系统
+     圆角系统：统一 6px，标签/徽章 4px，禁止超过 6px
      ================================================================ */
   --r-xs: 4px;
   --r-sm: 6px;
-  --r-md: 8px;
-  --r-lg: 8px;
-  --r-xl: 8px;
+  --r-md: 6px;
+  --r-lg: 6px;
+  --r-xl: 6px;
   --r-full: 9999px;
 
   /* 兼容别名 */
@@ -143,15 +152,6 @@
   --transition-spring: all var(--duration-normal) var(--ease-spring);
 
   /* ================================================================
-     毛玻璃系统
-     ================================================================ */
-  --blur-xs: 2px;
-  --blur-sm: 4px;
-  --blur-md: 8px;
-  --blur-lg: 12px;
-  --blur-xl: 20px;
-
-  /* ================================================================
      发光系统
      ================================================================ */
   --glow-focus: 0 0 0 2px rgba(74, 127, 217, 0.25);
@@ -161,45 +161,52 @@
   /* ================================================================
      表面态
      ================================================================ */
-  --glass-bg: rgba(255, 255, 255, 0.95);
+  --glass-bg: rgba(255, 255, 255, 0.92);
   --glass-bg-sidebar: #FFFFFF;
   --glass-border: #E0E0E0;
   --glass-divider: #E0E0E0;
-  --glass-item-hover: #E8E9EB;
-  --glass-item-active-bg: #EBF1FA;
-  --glass-item-collapsed-active: #EBF1FA;
-  --backdrop-blur: none;
-  --backdrop-blur-sidebar: none;
+  --glass-item-hover: #F0F1F3;
+  --glass-item-active-bg: rgba(74, 127, 217, 0.08);
+  --glass-item-collapsed-active: rgba(74, 127, 217, 0.08);
   --window-btn-hover: rgba(0, 0, 0, 0.05);
   --window-btn-border: #E0E0E0;
   --close-btn-hover: rgba(229, 92, 92, 0.10);
   --close-btn-border: rgba(229, 92, 92, 0.20);
   --overlay-bg: rgba(0, 0, 0, 0.25);
   --bg-overlay-tint: rgba(240, 241, 243, 0.15);
+
+  /* ================================================================
+     背景图相关（无 backdrop-filter blur）
+     ================================================================ */
+  --bg-image: none;
+  --bg-opacity: 0.2;
+  --bg-blur: 0px;
 }
 
 /* ================================================================
    暗色模式
    ================================================================ */
 [data-theme="dark"] {
-  --bg-base: #1A1A1F;
-  --bg-base-alt: #222228;
-  --bg-elevated: #282830;
-  --bg-surface: rgba(40, 40, 48, 0.95);
-  --bg-surface-solid: #282830;
+  --bg-base: #1A1C23;
+  --bg-base-alt: #21242B;
+  --bg-elevated: #21242B;
+  --bg-surface: rgba(35, 38, 45, 0.92);
+  --bg-surface-solid: #21242B;
   --bg-hover: rgba(255, 255, 255, 0.06);
   --bg-hover-strong: rgba(74, 127, 217, 0.12);
   --bg-active: rgba(74, 127, 217, 0.15);
   --bg-overlay: rgba(0, 0, 0, 0.50);
   --bg-overlay-strong: rgba(0, 0, 0, 0.65);
 
-  --text-primary: #ECECF1;
-  --text-secondary: #9A9AAE;
-  --text-tertiary: #6E6E82;
+  /* 深色文字系统 */
+  --text-primary: #E8E9EB;
+  --text-secondary: #A0A3A8;
+  --text-tertiary: #6A6D74;
   --text-disabled: #525266;
   --text-on-primary: #FFFFFF;
-  --text-link: #6E9DE5;
+  --text-link: #6B9EFF;
 
+  /* 深色边框系统 */
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.12);
   --border-hover: rgba(74, 127, 217, 0.35);
@@ -207,26 +214,23 @@
   --border-focus: rgba(74, 127, 217, 0.55);
   --divider: rgba(255, 255, 255, 0.08);
 
-  --shadow-xs: none;
-  --shadow-sm: none;
-  --shadow-md: none;
-  --shadow-lg: none;
-  --shadow-xl: none;
-  --shadow-hover: none;
-  --shadow-hover-pink: none;
+  /* 深色卡片材质 */
+  --card-bg: rgba(35, 38, 45, 0.92);
+  --card-border-top: 1px solid rgba(255, 255, 255, 0.08);
+  --card-border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 
   --glow-focus: 0 0 0 2px rgba(74, 127, 217, 0.35);
   --glow-focus-pink: 0 0 0 2px rgba(74, 127, 217, 0.35);
   --glow-focus-error: 0 0 0 2px rgba(229, 92, 92, 0.35);
 
-  /* 表面态：dark */
-  --glass-bg: rgba(40, 40, 48, 0.95);
-  --glass-bg-sidebar: #1E1E26;
+  /* 深色表面态 */
+  --glass-bg: rgba(35, 38, 45, 0.92);
+  --glass-bg-sidebar: #21242B;
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-divider: rgba(255, 255, 255, 0.08);
-  --glass-item-hover: rgba(255, 255, 255, 0.06);
-  --glass-item-active-bg: rgba(74, 127, 217, 0.15);
-  --glass-item-collapsed-active: rgba(74, 127, 217, 0.18);
+  --glass-item-hover: rgba(255, 255, 255, 0.1);
+  --glass-item-active-bg: rgba(74, 127, 217, 0.12);
+  --glass-item-collapsed-active: rgba(74, 127, 217, 0.12);
   --close-btn-hover: rgba(229, 92, 92, 0.18);
   --close-btn-border: rgba(229, 92, 92, 0.30);
   --window-btn-hover: rgba(255, 255, 255, 0.05);
@@ -302,15 +306,15 @@ p { margin-bottom: var(--s-md); line-height: 1.6; }
    ================================================================ */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(122, 168, 240, 0.15); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(122, 168, 240, 0.28); }
+::-webkit-scrollbar-thumb { background: rgba(74, 127, 217, 0.15); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(74, 127, 217, 0.28); }
 ::-webkit-scrollbar-corner { background: transparent; }
 
 /* ================================================================
    选中态
    ================================================================ */
 ::selection {
-  background: rgba(122, 168, 240, 0.18);
+  background: rgba(74, 127, 217, 0.18);
   color: var(--text-primary);
 }
 
@@ -338,22 +342,21 @@ img {
 }
 
 /* ================================================================
-   工具类
+   工具类：卡片材质（非模糊亚克力）
    ================================================================ */
 .glass {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
   border-radius: var(--r-sm);
 }
 
 .card {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
   transition: var(--transition-fast);
-}
-.card:hover {
-  border-color: var(--border-hover);
 }
 
 /* ================================================================
@@ -364,8 +367,8 @@ img {
   50% { opacity: 0.5; }
 }
 .skeleton {
-  background: rgba(122, 168, 240, 0.08);
-  border-radius: var(--r-md);
+  background: rgba(74, 127, 217, 0.08);
+  border-radius: var(--r-sm);
   animation: skeleton-pulse 1.8s ease-in-out infinite;
 }
 

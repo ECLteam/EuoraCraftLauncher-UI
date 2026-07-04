@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from 'vue'
+import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 
 interface Props {
   enabled: boolean
@@ -107,6 +107,13 @@ onMounted(() => {
   if (props.enabled) {
     setTimeout(updateEffect, 100)
     cleanup = setupEventForwarding()
+  }
+})
+
+onUnmounted(() => {
+  if (cleanup) {
+    cleanup()
+    cleanup = null
   }
 })
 </script>

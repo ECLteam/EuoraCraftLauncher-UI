@@ -60,9 +60,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useGlassMessage } from '@/composables/useGlassMessage'
+import { useClickOutside } from '@/composables/useClickOutside'
 import UiIcon from '@/components/ui/Icon.vue'
 import backend from '@/api/client'
 
@@ -128,19 +129,7 @@ const handleThreadsChange = async (e: Event) => {
   }
 }
 
-const handleClickOutside = (e: MouseEvent) => {
-  if (selectRef.value && !selectRef.value.contains(e.target as Node)) {
-    isOpen.value = false
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
+useClickOutside(selectRef, () => { isOpen.value = false })
 </script>
 
 <style scoped>

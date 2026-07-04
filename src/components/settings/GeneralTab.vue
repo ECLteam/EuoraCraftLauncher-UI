@@ -177,9 +177,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onUnmounted, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useGlassMessage } from '@/composables/useGlassMessage'
+import { useClickOutside } from '@/composables/useClickOutside'
 import { supportedLocales, setLocale, type LocaleCode } from '@/i18n'
 import { useTheme, type ThemeMode, presetColors } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
@@ -371,18 +372,13 @@ const handleLanguageChange = async (langCode: LocaleCode) => {
   }
 }
 
-const handleClickOutside = (e: MouseEvent) => {
-  if (langSelectRef.value && !langSelectRef.value.contains(e.target as Node)) {
-    isLangOpen.value = false
-  }
-}
+useClickOutside(langSelectRef, () => { isLangOpen.value = false })
 
 onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
+  // 鼠标特效配置已迁移到插件系统
 })
 
 onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
   if (bgTimer) clearTimeout(bgTimer)
 })
 </script>
@@ -451,15 +447,17 @@ onUnmounted(() => {
 /* 主题选择 */
 .theme-options {
   display: flex;
-  gap: var(--s-sm);
+  gap: var(--s-md);
 }
 
+/* 主题选择：60px × 36px 圆角 4px */
 .theme-option {
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  padding: 10px 16px;
+  width: 60px;
+  height: 36px;
   border-radius: var(--r-xs);
   border: 1px solid var(--border);
   background: transparent;
@@ -467,7 +465,6 @@ onUnmounted(() => {
   cursor: pointer;
   transition: all 150ms ease-out;
   position: relative;
-  min-width: 64px;
 }
 
 .theme-option:hover {
@@ -475,10 +472,16 @@ onUnmounted(() => {
   color: var(--text-primary);
 }
 
+/* 浅色选中：边框 + 勾选图标 */
 .theme-option.active {
   border-color: var(--primary);
   color: var(--primary);
-  background: var(--primary-alpha);
+  background: transparent;
+}
+
+/* 深色选中：边框 rgba(255,255,255,0.3) */
+[data-theme="dark"] .theme-option.active {
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .theme-option-label {
@@ -490,8 +493,8 @@ onUnmounted(() => {
   position: absolute;
   top: -6px;
   right: -6px;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: var(--primary);
   color: var(--text-on-primary);
@@ -500,11 +503,11 @@ onUnmounted(() => {
   justify-content: center;
 }
 
-/* 主题色圆点 */
+/* 主题色圆点：20px，间距 12px */
 .color-presets {
   display: flex;
   align-items: center;
-  gap: var(--s-sm);
+  gap: 12px;
 }
 
 .color-dot {
@@ -549,7 +552,7 @@ onUnmounted(() => {
   border-radius: 50%;
   border: 1px dashed var(--border-strong);
   color: var(--text-tertiary);
-  font-size: 14px;
+  font-size: 12px;
   cursor: pointer;
   transition: all 150ms ease-out;
 }
@@ -616,10 +619,19 @@ onUnmounted(() => {
   height: 4px;
   -webkit-appearance: none;
   appearance: none;
-  background: var(--bg-base-alt);
   border-radius: 2px;
   outline: none;
   cursor: pointer;
+}
+
+/* 浅色：轨道 #E0E0E0 */
+.slider-input {
+  background: #E0E0E0;
+}
+
+/* 深色：轨道 #4A4D55 */
+[data-theme="dark"] .slider-input {
+  background: #4A4D55;
 }
 
 .slider-input::-webkit-slider-thumb {
@@ -631,6 +643,11 @@ onUnmounted(() => {
   border: 2px solid var(--bg-elevated);
   cursor: pointer;
   transition: transform 150ms ease-out;
+}
+
+/* 深色：滑块 #6B9EFF */
+[data-theme="dark"] .slider-input::-webkit-slider-thumb {
+  background: #6B9EFF;
 }
 
 .slider-input::-webkit-slider-thumb:hover {
@@ -645,17 +662,23 @@ onUnmounted(() => {
   text-align: right;
 }
 
-/* 开关 */
+/* 开关：非 iOS 风格，32px 宽 20px 高 */
 .toggle-switch {
   width: 32px;
-  height: 18px;
-  border-radius: 9px;
+  height: 20px;
+  border-radius: 16px;
   border: none;
-  background: var(--bg-base-alt);
+  background: #D0D0D0;
   cursor: pointer;
   position: relative;
   transition: background 150ms ease-out;
   padding: 0;
+  flex-shrink: 0;
+}
+
+/* 深色模式关闭态 */
+[data-theme="dark"] .toggle-switch {
+  background: #4A4D55;
 }
 
 .toggle-switch.active {
@@ -666,16 +689,20 @@ onUnmounted(() => {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: #fff;
+  background: #FFFFFF;
   transition: transform 150ms ease-out;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* 深色模式关闭态圆球 */
+[data-theme="dark"] .toggle-switch:not(.active) .toggle-knob {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .toggle-switch.active .toggle-knob {
-  transform: translateX(14px);
+  transform: translateX(12px);
 }
 
 /* 下拉选择 */

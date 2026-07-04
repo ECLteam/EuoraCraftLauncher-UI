@@ -13,6 +13,9 @@ export interface VersionItem {
 const globalVersions = ref<VersionItem[]>([])
 const globalSelectedVersion = ref<string>('')
 
+// 模块级共享当前游戏路径，确保各组件实例间同步
+const currentGamePath = ref('')
+
 export function useVersionManager(t: (key: string, ...args: any[]) => string) {
   const message = useGlassMessage()
   const router = useRouter()
@@ -24,9 +27,6 @@ export function useVersionManager(t: (key: string, ...args: any[]) => string) {
   const launching = ref(false)
   const statusMsg = ref<string>('')
   const statusType = ref<'info' | 'success' | 'error'>('info')
-
-  // 存储当前游戏路径，用于启动
-  let currentGamePath = ''
 
   async function loadVersions(gamePath?: string) {
     loading.value = true
@@ -53,7 +53,7 @@ export function useVersionManager(t: (key: string, ...args: any[]) => string) {
 
         // 记录第一个游戏路径
         if (stringPaths.length > 0) {
-          currentGamePath = stringPaths[0]
+          currentGamePath.value = stringPaths[0]
         }
 
         showStatus(t('game.status.foundVersions', { count: versions.value.length }), 'success')
@@ -72,7 +72,7 @@ export function useVersionManager(t: (key: string, ...args: any[]) => string) {
   }
 
   function setGamePath(path: string) {
-    currentGamePath = path
+    currentGamePath.value = path
   }
 
   async function launchGame(currentAccount: { id: string } | null) {
@@ -87,7 +87,7 @@ export function useVersionManager(t: (key: string, ...args: any[]) => string) {
       return
     }
 
-    if (!currentGamePath) {
+    if (!currentGamePath.value) {
       showStatus('未找到游戏路径', 'error')
       message.error('未找到游戏路径')
       return
@@ -125,8 +125,16 @@ export function useVersionManager(t: (key: string, ...args: any[]) => string) {
         setLaunchProgress(Math.max(15, pct), 'downloading_assets', msg)
       } else if (phase === 'checking') {
         setLaunchProgress(-1, 'checking_files', msg)
+      } else if (phase === 'files_checked') {
+        setLaunchProgress(50, 'files_checked', msg)
       } else if (phase === 'building_args') {
         setLaunchProgress(typeof pct === 'number' ? pct : 90, 'building_params', msg)
+      } else if (phase === 'args_built') {
+        setLaunchProgress(75, 'args_built', msg)
+      } else if (phase === 'natives_done') {
+        setLaunchProgress(85, 'natives_done', msg)
+      } else if (phase === 'about_to_launch') {
+        setLaunchProgress(92, 'about_to_launch', msg)
       } else if (phase === 'launching') {
         setLaunchProgress(typeof pct === 'number' ? pct : 95, 'launching', msg)
       } else {
@@ -139,7 +147,7 @@ export function useVersionManager(t: (key: string, ...args: any[]) => string) {
 
       const launchResult = await backend.command('launch_instance', {
         version_id: selectedVersion.value,
-        game_path: currentGamePath,
+        game_path: currentGamePath.value,
       })
 
       if (!launchResult.success) {

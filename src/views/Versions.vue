@@ -1,5 +1,28 @@
 <template>
-  <div class="versions-container">
+  <div class="versions-page">
+    <!-- 左侧导航 - 固定200px -->
+    <div class="versions-nav">
+      <div class="nav-header">
+        <h2 class="nav-title">
+          <UiIcon name="cube" :size="18" />
+          {{ t('sidebar.versions') }}
+        </h2>
+      </div>
+      <div class="nav-list">
+        <router-link
+          v-for="item in navItems"
+          :key="item.path"
+          :to="item.path"
+          :class="['nav-item', { active: isActive(item.path) }]"
+        >
+          <span class="nav-indicator"></span>
+          <UiIcon :name="item.icon" :size="18" class="nav-icon" />
+          <span class="nav-label">{{ item.label }}</span>
+        </router-link>
+      </div>
+    </div>
+
+    <!-- 右侧内容区 -->
     <div class="versions-content" ref="contentRef">
       <router-view v-slot="{ Component }">
         <Transition name="page" mode="out-in">
@@ -11,9 +34,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import UiIcon from '@/components/ui/Icon.vue'
 import '@/styles/Versions.css'
 import gsap from 'gsap'
+
+const { t } = useI18n()
+const route = useRoute()
+
+const navItems = computed(() => [
+  { path: '/versions/manage', icon: 'settings', label: t('versions.manageTab') },
+  { path: '/versions/versions', icon: 'cube', label: t('versions.versions') },
+  { path: '/versions/mods', icon: 'cube', label: t('versions.modsTab') },
+])
+
+const isActive = (path: string) => route.path === path
 
 const contentRef = ref<HTMLElement | null>(null)
 
@@ -21,8 +58,8 @@ const contentRef = ref<HTMLElement | null>(null)
 const playEnterAnimation = () => {
   if (contentRef.value) {
     gsap.fromTo(contentRef.value,
-      { opacity: 0, y: 20, scale: 0.98, filter: 'blur(10px)' },
-      { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 0.6, ease: 'power3.out' }
+      { opacity: 0, y: 20, scale: 0.98 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: 'power3.out' }
     )
   }
 }

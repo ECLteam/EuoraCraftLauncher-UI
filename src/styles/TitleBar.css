@@ -4,8 +4,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 8px;
-  background: var(--bg-elevated);
-  border-bottom: 1px solid var(--border);
+  background: var(--glass-bg-sidebar);
+  border-bottom: 1px solid var(--glass-border);
   -webkit-app-region: drag;
   user-select: none;
   -webkit-user-select: none;
@@ -62,9 +62,9 @@
 }
 
 .titlebar-back-btn:hover {
-  background: var(--bg-hover);
+  background: var(--glass-item-hover);
   color: var(--text-primary);
-  border-color: var(--border);
+  border-color: var(--glass-border);
 }
 
 .titlebar-back-btn:active {
@@ -165,7 +165,7 @@
 }
 
 .titlebar-btn:hover {
-  background: var(--bg-hover);
+  background: var(--glass-item-hover);
   color: var(--text-primary);
 }
 

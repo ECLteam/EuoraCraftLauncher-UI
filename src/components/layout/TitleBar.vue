@@ -93,7 +93,7 @@ const fullscreenModalTitle = computed(() => fullscreenModal.title.value)
 const menuItems = computed(() => [
   { path: '/', label: t('sidebar.game'), iconName: 'game' },
   { path: '/versions', label: t('sidebar.versions'), iconName: 'cube' },
-  { path: '/instances', label: t('sidebar.instances'), iconName: 'folder' },
+  { path: '/plugins', label: t('sidebar.plugins'), iconName: 'puzzle' },
   { path: '/settings', label: t('sidebar.settings'), iconName: 'settings' }
 ])
 

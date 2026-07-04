@@ -43,7 +43,7 @@ import backend from '@/api/client'
 
 const route = useRoute()
 const { t } = useI18n()
-const { themeMode, primaryColor, blurAmount, backgroundImagePath, updateTheme } = useTheme()
+const { themeMode, primaryColor, blurAmount, backgroundImagePath } = useTheme()
 
 const injectedGameConfig = inject<Readonly<Ref<any>>>('gameConfig', null as any)
 const injectedDownloadConfig = inject<Readonly<Ref<any>>>('downloadConfig', null as any)
@@ -52,6 +52,7 @@ const navItems = computed(() => [
   { path: '/settings/general', icon: 'brush', label: t('settings.general') },
   { path: '/settings/download', icon: 'download', label: t('settings.download') },
   { path: '/settings/game', icon: 'game', label: t('settings.gameSettings') },
+  { path: '/settings/plugins', icon: 'plugin', label: t('settings.pluginSettings') },
   { path: '/settings/about', icon: 'info', label: t('settings.about') },
 ])
 
@@ -86,19 +87,22 @@ const handleUpdateSettings = (updates: any) => {
 </script>
 
 <style scoped>
+:root { --settings-nav-w: 200px; }
+
 .settings-page {
   display: flex;
   height: 100%;
   gap: 0;
 }
 
-/* 左侧导航 */
+/* 左侧导航 200px */
 .settings-nav {
   width: 200px;
   min-width: 200px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -109,8 +113,7 @@ const handleUpdateSettings = (updates: any) => {
   display: flex;
   align-items: center;
   padding: 0 16px;
-  height: 48px;
-  border-bottom: 1px solid var(--divider);
+  height: 40px;
   flex-shrink: 0;
 }
 
@@ -142,27 +145,42 @@ const handleUpdateSettings = (updates: any) => {
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
+  border-radius: var(--r-sm);
+  margin: 0 8px;
+  transition: color 150ms ease-out, background 150ms ease-out;
 }
 
 .nav-item:hover {
-  background: var(--bg-hover);
   color: var(--text-primary);
+  background: var(--bg-hover);
 }
 
+/* 浅色：选中态品牌色文字 + 左 3px 色条 */
 .nav-item.active {
   color: var(--primary);
-  background: var(--primary-alpha);
+  background: transparent;
+  font-weight: 600;
+}
+
+/* 深色：选中态 #6B9EFF（品牌色提亮） */
+[data-theme="dark"] .nav-item.active {
+  color: #6B9EFF;
 }
 
 .nav-indicator {
   position: absolute;
   left: 0;
-  top: 6px;
-  bottom: 6px;
+  top: 10px;
+  bottom: 10px;
   width: 3px;
   border-radius: 0 2px 2px 0;
   background: var(--primary);
   opacity: 0;
+  transition: opacity 150ms ease-out;
+}
+
+[data-theme="dark"] .nav-indicator {
+  background: #6B9EFF;
 }
 
 .nav-item.active .nav-indicator {
@@ -181,9 +199,10 @@ const handleUpdateSettings = (updates: any) => {
 .settings-content {
   flex: 1;
   min-width: 0;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
   padding: var(--s-xl);
   overflow-y: auto;
 }

@@ -3,10 +3,10 @@
   bottom: 20px;
   left: 84px;
   width: 200px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-md);
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
   transition: all var(--duration-normal) var(--ease-spring);
   z-index: 100;
   overflow: hidden;
@@ -116,7 +116,6 @@
 }
 
 .info-panel.collapsed {
-  box-shadow: var(--shadow-sm);
 }
 
 .info-panel.collapsed .info-header {
@@ -124,7 +123,7 @@
 }
 
 [data-theme="dark"] .info-panel {
-  background: rgba(34, 34, 46, 0.82);
+  background: rgba(35, 38, 45, 0.92);
 }
 
 @media (max-height: 600px) {

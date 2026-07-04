@@ -17,6 +17,7 @@
   -webkit-user-select: text;
 }
 
+/* 背景层：无 backdrop-filter，仅用透明度叠加 */
 .app-background {
   position: fixed;
   inset: 0;
@@ -28,8 +29,7 @@
   transform: scale(1.02);
   z-index: 0;
   opacity: var(--bg-opacity, 1);
-  filter: blur(var(--bg-blur, 0px));
-  transition: background-image 0.5s ease, opacity 0.3s ease, filter 0.3s ease;
+  transition: background-image 0.5s ease, opacity 0.3s ease;
 }
 
 .app-background::after {
@@ -115,10 +115,10 @@
   z-index: 2000;
   padding: 8px 12px;
   border-radius: 6px;
-  background: var(--bg-elevated);
+  background: var(--card-bg);
   color: var(--text-primary);
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
   text-decoration: none;
   font-size: 13px;
   font-weight: 500;
@@ -153,7 +153,7 @@
 .agreement-icon {
   width: 64px;
   height: 64px;
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   background: var(--primary-alpha);
   display: flex;
   align-items: center;
@@ -194,7 +194,7 @@
   text-decoration: none !important;
   font-weight: 600;
   font-size: 14px;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   border: none;
   cursor: pointer;
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
@@ -204,7 +204,7 @@
 
 .agreement-link-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(122, 168, 240, 0.14);
+  box-shadow: 0 6px 24px rgba(74, 127, 217, 0.14);
 }
 
 .agreement-link-btn:active {

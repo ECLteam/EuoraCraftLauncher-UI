@@ -1,49 +1,14 @@
 <template>
-  <div class="game-page">
-    <!-- 左侧：快捷启动/最近游玩 -->
-    <div class="game-left">
-      <!--<div class="quick-launch-card">
-        <div class="card-header">
-          <h2 class="card-title">
-            <UiIcon name="game" :size="20" />
-            {{ t('game.quickLaunch') }}
-          </h2>
-        </div>
+  <div class="game-page" ref="gamePageRef">
+    <!-- 左侧：内容区 -->
+    <div class="game-left"></div>
 
-        <div v-if="recentPlays.length > 0" class="recent-list">
-          <div
-            v-for="item in recentPlays"
-            :key="item.id"
-            class="recent-item"
-            @click="version.selectVersion(item.id); version.launchGame(account.currentAccount)"
-          >
-            <div class="recent-icon">
-              <UiIcon name="cube" :size="24" />
-            </div>
-            <div class="recent-info">
-              <span class="recent-name">{{ item.id }}</span>
-              <span class="recent-type">{{ item.type }}</span>
-            </div>
-            <div class="recent-action">
-              <UiIcon name="play" :size="16" />
-            </div>
-          </div>
-        </div>
-
-        <div v-else class="quick-launch-empty">
-          <UiIcon name="game" :size="48" class="empty-icon" />
-          <p class="empty-text">{{ t('game.noRecentPlay') }}</p>
-          <p class="empty-hint">{{ t('game.selectVersionToStart') }}</p>
-        </div>
-      </div>-->
-    </div>
-    
-
-    <!-- 右侧 -->
+    <!-- 右侧：固定 320px 卡片组 -->
     <div class="game-right">
       <Transition name="slide-out" mode="out-in">
-        <!-- 账户卡片 -->
+        <!-- 账户卡片 + 你知道吗 -->
         <div v-if="!launchProgress.visible" key="cards" class="game-right-cards">
+          <!-- 账户卡片 -->
           <div class="account-card">
             <div class="account-info">
               <SkinRenderer
@@ -65,6 +30,45 @@
                 {{ t('game.manage') }}
               </button>
             </div>
+          </div>
+
+          <!-- 信息卡片 / 公告栏 -->
+          <div class="info-card">
+            <!-- 右上角切换按钮 -->
+            <button class="info-toggle-btn" @click="infoCardMode = infoCardMode === 'tip' ? 'announce' : 'tip'" :title="infoCardMode === 'tip' ? '查看公告' : '查看小贴士'">
+              <UiIcon :name="infoCardMode === 'tip' ? 'bell' : 'lightbulb'" :size="14" />
+            </button>
+
+            <!-- 你知道吗 / 欢迎 -->
+            <Transition name="info-fade" mode="out-in">
+              <div v-if="infoCardMode === 'tip'" key="tip" class="info-tip">
+                <div class="info-header">
+                  <UiIcon name="lightbulb" :size="16" />
+                  <span class="info-title">{{ isWelcome ? '欢迎使用 EuoraCraft Launcher' : '你知道吗' }}</span>
+                </div>
+                <p class="info-content">{{ isWelcome ? '感谢使用 EuoraCraft Launcher！你可以在右侧管理账户、选择版本并启动游戏。' : currentTip }}</p>
+              </div>
+
+              <!-- 公告栏 -->
+              <div v-else key="announce" class="info-announce">
+                <div class="info-header">
+                  <UiIcon name="bell" :size="16" />
+                  <span class="info-title">公告</span>
+                </div>
+                <div class="announce-list">
+                  <div v-if="announcements.length === 0" class="announce-empty">
+                    暂无公告
+                  </div>
+                  <div v-for="(item, idx) in announcements" :key="idx" class="announce-item">
+                    <div class="announce-item-header">
+                      <span class="announce-item-title">{{ item.title }}</span>
+                      <span class="announce-item-date">{{ item.date }}</span>
+                    </div>
+                    <p class="announce-item-desc">{{ item.content }}</p>
+                  </div>
+                </div>
+              </div>
+            </Transition>
           </div>
         </div>
 
@@ -112,6 +116,38 @@
         </div>
       </Transition>
     </div>
+
+    <!-- 右下角固定 FAB 按钮组 -->
+    <div v-if="!launchProgress.visible && hasGamePath && version.versions.length > 0" class="fab-launch-bar">
+        <!-- 第一行：启动按钮 + 版本管理按钮 -->
+        <div class="fab-row-top">
+          <button
+            class="fab-launch-btn"
+            :disabled="version.launching || !version.selectedVersion || !account.currentAccount"
+            @click="version.launchGame(account.currentAccount)"
+          >
+            <UiIcon name="play" :size="16" />
+            <span class="fab-launch-label">{{ version.launching ? t('game.launching') : t('game.launch') }}</span>
+            <span class="fab-launch-version">{{ version.selectedVersion }}</span>
+          </button>
+          <button
+            class="fab-manage-btn"
+            title="版本管理"
+            @click="goToInstallVersion"
+          >
+            <UiIcon name="grid" :size="16" />
+          </button>
+        </div>
+        <!-- 第二行：版本设置按钮（与第一行等宽） -->
+        <button
+          class="fab-settings-btn"
+          title="版本设置"
+          @click="openGameSettings"
+        >
+          <UiIcon name="settings" :size="16" />
+          <span class="fab-settings-label">版本设置</span>
+        </button>
+      </div>
 
     <!-- 账户管理弹窗 -->
     <ContentModal
@@ -317,25 +353,6 @@
       </template>
     </ContentModal>
 
-    <!-- 右下角固定启动按钮 -->
-    <div v-if="!launchProgress.visible && hasGamePath && version.versions.length > 0" class="fab-launch-bar">
-      <button
-        class="fab-launch-btn"
-        :disabled="version.launching || !version.selectedVersion || !account.currentAccount"
-        @click="version.launchGame(account.currentAccount)"
-      >
-        <UiIcon name="play" :size="16" />
-        <span class="fab-launch-label">{{ version.launching ? t('game.launching') : t('game.launch') }}</span>
-        <span class="fab-launch-version">{{ version.selectedVersion }}</span>
-      </button>
-      <button
-        class="fab-manage-btn"
-        title="版本管理"
-        @click="goToInstallVersion"
-      >
-        <UiIcon name="grid" :size="16" />
-      </button>
-    </div>
   </div>
 </template>
 
@@ -343,7 +360,7 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import UiCard from '@/components/ui/Card.vue'
+import gsap from 'gsap'
 import UiButton from '@/components/ui/Button.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import UiInput from '@/components/ui/Input.vue'
@@ -356,16 +373,41 @@ import backend from '@/api/client'
 
 const { t } = useI18n()
 const router = useRouter()
+const gamePageRef = ref<HTMLElement | null>(null)
 
 const account = useAccountManager(t)
 const version = useVersionManager(t)
-const { progress: launchProgress, hide: hideLaunchProgress } = globalLaunchProgress
-
-const clampedPercent = computed(() => Math.max(0, Math.min(100, Math.round(launchProgress.value.percent))))
+const { progress: launchProgress } = globalLaunchProgress
 
 // 启动进度缓动状态（参考 PCL-CE 的平滑进度算法）
 const lpDisplayPercent = ref(0)
 let lpRafId: number | null = null
+
+// 小贴士列表
+const tips = [
+  '按 F11 可以切换全屏模式',
+  '在设置中可以调整游戏内存分配',
+  '使用版本隔离可以避免不同版本之间的冲突',
+  '定期备份存档是个好习惯',
+  '可以在设置中更改游戏启动器主题',
+  '离线账户不需要网络连接即可启动游戏',
+  'Microsoft 账户可以访问正版服务器',
+  'Forge 和 Fabric 是两种流行的模组加载器',
+]
+const currentTip = ref(tips[Math.floor(Math.random() * tips.length)])
+
+// 信息卡片模式
+const infoCardMode = ref<'tip' | 'announce'>('tip')
+const isWelcome = ref(true)
+
+// 公告数据（示例）
+const announcements = ref([
+  {
+    title: 'EuoraCraft Launcher v1.0 正式发布',
+    date: '2026-06-28',
+    content: '经过长时间的开发和测试，EuoraCraft Launcher 终于迎来了 1.0 正式版！新增了全新的主题系统、版本管理、模组管理等功能。',
+  },
+])
 
 const lpState = computed(() => {
   const stage = launchProgress.value.stage
@@ -426,9 +468,15 @@ onBeforeUnmount(() => {
 
 const hasGamePath = ref(false)
 
-const recentPlays = computed(() => {
-  return version.versions.slice(0, 5)
-})
+const playEnterAnimation = () => {
+  if (gamePageRef.value) {
+    gsap.fromTo(
+      gamePageRef.value,
+      { opacity: 0, y: 18, scale: 0.98 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: 'power3.out' }
+    )
+  }
+}
 
 const handleLaunchProgressCancel = async () => {
   globalLaunchProgress.cancel()
@@ -462,6 +510,20 @@ onMounted(() => {
       hasGamePath.value = paths && paths.length > 0
     }
   })
+
+  // 欢迎状态：首次打开显示欢迎，之后切页面不再显示
+  const welcomeShown = localStorage.getItem('euora-welcome-shown')
+  if (welcomeShown === 'true') {
+    isWelcome.value = false
+  } else {
+    isWelcome.value = true
+    setTimeout(() => {
+      isWelcome.value = false
+      localStorage.setItem('euora-welcome-shown', 'true')
+    }, 5000)
+  }
+
+  playEnterAnimation()
 })
 
 onBeforeUnmount(() => {
@@ -476,171 +538,46 @@ onBeforeUnmount(() => {
   height: 100%;
 }
 
-/* 左侧：60% */
+/* 左侧：弹性填充 */
 .game-left {
-  flex: 6;
+  flex: 1;
   min-width: 0;
 }
 
-/* 右侧：40% */
+/* 右侧：固定 320px 卡片组 */
 .game-right {
-  flex: 4;
-  min-width: 300px;
+  width: 320px;
+  min-width: 320px;
   display: flex;
   flex-direction: column;
+  padding-right: var(--s-lg);
+  padding-top: 32px;
 }
 
 .game-right-cards {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  flex: 1;
-}
-
-/* 快捷启动卡片 */
-.quick-launch-card {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  padding: var(--s-xl);
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: var(--s-sm);
-  margin-bottom: var(--s-lg);
-}
-
-.card-title {
-  display: flex;
-  align-items: center;
-  gap: var(--s-sm);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-/* 最近游玩列表 */
-.recent-list {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  overflow-y: auto;
-}
-
-.recent-item {
-  display: flex;
-  align-items: center;
-  gap: var(--s-md);
-  padding: 12px;
-  border-radius: var(--r-sm);
-  cursor: pointer;
-  transition: background 150ms ease-out;
-}
-
-.recent-item:hover {
-  background: var(--bg-hover);
-}
-
-.recent-icon {
-  width: 40px;
-  height: 40px;
-  background: var(--primary-alpha);
-  border-radius: var(--r-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--primary);
-  flex-shrink: 0;
-}
-
-.recent-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.recent-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.recent-type {
-  font-size: 12px;
-  color: var(--text-tertiary);
-}
-
-.recent-action {
-  color: var(--text-tertiary);
-  opacity: 0;
-  transition: opacity 150ms ease-out;
-}
-
-.recent-item:hover .recent-action {
-  opacity: 1;
-  color: var(--primary);
-}
-
-/* 快捷启动空状态 */
-.quick-launch-empty {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--s-sm);
-}
-
-.empty-icon {
-  color: var(--text-tertiary);
-  margin-bottom: var(--s-sm);
-}
-
-.empty-text {
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.empty-hint {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  margin: 0;
-}
-
-/* 账户卡片 */
-.account-card {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 16px 20px;
+  gap: 12px;
 }
 
 .account-info {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
 }
 
 .account-avatar {
   width: 40px;
   height: 40px;
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   flex-shrink: 0;
 }
 
 .account-avatar-placeholder {
   width: 40px;
   height: 40px;
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   background: var(--bg-base-alt);
   display: flex;
   align-items: center;
@@ -663,7 +600,7 @@ onBeforeUnmount(() => {
 
 .account-type {
   font-size: 12px;
-  color: #8A8A8A;
+  color: var(--text-tertiary);
   margin-top: 2px;
 }
 
@@ -671,7 +608,7 @@ onBeforeUnmount(() => {
   padding: 6px 16px;
   border-radius: var(--r-sm);
   border: 1px solid var(--primary);
-  background: var(--bg-elevated);
+  background: transparent;
   color: var(--primary);
   font-size: 13px;
   font-weight: 500;
@@ -688,28 +625,280 @@ onBeforeUnmount(() => {
   transform: translateY(1px);
 }
 
-/* 主按钮 */
-.btn-primary {
-  display: inline-flex;
+/* 账户卡片 */
+.account-card {
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
+  padding: 16px 20px;
+  height: 72px;
+  display: flex;
   align-items: center;
-  gap: var(--s-sm);
-  padding: 10px 20px;
+}
+
+/* 信息卡片（你知道吗 / 公告栏） */
+.info-card {
+  position: relative;
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+/* 右上角切换按钮 */
+.info-toggle-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: var(--r-xs);
+  background: var(--bg-hover);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 150ms ease-out;
+  z-index: 1;
+}
+
+.info-toggle-btn:hover {
+  background: var(--bg-active);
+  color: var(--text-secondary);
+}
+
+/* 共用头部 */
+.info-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px 0 16px;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.info-title {
+  color: var(--text-primary);
+}
+
+.info-content {
+  margin: 0;
+  padding: 8px 16px 12px 16px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* 公告栏 */
+.info-announce {
+  padding-bottom: 4px;
+}
+
+.announce-list {
+  padding: 8px 16px 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  max-height: 200px;
+}
+
+.announce-empty {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  text-align: center;
+  padding: 8px 0;
+}
+
+.announce-item {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.announce-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.announce-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.announce-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.announce-item-date {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.announce-item-desc {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* 切换动画 */
+.info-fade-enter-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.info-fade-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.info-fade-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.info-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+/* ══════════════════════════════════════════════════════
+   右下角固定 FAB 按钮组
+   ══════════════════════════════════════════════════════ */
+.fab-launch-bar {
+  position: fixed;
+  right: calc(var(--s-lg) + var(--s-lg));
+  bottom: 64px;
+  width: calc(320px - var(--s-lg));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 50;
+}
+
+/* 第一行：启动按钮 + 版本管理按钮横向排列 */
+.fab-row-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fab-launch-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 200px;
+  height: 48px;
+  padding: 0 20px;
   border-radius: var(--r-sm);
   border: none;
   background: var(--primary);
-  color: var(--text-on-primary);
-  font-size: 14px;
-  font-weight: 500;
+  color: #FFFFFF;
   cursor: pointer;
   transition: all 150ms ease-out;
+  white-space: nowrap;
+  flex: 1;
 }
 
-.btn-primary:hover {
+.fab-launch-btn:hover:not(:disabled) {
   background: var(--primary-hover);
 }
 
-.btn-primary:active {
+.fab-launch-btn:active:not(:disabled) {
   transform: translateY(1px);
+}
+
+.fab-launch-btn:disabled {
+  background: var(--bg-hover);
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+.fab-launch-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.fab-launch-version {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.fab-launch-btn:disabled .fab-launch-version {
+  color: var(--text-disabled);
+}
+
+/* FAB 幽灵按钮：版本管理 */
+.fab-manage-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 150ms ease-out;
+  flex-shrink: 0;
+}
+
+.fab-manage-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+}
+
+.fab-manage-btn:active {
+  transform: translateY(1px);
+}
+
+/* 第二行：版本设置按钮（与第一行等宽） */
+.fab-settings-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 48px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 150ms ease-out;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.fab-settings-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.fab-settings-btn:active {
+  transform: translateY(1px);
+}
+
+.fab-settings-label {
+  font-size: 14px;
+  font-weight: 500;
 }
 
 /* 状态消息 */
@@ -761,17 +950,19 @@ onBeforeUnmount(() => {
 }
 
 .account-list-card {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
   padding: var(--s-lg);
   min-height: 200px;
 }
 
 .add-account-card {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
   padding: var(--s-lg);
 }
 
@@ -1001,9 +1192,10 @@ onBeforeUnmount(() => {
    启动进度卡片（仿 PCL-CE 风格）
    ══════════════════════════════════════════════════════ */
 .launch-progress-card {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
   padding: 32px 28px 24px;
   flex: 1;
   display: flex;
@@ -1023,7 +1215,7 @@ onBeforeUnmount(() => {
 .lp-icon-wrap {
   width: 44px;
   height: 44px;
-  border-radius: 12px;
+  border-radius: var(--r-sm);
   background: var(--primary-alpha);
   display: flex;
   align-items: center;
@@ -1071,7 +1263,7 @@ onBeforeUnmount(() => {
   height: 100%;
   background: linear-gradient(90deg, var(--primary), var(--primary-hover));
   border-radius: 2px;
-  transition: none; /* 由 JS rAF 控制 */
+  transition: none;
   min-width: 0;
 }
 
@@ -1114,7 +1306,7 @@ onBeforeUnmount(() => {
 
 .lp-info-label {
   font-size: 12px;
-  color: var(--text-quaternary, var(--text-tertiary));
+  color: var(--text-tertiary);
   flex-shrink: 0;
 }
 
@@ -1154,112 +1346,5 @@ onBeforeUnmount(() => {
   border-color: var(--error);
   color: var(--error);
   background: rgba(232, 93, 93, 0.06);
-}
-
-/* ══════════════════════════════════════════════════════
-   右下角固定启动按钮（FAB）
-   ══════════════════════════════════════════════════════ */
-.fab-launch-bar {
-    position: fixed;
-    right: 80px;
-    bottom: 48px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    z-index: 50;
-}
-
-.fab-launch-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 200px;
-  height: 48px;
-  padding: 0 24px;
-  border-radius: 6px;
-  border: 1px solid #4A7FD9;
-  background: #FFFFFF;
-  cursor: pointer;
-  transition: all 150ms ease-out;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  white-space: nowrap;
-}
-
-.fab-launch-btn:hover {
-  background: #EBF1FA;
-  border-color: #3D6EC2;
-  box-shadow: 0 4px 12px rgba(74, 127, 217, 0.15);
-}
-
-.fab-launch-btn:active {
-  transform: translateY(1px);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-
-.fab-launch-btn:disabled {
-  border-color: #C0C0C0;
-  background: #F5F5F5;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.fab-launch-btn:disabled:active {
-  transform: none;
-}
-
-.fab-launch-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #4A7FD9;
-}
-
-.fab-launch-btn:hover .fab-launch-label {
-  color: #3D6EC2;
-}
-
-.fab-launch-btn:disabled .fab-launch-label {
-  color: #AAAAAA;
-}
-
-.fab-launch-version {
-  margin-left: auto;
-  font-size: 13px;
-  font-weight: 400;
-  color: #8A8A8A;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 180px;
-}
-
-.fab-launch-btn:disabled .fab-launch-version {
-  color: #BBBBBB;
-}
-
-.fab-manage-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 6px;
-  border: 1px solid #4A7FD9;
-  background: #FFFFFF;
-  color: #4A7FD9;
-  cursor: pointer;
-  transition: all 150ms ease-out;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.fab-manage-btn:hover {
-  background: #EBF1FA;
-  border-color: #3D6EC2;
-  color: #3D6EC2;
-  box-shadow: 0 4px 12px rgba(74, 127, 217, 0.15);
-}
-
-.fab-manage-btn:active {
-  transform: translateY(1px);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 </style>
