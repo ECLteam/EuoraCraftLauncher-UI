@@ -1,6 +1,20 @@
 import { ref, readonly, type App } from 'vue'
 import { useRouter } from 'vue-router'
 import backend from '@/api/client'
+import { transpileTS } from '@/plugin-sdk/transpile'
+import { createIframeBridge, showToast, showConfirm, showLoading } from '@/plugin-sdk/ui'
+import { listen, Events } from '@/plugin-sdk/events'
+
+// 暴露 plugin-sdk 到全局作用域，供插件注入的脚本使用
+;(window as any).__plugin_sdk__ = {
+  createIframeBridge,
+  showToast,
+  showConfirm,
+  showLoading,
+  listen,
+  Events,
+  transpileTS,
+}
 
 // ── 响应式状态 ──
 
@@ -9,6 +23,22 @@ const pluginSlots = ref<Record<string, any[]>>({})
 const pluginCommands = ref<any[]>([])
 
 // ── HTML 插槽 DOM 管理 ──
+
+function sanitizeHtml(html: string): string {
+  // 移除 <script> 标签
+  let result = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+  // 移除内联事件处理器 (onerror, onclick, onload 等)
+  result = result.replace(/\s+on\w+\s*=\s*["'][^"']*["']/gi, '')
+  result = result.replace(/\s+on\w+\s*=\s*[^\s>]+/gi, '')
+  // 移除 javascript: 协议
+  result = result.replace(/href\s*=\s*["']javascript:[^"']*["']/gi, 'href="#"')
+  result = result.replace(/src\s*=\s*["']javascript:[^"']*["']/gi, 'src="#"')
+  // 移除危险标签
+  result = result.replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe>/gi, '')
+  result = result.replace(/<object\b[^>]*>[\s\S]*?<\/object>/gi, '')
+  result = result.replace(/<embed\b[^>]*\/?>/gi, '')
+  return result
+}
 
 function renderSlot(slot: string) {
   const el = document.getElementById(`plugin-slot-${slot}`)
@@ -19,9 +49,7 @@ function renderSlot(slot: string) {
     const wrapper = document.createElement('div')
     wrapper.className = 'plugin-slot-item'
     wrapper.setAttribute('data-plugin', entry.plugin)
-    // 基本安全处理：移除 <script> 标签防止 XSS
-    const sanitized = entry.html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    wrapper.innerHTML = sanitized
+    wrapper.innerHTML = sanitizeHtml(entry.html)
     el.appendChild(wrapper)
   }
 }
@@ -148,6 +176,16 @@ export function initPluginBridge(app: App, router: ReturnType<typeof useRouter>)
     executeScript(payload?.plugin, payload?.script)
   }))
 
+  // 监听 TypeScript 注入（自动转译后执行）
+  unlistenFns.push(backend.on('plugin:typescript_injected', (payload: any) => {
+    try {
+      const js = transpileTS(payload?.script || '')
+      executeScript(payload?.plugin, js)
+    } catch (e) {
+      console.error(`[PluginBridge] TS 转译失败 [${payload?.plugin}]:`, e)
+    }
+  }))
+
   // 监听插件卸载/禁用，清理残留
   unlistenFns.push(backend.on('plugin:disabled', (payload: any) => {
     if (payload?.plugin) fullCleanupPlugin(payload.plugin)
@@ -196,8 +234,8 @@ export function destroyPluginBridge() {
 
 // ── 暴露响应式状态和命令调用 ──
 
-export function callPluginCommand(plugin_id: string, command: string, args?: Record<string, unknown>) {
-  return backend.command('plugin_call_command', { plugin_id, command, args })
+export function callPluginCommand(command: string, params?: Record<string, unknown>) {
+  return backend.command('plugin_call_command', { command, params })
 }
 
 export { pluginRoutes, pluginSlots, pluginCommands, renderSlot, cleanupScripts, clearSlotElements, clearPluginSlots }

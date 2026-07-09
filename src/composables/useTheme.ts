@@ -288,6 +288,7 @@ function setBlurAmount(amount: number) {
 function setBackgroundOpacity(opacity: number) {
   backgroundOpacity.value = opacity
   updateTheme()
+  saveThemeConfig()
 }
 
 function setSidebarCollapsed(val: boolean) {
@@ -318,6 +319,7 @@ async function saveThemeConfig() {
             blur_amount: 0,
             sidebar_collapsed: sidebarCollapsed.value,
             titlebar_hidden: titlebarHidden.value,
+            background_opacity: backgroundOpacity.value,
           },
         })
       } catch (error) {
@@ -335,46 +337,38 @@ function toggleTheme() {
   }
 }
 
-export async function initTheme(
-  preloadedUi?: { success: boolean; data: any } | null
-): Promise<void> {
-  if (!preloadedUi && initThemePromise) {
+export async function initTheme(uiConfig?: any): Promise<void> {
+  if (!uiConfig && initThemePromise) {
     return initThemePromise
   }
 
   const promise = (async () => {
     try {
-      if ((window as any).__TAURI__?.pytauri) {
-        const uiConfig = preloadedUi
-          ? Promise.resolve(preloadedUi)
-          : await backend.config.get('ui').catch(() => ({ success: false, data: null }))
+      if (uiConfig) {
+        const themeData = uiConfig.theme || {}
+        themeMode.value = themeData.mode as ThemeMode || 'system'
+        primaryColor.value = themeData.primary_color || '#4A7FD9'
+        blurAmount.value = 0
+        sidebarCollapsed.value = themeData.sidebar_collapsed ?? true
+        titlebarHidden.value = themeData.titlebar_hidden ?? false
 
-        if (uiConfig.success && uiConfig.data) {
-          const themeData = uiConfig.data.theme || {}
-          themeMode.value = themeData.mode as ThemeMode || 'system'
-          primaryColor.value = themeData.primary_color || '#4A7FD9'
-          blurAmount.value = 0
-          sidebarCollapsed.value = themeData.sidebar_collapsed ?? true
-          titlebarHidden.value = themeData.titlebar_hidden ?? false
+        const bgData = uiConfig.background || {}
+        backgroundImagePath.value = bgData.path || ''
 
-          const bgData = uiConfig.data.background || {}
-          backgroundImagePath.value = bgData.path || ''
-
-          if (bgData.path && bgData.type !== 'default') {
-            try {
-              const imgData = await backend.command('image_read_file', { path: bgData.path })
-              if (imgData.success && imgData.data?.base64) {
-                backgroundImage.value = imgData.data.base64
-              }
-            } catch (error) {
-              console.warn('加载背景图片失败:', error)
-              backgroundImage.value = ''
+        if (bgData.path && bgData.type !== 'default') {
+          try {
+            const imgData = await backend.command('image_read_file', { path: bgData.path })
+            if (imgData.success && imgData.data?.base64) {
+              backgroundImage.value = imgData.data.base64
             }
+          } catch (error) {
+            console.warn('加载背景图片失败:', error)
+            backgroundImage.value = ''
           }
+        }
 
-          if (typeof bgData.opacity === 'number') {
-            backgroundOpacity.value = bgData.opacity
-          }
+        if (typeof bgData.opacity === 'number') {
+          backgroundOpacity.value = bgData.opacity
         }
       }
     } catch (error) {
@@ -392,7 +386,7 @@ export async function initTheme(
     updateTheme()
   })()
 
-  if (!preloadedUi) {
+  if (!uiConfig) {
     initThemePromise = promise
   }
 

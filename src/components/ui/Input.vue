@@ -45,7 +45,6 @@ const props = withDefaults(defineProps<{
   prefixIcon?: string
   suffixIcon?: string
   id?: string
-  icon?: string
   ariaLabel?: string
 }>(), {
   type: 'text',
@@ -55,7 +54,7 @@ const props = withDefaults(defineProps<{
   clearable: false
 })
 
-const leadingIcon = computed(() => props.icon || props.prefixIcon)
+const leadingIcon = computed(() => props.prefixIcon)
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string | number): void

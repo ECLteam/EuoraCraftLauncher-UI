@@ -11,10 +11,10 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: 'manage', name: 'versions-manage', component: () => import('@/components/versions/ManageTab.vue') },
       { path: 'versions', name: 'versions-versions', component: () => import('@/components/versions/VersionsTab.vue') },
-      { path: 'mods', name: 'versions-mods', component: () => import('@/components/versions/ModsTab.vue') },
     ]
   },
   { path: '/plugins', name: 'plugins', component: () => import('@/views/Plugins.vue') },
+  { path: '/online-mods', name: 'online-mods', component: () => import('@/views/OnlineMods.vue') },
   {
     path: '/settings',
     component: () => import('@/views/Settings.vue'),
@@ -28,6 +28,10 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   { path: '/dev', name: 'dev', component: () => import('@/views/DevTools.vue'), meta: { devOnly: true } },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/',
+  },
 ]
 
 const router = createRouter({ history: createWebHashHistory(), routes })

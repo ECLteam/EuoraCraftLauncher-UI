@@ -16,7 +16,11 @@ export const defaultLocale: LocaleCode = 'zh-CN'
 
 // 获取初始语言
 function getInitialLocale(): LocaleCode {
-  return defaultLocale
+  const stored = localStorage.getItem('locale')
+  if (stored && supportedLocales.some(l => l.code === stored)) return stored as LocaleCode
+  const browserLang = navigator.language
+  if (browserLang.startsWith('zh')) return 'zh-CN'
+  return 'en-US'
 }
 
 // 创建 i18n 实例
@@ -24,6 +28,8 @@ export const i18n = createI18n({
   legacy: false,
   locale: getInitialLocale(),
   fallbackLocale: 'zh-CN',
+  missingWarn: import.meta.env.DEV,
+  fallbackWarn: import.meta.env.DEV,
   messages: {
     'zh-CN': zhCN,
     'en-US': enUS

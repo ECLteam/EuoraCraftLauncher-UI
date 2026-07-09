@@ -5,11 +5,12 @@ import { useGlassMessage } from './useGlassMessage'
 export interface Account {
   id: string
   alias: string
-  type: 'microsoft' | 'offline'
+  type: 'microsoft' | 'offline' | 'authlib'
   email: string
   uuid: string
   isCurrent?: boolean
   skinUrl?: string
+  auth_server?: string
 }
 
 export function useAccountManager(t: (key: string, ...args: any[]) => string) {
@@ -23,6 +24,15 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
   const newOfflineUsername = ref('')
   const addingOffline = ref(false)
 
+  // Authlib
+  const showAuthlibForm = ref(false)
+  const authlibServerUrl = ref('')
+  const authlibEmail = ref('')
+  const authlibPassword = ref('')
+  const addingAuthlib = ref(false)
+  const authlibServers = ref<{ name: string; url: string; description: string }[]>([])
+  const authlibServersLoading = ref(false)
+
   const showMicrosoftLoginModal = ref(false)
   const startingMicrosoftLogin = ref(false)
   const completingMicrosoftLogin = ref(false)
@@ -30,6 +40,8 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
   const microsoftLoginData = ref<{ userCode: string; verificationUri: string }>({ userCode: '', verificationUri: '' })
   const microsoftLoginError = ref('')
   const copiedUserCode = ref(false)
+
+  const showClientIdModal = ref(false)
 
   const showDeleteConfirmModal = ref(false)
   const deletingAccount = ref(false)
@@ -41,15 +53,17 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
 
   let pollTimer: ReturnType<typeof setInterval> | null = null
   let pollInterval = 5000
+  let isPolling = false
 
   onScopeDispose(() => {
     stopPolling()
   })
 
   const accountTypeLabel = computed(() => {
-    return currentAccount.value?.type === 'microsoft'
-      ? t('game.microsoftAccount')
-      : t('game.offlineAccount')
+    const type = currentAccount.value?.type
+    if (type === 'microsoft') return t('game.microsoftAccount')
+    if (type === 'authlib') return t('game.authlibAccount')
+    return t('game.offlineAccount')
   })
 
   async function loadAccounts() {
@@ -69,6 +83,10 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
 
   function openAccountModal() {
     showAccountModal.value = true
+    showAuthlibForm.value = false
+    authlibServerUrl.value = ''
+    authlibEmail.value = ''
+    authlibPassword.value = ''
     loadAccounts()
   }
 
@@ -136,11 +154,85 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
     }
   }
 
+  // ── Authlib ──
+
+  async function loadAuthlibServers() {
+    authlibServersLoading.value = true
+    try {
+      const res = await backend.command('authlib_servers')
+      if (res.success && res.data) {
+        authlibServers.value = res.data
+      }
+    } catch (e) {
+      // 静默
+    } finally {
+      authlibServersLoading.value = false
+    }
+  }
+
+  function toggleAuthlibForm() {
+    showAuthlibForm.value = !showAuthlibForm.value
+    if (showAuthlibForm.value && authlibServers.value.length === 0) {
+      loadAuthlibServers()
+    }
+  }
+
+  function selectAuthlibServer(server: { name: string; url: string; description: string }) {
+    authlibServerUrl.value = server.url
+  }
+
+  async function addAuthlibAccount() {
+    const serverUrl = authlibServerUrl.value.trim()
+    const email = authlibEmail.value.trim()
+    const password = authlibPassword.value
+
+    if (!serverUrl) {
+      message.error(t('auth.serverUrlRequired'))
+      return
+    }
+    if (!email) {
+      message.error(t('auth.emailRequired'))
+      return
+    }
+    if (!password) {
+      message.error(t('auth.passwordRequired'))
+      return
+    }
+
+    addingAuthlib.value = true
+    try {
+      const res = await backend.command('accounts_add_authlib', {
+        server_url: serverUrl,
+        email,
+        password,
+      })
+      if (res.success) {
+        message.success(t('game.status.accountAdded'))
+        authlibServerUrl.value = ''
+        authlibEmail.value = ''
+        authlibPassword.value = ''
+        showAuthlibForm.value = false
+        await loadAccounts()
+      } else {
+        message.error(res.message || t('game.status.accountAddFailed'))
+      }
+    } catch (e) {
+      message.error(t('game.status.accountAddFailed'))
+    } finally {
+      addingAuthlib.value = false
+    }
+  }
+
   async function startMicrosoftLogin() {
     startingMicrosoftLogin.value = true
     try {
       const res = await backend.command('accounts_start_microsoft_login')
       if (res.success) {
+        if (res.data?.needs_client_id) {
+          showClientIdModal.value = true
+          startingMicrosoftLogin.value = false
+          return
+        }
         if (res.data?.status === 'completed') {
           message.success(t('game.login.success'))
           await loadAccounts()
@@ -179,6 +271,7 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
       clearInterval(pollTimer)
       pollTimer = null
     }
+    isPolling = false
   }
 
   async function pollLoginStatus() {
@@ -186,7 +279,8 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
       stopPolling()
       return
     }
-
+    if (isPolling) return
+    isPolling = true
     try {
       const res = await backend.command('accounts_poll_microsoft_login')
       if (res.success) {
@@ -207,6 +301,8 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
       }
     } catch (e) {
       // 轮询失败时静默等待下次轮询
+    } finally {
+      isPolling = false
     }
   }
 
@@ -240,6 +336,10 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
     stopPolling()
   }
 
+  function cancelClientId() {
+    showClientIdModal.value = false
+  }
+
   async function copyUserCode() {
     try {
       await navigator.clipboard.writeText(microsoftLoginData.value.userCode)
@@ -257,6 +357,7 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
     showMicrosoftLoginModal.value = false
     showDeleteConfirmModal.value = false
     stopPolling()
+    isPolling = false
   }
 
   return reactive({
@@ -267,6 +368,19 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
     showAccountModal,
     newOfflineUsername,
     addingOffline,
+    // Authlib
+    showAuthlibForm,
+    authlibServerUrl,
+    authlibEmail,
+    authlibPassword,
+    addingAuthlib,
+    authlibServers,
+    authlibServersLoading,
+    loadAuthlibServers,
+    toggleAuthlibForm,
+    selectAuthlibServer,
+    addAuthlibAccount,
+    // Microsoft
     showMicrosoftLoginModal,
     startingMicrosoftLogin,
     completingMicrosoftLogin,
@@ -288,6 +402,8 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
     cancelMicrosoftLogin,
     completeMicrosoftLogin,
     copyUserCode,
+    showClientIdModal,
+    cancelClientId,
     reset
   })
 }

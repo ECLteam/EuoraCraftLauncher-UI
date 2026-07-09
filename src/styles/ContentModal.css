@@ -18,8 +18,8 @@
 
 .content-modal.is-fullscreen {
   background: transparent;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: stretch;
 }
 
 .content-modal.is-fullscreen.has-backdrop {
@@ -47,14 +47,14 @@
 }
 
 .is-fullscreen .modal-wrapper {
-  width: 70vw;
-  height: 70vh;
-  max-width: 900px;
-  max-height: 580px;
-  border-radius: var(--r-sm);
-  background: var(--bg-surface-solid);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-lg);
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  border-radius: 0;
+  background: var(--bg-surface);
+  border: none;
+  box-shadow: none;
   overflow: hidden;
 }
 
@@ -137,8 +137,8 @@
 }
 
 .is-fullscreen .modal-body {
-  padding: var(--s-md) var(--s-lg);
-  background: var(--bg-elevated);
+  padding: 0;
+  background: var(--bg-surface);
 }
 
 .modal-footer {
@@ -242,37 +242,37 @@
   font-size: 14px;
 }
 
-.modal-footer :deep(.btn-primary) {
+.modal-footer .btn-primary {
   transition:
     transform var(--duration-fast) var(--ease-spring),
     box-shadow var(--duration-normal) var(--ease-standard);
 }
 
-.modal-footer :deep(.btn-primary:hover) {
+.modal-footer .btn-primary:hover {
   box-shadow: var(--shadow-md);
 }
 
-.modal-footer :deep(.btn-primary:hover .btn-icon) {
+.modal-footer .btn-primary:hover .btn-icon {
   transform: scale(1.1);
 }
 
-.modal-footer :deep(.btn-secondary) {
+.modal-footer .btn-secondary {
   transition:
     transform var(--duration-fast) var(--ease-spring),
     box-shadow var(--duration-normal) var(--ease-standard),
     border-color var(--duration-fast) var(--ease-standard);
 }
 
-.modal-footer :deep(.btn-secondary:hover) {
+.modal-footer .btn-secondary:hover {
   border-color: var(--border-hover);
   box-shadow: var(--shadow-sm);
 }
 
-.modal-footer :deep(.btn-secondary:hover .btn-icon) {
+.modal-footer .btn-secondary:hover .btn-icon {
   transform: scale(1.1);
 }
 
-.modal-footer :deep(.ui-btn:active) {
+.modal-footer .ui-btn:active {
   transform: translateY(0) scale(0.96);
 }
 

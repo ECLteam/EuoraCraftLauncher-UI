@@ -46,6 +46,15 @@
     <!-- 右侧窗口控制 -->
     <div class="titlebar-right">
       <button
+        v-if="hasActiveTasks"
+        class="titlebar-btn titlebar-btn-task"
+        @click="toggleTaskPanel"
+        :title="t('task.title')"
+      >
+        <UiIcon name="download" :size="16" />
+        <span v-if="activeTaskCount > 0" class="task-badge">{{ activeTaskCount }}</span>
+      </button>
+      <button
         class="titlebar-btn"
         @click="toggleTheme"
         :title="isDark ? t('settings.themeLight') : t('settings.themeDark')"
@@ -77,8 +86,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useTheme } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
 import { useFullscreenModal } from '@/composables/useFullscreenModal'
+import { globalTaskQueue } from '@/composables/useTaskQueue'
 import UiIcon from '@/components/ui/Icon.vue'
-import '@/styles/TitleBar.css'
+import { MENU_ITEMS } from '@/constants/menu'
 
 const { t } = useI18n()
 const { isDark, toggleTheme, titlebarHidden } = useTheme()
@@ -87,15 +97,16 @@ const fullscreenModal = useFullscreenModal()
 const route = useRoute()
 const router = useRouter()
 
+const { hasActiveTasks, activeCount: activeTaskCount, togglePanel: toggleTaskPanel } = globalTaskQueue
+
 const isFullscreenModalVisible = computed(() => fullscreenModal.isVisible.value)
 const fullscreenModalTitle = computed(() => fullscreenModal.title.value)
 
-const menuItems = computed(() => [
-  { path: '/', label: t('sidebar.game'), iconName: 'game' },
-  { path: '/versions', label: t('sidebar.versions'), iconName: 'cube' },
-  { path: '/plugins', label: t('sidebar.plugins'), iconName: 'puzzle' },
-  { path: '/settings', label: t('sidebar.settings'), iconName: 'settings' }
-])
+const menuItems = computed(() => MENU_ITEMS.map(item => ({
+  path: item.path,
+  label: t(item.labelKey),
+  iconName: item.iconName,
+})))
 
 const handleNavClick = (item: { path: string }) => {
   router.push(item.path)
@@ -111,4 +122,6 @@ const close = async () => {
 }
 const handleClose = () => fullscreenModal.close()
 </script>
+
+<style scoped src="@/styles/TitleBar.css"></style>
 

@@ -108,7 +108,7 @@
             <button
               class="action-btn"
               :title="t('plugins.reload')"
-              :disabled="reloadingPlugins.has(plugin.name)"
+              :disabled="reloadingPlugins.includes(plugin.name)"
               @click="reloadPlugin(plugin)"
             >
               <UiIcon name="refresh" :size="14" />
@@ -174,7 +174,7 @@
             <button
               class="row-action-btn"
               :title="t('plugins.reload')"
-              :disabled="reloadingPlugins.has(plugin.name)"
+              :disabled="reloadingPlugins.includes(plugin.name)"
               @click="reloadPlugin(plugin)"
             >
               <UiIcon name="refresh" :size="14" />
@@ -217,7 +217,7 @@ const message = useGlassMessage()
 
 const plugins = ref<Plugin[]>([])
 const loading = ref(false)
-const reloadingPlugins = ref<Set<string>>(new Set())
+const reloadingPlugins = ref<string[]>([])
 const searchQuery = ref('')
 const activeFilter = ref('all')
 const viewMode = ref<'grid' | 'list'>('grid')
@@ -281,8 +281,8 @@ async function togglePlugin(plugin: Plugin) {
 }
 
 async function reloadPlugin(plugin: Plugin) {
-  if (reloadingPlugins.value.has(plugin.name)) return
-  reloadingPlugins.value = new Set([...reloadingPlugins.value, plugin.name])
+  if (reloadingPlugins.value.includes(plugin.name)) return
+  reloadingPlugins.value = [...reloadingPlugins.value, plugin.name]
   try {
     const result = await backend.command('plugin_reload', { plugin_name: plugin.name })
     if (result.success) {
@@ -293,9 +293,7 @@ async function reloadPlugin(plugin: Plugin) {
   } catch (e) {
     message.error(t('plugins.reloadFailed'))
   } finally {
-    const next = new Set(reloadingPlugins.value)
-    next.delete(plugin.name)
-    reloadingPlugins.value = next
+    reloadingPlugins.value = reloadingPlugins.value.filter(n => n !== plugin.name)
   }
 }
 

@@ -35,20 +35,23 @@ const props = defineProps<{
   title?: string
   icon?: string
   hoverable?: boolean
+  interactive?: boolean
   bodyClass?: string
 }>()
 
+const emit = defineEmits<{
+  click: [event: MouseEvent]
+}>()
+
 const attrs = useAttrs()
-const isInteractive = computed(() => typeof attrs.onClick === 'function')
+const isInteractive = computed(() => props.interactive || false)
 
 const handleKeydown = (event: KeyboardEvent) => {
   if (!isInteractive.value) return
   
   if (event.key === 'Enter' || event.key === ' ') {
     event.preventDefault()
-    if (typeof attrs.onClick === 'function') {
-      attrs.onClick(event)
-    }
+    emit('click', event as unknown as MouseEvent)
   }
 }
 </script>

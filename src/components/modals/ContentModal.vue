@@ -231,12 +231,6 @@ const handleCancel = () => {
   }
 }
 
-// 点击遮罩处理（已废弃，不再支持点击外部关闭）
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const handleBackdropClick = () => {
-  // 点击外部不再关闭弹窗
-}
-
 // 生命周期钩子
 const onAfterEnter = () => {
   emit('opened')

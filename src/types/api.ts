@@ -5,7 +5,7 @@
  * 社区替换前端时，可以自由增删字段，不需要改后端代码。
  */
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
   message?: string
@@ -48,14 +48,6 @@ export interface ThemeConfig {
 export interface DownloadConfig {
   mirror_source: 'official' | 'bmclapi'
   download_threads: number
-}
-
-export interface MouseEffectConfig {
-  enabled: boolean
-  color: string
-  scale: number
-  opacity: number
-  speed: number
 }
 
 export interface LocaleConfig {
@@ -108,20 +100,12 @@ export interface GameInstance {
   version?: string
 }
 
-export interface InstanceCreateRequest {
-  name: string
-  version: string
-  gamePath?: string
-  memory?: { min: number; max: number }
-  javaArgs?: string
-}
-
 // ── 账户 ──────────────────────────────────────────────────────────
 
 export interface MinecraftAccount {
   id: string
   alias: string
-  type: 'microsoft' | 'offline'
+  type: 'microsoft' | 'offline' | 'authlib'
   email: string
   uuid: string
   isCurrent?: boolean

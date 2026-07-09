@@ -11,17 +11,17 @@
         </div>
         <div class="setting-control">
           <button
-            :class="['toggle-switch', { active: localSettings.javaAuto }]"
+            :class="['toggle-switch', { active: localSettings.java_auto }]"
             @click="handleJavaAutoToggle"
             role="switch"
-            :aria-checked="localSettings.javaAuto"
+            :aria-checked="localSettings.java_auto"
           >
             <span class="toggle-knob"></span>
           </button>
         </div>
       </div>
 
-      <div v-if="!localSettings.javaAuto" class="setting-item">
+      <div v-if="!localSettings.java_auto" class="setting-item">
         <div class="setting-info">
           <div class="setting-label">{{ t('settings.javaPath') }}</div>
           <div class="setting-desc">{{ t('settings.javaPathDesc') }}</div>
@@ -39,14 +39,14 @@
                     v-for="java in javaList"
                     :key="java.path"
                     class="select-option"
-                    :class="{ active: localSettings.javaPath === java.path }"
+                    :class="{ active: localSettings.java_path === java.path }"
                     @click="selectJava(java)"
                   >
                     <div class="option-content">
                       <span class="option-label">Java {{ java.major_version }} ({{ java.java_type }})</span>
                       <span class="option-desc">{{ java.version }} - {{ java.arch }}</span>
                     </div>
-                    <UiIcon v-if="localSettings.javaPath === java.path" name="check" :size="14" class="check-icon" />
+                    <UiIcon v-if="localSettings.java_path === java.path" name="check" :size="14" class="check-icon" />
                   </div>
                 </div>
               </transition>
@@ -68,24 +68,24 @@
         </div>
         <div class="setting-control">
           <button
-            :class="['toggle-switch', { active: localSettings.memoryAuto }]"
+            :class="['toggle-switch', { active: localSettings.memory_auto }]"
             @click="handleMemoryAutoToggle"
             role="switch"
-            :aria-checked="localSettings.memoryAuto"
+            :aria-checked="localSettings.memory_auto"
           >
             <span class="toggle-knob"></span>
           </button>
         </div>
       </div>
 
-      <div v-if="!localSettings.memoryAuto" class="memory-manual-section">
+      <div v-if="!localSettings.memory_auto" class="memory-manual-section">
         <div class="setting-item">
           <div class="setting-info">
             <div class="setting-label">{{ t('settings.memorySize') }}</div>
             <div class="setting-desc">{{ t('settings.memorySizeDesc') }}</div>
           </div>
           <div class="setting-control">
-            <span class="memory-value">{{ formatMemory(localSettings.memorySize) }}</span>
+            <span class="memory-value">{{ formatMemory(localSettings.memory_size) }}</span>
           </div>
         </div>
 
@@ -105,11 +105,11 @@
           <div class="slider-wrapper">
             <input
               type="range"
-              v-model.number="localSettings.memorySize"
+              v-model.number="localSettings.memory_size"
               min="1024"
               :max="maxMemory"
               step="256"
-              @change="saveConfig"
+              @change="debouncedSaveConfig"
               class="slider-input"
             />
           </div>
@@ -123,7 +123,7 @@
             <div class="memory-stat-item">
               <span class="stat-dot memory-game-dot"></span>
               <span class="stat-label">{{ t('settings.memoryAllocated') }}:</span>
-              <span class="stat-value highlight">{{ formatMemory(localSettings.memorySize) }}</span>
+              <span class="stat-value highlight">{{ formatMemory(localSettings.memory_size) }}</span>
             </div>
             <div class="memory-stat-item">
               <span class="stat-dot memory-remaining-dot"></span>
@@ -160,7 +160,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { useClickOutside } from '@/composables/useClickOutside'
@@ -175,14 +175,6 @@ interface JavaInfo {
   arch: string
 }
 
-interface GameSettings {
-  javaAuto: boolean
-  javaPath: string
-  memoryAuto: boolean
-  memorySize: number
-  fullscreen: boolean
-}
-
 interface SystemMemoryInfo {
   totalMb: number
   usedMb: number
@@ -190,22 +182,30 @@ interface SystemMemoryInfo {
   percentUsed: number
 }
 
+interface GameSettings {
+  java_auto?: boolean
+  java_path?: string
+  memory_auto?: boolean
+  memory_size?: number
+  fullscreen?: boolean
+}
+
 const props = defineProps<{
-  settings: any
+  settings: GameSettings
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:settings', value: any): void
+  (e: 'update:settings', value: GameSettings): void
 }>()
 
 const { t } = useI18n()
 const message = useGlassMessage()
 
 const localSettings = ref<GameSettings>({
-  javaAuto: true,
-  javaPath: '',
-  memoryAuto: true,
-  memorySize: 4096,
+  java_auto: true,
+  java_path: '',
+  memory_auto: true,
+  memory_size: 4096,
   fullscreen: false
 })
 
@@ -223,23 +223,23 @@ const javaSelectRef = ref<HTMLElement | null>(null)
 watch(() => props.settings, (newSettings) => {
   if (newSettings) {
     localSettings.value = {
-      javaAuto: newSettings.javaAuto ?? newSettings.java_auto ?? true,
-      javaPath: newSettings.javaPath ?? newSettings.java_path ?? '',
-      memoryAuto: newSettings.memoryAuto ?? newSettings.memory_auto ?? true,
-      memorySize: newSettings.memorySize ?? newSettings.memory_size ?? 4096,
+      java_auto: newSettings.java_auto ?? true,
+      java_path: newSettings.java_path ?? '',
+      memory_auto: newSettings.memory_auto ?? true,
+      memory_size: newSettings.memory_size ?? 4096,
       fullscreen: newSettings.fullscreen ?? false
     }
   }
 }, { immediate: true, deep: true })
 
 const javaAutoDesc = computed(() => {
-  return localSettings.value.javaAuto
+  return localSettings.value.java_auto
     ? t('settings.javaSelectionAutoDesc')
     : t('settings.javaSelectionManualDesc')
 })
 
 const memoryAutoDesc = computed(() => {
-  return localSettings.value.memoryAuto
+  return localSettings.value.memory_auto
     ? t('settings.memoryAllocationAutoDesc')
     : t('settings.memoryAllocationManualDesc')
 })
@@ -254,18 +254,18 @@ const usedPercent = computed(() => {
 })
 
 const gamePercent = computed(() => {
-  return (localSettings.value.memorySize / systemMemory.value.totalMb) * 100
+  return (localSettings.value.memory_size / systemMemory.value.totalMb) * 100
 })
 
 const remainingMemory = computed(() => {
-  return systemMemory.value.totalMb - systemMemory.value.usedMb - localSettings.value.memorySize
+  return systemMemory.value.totalMb - systemMemory.value.usedMb - localSettings.value.memory_size
 })
 
 const selectedJavaLabel = computed(() => {
-  if (!localSettings.value.javaPath) return ''
-  const java = javaList.value.find(j => j.path === localSettings.value.javaPath)
-  if (java) return `Java ${java.major_version} (${java.java_type})`
-  return localSettings.value.javaPath
+  if (!localSettings.value.java_path) return ''
+  const java = javaList.value.find(j => j.path === localSettings.value.java_path)
+  if (!java) return localSettings.value.java_path
+  return `Java ${java.major_version} (${java.java_type})`
 })
 
 const formatMemory = (mb: number): string => {
@@ -290,10 +290,10 @@ const loadGameConfig = async () => {
     if (result.success && result.data) {
       const data = result.data
       localSettings.value = {
-        javaAuto: data.java_auto ?? true,
-        javaPath: data.java_path ?? '',
-        memoryAuto: data.memory_auto ?? true,
-        memorySize: data.memory_size ?? 4096,
+        java_auto: data.java_auto ?? true,
+        java_path: data.java_path ?? '',
+        memory_auto: data.memory_auto ?? true,
+        memory_size: data.memory_size ?? 4096,
         fullscreen: data.fullscreen ?? false
       }
       emit('update:settings', { ...localSettings.value })
@@ -306,10 +306,10 @@ const loadGameConfig = async () => {
 const saveConfig = async () => {
   try {
     const config = {
-      java_auto: localSettings.value.javaAuto,
-      java_path: localSettings.value.javaPath,
-      memory_auto: localSettings.value.memoryAuto,
-      memory_size: localSettings.value.memorySize,
+      java_auto: localSettings.value.java_auto,
+      java_path: localSettings.value.java_path,
+      memory_auto: localSettings.value.memory_auto,
+      memory_size: localSettings.value.memory_size,
       fullscreen: localSettings.value.fullscreen
     }
     const result = await backend.config.set('game', config)
@@ -323,18 +323,28 @@ const saveConfig = async () => {
   }
 }
 
+/** 防抖保存：拖动滑块时延迟保存，避免高频请求 */
+let saveTimer: ReturnType<typeof setTimeout> | null = null
+
+function debouncedSaveConfig(delay = 300) {
+  if (saveTimer) clearTimeout(saveTimer)
+  saveTimer = setTimeout(() => {
+    saveConfig()
+  }, delay)
+}
+
 const handleJavaAutoToggle = () => {
-  localSettings.value.javaAuto = !localSettings.value.javaAuto
-  if (localSettings.value.javaAuto) {
-    localSettings.value.javaPath = ''
+  localSettings.value.java_auto = !localSettings.value.java_auto
+  if (localSettings.value.java_auto) {
+    localSettings.value.java_path = ''
   }
   saveConfig()
 }
 
 const handleMemoryAutoToggle = () => {
-  localSettings.value.memoryAuto = !localSettings.value.memoryAuto
-  if (localSettings.value.memoryAuto) {
-    localSettings.value.memorySize = 4096
+  localSettings.value.memory_auto = !localSettings.value.memory_auto
+  if (localSettings.value.memory_auto) {
+    localSettings.value.memory_size = 4096
   }
   saveConfig()
 }
@@ -349,7 +359,7 @@ const toggleJavaOpen = () => {
 }
 
 const selectJava = (java: JavaInfo) => {
-  localSettings.value.javaPath = java.path
+  localSettings.value.java_path = java.path
   isJavaOpen.value = false
   saveConfig()
 }
@@ -358,7 +368,7 @@ const browseJava = async () => {
   try {
     const result = await backend.command('select_java')
     if (result.success && result.data?.path) {
-      localSettings.value.javaPath = result.data.path
+      localSettings.value.java_path = result.data.path
       saveConfig()
       message.success(t('common.success'))
     }
@@ -372,6 +382,10 @@ useClickOutside(javaSelectRef, () => { isJavaOpen.value = false })
 onMounted(() => {
   loadJavaList()
   loadGameConfig()
+})
+
+onUnmounted(() => {
+  if (saveTimer) clearTimeout(saveTimer)
 })
 </script>
 

@@ -1,13 +1,13 @@
 <template>
   <div class="mods-page">
-    <!-- 顶部搜索栏 -->
+    <!-- 顶部操作栏 -->
     <div class="mods-toolbar">
       <div class="search-bar">
         <UiIcon name="search" :size="16" class="search-icon" />
         <input
           v-model="searchQuery"
           type="text"
-          :placeholder="t('versions.mods.searchPlaceholder')"
+          :placeholder="t('mods.searchPlaceholder')"
           class="search-input"
         />
         <button
@@ -18,69 +18,88 @@
           <UiIcon name="close" :size="14" />
         </button>
       </div>
-      <button class="btn-add-mod" @click="addMod">
-        <UiIcon name="add" :size="16" />
-        {{ t('versions.mods.addMod') }}
-      </button>
+      <n-select
+        v-model:value="filterLoader"
+        :options="loaderFilterOptions"
+        :placeholder="t('mods.filterLoader')"
+        size="small"
+        class="loader-filter"
+        :consistent-menu-width="false"
+      />
+      <n-button type="primary" size="small" @click="handleAddMod">
+        <template #icon>
+          <UiIcon name="add" :size="16" />
+        </template>
+        {{ t('mods.add') }}
+      </n-button>
+      <n-button size="small" @click="handleOpenModsFolder">
+        <template #icon>
+          <UiIcon name="folder" :size="16" />
+        </template>
+        {{ t('mods.openFolder') }}
+      </n-button>
+      <n-button type="info" size="small" @click="handleOnlineSearch">
+        <template #icon>
+          <UiIcon name="cloud-download" :size="16" />
+        </template>
+        {{ t('mods.onlineSearch') }}
+      </n-button>
     </div>
 
     <!-- 加载中 -->
     <div v-if="loading" class="loading-state">
-      <UiIcon name="spinner" class="spin" :size="24" />
+      <n-spin size="medium" />
       <p>{{ t('common.loading') }}</p>
     </div>
 
     <!-- 空状态 -->
     <div v-else-if="filteredMods.length === 0" class="empty-state">
       <UiIcon name="cube" :size="48" class="empty-icon" />
-      <p class="empty-text">{{ t('versions.mods.noMods') }}</p>
-      <button class="btn-primary" @click="addMod">
-        <UiIcon name="add" :size="16" />
-        {{ t('versions.mods.addMod') }}
-      </button>
+      <p class="empty-text">{{ t('mods.empty') }}</p>
     </div>
 
     <!-- 模组列表 -->
-    <div v-else class="mods-list" ref="listRef">
+    <div v-else class="mods-list">
       <div
         v-for="mod in filteredMods"
-        :key="mod.id"
+        :key="mod.filename"
         class="mod-item"
-        @click="showModDetails(mod)"
+        :style="{ opacity: mod.enabled ? 1 : 0.5 }"
       >
         <div class="mod-icon">
-          <img v-if="mod.icon" :src="mod.icon" :alt="mod.name" />
-          <UiIcon v-else name="cube" :size="20" />
+          <UiIcon name="cube" :size="20" />
         </div>
 
         <div class="mod-info">
           <div class="mod-name">{{ mod.name }}</div>
-          <div class="mod-desc" :title="mod.description">{{ mod.description }}</div>
           <div class="mod-meta">
-            <span class="mod-version-tag">{{ mod.version }}</span>
-            <span class="mod-author">by {{ mod.author }}</span>
+            <span class="mod-version-tag">{{ mod.version || '--' }}</span>
+            <span class="mod-author" v-if="mod.author">by {{ mod.author }}</span>
+            <span :class="['loader-tag', 'loader-' + getLoaderClass(mod.loader_type)]">
+              {{ getLoaderLabel(mod.loader_type) }}
+            </span>
+            <span class="mod-game-version" v-if="mod.game_version">
+              MC {{ mod.game_version }}
+            </span>
           </div>
         </div>
 
         <div class="mod-actions">
-          <!-- 开关：非iOS风格，关闭态灰底白圆，开启态品牌底白圆 -->
-          <button
-            :class="['toggle-switch', { active: mod.enabled }]"
-            @click.stop="mod.enabled = !mod.enabled"
-            role="switch"
-            :aria-checked="mod.enabled"
+          <n-switch
+            :value="mod.enabled"
+            @update:value="(val: boolean) => handleToggle(mod, val)"
+            size="small"
+          />
+          <n-button
+            size="tiny"
+            type="error"
+            quaternary
+            @click="handleRemove(mod)"
           >
-            <span class="toggle-knob"></span>
-          </button>
-
-          <div class="mod-hover-actions">
-            <button class="mod-action-btn" :title="t('common.edit')" @click.stop="showModDetails(mod)">
-              <UiIcon name="settings" :size="14" />
-            </button>
-            <button class="mod-action-btn mod-action-delete" :title="t('common.delete')" @click.stop="removeMod(mod)">
+            <template #icon>
               <UiIcon name="trash" :size="14" />
-            </button>
-          </div>
+            </template>
+          </n-button>
         </div>
       </div>
     </div>
@@ -88,73 +107,175 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+import { NButton, NSwitch, NSpin, NSelect } from 'naive-ui'
 import { useGlassMessage } from '@/composables/useGlassMessage'
+import { getLoaderClass, getLoaderLabel } from '@/utils/loader'
+import backend from '@/api/client'
 
 interface Mod {
-  id: string
+  filename: string
   name: string
-  description: string
   version: string
   author: string
+  loader_type: string
+  game_version: string
   enabled: boolean
-  icon?: string
 }
 
 const { t } = useI18n()
 const message = useGlassMessage()
-const listRef = ref<HTMLElement | null>(null)
+const router = useRouter()
 const loading = ref(false)
 const searchQuery = ref('')
+const filterLoader = ref('all')
 
-const mods = ref<Mod[]>([
-  {
-    id: 'jei',
-    name: 'Just Enough Items',
-    description: '查看物品合成表和用途的基础模组。',
-    version: '11.6.0',
-    author: 'mezz',
-    enabled: true
-  },
-])
+const mods = ref<Mod[]>([])
 
+// 加载器筛选选项
+const loaderFilterOptions = [
+  { label: t('mods.allLoaders'), value: 'all' },
+  { label: 'Forge', value: 'Forge' },
+  { label: 'Fabric', value: 'Fabric' },
+  { label: 'NeoForge', value: 'NeoForge' },
+  { label: 'Quilt', value: 'Quilt' },
+  { label: 'OptiFine', value: 'OptiFine' },
+  { label: 'LiteLoader', value: 'LiteLoader' },
+  { label: t('loader.unknown'), value: '未知' },
+]
+
+// 获取当前游戏路径
+async function getCurrentGamePath(): Promise<string> {
+  try {
+    const res = await backend.config.get('game')
+    if (res.success && res.data) {
+      const paths = res.data.minecraft_paths || []
+      if (paths.length > 0) {
+        const first = paths[0]
+        return typeof first === 'string' ? first : first.path
+      }
+    }
+  } catch {}
+  return './.minecraft'
+}
+
+// 加载 Mod 列表
+async function loadMods() {
+  loading.value = true
+  try {
+    const gamePath = await getCurrentGamePath()
+    const result = await backend.command('get_mods', { game_path: gamePath })
+    if (result.success && result.data) {
+      mods.value = result.data
+    } else {
+      mods.value = []
+    }
+  } catch (e) {
+    console.error('加载 Mod 列表失败:', e)
+    mods.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+// 筛选
 const filteredMods = computed(() => {
-  if (!searchQuery.value) return mods.value
-  const query = searchQuery.value.toLowerCase()
-  return mods.value.filter(mod =>
-    mod.name.toLowerCase().includes(query) ||
-    mod.description.toLowerCase().includes(query)
-  )
+  let list = mods.value
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    list = list.filter(m => m.name.toLowerCase().includes(query))
+  }
+  if (filterLoader.value !== 'all') {
+    list = list.filter(m => m.loader_type === filterLoader.value)
+  }
+  return list
 })
 
-const addMod = () => {
-  message.info(t('versions.mods.addModPending'))
+// 启用/禁用 Mod
+async function handleToggle(mod: Mod, enabled: boolean) {
+  try {
+    const gamePath = await getCurrentGamePath()
+    const result = await backend.command('toggle_mod', {
+      game_path: gamePath,
+      filename: mod.filename,
+    })
+    if (result.success) {
+      mod.enabled = result.data?.enabled ?? enabled
+      message.success(mod.enabled ? t('mods.enabled') : t('mods.disabled'))
+    } else {
+      message.error(result.message || '操作失败')
+    }
+  } catch (e) {
+    console.error('切换 Mod 状态失败:', e)
+    message.error('操作失败')
+  }
 }
 
-const showModDetails = (mod: Mod) => {
-  message.info(t('versions.mods.viewDetails', { name: mod.name }))
+// 删除 Mod
+async function handleRemove(mod: Mod) {
+  try {
+    const gamePath = await getCurrentGamePath()
+    const result = await backend.command('remove_mod', {
+      game_path: gamePath,
+      filename: mod.filename,
+    })
+    if (result.success) {
+      mods.value = mods.value.filter(m => m.filename !== mod.filename)
+      message.success(t('mods.removed', { name: mod.name }))
+    } else {
+      message.error(result.message || '删除失败')
+    }
+  } catch (e) {
+    console.error('删除 Mod 失败:', e)
+    message.error('删除失败')
+  }
 }
 
-const removeMod = (mod: Mod) => {
-  message.info(t('versions.mods.removePending', { name: mod.name }))
+// 添加 Mod
+async function handleAddMod() {
+  try {
+    const fileRes = await backend.command('select_file')
+    if (!fileRes.success || !fileRes.data?.path) {
+      return
+    }
+    const gamePath = await getCurrentGamePath()
+    const result = await backend.command('add_mod', {
+      game_path: gamePath,
+      source_path: fileRes.data.path,
+    })
+    if (result.success) {
+      message.success(t('mods.added', { name: result.data?.filename || '' }))
+      await loadMods()
+    } else {
+      message.error(result.message || '添加失败')
+    }
+  } catch (e) {
+    console.error('添加 Mod 失败:', e)
+    message.error('添加失败')
+  }
+}
+
+// 打开 Mods 文件夹
+async function handleOpenModsFolder() {
+  try {
+    const gamePath = await getCurrentGamePath()
+    await backend.command('open_mods_folder', {
+      game_path: gamePath,
+    })
+  } catch (e) {
+    console.error('打开文件夹失败:', e)
+  }
+}
+
+// 在线搜索
+function handleOnlineSearch() {
+  router.push('/online-mods')
 }
 
 onMounted(() => {
-  nextTick(() => {
-    if (listRef.value) {
-      const items = listRef.value.children
-      Array.from(items).forEach((item, i) => {
-        (item as HTMLElement).style.opacity = '0'
-        ;(item as HTMLElement).style.transform = 'translateY(8px)'
-        setTimeout(() => {
-          (item as HTMLElement).style.transition = 'all 150ms ease-out'
-          ;(item as HTMLElement).style.opacity = '1'
-          ;(item as HTMLElement).style.transform = 'translateY(0)'
-        }, i * 30)
-      })
-    }
-  })
+  loadMods()
 })
 </script>
 
@@ -165,7 +286,7 @@ onMounted(() => {
   height: 100%;
 }
 
-/* 顶部搜索栏 */
+/* 顶部操作栏 */
 .mods-toolbar {
   display: flex;
   align-items: center;
@@ -186,11 +307,12 @@ onMounted(() => {
   left: 12px;
   color: var(--text-tertiary);
   pointer-events: none;
+  z-index: 1;
 }
 
 .search-input {
   width: 100%;
-  height: 36px;
+  height: 32px;
   padding: 0 36px 0 36px;
   border-radius: var(--r-sm);
   border: 1px solid var(--border);
@@ -231,47 +353,9 @@ onMounted(() => {
   background: var(--bg-hover);
 }
 
-.btn-add-mod {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: var(--r-sm);
-  border: none;
-  background: var(--primary);
-  color: var(--text-on-primary);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 150ms ease-out;
-}
-
-.btn-add-mod:hover {
-  background: var(--primary-hover);
-}
-
-.btn-add-mod:active {
-  transform: translateY(1px);
-}
-
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s-sm);
-  padding: 10px 20px;
-  border-radius: var(--r-sm);
-  border: none;
-  background: var(--primary);
-  color: var(--text-on-primary);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 150ms ease-out;
-}
-
-.btn-primary:hover {
-  background: var(--primary-hover);
+.loader-filter {
+  width: 120px;
+  flex-shrink: 0;
 }
 
 /* 列表 */
@@ -288,11 +372,10 @@ onMounted(() => {
 .mod-item {
   display: flex;
   align-items: center;
-  height: 64px;
-  padding: 0 12px;
+  min-height: 56px;
+  padding: 8px 12px;
   gap: 12px;
   border-radius: var(--r-sm);
-  cursor: pointer;
   transition: background 150ms ease-out;
 }
 
@@ -330,19 +413,14 @@ onMounted(() => {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .mod-name {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--text-primary);
   line-height: 1.3;
-}
-
-.mod-desc {
-  font-size: 12px;
-  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -351,8 +429,8 @@ onMounted(() => {
 .mod-meta {
   display: flex;
   align-items: center;
-  gap: var(--s-sm);
-  margin-top: 2px;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .mod-version-tag {
@@ -370,88 +448,37 @@ onMounted(() => {
   color: var(--text-tertiary);
 }
 
+.mod-game-version {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  padding: 0 4px;
+  border-radius: var(--r-xs);
+  background: var(--bg-base-alt);
+}
+
+/* 加载器标签 */
+.loader-tag {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: var(--r-xs);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.loader-forge { background: rgba(140, 130, 180, 0.15); color: #7a6eaa; }
+.loader-fabric { background: rgba(218, 190, 140, 0.15); color: #b8944a; }
+.loader-neoforge { background: rgba(140, 150, 200, 0.15); color: #6a7eb4; }
+.loader-quilt { background: rgba(140, 180, 160, 0.15); color: #5a9a72; }
+.loader-optifine { background: rgba(200, 180, 140, 0.15); color: #b8942a; }
+.loader-liteloader { background: rgba(160, 180, 200, 0.15); color: #5a7a9a; }
+.loader-unknown { background: var(--bg-base-alt); color: var(--text-secondary); }
+
 /* 操作区域 */
 .mod-actions {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
-}
-
-/* 开关：非iOS风格，32px宽20px高 */
-.toggle-switch {
-  position: relative;
-  width: 32px;
-  height: 20px;
-  border-radius: 16px;
-  border: none;
-  background: #D0D0D0;
-  cursor: pointer;
-  padding: 0;
-  transition: background 150ms ease-out;
-}
-
-[data-theme="dark"] .toggle-switch {
-  background: #4A4D55;
-}
-
-.toggle-switch.active {
-  background: var(--primary);
-}
-
-.toggle-knob {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #FFFFFF;
-  transition: transform 150ms ease-out;
-}
-
-[data-theme="dark"] .toggle-switch:not(.active) .toggle-knob {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.toggle-switch.active .toggle-knob {
-  transform: translateX(12px);
-}
-
-/* 悬停操作按钮 */
-.mod-hover-actions {
-  display: flex;
-  gap: 2px;
-  opacity: 0;
-  transition: opacity 150ms ease-out;
-}
-
-.mod-item:hover .mod-hover-actions {
-  opacity: 1;
-}
-
-.mod-action-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: var(--r-xs);
-  border: none;
-  background: transparent;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  transition: all 150ms ease-out;
-}
-
-.mod-action-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-}
-
-.mod-action-delete:hover {
-  color: var(--error);
-  background: var(--error-alpha);
 }
 
 /* 空状态 */
@@ -482,14 +509,5 @@ onMounted(() => {
   justify-content: center;
   gap: var(--s-md);
   color: var(--text-secondary);
-}
-
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
 </style>

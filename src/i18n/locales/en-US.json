@@ -53,6 +53,8 @@
     "refresh": "Refresh",
     "accountTypeOffline": "Offline",
     "accountTypeMicrosoft": "Microsoft",
+    "accountTypeAuthlib": "Authlib",
+    "authlibAccount": "Authlib External Auth",
     "login": {
       "title": "Microsoft Account Login",
       "step1": "Please visit the following link in your browser",
@@ -66,6 +68,11 @@
       "complete": "I've completed authorization",
       "success": "Login successful",
       "failed": "Login failed"
+    },
+    "clientId": {
+      "title": "Microsoft Login Not Configured",
+      "description": "Microsoft OAuth Client ID is required for online login. You need to apply for one from Azure.",
+      "fileHint": "Configure it in the .env or .env.dev file in the project root:"
     },
     "status": {
       "noGameDir": "Game directory not set",
@@ -84,7 +91,8 @@
       "accountSwitchFailed": "Failed to switch account",
       "emptyUsername": "Username cannot be empty",
       "duplicateUsername": "This username already exists",
-      "accountLoadFailed": "Failed to load accounts"
+      "accountLoadFailed": "Failed to load accounts",
+      "noGamePath": "Game path not found"
     }
   },
   "versions": {
@@ -141,6 +149,36 @@
       "protectedPath": "Default path cannot be deleted",
       "confirmDeletePath": "Are you sure you want to delete path \"{name}\"?",
       "defaultPathTip": "Default path cannot change location but can change name"
+    },
+    "detail": {
+      "overview": "Overview",
+      "mods": "Mods",
+      "settings": "Settings",
+      "saves": "Saves",
+      "versionInfo": "Version Info",
+      "quickActions": "Quick Actions",
+      "launch": "Launch",
+      "openFolder": "Open Folder",
+      "delete": "Delete",
+      "versionId": "Version ID",
+      "loader": "Loader",
+      "vanillaVersion": "Vanilla Version",
+      "status": "Status",
+      "available": "Available",
+      "broken": "Broken",
+      "isolated": "Version Isolation",
+      "isolatedDesc": "Use a separate game directory for this version",
+      "customMemory": "Custom Memory",
+      "customMemoryDesc": "Set memory size separately for this version",
+      "memorySize": "Memory Size",
+      "customJava": "Custom Java",
+      "customJavaDesc": "Specify a separate Java path for this version",
+      "javaPath": "Java Path",
+      "customJvmArgs": "Custom JVM Arguments",
+      "customJvmArgsDesc": "Additional JVM arguments appended to the launch command",
+      "customGameArgs": "Custom Game Arguments",
+      "customGameArgsDesc": "Additional arguments appended to the game process",
+      "placeholder": "Coming soon"
     },
     "mods": {
       "title": "Mod Management",
@@ -285,6 +323,7 @@
     "disabled": "Disabled",
     "error": "Error",
     "loading": "Loading",
+    "loaded": "Loaded",
     "unloaded": "Unloaded",
     "enable": "Enable",
     "disable": "Disable",
@@ -341,6 +380,8 @@
     "select": "Select",
     "languageRegion": "Language & Region",
     "languageDesc": "Choose interface display language",
+    "keyringStatus": "Keyring Status",
+    "clearKeyring": "Clear Keyring",
     "downloadSourceDesc": "Choose download source for game files",
     "downloadThreadsDesc": "Set number of simultaneous download threads",
     "memory": "Memory",
@@ -474,5 +515,74 @@
     "openNested": "Open Nested Modal",
     "nestedModal": "Nested Modal",
     "nestedModalDesc": "A normal modal nested inside fullscreen modal"
+  },
+  "loader": {
+    "fabric": "Fabric",
+    "forge": "Forge",
+    "neoforge": "NeoForge",
+    "optifine": "OptiFine",
+    "quilt": "Quilt",
+    "unknown": "Unknown"
+  },
+  "mods": {
+    "title": "Mod Management",
+    "empty": "No mods, click the button above to add",
+    "add": "Add Mod",
+    "openFolder": "Open Mods Folder",
+    "filterLoader": "Filter Loader",
+    "allLoaders": "All Loaders",
+    "searchPlaceholder": "Search mod name...",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "removed": "{name} removed",
+    "added": "{name} added",
+    "onlineSearch": "Online Search",
+    "search": "Search",
+    "noResults": "No mods found",
+    "install": "Install",
+    "downloads": "downloads"
+  },
+  "auth": {
+    "authlib": "Authlib Injector",
+    "serverUrl": "Server URL",
+    "email": "Email",
+    "password": "Password",
+    "addAuthlibAccount": "Add Authlib Account",
+    "presetServers": "Preset Servers",
+    "serverUrlRequired": "Server URL is required",
+    "emailRequired": "Email is required",
+    "passwordRequired": "Password is required",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password"
+  },
+  "task": {
+    "title": "Task Queue",
+    "empty": "No tasks",
+    "clearCompleted": "Clear completed",
+    "subtask": "Subtask",
+    "statusPending": "Pending",
+    "statusRunning": "Running",
+    "statusCompleted": "Completed",
+    "statusFailed": "Failed"
+  },
+  "password": {
+    "minLength": "Password must be at least 8 characters",
+    "mismatch": "Passwords do not match",
+    "success": "Master password set successfully",
+    "failed": "Setup failed"
+  },
+  "task": {
+    "subtask": {
+      "downloadJson": "Download version info",
+      "downloadAssets": "Download assets",
+      "checkFiles": "Check files"
+    }
+  },
+  "taskQueue": {
+    "title": "Task Center",
+    "empty": "No tasks",
+    "emptyHint": "Task progress will be shown here when installing game versions",
+    "currentStatus": "Current status: ",
+    "clearCompleted": "Clear completed ({count})"
   }
 }

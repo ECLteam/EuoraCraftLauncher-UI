@@ -53,10 +53,10 @@ onMounted(() => {
   updateAvatar()
 })
 
-watch(() => props.uuid, updateAvatar)
-watch(() => props.username, updateAvatar)
-watch(() => props.typeName, updateAvatar)
-watch(() => props.size, updateAvatar)
+watch(
+  [() => props.uuid, () => props.username, () => props.typeName, () => props.size],
+  updateAvatar
+)
 </script>
 
 <style scoped src="@/styles/SkinRenderer.css"></style>

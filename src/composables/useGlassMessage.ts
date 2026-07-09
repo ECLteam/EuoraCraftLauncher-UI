@@ -13,18 +13,31 @@ export function setMessageRef(ref: InstanceType<typeof GlassMessage> | null) {
 // 在组件中使用
 export function useGlassMessage() {
   return {
-    add: (options: MessageOptions) => messageRef.value?.add(options),
+    add: (options: MessageOptions) => {
+      if (!messageRef.value && import.meta.env.DEV) console.warn('[useGlassMessage] 组件未挂载，消息无法显示')
+      return messageRef.value?.add(options)
+    },
     remove: (id: string) => messageRef.value?.remove(id),
-    success: (content: string, duration?: number) => 
-      messageRef.value?.success(content, duration),
-    error: (content: string, duration?: number) => 
-      messageRef.value?.error(content, duration),
-    warning: (content: string, duration?: number) => 
-      messageRef.value?.warning(content, duration),
-    info: (content: string, duration?: number) => 
-      messageRef.value?.info(content, duration),
-    loading: (content: string, duration?: number) => 
-      messageRef.value?.loading(content, duration),
+    success: (content: string, duration?: number) => {
+      if (!messageRef.value && import.meta.env.DEV) console.warn('[useGlassMessage] 组件未挂载')
+      return messageRef.value?.success(content, duration)
+    },
+    error: (content: string, duration?: number) => {
+      if (!messageRef.value && import.meta.env.DEV) console.warn('[useGlassMessage] 组件未挂载')
+      return messageRef.value?.error(content, duration)
+    },
+    warning: (content: string, duration?: number) => {
+      if (!messageRef.value && import.meta.env.DEV) console.warn('[useGlassMessage] 组件未挂载')
+      return messageRef.value?.warning(content, duration)
+    },
+    info: (content: string, duration?: number) => {
+      if (!messageRef.value && import.meta.env.DEV) console.warn('[useGlassMessage] 组件未挂载')
+      return messageRef.value?.info(content, duration)
+    },
+    loading: (content: string, duration?: number) => {
+      if (!messageRef.value && import.meta.env.DEV) console.warn('[useGlassMessage] 组件未挂载')
+      return messageRef.value?.loading(content, duration)
+    },
     clear: () => messageRef.value?.clear()
   }
 }

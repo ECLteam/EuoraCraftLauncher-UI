@@ -20,14 +20,14 @@
                   v-for="option in downloadOptions"
                   :key="option.value"
                   class="select-option"
-                  :class="{ active: currentSettings.downloadSource === option.value }"
+                  :class="{ active: localSettings.mirror_source === option.value }"
                   @click="handleDownloadSourceChange(option.value)"
                 >
                   <div class="option-content">
                     <span class="option-label">{{ option.label }}</span>
                     <span class="option-desc">{{ option.desc }}</span>
                   </div>
-                  <UiIcon v-if="currentSettings.downloadSource === option.value" name="check" :size="14" class="check-icon" />
+                  <UiIcon v-if="localSettings.mirror_source === option.value" name="check" :size="14" class="check-icon" />
                 </div>
               </div>
             </transition>
@@ -44,14 +44,14 @@
           <div class="slider-group">
             <input
               type="range"
-              :value="currentSettings.downloadThreads"
+              :value="localSettings.download_threads"
               min="1"
               max="16"
               step="1"
               @change="handleThreadsChange"
               class="slider-input"
             />
-            <span class="slider-value">{{ currentSettings.downloadThreads }} {{ t('settings.threads') }}</span>
+            <span class="slider-value">{{ localSettings.download_threads }} {{ t('settings.threads') }}</span>
           </div>
         </div>
       </div>
@@ -60,28 +60,41 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { reactive, ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { useClickOutside } from '@/composables/useClickOutside'
 import UiIcon from '@/components/ui/Icon.vue'
 import backend from '@/api/client'
 
+interface DownloadSettings {
+  mirror_source?: string
+  download_threads?: number
+}
+
 const props = defineProps<{
-  settings: any
+  settings: DownloadSettings
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:settings', value: any): void
+  (e: 'update:settings', value: DownloadSettings): void
 }>()
 
 const { t } = useI18n()
 const message = useGlassMessage()
 
-const currentSettings = computed(() => ({
-  downloadSource: props.settings?.downloadSource || 'official',
-  downloadThreads: props.settings?.downloadThreads ?? 4
-}))
+const localSettings = reactive<DownloadSettings>({
+  mirror_source: props.settings.mirror_source || 'official',
+  download_threads: props.settings.download_threads ?? 4,
+})
+
+// 监听外部 props 变化，同步到 localSettings
+watch(() => props.settings, (newSettings) => {
+  if (newSettings) {
+    localSettings.mirror_source = newSettings.mirror_source || 'official'
+    localSettings.download_threads = newSettings.download_threads ?? 4
+  }
+}, { deep: true })
 
 const isOpen = ref(false)
 const selectRef = ref<HTMLElement | null>(null)
@@ -92,7 +105,7 @@ const downloadOptions = computed(() => [
 ])
 
 const selectedDownloadSource = computed(() =>
-  downloadOptions.value.find(o => o.value === currentSettings.value.downloadSource)
+  downloadOptions.value.find(o => o.value === localSettings.mirror_source)
 )
 
 const updateField = (field: string, value: any) => {
@@ -104,12 +117,13 @@ const toggleOpen = () => {
 }
 
 const handleDownloadSourceChange = async (value: 'official' | 'bmclapi') => {
-  updateField('downloadSource', value)
+  localSettings.mirror_source = value
+  updateField('mirror_source', value)
   isOpen.value = false
   try {
     await backend.config.set('download', {
       mirror_source: value,
-      download_threads: currentSettings.value.downloadThreads
+      download_threads: localSettings.download_threads
     })
   } catch (error) {
     message.error(t('common.error'))
@@ -118,10 +132,11 @@ const handleDownloadSourceChange = async (value: 'official' | 'bmclapi') => {
 
 const handleThreadsChange = async (e: Event) => {
   const val = parseInt((e.target as HTMLInputElement).value)
-  updateField('downloadThreads', val)
+  localSettings.download_threads = val
+  updateField('download_threads', val)
   try {
     await backend.config.set('download', {
-      mirror_source: currentSettings.value.downloadSource,
+      mirror_source: localSettings.mirror_source,
       download_threads: val
     })
   } catch (error) {

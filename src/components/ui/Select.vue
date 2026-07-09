@@ -53,8 +53,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import UiIcon from './Icon.vue'
-import UiInput from './Input.vue'
+import UiIcon from '@/components/ui/Icon.vue'
+import UiInput from '@/components/ui/Input.vue'
 
 export interface SelectOption {
   label?: string

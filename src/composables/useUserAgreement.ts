@@ -9,37 +9,13 @@ interface UserAgreementState {
 }
 
 const state = ref<UserAgreementState>({
-  accepted: false,
-  loading: true
+  accepted: true,
+  loading: false
 })
-
-export async function checkUserAgreement(): Promise<boolean> {
-  state.value.loading = true
-  try {
-    if (!(window as any).__TAURI__?.pytauri) {
-      state.value.accepted = true
-      return true
-    }
-
-    const result = await backend.command('user_agreement_get')
-    if (result?.success && result?.data?.accepted) {
-      state.value.accepted = true
-      return true
-    }
-
-    state.value.accepted = false
-    return false
-  } catch (e) {
-    console.warn('[UserAgreement] 后端查询失败:', e)
-    state.value.accepted = false
-    return false
-  } finally {
-    state.value.loading = false
-  }
-}
 
 export async function acceptUserAgreement(): Promise<boolean> {
   try {
+    state.value.loading = true
     if (!(window as any).__TAURI__?.pytauri) {
       state.value.accepted = true
       return true
@@ -54,6 +30,8 @@ export async function acceptUserAgreement(): Promise<boolean> {
   } catch (e) {
     console.error('[UserAgreement] 保存失败:', e)
     return false
+  } finally {
+    state.value.loading = false
   }
 }
 
@@ -74,11 +52,15 @@ export function useUserAgreement() {
   const isLoading = computed(() => state.value.loading)
   const agreementUrl = computed(() => USER_AGREEMENT_URL)
 
+  const markNotAccepted = () => {
+    state.value.accepted = false
+  }
+
   return {
     isAccepted,
     isLoading,
     agreementUrl,
-    checkUserAgreement,
+    markNotAccepted,
     acceptUserAgreement,
     rejectUserAgreement
   }

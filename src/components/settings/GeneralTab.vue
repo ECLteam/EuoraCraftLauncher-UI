@@ -35,7 +35,7 @@
             <div
               v-for="color in presetColors"
               :key="color.value"
-              :class="['color-dot', { active: currentSettings.primaryColor === color.value }]"
+              :class="['color-dot', { active: currentSettings.primary_color === color.value }]"
               :style="{ backgroundColor: color.value }"
               :title="color.name"
               @click="handleColorChange(color.value)"
@@ -43,7 +43,7 @@
             <div class="custom-color-wrapper">
               <input
                 type="color"
-                :value="currentSettings.primaryColor"
+                :value="currentSettings.primary_color"
                 @input="handleColorInput"
                 class="color-input-native"
               />
@@ -62,7 +62,7 @@
           <div class="bg-input-group">
             <input
               type="text"
-              :value="currentSettings.backgroundImage"
+              :value="currentSettings.background_image"
               @input="handleBgImageInput"
               :placeholder="t('settings.backgroundPlaceholder')"
               class="text-input"
@@ -102,15 +102,37 @@
           <div class="slider-group">
             <input
               type="range"
-              :value="currentSettings.blurAmount"
+              :value="currentSettings.blur_amount"
               min="0"
               max="20"
               step="1"
               @change="handleBlurChange"
               class="slider-input"
             />
-            <span class="slider-value">{{ currentSettings.blurAmount }}px</span>
+            <span class="slider-value">{{ currentSettings.blur_amount }}px</span>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 密钥环管理 -->
+    <div class="settings-section">
+      <div class="section-label">Keyring</div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">{{ t('settings.keyringStatus') }}</div>
+          <div class="setting-desc" v-if="keyringInfo">
+            Backend: {{ keyringInfo.type }} &middot; Secure: {{ keyringInfo.secure ? 'Yes' : 'No' }}
+          </div>
+          <div class="setting-desc text-muted" v-else>
+            Keyring not initialized
+          </div>
+        </div>
+        <div class="setting-control">
+          <button class="danger-btn" @click="handleClearKeyring" :disabled="clearing">
+            {{ clearing ? 'Clearing...' : t('settings.clearKeyring') }}
+          </button>
         </div>
       </div>
     </div>
@@ -187,17 +209,58 @@ import { useTopNav } from '@/composables/useTopNav'
 import UiIcon from '@/components/ui/Icon.vue'
 import backend from '@/api/client'
 
+interface GeneralSettings {
+  mode?: string
+  primary_color?: string
+  blur_amount?: number
+  background_image?: string
+  topNavEnabled?: boolean
+}
+
 const props = defineProps<{
-  settings: any
+  settings: GeneralSettings
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:settings', value: any): void
+  (e: 'update:settings', value: GeneralSettings): void
 }>()
 
 const { t, locale } = useI18n()
 const message = useGlassMessage()
 const currentLocale = computed(() => locale.value as LocaleCode)
+
+// Keyring
+const keyringInfo = ref<{ type: string; secure: boolean } | null>(null)
+const clearing = ref(false)
+
+const loadKeyringInfo = async () => {
+  try {
+    const result = await backend.command('get_keyring_info')
+    if (result.success && result.data?.initialized) {
+      keyringInfo.value = result.data
+    }
+  } catch {
+    // ignore
+  }
+}
+
+const handleClearKeyring = async () => {
+  clearing.value = true
+  try {
+    const result = await backend.command('clear_keyring')
+    if (result.success) {
+      message.success('Keyring cleared')
+      keyringInfo.value = null
+    } else {
+      message.warning(result.message || 'Failed')
+    }
+  } catch {
+    message.warning('Failed to clear keyring')
+  } finally {
+    clearing.value = false
+  }
+}
+
 const {
   setThemeMode,
   setPrimaryColor,
@@ -210,11 +273,9 @@ const { topNavEnabled, toggleTopNav } = useTopNav()
 
 const currentSettings = computed(() => ({
   mode: props.settings?.mode || 'system',
-  primaryColor: props.settings?.primaryColor || '#4A7FD9',
-  blurAmount: props.settings?.blurAmount ?? 6,
-  backgroundImage: props.settings?.backgroundImage || '',
-  downloadSource: props.settings?.downloadSource || 'official',
-  downloadThreads: props.settings?.downloadThreads ?? 4
+  primary_color: props.settings?.primary_color || '#4A7FD9',
+  blur_amount: props.settings?.blur_amount ?? 6,
+  background_image: props.settings?.background_image || '',
 }))
 
 const bgBrightness = ref(Math.round(backgroundOpacity.value * 100))
@@ -236,6 +297,32 @@ const updateField = (field: string, value: any) => {
   emit('update:settings', { ...props.settings, [field]: value })
 }
 
+/**
+ * 通用 UI 配置更新函数
+ * 统一处理 theme 配置的读取、合并与保存
+ */
+async function updateUiConfig(partialTheme: Partial<{
+  mode: string
+  primary_color: string
+  blur_amount: number
+}>) {
+  try {
+    const uiCfg = (await backend.config.get('ui')).data || {}
+    await backend.config.set('ui', {
+      ...uiCfg,
+      theme: {
+        ...uiCfg.theme,
+        mode: currentSettings.value.mode,
+        primary_color: currentSettings.value.primary_color,
+        blur_amount: currentSettings.value.blur_amount,
+        ...partialTheme,
+      }
+    })
+  } catch (error) {
+    message.error(t('common.error'))
+  }
+}
+
 const toggleLangOpen = () => {
   isLangOpen.value = !isLangOpen.value
 }
@@ -243,29 +330,13 @@ const toggleLangOpen = () => {
 const handleThemeChange = async (mode: ThemeMode) => {
   updateField('mode', mode)
   setThemeMode(mode)
-  try {
-    const uiCfg = (await backend.config.get('ui')).data || {}
-    await backend.config.set('ui', {
-      ...uiCfg,
-      theme: { ...uiCfg.theme, mode, primary_color: currentSettings.value.primaryColor, blur_amount: currentSettings.value.blurAmount }
-    })
-  } catch (error) {
-    message.error(t('common.error'))
-  }
+  await updateUiConfig({ mode })
 }
 
 const handleColorChange = async (color: string) => {
-  updateField('primaryColor', color)
+  updateField('primary_color', color)
   setPrimaryColor(color)
-  try {
-    const uiCfg = (await backend.config.get('ui')).data || {}
-    await backend.config.set('ui', {
-      ...uiCfg,
-      theme: { ...uiCfg.theme, mode: currentSettings.value.mode, primary_color: color, blur_amount: currentSettings.value.blurAmount }
-    })
-  } catch (error) {
-    message.error(t('common.error'))
-  }
+  await updateUiConfig({ primary_color: color })
 }
 
 const handleColorInput = (e: Event) => {
@@ -274,17 +345,9 @@ const handleColorInput = (e: Event) => {
 
 const handleBlurChange = async (e: Event) => {
   const val = parseInt((e.target as HTMLInputElement).value)
-  updateField('blurAmount', val)
+  updateField('blur_amount', val)
   setBlurAmount(val)
-  try {
-    const uiCfg = (await backend.config.get('ui')).data || {}
-    await backend.config.set('ui', {
-      ...uiCfg,
-      theme: { ...uiCfg.theme, mode: currentSettings.value.mode, primary_color: currentSettings.value.primaryColor, blur_amount: val }
-    })
-  } catch (error) {
-    message.error(t('common.error'))
-  }
+  await updateUiConfig({ blur_amount: val })
 }
 
 const handleBrightnessChange = async (e: Event) => {
@@ -307,7 +370,7 @@ const selectLocalImage = async () => {
   try {
     const result = await backend.command('select_image')
     if (result.success && result.data?.path) {
-      updateField('backgroundImage', result.data.path)
+      updateField('background_image', result.data.path)
       const uiCfg = (await backend.config.get('ui')).data || {}
       await backend.config.set('ui', { ...uiCfg, background: { ...(uiCfg.background || {}), type: 'custom', path: result.data.path } })
       const imgData = await backend.command('image_read_file', { path: result.data.path })
@@ -326,7 +389,7 @@ const selectLocalImage = async () => {
 let bgTimer: any = null
 const handleBgImageInput = (e: Event) => {
   const val = (e.target as HTMLInputElement).value
-  updateField('backgroundImage', val)
+  updateField('background_image', val)
   if (bgTimer) clearTimeout(bgTimer)
   bgTimer = setTimeout(async () => {
     if (!val) {
@@ -343,7 +406,7 @@ const handleBgImageInput = (e: Event) => {
           const localPath = result.data.path
           const uiCfg2 = (await backend.config.get('ui')).data || {}
           await backend.config.set('ui', { ...uiCfg2, background: { type: 'custom', path: localPath } })
-          updateField('backgroundImage', localPath)
+          updateField('background_image', localPath)
           const imgData = await backend.command('image_read_file', { path: localPath })
           if (imgData.success && imgData.data?.base64) {
             setBackgroundImage(imgData.data.base64, localPath)
@@ -375,7 +438,7 @@ const handleLanguageChange = async (langCode: LocaleCode) => {
 useClickOutside(langSelectRef, () => { isLangOpen.value = false })
 
 onMounted(() => {
-  // 鼠标特效配置已迁移到插件系统
+  loadKeyringInfo()
 })
 
 onUnmounted(() => {
@@ -801,5 +864,36 @@ onUnmounted(() => {
 .select-dropdown-leave-to {
   opacity: 0;
   transform: translateY(-4px);
+}
+
+/* 密钥环 */
+.text-muted {
+  color: var(--text-tertiary);
+}
+
+.danger-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 20px;
+  border-radius: 6px;
+  border: 1px solid var(--color-error);
+  background: transparent;
+  color: var(--color-error);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 150ms ease-out;
+  white-space: nowrap;
+}
+
+.danger-btn:hover:not(:disabled) {
+  background: var(--color-error);
+  color: #fff;
+}
+
+.danger-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

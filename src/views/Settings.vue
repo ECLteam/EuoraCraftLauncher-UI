@@ -67,18 +67,16 @@ const getInitialGamePath = () => {
 
 const settings = reactive({
   mode: themeMode.value,
-  primaryColor: primaryColor.value,
-  blurAmount: blurAmount.value,
-  backgroundImage: backgroundImagePath.value,
-  javaAutoSelect: injectedGameConfig?.value?.java_auto ?? true,
-  javaPath: injectedGameConfig?.value?.java_path ?? '',
-  memory: injectedGameConfig?.value?.memory_size ?? 4096,
-  gamePath: getInitialGamePath(),
-  downloadSource: injectedDownloadConfig?.value?.mirror_source ?? 'official',
-  downloadThreads: injectedDownloadConfig?.value?.download_threads ?? 4,
+  primary_color: primaryColor.value,
+  blur_amount: blurAmount.value,
+  background_image: backgroundImagePath.value,
+  java_auto: injectedGameConfig?.value?.java_auto ?? true,
+  java_path: injectedGameConfig?.value?.java_path ?? '',
+  memory_size: injectedGameConfig?.value?.memory_size ?? 4096,
+  game_path: getInitialGamePath(),
+  mirror_source: injectedDownloadConfig?.value?.mirror_source ?? 'official',
+  download_threads: injectedDownloadConfig?.value?.download_threads ?? 4,
   fullscreen: injectedGameConfig?.value?.fullscreen ?? false,
-  windowWidth: 1280,
-  windowHeight: 720,
 })
 
 const handleUpdateSettings = (updates: any) => {

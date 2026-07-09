@@ -4,7 +4,7 @@
     :class="{
       collapsed: isCollapsed,
       expanded: isExpanded,
-      'modal-hidden': isFullscreenModalVisible || !agreementAccepted || topNavEnabled
+      'modal-hidden': !agreementAccepted || topNavEnabled
     }"
   >
     <!-- 折叠切换按钮 -->
@@ -121,12 +121,11 @@ import { ref, watch, nextTick, onMounted, computed, inject, readonly, type Ref }
 import { useRoute, useRouter } from 'vue-router'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { useI18n } from 'vue-i18n'
-import { useFullscreenModal } from '@/composables/useFullscreenModal'
 import { useTopNav } from '@/composables/useTopNav'
 import { useTheme } from '@/composables/useTheme'
 import UiIcon from '@/components/ui/Icon.vue'
 import { pluginRoutes } from '@/composables/usePluginBridge'
-import '@/styles/SideBar.css'
+import { MENU_ITEMS } from '@/constants/menu'
 
 defineOptions({ inheritAttrs: false })
 
@@ -141,9 +140,7 @@ const route = useRoute()
 const router = useRouter()
 const message = useGlassMessage()
 const { t } = useI18n()
-const fullscreenModal = useFullscreenModal()
 const { topNavEnabled } = useTopNav()
-const isFullscreenModalVisible = computed(() => fullscreenModal.isVisible.value)
 
 const indicatorRef = ref<HTMLElement | null>(null)
 const activeBgRef = ref<HTMLElement | null>(null)
@@ -152,12 +149,11 @@ const agreementAccepted = inject('agreementAccepted', computed(() => true))
 const injectedDevMode = inject<Readonly<Ref<boolean>>>('devMode')
 const isDevMode = computed(() => injectedDevMode?.value ?? false)
 
-const menuItems = computed(() => [
-  { path: '/', label: t('sidebar.game'), iconName: 'game' },
-  { path: '/versions', label: t('sidebar.versions'), iconName: 'cube' },
-  { path: '/plugins', label: t('sidebar.plugins'), iconName: 'puzzle' },
-  { path: '/settings', label: t('sidebar.settings'), iconName: 'settings' }
-])
+const menuItems = computed(() => MENU_ITEMS.map(item => ({
+  path: item.path,
+  label: t(item.labelKey),
+  iconName: item.iconName,
+})))
 
 // 子菜单定义
 const settingsSubItems = computed(() => [
@@ -169,7 +165,6 @@ const settingsSubItems = computed(() => [
 const versionsSubItems = computed(() => [
   { path: '/versions/manage', label: t('versions.manageTab'), iconName: 'settings' },
   { path: '/versions/versions', label: t('versions.versions'), iconName: 'cube' },
-  { path: '/versions/mods', label: t('versions.modsTab'), iconName: 'cube' },
 ])
 
 const subItemsMap = computed(() => ({
@@ -207,7 +202,7 @@ const handleItemClick = (item: { path: string }) => {
   if (itemHasSubItems(item.path)) {
     toggleMenu(item.path)
   }
-  router.push(item.path)
+  router.push(item.path).catch(() => {})
 }
 
 const toggleCollapse = () => {
@@ -367,4 +362,6 @@ onMounted(() => {
   }
 })
 </script>
+
+<style scoped src="@/styles/SideBar.css"></style>
 

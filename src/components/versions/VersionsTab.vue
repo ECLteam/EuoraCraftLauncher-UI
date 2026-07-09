@@ -104,7 +104,6 @@
       v-model:visible="showInstallDialog"
       :title="t('versions.download.installTitle')"
       show-backdrop
-      fullscreen
     >
       <div class="form-group">
         <label>{{ t('versions.download.mcVersion') }} <span class="required">*</span></label>
@@ -165,21 +164,6 @@
         </UiButton>
       </template>
     </ContentModal>
-
-    <ContentModal
-      v-model:visible="showProgressDialog"
-      :title="t('versions.download.installing')"
-      :show-footer="false"
-      :closable="false"
-    >
-      <div class="progress-body">
-        <div class="progress-ring">
-          <UiIcon name="spinner" class="spin" style="font-size: 48px;" />
-        </div>
-        <p class="progress-text">{{ progressMessage }}</p>
-        <p class="progress-subtext">{{ installForm.mcVersion }} {{ installForm.loader ? `(${getLoaderLabel(installForm.loader)})` : '' }}</p>
-      </div>
-    </ContentModal>
   </div>
 </template>
 
@@ -194,6 +178,7 @@ import UiSelect from '@/components/ui/Select.vue'
 import ContentModal from '@/components/modals/ContentModal.vue'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { useAutoRefreshCache, CACHE_KEYS, CACHE_GROUPS } from '@/cache/composable'
+import { globalTaskQueue } from '@/composables/useTaskQueue'
 import type { MinecraftVersion } from '@/types/api'
 
 const { t } = useI18n()
@@ -223,37 +208,89 @@ const {
 )
 
 const fabricVersions = ref<string[]>([])
+const forgeVersions = ref<string[]>([])
+const neoforgeVersions = ref<string[]>([])
+const quiltVersions = ref<string[]>([])
 const loaderVersionsLoading = ref(false)
 
-async function loadFabricVersions(gameVersion: string) {
+/** 请求 ID，用于防止加载器版本请求的竞态条件 */
+let loaderRequestId = 0
+
+/** 加载器命令映射 */
+const LOADER_COMMAND_MAP: Record<string, string> = {
+  fabric: 'fabric_versions',
+  forge: 'forge_versions',
+  neoforge: 'neoforge_versions',
+  quilt: 'quilt_versions',
+}
+
+/** 设置指定加载器的版本列表 */
+function setLoaderVersions(loaderType: string, versions: string[]) {
+  switch (loaderType) {
+    case 'fabric': fabricVersions.value = versions; break
+    case 'forge': forgeVersions.value = versions; break
+    case 'neoforge': neoforgeVersions.value = versions; break
+    case 'quilt': quiltVersions.value = versions; break
+  }
+}
+
+/**
+ * 通用加载器版本加载函数
+ * 使用请求 ID 防止竞态条件：当新请求发起时，旧请求的响应将被忽略
+ */
+async function loadLoaderVersions(loaderType: string, gameVersion: string) {
   if (!gameVersion) {
-    fabricVersions.value = []
+    setLoaderVersions(loaderType, [])
     return
   }
+
+  const command = LOADER_COMMAND_MAP[loaderType]
+  if (!command) return
+
+  const requestId = ++loaderRequestId
   loaderVersionsLoading.value = true
   try {
-    const res = await backend.command('fabric_versions', { game_version: gameVersion })
-    console.log('[FabricVersions]', gameVersion, 'success:', res.success, 'data keys:', res.data ? Object.keys(res.data) : null)
+    const res = await backend.command(command, { game_version: gameVersion })
+    // 如果请求 ID 不匹配，说明有更新的请求已发起，忽略此响应
+    if (requestId !== loaderRequestId) return
+    console.log(`[${loaderType}Versions]`, gameVersion, 'success:', res.success, 'data keys:', res.data ? Object.keys(res.data) : null)
+
     if (res.success && res.data) {
       const list = Array.isArray(res.data) ? res.data : (res.data.all || [])
-      console.log('[FabricVersions] list length:', list.length, 'first item:', list[0])
       const mapped = list.map((v: any) => v.LoaderVersion || v.version || String(v)).filter(Boolean)
-      console.log('[FabricVersions] mapped:', mapped.slice(0, 5))
-      fabricVersions.value = mapped.slice(0, 20)
+      setLoaderVersions(loaderType, mapped.slice(0, 20))
       if (mapped.length === 0) {
-        glassMessage.warning(t('versions.download.noLoaderVersions', { loader: 'Fabric' }))
+        const loaderName = loaderType.charAt(0).toUpperCase() + loaderType.slice(1)
+        glassMessage.warning(t('versions.download.noLoaderVersions', { loader: loaderName }))
       }
     } else {
-      glassMessage.error(res.message || t('versions.download.fetchFabricFailed'))
-      fabricVersions.value = []
+      setLoaderVersions(loaderType, [])
     }
   } catch (e: any) {
-    console.error(t('versions.download.fetchFabricFailed'), e)
-    glassMessage.error(t('versions.download.fetchFabricFailed'))
-    fabricVersions.value = []
+    if (requestId !== loaderRequestId) return
+    console.error(`获取 ${loaderType} 版本失败:`, e)
+    setLoaderVersions(loaderType, [])
   } finally {
-    loaderVersionsLoading.value = false
+    if (requestId === loaderRequestId) {
+      loaderVersionsLoading.value = false
+    }
   }
+}
+
+async function loadFabricVersions(gameVersion: string) {
+  await loadLoaderVersions('fabric', gameVersion)
+}
+
+async function loadForgeVersions(gameVersion: string) {
+  await loadLoaderVersions('forge', gameVersion)
+}
+
+async function loadNeoforgeVersions(gameVersion: string) {
+  await loadLoaderVersions('neoforge', gameVersion)
+}
+
+async function loadQuiltVersions(gameVersion: string) {
+  await loadLoaderVersions('quilt', gameVersion)
 }
 
 const scrollContainerRef = ref<HTMLElement | null>(null)
@@ -262,9 +299,7 @@ const itemHeight = 56
 const bufferSize = 5
 
 const showInstallDialog = ref(false)
-const showProgressDialog = ref(false)
 const isInstalling = ref(false)
-const progressMessage = ref('准备安装...')
 
 const installForm = ref({
   mcVersion: '',
@@ -358,14 +393,22 @@ async function fetchVersions() {
 }
 
 async function fetchLoaderVersions() {
-  if (installForm.value.loader === 'fabric' && installForm.value.mcVersion) {
-    await loadFabricVersions(installForm.value.mcVersion)
+  const mc = installForm.value.mcVersion
+  if (!mc) return
+  switch (installForm.value.loader) {
+    case 'fabric': await loadFabricVersions(mc); break
+    case 'forge': await loadForgeVersions(mc); break
+    case 'neoforge': await loadNeoforgeVersions(mc); break
+    case 'quilt': await loadQuiltVersions(mc); break
   }
 }
 
 function getLoaderVersionOptions(loader: string) {
   switch (loader) {
     case 'fabric': return (fabricVersions.value || []).map(v => ({ label: v, value: v }))
+    case 'forge': return (forgeVersions.value || []).map(v => ({ label: v, value: v }))
+    case 'neoforge': return (neoforgeVersions.value || []).map(v => ({ label: v, value: v }))
+    case 'quilt': return (quiltVersions.value || []).map(v => ({ label: v, value: v }))
     default: return []
   }
 }
@@ -431,6 +474,9 @@ function selectLoader(loader: string) {
   installForm.value.loader = loader
   installForm.value.loaderVersion = ''
   fabricVersions.value = []
+  forgeVersions.value = []
+  neoforgeVersions.value = []
+  quiltVersions.value = []
   if (loader !== 'vanilla') {
     fetchLoaderVersions()
   }
@@ -440,8 +486,6 @@ function selectLoader(loader: string) {
 watch(() => installForm.value.loaderVersion, () => {
   installForm.value.versionName = ''
 })
-
-let unlistenInstallProgress: (() => void) | null = null
 
 async function doInstall() {
   const versionId = installForm.value.mcVersion
@@ -469,38 +513,29 @@ async function doInstall() {
   }
 
   showInstallDialog.value = false
-  showProgressDialog.value = true
-  progressMessage.value = t('versions.download.preparingInstall')
   downloading.value = versionId
 
-  // 监听安装进度（先清理旧的监听器，避免泄漏）
-  if (unlistenInstallProgress) unlistenInstallProgress()
-  unlistenInstallProgress = backend.on('game:install_progress', (payload: any) => {
-    if (payload.phase === 'done') {
-      progressMessage.value = t('versions.download.installComplete')
-      glassMessage.success(t('versions.download.installSuccess', { version: versionId }))
-      showProgressDialog.value = false
-      downloading.value = null
-    } else if (payload.phase === 'error') {
-      progressMessage.value = payload.message || t('versions.download.installFailed')
-      glassMessage.error(progressMessage.value)
-      showProgressDialog.value = false
-      downloading.value = null
-    } else {
-      progressMessage.value = payload.message || `${payload.done}/${payload.total}`
-    }
+  // 添加到任务队列
+  const taskId = globalTaskQueue.addTask({
+    type: 'install',
+    name: versionName,
+    versionId,
+    loaderType: loader,
   })
+  // 不自动打开面板，用户通过顶部栏按钮查看
 
   try {
-    const params: { version_id: string; version_name?: string; loader_type?: string; fabric_version?: string; game_path?: string } = {
+    const params: Record<string, any> = {
       version_id: versionId,
       loader_type: loader,
+      task_id: taskId,
     }
     if (versionName !== versionId) {
       params.version_name = versionName
     }
-    if (loader === 'fabric' && loaderVersion) {
-      params.fabric_version = loaderVersion
+    if (loaderVersion) {
+      const versionKey = `${loader}_version`
+      params[versionKey] = loaderVersion
     }
     if (gamePath) {
       params.game_path = gamePath
@@ -509,15 +544,22 @@ async function doInstall() {
     const result = await backend.command('install_version', params)
 
     if (!result.success) {
-      progressMessage.value = result.message || t('versions.download.installFailed')
-      glassMessage.error(progressMessage.value)
-      showProgressDialog.value = false
-      downloading.value = null
+      globalTaskQueue.updateTask(taskId, {
+        status: 'error',
+        message: result.message || t('versions.download.installFailed'),
+      })
+      glassMessage.error(result.message || t('versions.download.installFailed'))
+    } else {
+      glassMessage.success(t('versions.download.installSuccess', { version: versionId }))
+      saveLastInstallPath(gamePath)
     }
   } catch (e: any) {
-    progressMessage.value = e.message || t('versions.download.installFailed')
-    glassMessage.error(progressMessage.value)
-    showProgressDialog.value = false
+    globalTaskQueue.updateTask(taskId, {
+      status: 'error',
+      message: e.message || t('versions.download.installFailed'),
+    })
+    glassMessage.error(e.message || t('versions.download.installFailed'))
+  } finally {
     downloading.value = null
   }
 }
@@ -561,16 +603,22 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
+let scrollRafId: number | null = null
+
 function handleScroll() {
-  if (!scrollContainerRef.value || !filteredVersions.value) return
-  const scrollTop = scrollContainerRef.value.scrollTop
-  const containerHeight = scrollContainerRef.value.clientHeight
-  const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - bufferSize)
-  const endIndex = Math.min(
-    filteredVersions.value.length,
-    Math.ceil((scrollTop + containerHeight) / itemHeight) + bufferSize
-  )
-  visibleRange.value = { start: startIndex, end: endIndex }
+  if (scrollRafId !== null) return
+  scrollRafId = requestAnimationFrame(() => {
+    scrollRafId = null
+    if (!scrollContainerRef.value || !filteredVersions.value) return
+    const scrollTop = scrollContainerRef.value.scrollTop
+    const containerHeight = scrollContainerRef.value.clientHeight
+    const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - bufferSize)
+    const endIndex = Math.min(
+      filteredVersions.value.length,
+      Math.ceil((scrollTop + containerHeight) / itemHeight) + bufferSize
+    )
+    visibleRange.value = { start: startIndex, end: endIndex }
+  })
 }
 
 watch(filteredVersions, (newVal) => {
@@ -597,9 +645,6 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (unlistenInstallProgress) {
-    unlistenInstallProgress()
-  }
 })
 </script>
 
@@ -654,11 +699,10 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  height: 32px;
-  padding: 0 10px;
+  padding: 4px 10px;
   font-size: 12px;
   color: var(--text-secondary);
-  background: transparent;
+  background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   cursor: pointer;
@@ -666,9 +710,14 @@ onUnmounted(() => {
   transition: all 150ms;
 }
 
-.btn-refresh:hover {
+.btn-refresh:hover:not(:disabled) {
   color: var(--primary);
   border-color: var(--primary);
+}
+
+.btn-refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .search-input {

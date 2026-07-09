@@ -54,6 +54,9 @@
                   <!-- 全局消息组件 -->
                   <GlassMessage ref="messageRef" />
                   
+                  <!-- 任务队列全屏面板 -->
+                  <TaskQueuePanel />
+
                   <!-- 退出确认弹窗 -->
                   <ContentModal
                     v-model:visible="showQuitConfirmModal"
@@ -150,25 +153,22 @@ import TitleBar from '@/components/layout/TitleBar.vue'
 import SideBar from '@/components/layout/SideBar.vue'
 import GlassMessage from '@/components/ui/GlassMessage.vue'
 import ContentModal from '@/components/modals/ContentModal.vue'
-import { useTheme } from '@/composables/useTheme'
-//import { usePageTransition } from '@/composables/useAnimation'
+import TaskQueuePanel from '@/components/TaskQueuePanel.vue'
+import { globalTaskQueue } from '@/composables/useTaskQueue'
+import { initTheme, useTheme } from '@/composables/useTheme'
 import { setMessageRef, useGlassMessage } from '@/composables/useGlassMessage'
-import { checkUserAgreement, acceptUserAgreement, useUserAgreement } from '@/composables/useUserAgreement'
+import { acceptUserAgreement, useUserAgreement } from '@/composables/useUserAgreement'
 import { useFullscreenModal } from '@/composables/useFullscreenModal'
 import { initPluginBridge, destroyPluginBridge } from '@/composables/usePluginBridge'
 import backend from '@/api/client'
-import { i18n } from '@/i18n'
+import { i18n, supportedLocales } from '@/i18n'
 import { useRouter } from 'vue-router'
 
-import { useAppInit } from '@/composables/useAppInit'
-import { initMouseEffectBridge, destroyMouseEffectBridge } from '@/composables/useMouseEffectBridge'
-
 const router = useRouter()
-const { naiveTheme, themeOverrides, initTheme } = useTheme()
-const { isDevMode, globalGameConfig, globalDownloadConfig, init: initApp } = useAppInit()
+const { naiveTheme, themeOverrides } = useTheme()
 
 const { locale, t } = useI18n()
-const { isAccepted: isAgreementAccepted, isLoading: agreementLoading, agreementUrl } = useUserAgreement()
+const { isAccepted: isAgreementAccepted, isLoading: agreementLoading, agreementUrl, markNotAccepted } = useUserAgreement()
 const fullscreenModal = useFullscreenModal()
 const message = useGlassMessage()
 
@@ -178,6 +178,13 @@ const showQuitConfirmModal = ref(false)
 const showPasswordModal = ref(false)
 const passwordInput = ref('')
 const passwordConfirm = ref('')
+
+const isDevMode = ref(false)
+const globalGameConfig = ref<any>(null)
+const globalDownloadConfig = ref<any>(null)
+provide('devMode', readonly(isDevMode))
+provide('gameConfig', readonly(globalGameConfig) as Readonly<Ref<any>>)
+provide('downloadConfig', readonly(globalDownloadConfig) as Readonly<Ref<any>>)
 
 provide('agreementAccepted', readonly(isAgreementAccepted))
 
@@ -189,13 +196,6 @@ const naiveLocale = computed(() => {
 const naiveDateLocale = computed(() => {
   return locale.value === 'zh-CN' ? dateZhCN : dateEnUS
 })
-
-const checkAgreement = async () => {
-  const accepted = await checkUserAgreement()
-  if (!accepted) {
-    showAgreementModal.value = true
-  }
-}
 
 const handleAgreementAccept = async () => {
   const success = await acceptUserAgreement()
@@ -217,21 +217,21 @@ const handleQuitConfirm = async () => {
 
 const handleSetPassword = async () => {
   if (passwordInput.value.length < 8) {
-    message.warning('密码长度至少8位')
+    message.warning(t('password.minLength'))
     return
   }
   if (passwordInput.value !== passwordConfirm.value) {
-    message.warning('两次输入的密码不一致')
+    message.warning(t('password.mismatch'))
     return
   }
   const result = await backend.command('set_master_password', { password: passwordInput.value })
   if (result.success) {
-    message.success('主密码设置成功')
+    message.success(t('password.success'))
     showPasswordModal.value = false
     passwordInput.value = ''
     passwordConfirm.value = ''
   } else {
-    message.warning(result.message || '设置失败')
+    message.warning(result.message || t('password.failed'))
   }
 }
 
@@ -244,12 +244,43 @@ const unlistenNotify = backend.on('launcher:notify', (payload: any) => {
   }
 })
 const unlistenAgreement = backend.on('launcher:agreement_required', () => {
-  if (!isAgreementAccepted.value) {
-    showAgreementModal.value = true
-  }
+  markNotAccepted()
+  showAgreementModal.value = true
 })
 const unlistenPassword = backend.on('keyring:password_required', () => {
   showPasswordModal.value = true
+})
+
+// 后端推送完整配置，前端仅做渲染
+const unlistenConfigInit = backend.on('config:init', (payload: any) => {
+  if (!payload) return
+
+  const launcher = payload.launcher
+  if (launcher) {
+    isDevMode.value = launcher.is_dev === true
+  }
+
+  const game = payload.game
+  if (game) {
+    globalGameConfig.value = game
+  }
+
+  const download = payload.download
+  if (download) {
+    globalDownloadConfig.value = download
+  }
+
+  const ui = payload.ui
+  if (ui) {
+    if (ui.locale) {
+      const loc = ui.locale
+      if (supportedLocales.some((l: any) => l.code === loc)) {
+        i18n.global.locale.value = loc as any
+        document.documentElement.setAttribute('lang', loc)
+      }
+    }
+    initTheme(ui)
+  }
 })
 
 // 插件 CSS 注入：创建或更新 <style> 标签
@@ -266,6 +297,65 @@ const unlistenCssInject = backend.on('plugin:css_injected', (payload: any) => {
   }
   styleEl.textContent = css
 })
+
+// 全局安装进度 → 任务队列
+const unlistenInstallProgress = backend.on('game:install_progress', (payload: any) => {
+  const taskId = payload?.task_id
+  if (!taskId) return
+
+  const phase = payload?.phase || ''
+  const msg = payload?.message || ''
+  const done = payload?.done ?? 0
+  const total = payload?.total ?? 1
+  const subtask = payload?.subtask || ''
+
+  if (phase === 'done') {
+    globalTaskQueue.updateTask(taskId, {
+      status: 'completed',
+      progress: 100,
+      message: msg || '安装完成',
+    })
+    if (subtask) {
+      globalTaskQueue.addSubtask(taskId, { id: subtask, name: getSubtaskLabel(subtask), status: 'completed', message: msg })
+    }
+  } else if (phase === 'error') {
+    globalTaskQueue.updateTask(taskId, {
+      status: 'error',
+      message: msg || '安装失败',
+    })
+    if (subtask) {
+      globalTaskQueue.addSubtask(taskId, { id: subtask, name: getSubtaskLabel(subtask), status: 'error', message: msg })
+    }
+  } else if (phase === 'download') {
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0
+    globalTaskQueue.updateTask(taskId, {
+      status: 'running',
+      progress: Math.max(5, pct),
+      message: msg,
+    })
+    if (subtask) {
+      globalTaskQueue.addSubtask(taskId, { id: subtask, name: getSubtaskLabel(subtask), status: 'running', message: msg })
+    }
+  } else if (phase === 'install') {
+    globalTaskQueue.updateTask(taskId, {
+      status: 'running',
+      progress: 3,
+      message: msg,
+    })
+    if (subtask) {
+      globalTaskQueue.addSubtask(taskId, { id: subtask, name: getSubtaskLabel(subtask), status: 'running', message: msg })
+    }
+  }
+})
+
+function getSubtaskLabel(subtask: string): string {
+  const labels: Record<string, string> = {
+    download_json: t('task.subtask.downloadJson'),
+    download_assets: t('task.subtask.downloadAssets'),
+    check_files: t('task.subtask.checkFiles'),
+  }
+  return labels[subtask] || subtask
+}
 
 function setupContextMenuListeners() {
   const isEditable = (target: EventTarget | null): boolean => {
@@ -310,43 +400,33 @@ function setupContextMenuListeners() {
 onMounted(async () => {
   if (messageRef.value) setMessageRef(messageRef.value)
 
-  initMouseEffectBridge()
   cleanupContextMenuListeners = setupContextMenuListeners()
-
-  await checkAgreement()
 
   if ((window as any).__TAURI__?.pytauri) {
     console.log('[App] PyTauri API 已可用，开始初始化')
     fullscreenModal.reset()
 
-    await initApp()
-
-    // 主动查询密钥环状态（事件可能在监听器注册前已发射）
-    const keyringRes = await backend.command('get_keyring_info')
-    if (keyringRes?.success && keyringRes.data?.needs_password) {
-      showPasswordModal.value = true
-    }
-
-    // 通知后端前端已就绪，触发插件 on_frontend_ready 回调
+    // 通知后端就绪，后端推送 config:init / agreement / keyring 等事件
     backend.command('frontend_ready').catch(() => {})
 
     // 初始化插件桥接（监听路由注册、HTML注入、脚本注入）
     initPluginBridge({} as any, router)
 
-    console.log('[App] 配置初始化完成')
+    console.log('[App] 初始化完成')
   } else {
     console.warn('[App] PyTauri API 不可用，尝试使用本地配置')
-    initTheme()
+    initTheme({})
   }
 })
 
 onUnmounted(() => {
-  destroyMouseEffectBridge()
   cleanupContextMenuListeners?.()
   unlistenNotify()
   unlistenAgreement()
   unlistenPassword()
+  unlistenConfigInit()
   unlistenCssInject()
+  unlistenInstallProgress()
   destroyPluginBridge()
 })
 </script>

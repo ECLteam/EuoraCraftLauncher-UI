@@ -11,7 +11,7 @@
           @mouseleave="resumeTimer(msg)"
         >
           <div class="message-icon">
-            <Icon :icon="getIcon(msg.type)" width="20" height="20" :style="{ color: getIconColor(msg.type) }" />
+            <UiIcon :name="msg.type" :size="20" :style="{ color: getIconColor(msg.type) }" />
           </div>
 
           <div class="message-content">
@@ -46,8 +46,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Icon } from '@iconify/vue'
 import UiButton from '@/components/ui/Button.vue'
+import UiIcon from '@/components/ui/Icon.vue'
 
 export type MessageType = 'success' | 'error' | 'warning' | 'info' | 'loading'
 
@@ -73,14 +73,6 @@ const messages = ref<MessageItem[]>([])
 const progressMap = ref<Record<string, number>>({})
 const timerMap = ref<Record<string, any>>({})
 
-const getIcon = (type: MessageType) => ({
-  success: 'mdi:check-circle-outline',
-  error: 'mdi:close-circle-outline',
-  warning: 'mdi:alert-circle-outline',
-  info: 'mdi:information-outline',
-  loading: 'mdi:loading'
-}[type])
-
 const getIconColor = (type: MessageType) => ({
   success: '#4ade80',
   error: '#f87171',
@@ -92,7 +84,7 @@ const getIconColor = (type: MessageType) => ({
 const getProgressColor = (type: MessageType) => getIconColor(type)
 
 const add = (options: MessageOptions) => {
-  const id = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  const id = `msg_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
   const duration = options.duration ?? 3000
   
   const message: MessageItem = {

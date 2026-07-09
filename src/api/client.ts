@@ -39,19 +39,30 @@ function getCore(): any {
 
 // ── IPC 调用 ──────────────────────────────────────────────────────
 
+const IPC_TIMEOUT_MS = 30000
+
 async function invoke(method: string, ...payloads: any[]): Promise<any> {
   const tauri = getTauri()
-  return tauri.pytauri.pyInvoke('api_call', { method, args: payloads })
+  const result = await tauri.pytauri.pyInvoke('api_call', { method, args: payloads })
+  return result
 }
 
-async function call<T = any>(method: string, ...args: any[]): Promise<ApiResponse<T>> {
+async function invokeWithTimeout(method: string, ...payloads: unknown[]): Promise<unknown> {
+  const tauri = getTauri()
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error(`IPC 调用超时 (${IPC_TIMEOUT_MS / 1000}s): ${method}`)), IPC_TIMEOUT_MS)
+  )
+  return Promise.race([tauri.pytauri.pyInvoke('api_call', { method, args: payloads }), timeoutPromise])
+}
+
+async function call<T = unknown>(method: string, ...args: unknown[]): Promise<ApiResponse<T>> {
   const start = performance.now()
   try {
     if (!checkEnv()) throw new Error('PyTauri 环境未就绪')
-    const raw = await invoke(method, ...args)
+    const raw = await invokeWithTimeout(method, ...args)
     const dur = (performance.now() - start).toFixed(1)
     if (!raw || typeof raw !== 'object') {
-      return { success: true, data: raw as T, message: '自动标准化', timestamp: Date.now() }
+      return { success: false, message: '后端返回了非对象响应', timestamp: Date.now() }
     }
     Logger.log(`${raw.success ? '✓' : '✗'} ${method} (${dur}ms)`)
     return raw as ApiResponse<T>
@@ -65,43 +76,10 @@ async function call<T = any>(method: string, ...args: any[]): Promise<ApiRespons
 
 const _eventCleanups = new Map<string, Map<(payload: any) => void, () => void>>()
 
-function onEvent(event: string, cb: (payload: any) => void) {
+async function onEvent(event: string, handler: (payload: any) => void): Promise<(() => void)> {
   const tauri = getTauri()
-  const eventApi = tauri?.event
-  if (!eventApi?.listen) {
-    console.warn('[API] Tauri event.listen 不可用')
-    return () => {}
-  }
-
-  let realUnlisten: (() => void) | null = null
-  const pendingUnlisten: (() => void)[] = []
-
-  const listenPromise = eventApi.listen(event, (e: any) => cb(e.payload)).then((unlistenFn: () => void) => {
-    realUnlisten = unlistenFn
-    // 若在此之前已有取消请求，立即执行
-    for (const fn of pendingUnlisten) {
-      try { fn() } catch {}
-    }
-    pendingUnlisten.length = 0
-  })
-
-  const wrappedUnlisten = () => {
-    if (realUnlisten) {
-      realUnlisten()
-    } else {
-      // 尚未就绪，加入待取消队列
-      pendingUnlisten.push(() => {
-        if (realUnlisten) realUnlisten()
-      })
-    }
-  }
-
-  if (!_eventCleanups.has(event)) {
-    _eventCleanups.set(event, new Map())
-  }
-  _eventCleanups.get(event)!.set(cb, wrappedUnlisten)
-
-  return wrappedUnlisten
+  const unlisten = await tauri.event.listen(event, (e: { payload: any }) => handler(e.payload))
+  return () => { unlisten() }
 }
 
 function offEvent(event: string, cb?: (payload: any) => void) {
@@ -153,20 +131,28 @@ interface CommandMap {
   // 游戏版本
   minecraft_versions: { filter_type?: string }
   fabric_versions: { game_version: string }
+  forge_versions: { game_version: string }
+  neoforge_versions: { game_version: string }
+  optifine_versions: { game_version: string }
+  quilt_versions: { game_version: string }
   scan_versions: { path?: string | string[] }
-  install_version: { version_id: string; loader_type?: string; fabric_version?: string; game_path?: string }
+  install_version: Record<string, string>
   uninstall_version: { version_id: string; game_path?: string }
 
   // 账户
   accounts_list: undefined
   accounts_current: undefined
   accounts_add_offline: { username: string }
+  accounts_add_authlib: { server: { name: string; url: string; description: string }; username: string; password: string }
   accounts_start_microsoft_login: undefined
   accounts_poll_microsoft_login: undefined
   accounts_complete_microsoft_login: undefined
   accounts_switch: { account_id: string }
   accounts_remove: { account_id: string }
   accounts_refresh_profile: { account_id: string }
+
+  // Authlib
+  authlib_servers: undefined
 
   // 用户协议
   user_agreement_get: undefined
@@ -200,9 +186,22 @@ interface CommandMap {
   plugin_install: { plugin_path: string }
   plugin_get_routes: { plugin_id?: string }
   plugin_get_slots: Record<string, never>
-  plugin_call_command: { plugin_id: string; command: string; args?: Record<string, unknown> }
+  plugin_call_command: { command: string; params?: Record<string, unknown> }
   plugin_get_settings: { plugin_name: string }
   plugin_update_setting: { plugin_name: string; key: string; value: unknown }
+
+  // Mod 管理（主框架）
+  get_mods: { game_path?: string }
+  toggle_mod: { game_path: string; filename: string }
+  add_mod: { game_path: string; source_path: string }
+  remove_mod: { game_path: string; filename: string }
+  open_mods_folder: { game_path: string }
+
+  // 在线 Mod 搜索
+  search_mods: { query: string; source?: string; game_version?: string; loader_type?: string; limit?: number; offset?: number }
+  get_mod_info: { mod_id: string; source: string }
+  get_mod_versions: { mod_id: string; source: string; game_version?: string; loader_type?: string }
+  download_mod: { mod_id: string; source: string; version_id: string; game_path: string; filename?: string }
 
   // 启动器信息
   launcher_info: undefined
@@ -250,8 +249,27 @@ export const backend = {
   },
 
   /** 事件 — 后端主动推送 */
-  on(event: string, cb: (payload: any) => void) {
-    return onEvent(event, cb)
+  on(event: string, cb: (payload: any) => void): () => void {
+    let unlisten: (() => void) | null = null
+    let unlistened = false
+
+    onEvent(event, cb).then(fn => {
+      if (unlistened) {
+        fn()
+      } else {
+        unlisten = fn
+      }
+    }).catch(err => {
+      Logger.error(`[on] 注册事件 ${event} 失败:`, err)
+    })
+
+    return () => {
+      unlistened = true
+      if (unlisten) {
+        unlisten()
+        unlisten = null
+      }
+    }
   },
 
   off(event: string, cb?: (payload: any) => void) {
@@ -291,6 +309,7 @@ export const backend = {
       })
     },
   },
-}
+
+  }
 
 export default backend

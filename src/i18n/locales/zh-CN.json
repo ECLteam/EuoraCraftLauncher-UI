@@ -53,6 +53,8 @@
     "refresh": "刷新",
     "accountTypeOffline": "离线",
     "accountTypeMicrosoft": "微软",
+    "accountTypeAuthlib": "Authlib",
+    "authlibAccount": "Authlib 外置登录",
     "login": {
       "title": "微软账户登录",
       "step1": "请在浏览器中访问以下链接",
@@ -66,6 +68,11 @@
       "complete": "我已完成授权",
       "success": "登录成功",
       "failed": "登录失败"
+    },
+    "clientId": {
+      "title": "未配置 Microsoft 登录",
+      "description": "正版登录需要 Microsoft OAuth 客户端 ID，需要自行从 Azure 申请。",
+      "fileHint": "请在项目根目录的 .env 或 .env.dev 文件中配置："
     },
     "status": {
       "noGameDir": "未设置游戏目录",
@@ -84,7 +91,8 @@
       "accountSwitchFailed": "切换失败",
       "emptyUsername": "用户名不能为空",
       "duplicateUsername": "该用户名已存在",
-      "accountLoadFailed": "加载账户失败"
+      "accountLoadFailed": "加载账户失败",
+      "noGamePath": "未找到游戏路径"
     }
   },
   "versions": {
@@ -141,6 +149,36 @@
       "protectedPath": "默认路径不可删除",
       "confirmDeletePath": "确定要删除路径 \"{name}\" 吗？",
       "defaultPathTip": "默认路径不能修改路径位置，但可以修改名称"
+    },
+    "detail": {
+      "overview": "总览",
+      "mods": "模组",
+      "settings": "设置",
+      "saves": "存档",
+      "versionInfo": "版本信息",
+      "quickActions": "快速操作",
+      "launch": "启动游戏",
+      "openFolder": "打开文件夹",
+      "delete": "删除版本",
+      "versionId": "版本 ID",
+      "loader": "加载器",
+      "vanillaVersion": "原版版本",
+      "status": "状态",
+      "available": "正常",
+      "broken": "损坏",
+      "isolated": "版本隔离",
+      "isolatedDesc": "为此版本使用独立的游戏目录",
+      "customMemory": "自定义内存",
+      "customMemoryDesc": "为此版本单独设置内存大小",
+      "memorySize": "内存大小",
+      "customJava": "自定义 Java",
+      "customJavaDesc": "为此版本单独指定 Java 路径",
+      "javaPath": "Java 路径",
+      "customJvmArgs": "自定义 JVM 参数",
+      "customJvmArgsDesc": "追加到启动命令的 JVM 参数",
+      "customGameArgs": "自定义游戏参数",
+      "customGameArgsDesc": "追加到游戏进程的启动参数",
+      "placeholder": "功能即将推出"
     },
     "mods": {
       "title": "模组管理",
@@ -285,6 +323,7 @@
     "disabled": "已禁用",
     "error": "错误",
     "loading": "加载中",
+    "loaded": "已加载",
     "unloaded": "未加载",
     "enable": "启用",
     "disable": "禁用",
@@ -341,6 +380,8 @@
     "select": "选择",
     "languageRegion": "语言与区域",
     "languageDesc": "选择界面显示语言",
+    "keyringStatus": "密钥环状态",
+    "clearKeyring": "清理密钥环",
     "downloadSourceDesc": "选择游戏文件的下载源",
     "downloadThreadsDesc": "设置同时下载文件的线程数",
     "memory": "内存分配",
@@ -474,5 +515,74 @@
     "openNested": "打开嵌套弹窗",
     "nestedModal": "嵌套弹窗",
     "nestedModalDesc": "嵌套在全屏弹窗里的普通弹窗"
+  },
+  "loader": {
+    "fabric": "Fabric",
+    "forge": "Forge",
+    "neoforge": "NeoForge",
+    "optifine": "OptiFine",
+    "quilt": "Quilt",
+    "unknown": "未知"
+  },
+  "mods": {
+    "title": "Mod 管理",
+    "empty": "暂无 Mod，点击上方按钮添加",
+    "add": "添加 Mod",
+    "openFolder": "打开 Mods 文件夹",
+    "filterLoader": "筛选加载器",
+    "allLoaders": "全部加载器",
+    "searchPlaceholder": "搜索 Mod 名称...",
+    "enabled": "已启用",
+    "disabled": "已禁用",
+    "removed": "已删除 {name}",
+    "added": "已添加 {name}",
+    "onlineSearch": "在线搜索",
+    "search": "搜索",
+    "noResults": "未找到相关 Mod",
+    "install": "安装",
+    "downloads": "次下载"
+  },
+  "auth": {
+    "authlib": "Authlib 注入",
+    "serverUrl": "服务器地址",
+    "email": "邮箱",
+    "password": "密码",
+    "addAuthlibAccount": "添加 Authlib 账户",
+    "presetServers": "预设服务器",
+    "serverUrlRequired": "请输入服务器地址",
+    "emailRequired": "请输入邮箱",
+    "passwordRequired": "请输入密码",
+    "emailPlaceholder": "邮箱",
+    "passwordPlaceholder": "密码"
+  },
+  "task": {
+    "title": "任务队列",
+    "empty": "暂无任务",
+    "clearCompleted": "清除已完成",
+    "subtask": "子任务",
+    "statusPending": "等待中",
+    "statusRunning": "进行中",
+    "statusCompleted": "已完成",
+    "statusFailed": "失败"
+  },
+  "password": {
+    "minLength": "密码长度至少8位",
+    "mismatch": "两次输入的密码不一致",
+    "success": "主密码设置成功",
+    "failed": "设置失败"
+  },
+  "task": {
+    "subtask": {
+      "downloadJson": "下载版本信息",
+      "downloadAssets": "下载资源文件",
+      "checkFiles": "校验文件"
+    }
+  },
+  "taskQueue": {
+    "title": "任务中心",
+    "empty": "暂无任务",
+    "emptyHint": "安装游戏版本时会在此显示任务进度",
+    "currentStatus": "当前状态：",
+    "clearCompleted": "清除已完成 ({count})"
   }
 }

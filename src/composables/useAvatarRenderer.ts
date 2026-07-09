@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import backend from '@/api/client'
 
 const CACHE_TTL = 30 * 60 * 1000
+const MAX_CACHE_ENTRIES = 100
 
 interface CacheEntry {
   url: string
@@ -9,6 +10,19 @@ interface CacheEntry {
 }
 
 const avatarCache = new Map<string, CacheEntry>()
+
+function evictOldest() {
+  if (avatarCache.size <= MAX_CACHE_ENTRIES) return
+  let oldestKey = ''
+  let oldestTime = Infinity
+  for (const [key, entry] of avatarCache) {
+    if (entry.timestamp < oldestTime) {
+      oldestTime = entry.timestamp
+      oldestKey = key
+    }
+  }
+  if (oldestKey) avatarCache.delete(oldestKey)
+}
 
 function getCacheKey(uuid: string, type: string, size: number): string {
   return `${uuid}-${type}-${size}`
@@ -25,6 +39,7 @@ function getCached(uuid: string, type: string, size: number): string | null {
 }
 
 function setCache(uuid: string, type: string, size: number, url: string): void {
+  evictOldest()
   avatarCache.set(getCacheKey(uuid, type, size), { url, timestamp: Date.now() })
 }
 

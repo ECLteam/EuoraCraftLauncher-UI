@@ -8,9 +8,9 @@
   border-right: 1px solid var(--glass-border);
   transition: width 150ms ease-out,
               min-width 150ms ease-out;
-  overflow: hidden;
   z-index: 100;
   position: relative;
+  min-height: 0;
 }
 
 .sidebar.collapsed {
@@ -71,6 +71,7 @@
   position: relative;
   overflow-y: auto;
   overflow-x: hidden;
+  min-height: 0;
 }
 
 .sidebar.collapsed .sidebar-nav {

@@ -1,297 +1,419 @@
 <template>
-  <div class="tab-pane">
-    <div class="about-section">
-      <div class="about-logo">EC</div>
-      <h1 class="about-title-text">EuoraCraft Launcher</h1>
-      <p class="about-version">v1.0.0</p>
-      <p class="about-desc">
-        {{ t('app.title') }}<br />
-        Minecraft Launcher
-      </p>
-
-      <div class="about-links">
-        <a class="link-item" href="https://github.com/ECLteam" target="_blank">
-          <UiIcon name="globe" :size="14" class="link-icon" />
-          <span class="link-text">GitHub</span>
-        </a>
-      </div>
-
-      <div class="about-tech">
-        <div class="tech-title">Tech Stack</div>
-        <div class="tech-tags">
-          <span class="tech-tag">Vue 3</span>
-          <span class="tech-tag">TypeScript</span>
-          <span class="tech-tag">Vite</span>
-          <span class="tech-tag">Tauri</span>
-          <span class="tech-tag">GSAP</span>
+  <div class="about-pane">
+    <!-- 关于 -->
+    <div class="about-card">
+      <div class="card-title">关于</div>
+      <div class="card-body">
+        <div class="card-grid">
+          <div class="avatar-col">
+            <div class="avatar avatar-logo">EC</div>
+          </div>
+          <div class="info-col">
+            <div class="item-title">EuoraCraft Launcher</div>
+            <div class="item-desc">当前版本：v1.0.0</div>
+          </div>
+          <div class="btn-col">
+            <a class="about-btn" href="https://github.com/ECLteam" target="_blank">
+              <UiIcon name="globe" :size="14" />
+              <span>GitHub</span>
+            </a>
+          </div>
         </div>
       </div>
+    </div>
 
-      <!-- 密钥环管理 -->
-      <div class="keyring-section">
-        <div class="tech-title">{{ t('settings.about') }} - Keyring</div>
-        <div class="keyring-info" v-if="keyringInfo">
-          <span class="info-label">Backend</span>
-          <span class="info-value">{{ keyringInfo.type }}</span>
-          <span class="info-label">Secure</span>
-          <span class="info-value" :class="{ 'text-danger': !keyringInfo.secure }">
-            {{ keyringInfo.secure ? 'Yes' : 'No' }}
-          </span>
+    <!-- 特别鸣谢 -->
+    <div class="about-card">
+      <div class="card-title">特别鸣谢</div>
+      <div class="card-body">
+        <div
+          v-for="item in thanks"
+          :key="item.name"
+          class="card-grid"
+        >
+          <div class="avatar-col">
+            <div class="avatar avatar-thanks">{{ item.initial }}</div>
+          </div>
+          <div class="info-col">
+            <div class="item-title">{{ item.name }}</div>
+            <div class="item-desc">{{ item.desc }}</div>
+          </div>
+          <div class="btn-col">
+            <a v-if="item.url" class="about-btn" :href="item.url" target="_blank">
+              <UiIcon name="globe" :size="14" />
+              <span>{{ item.btnText }}</span>
+            </a>
+            <span v-else class="item-desc">{{ item.btnText }}</span>
+          </div>
         </div>
-        <div class="keyring-info" v-else>
-          <span class="info-value text-muted">Keyring not initialized</span>
-        </div>
-        <button class="danger-btn" @click="handleClearKeyring" :disabled="clearing">
-          {{ clearing ? 'Clearing...' : 'Clear Keyring' }}
-        </button>
       </div>
+    </div>
 
-      <div class="about-footer-text">
-        <p>&copy; 2026 EuoraCraft Team. All rights reserved.</p>
+    <!-- 技术栈 -->
+    <div class="about-card">
+      <div class="card-title">技术栈</div>
+      <div class="card-body">
+        <div class="tech-flow">
+          <span v-for="tech in techStack" :key="tech" class="tech-tag">{{ tech }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 许可与版权 -->
+    <div class="about-card">
+      <div class="card-title">许可与版权声明</div>
+      <div class="card-body">
+        <div class="license-item">
+          <div class="license-name">PyTauri</div>
+          <div class="license-text">Copyright WSH032. Licensed under MIT.</div>
+          <div class="license-btns">
+            <a class="about-btn" href="https://github.com/WSH032/pytauri" target="_blank">
+              <UiIcon name="globe" :size="14" />
+              <span>来源</span>
+            </a>
+            <a class="about-btn" href="https://github.com/WSH032/pytauri/blob/main/LICENSE" target="_blank">
+              <UiIcon name="globe" :size="14" />
+              <span>许可</span>
+            </a>
+          </div>
+        </div>
+        <div class="license-item">
+          <div class="license-name">Vue 3</div>
+          <div class="license-text">Copyright Evan You. Licensed under MIT.</div>
+          <div class="license-btns">
+            <a class="about-btn" href="https://github.com/vuejs/core" target="_blank">
+              <UiIcon name="globe" :size="14" />
+              <span>来源</span>
+            </a>
+            <a class="about-btn" href="https://github.com/vuejs/core/blob/main/LICENSE" target="_blank">
+              <UiIcon name="globe" :size="14" />
+              <span>许可</span>
+            </a>
+          </div>
+        </div>
+        <div class="license-item">
+          <div class="license-name">Vite</div>
+          <div class="license-text">Copyright Evan You &amp; Vite Contributors. Licensed under MIT.</div>
+          <div class="license-btns">
+            <a class="about-btn" href="https://github.com/vitejs/vite" target="_blank">
+              <UiIcon name="globe" :size="14" />
+              <span>来源</span>
+            </a>
+            <a class="about-btn" href="https://github.com/vitejs/vite/blob/main/LICENSE" target="_blank">
+              <UiIcon name="globe" :size="14" />
+              <span>许可</span>
+            </a>
+          </div>
+        </div>
+        <div class="license-item">
+          <div class="license-name">Tauri</div>
+          <div class="license-text">Copyright Tauri Programme within The Commons Conservancy. Licensed under MIT / Apache 2.0.</div>
+          <div class="license-btns">
+            <a class="about-btn" href="https://github.com/tauri-apps/tauri" target="_blank">
+              <UiIcon name="globe" :size="14" />
+              <span>来源</span>
+            </a>
+            <a class="about-btn" href="https://github.com/tauri-apps/tauri/blob/dev/LICENSE_APACHE-2.0" target="_blank">
+              <UiIcon name="globe" :size="14" />
+              <span>许可</span>
+            </a>
+          </div>
+        </div>
+        <div class="license-item">
+          <div class="license-name">Naive UI</div>
+          <div class="license-text">Copyright 07akioni. Licensed under MIT.</div>
+          <div class="license-btns">
+            <a class="about-btn" href="https://github.com/tusen-ai/naive-ui" target="_blank">
+              <UiIcon name="globe" :size="14" />
+              <span>来源</span>
+            </a>
+            <a class="about-btn" href="https://github.com/tusen-ai/naive-ui/blob/main/LICENSE" target="_blank">
+              <UiIcon name="globe" :size="14" />
+              <span>许可</span>
+            </a>
+          </div>
+        </div>
+        <div class="license-item">
+          <div class="license-name">Authlib-Injector</div>
+          <div class="license-text">Copyright yushijinhun. Licensed under AGPL-3.0.</div>
+          <div class="license-btns">
+            <a class="about-btn" href="https://github.com/yushijinhun/authlib-injector" target="_blank">
+              <UiIcon name="globe" :size="14" />
+              <span>来源</span>
+            </a>
+            <a class="about-btn" href="https://github.com/yushijinhun/authlib-injector/blob/develop/LICENSE" target="_blank">
+              <UiIcon name="globe" :size="14" />
+              <span>许可</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 法律信息 -->
+    <div class="about-card">
+      <div class="card-title">法律信息</div>
+      <div class="card-body">
+        <p class="legal-text">
+          Copyright &copy; 2026 EuoraCraft Team. All Rights Reserved.<br />
+          非 MINECRAFT 官方产品。未经 MOJANG 或 MICROSOFT 批准，也不与 MOJANG 或 MICROSOFT 关联。<br />
+          Minecraft 是 Mojang Synergies AB 的商标。
+        </p>
+        <div class="legal-btns">
+          <a class="about-btn highlight" href="https://github.com/ECLteam" target="_blank">
+            <UiIcon name="globe" :size="14" />
+            <span>开源代码</span>
+          </a>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
-import backend from '@/api/client'
-import { useGlassMessage } from '@/composables/useGlassMessage'
 
-const { t } = useI18n()
-const glass = useGlassMessage()
+const thanks = [
+  {
+    name: 'PyTauri',
+    initial: 'PT',
+    desc: '提供了 Python 与 Tauri 的桥梁，让启动器能用 Python 写后端',
+    url: 'https://github.com/WSH032/pytauri',
+    btnText: 'GitHub',
+  },
+  {
+    name: 'Vue 3',
+    initial: 'V',
+    desc: '渐进式 JavaScript 框架，构建了启动器的前端界面',
+    url: 'https://github.com/vuejs/core',
+    btnText: 'GitHub',
+  },
+  {
+    name: 'Tauri',
+    initial: 'T',
+    desc: '轻量级桌面应用框架，提供了原生窗口和系统集成能力',
+    url: 'https://github.com/tauri-apps/tauri',
+    btnText: 'GitHub',
+  },
+  {
+    name: 'Authlib-Injector',
+    initial: 'AI',
+    desc: '提供了 Minecraft 外置登录（Yggdrasil）支持',
+    url: 'https://github.com/yushijinhun/authlib-injector',
+    btnText: 'GitHub',
+  },
+  {
+    name: 'bangbang93',
+    initial: 'BB',
+    desc: '提供 BMCLAPI 镜像源，加速国内 Minecraft 下载',
+    url: 'https://bmclapi2.bangbang93.com',
+    btnText: '镜像站',
+  },
+  {
+    name: 'LittleSkin',
+    initial: 'LS',
+    desc: '提供 Minecraft 外置登录（Yggdrasil）皮肤站服务',
+    url: 'https://littleskin.cn',
+    btnText: '网站',
+  },
+]
 
-const keyringInfo = ref<{ type: string; secure: boolean } | null>(null)
-const clearing = ref(false)
-
-const loadKeyringInfo = async () => {
-  try {
-    const result = await backend.command('get_keyring_info')
-    if (result.success && result.data?.initialized) {
-      keyringInfo.value = result.data
-    }
-  } catch {
-    // ignore
-  }
-}
-
-const handleClearKeyring = async () => {
-  clearing.value = true
-  try {
-    const result = await backend.command('clear_keyring')
-    if (result.success) {
-      glass.success('Keyring cleared')
-      keyringInfo.value = null
-    } else {
-      glass.warning(result.message || 'Failed')
-    }
-  } catch {
-    glass.warning('Failed to clear keyring')
-  } finally {
-    clearing.value = false
-  }
-}
-
-onMounted(loadKeyringInfo)
+const techStack = [
+  'Vue 3', 'TypeScript', 'Vite', 'Naive UI', 'GSAP',
+  'TailwindCSS', 'Vue Router', 'Vue I18n', 'Iconify', 'Sass',
+  'Python', 'PyTauri', 'Requests', 'Cryptography',
+  'Keyring', 'MSAL', 'Pydantic', 'Pillow', 'AnyIO',
+  'PyInstaller', 'Terser', 'PostCSS', 'Autoprefixer', 'Ruff',
+]
 </script>
 
 <style scoped>
-.tab-pane {
+.about-pane {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 0;
 }
 
-.about-section {
-  text-align: center;
-  max-width: 360px;
+/* 卡片 */
+.about-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.about-logo {
-  width: 72px;
-  height: 72px;
-  margin: 0 auto 16px;
-  border-radius: var(--r-sm);
-  background: var(--primary);
-  color: var(--text-on-primary);
-  font-size: 28px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  letter-spacing: -0.02em;
-}
-
-.about-title-text {
-  font-size: 20px;
+.card-title {
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 4px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
 }
 
-.about-version {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  margin: 0 0 12px;
-  font-family: var(--font-mono);
+.card-body {
+  padding: 12px 20px 20px;
 }
 
-.about-desc {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin: 0 0 20px;
-  line-height: 1.6;
+/* 网格行 */
+.card-grid {
+  display: grid;
+  grid-template-columns: 40px 1fr 150px;
+  align-items: center;
+  min-height: 45px;
+  gap: 0;
 }
 
-.about-links {
+.card-grid + .card-grid {
+  margin-top: 6px;
+}
+
+.avatar-col {
   display: flex;
-  justify-content: center;
-  gap: var(--s-lg);
-  margin-bottom: 24px;
+  align-items: center;
 }
 
-/* GitHub 按钮：幽灵样式圆角 6px */
-.link-item {
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.avatar-logo {
+  background: var(--primary);
+  color: var(--text-on-primary);
+  font-size: 16px;
+}
+
+.avatar-thanks {
+  background: var(--bg-base);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.info-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 14px;
+  min-width: 0;
+}
+
+.item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.item-desc {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 1px;
+  line-height: 1.4;
+}
+
+.btn-col {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.about-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: var(--r-sm);
-  border: 1px solid #E0E0E0;
-  background: #FFFFFF;
+  gap: 5px;
+  padding: 5px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 12px;
   text-decoration: none;
   cursor: pointer;
+  white-space: nowrap;
   transition: all 150ms ease-out;
 }
 
-[data-theme="dark"] .link-item {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.link-item:hover {
+.about-btn:hover {
   border-color: var(--primary);
   color: var(--primary);
 }
 
-.link-icon {
-  flex-shrink: 0;
+.about-btn.highlight {
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
-.about-tech {
-  margin-bottom: 24px;
-  padding: 16px;
-  background: var(--bg-base);
-  border-radius: var(--r-sm);
-  border: 1px solid var(--border);
+.about-btn.highlight:hover {
+  background: var(--primary);
+  color: var(--text-on-primary);
 }
 
-.tech-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 12px;
-}
-
-.tech-tags {
+/* 技术栈流动布局 */
+.tech-flow {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
   gap: 6px;
 }
 
-/* TECH STACK 标签：小圆角 4px */
 .tech-tag {
   padding: 3px 10px;
-  border-radius: var(--r-xs);
-  background: #F0F1F3;
+  border-radius: 4px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
   font-size: 11px;
-  color: #5C5C5C;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
-[data-theme="dark"] .tech-tag {
-  background: rgba(255, 255, 255, 0.08);
-  color: #A0A3A8;
-}
-
-/* 密钥环管理 */
-.keyring-section {
-  margin-bottom: 24px;
-  padding: 16px;
-  background: var(--bg-base);
-  border-radius: var(--r-sm);
-  border: 1px solid var(--border);
-}
-
-.keyring-info {
-  display: flex;
+/* 许可项 */
+.license-item {
+  display: grid;
+  grid-template-columns: 160px 1fr auto;
   align-items: center;
-  justify-content: center;
-  gap: var(--s-sm);
-  margin-bottom: 12px;
-  flex-wrap: wrap;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
 }
 
-.info-label {
+.license-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.license-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.license-text {
   font-size: 11px;
   color: var(--text-tertiary);
-  font-weight: 500;
+  line-height: 1.5;
 }
 
-.info-value {
+.license-btns {
+  display: flex;
+  gap: 8px;
+}
+
+/* 法律信息 */
+.legal-text {
   font-size: 12px;
   color: var(--text-secondary);
-  font-family: var(--font-mono);
+  line-height: 1.7;
+  margin: 0 0 16px;
 }
 
-.text-danger {
-  color: var(--color-error);
-}
-
-.text-muted {
-  color: var(--text-tertiary);
-  font-size: 12px;
-}
-
-.danger-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 20px;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--color-error);
-  background: transparent;
-  color: var(--color-error);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 150ms ease-out;
-}
-
-.danger-btn:hover:not(:disabled) {
-  background: var(--color-error);
-  color: #fff;
-}
-
-.danger-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.about-footer-text {
-  font-size: 11px;
-  color: var(--text-tertiary);
-}
-
-.about-footer-text p {
-  margin: 0;
+.legal-btns {
+  display: flex;
+  gap: 8px;
 }
 </style>

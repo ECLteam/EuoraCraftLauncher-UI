@@ -38,7 +38,6 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
-import '@/styles/Versions.css'
 import gsap from 'gsap'
 
 const { t } = useI18n()
@@ -47,7 +46,6 @@ const route = useRoute()
 const navItems = computed(() => [
   { path: '/versions/manage', icon: 'settings', label: t('versions.manageTab') },
   { path: '/versions/versions', icon: 'cube', label: t('versions.versions') },
-  { path: '/versions/mods', icon: 'cube', label: t('versions.modsTab') },
 ])
 
 const isActive = (path: string) => route.path === path
@@ -68,4 +66,6 @@ onMounted(() => {
   playEnterAnimation()
 })
 </script>
+
+<style scoped src="@/styles/Versions.css"></style>
 

@@ -38,13 +38,20 @@ export function useVersionManager(t: (key: string, ...args: any[]) => string) {
         return
       }
 
-      const stringPaths = minecraftPaths.map((path: any) =>
+      const stringPaths = [...new Set(minecraftPaths.map((path: any) =>
         typeof path === 'string' ? path : path.path
-      )
+      ))]
       const scanRes = await backend.command('scan_versions', { path: stringPaths })
       if (scanRes.success && scanRes.data) {
+        const seen = new Set<string>()
         versions.value = scanRes.data
           .filter((v: any) => !v.isBroken)
+          .filter((v: any) => {
+            const id = v.versionId || v.id
+            if (seen.has(id)) return false
+            seen.add(id)
+            return true
+          })
           .map((v: any) => ({ id: v.versionId || v.id, type: v.primaryLoader || 'Vanilla' }))
 
         if (versions.value.length > 0 && !selectedVersion.value) {
@@ -88,22 +95,18 @@ export function useVersionManager(t: (key: string, ...args: any[]) => string) {
     }
 
     if (!currentGamePath.value) {
-      showStatus('未找到游戏路径', 'error')
-      message.error('未找到游戏路径')
+      showStatus(t('game.status.noGamePath'), 'error')
+      message.error(t('game.status.noGamePath'))
       return
     }
 
     launching.value = true
     showStatus(t('game.status.launching'), 'info')
 
-    // 跳转到游戏页面
     router.push({ name: 'game' })
-
     showLaunchProgress({ cancelable: true })
 
-    // 监听启动进度事件
     const unlisten = backend.on('game:launch_progress', (payload: any) => {
-      // 已取消则忽略后续事件
       if (globalLaunchProgress.progress.value.canceled) {
         unlisten()
         return
@@ -121,14 +124,16 @@ export function useVersionManager(t: (key: string, ...args: any[]) => string) {
         setLaunchProgress(0, 'error', msg)
         setTimeout(hideLaunchProgress, 2000)
         unlisten()
+      } else if (phase === 'preparing') {
+        setLaunchProgress(3, 'preparing', msg)
       } else if (phase === 'downloading' && typeof pct === 'number') {
-        setLaunchProgress(Math.max(15, pct), 'downloading_assets', msg)
+        setLaunchProgress(10 + pct * 0.38, 'downloading_assets', msg)
       } else if (phase === 'checking') {
-        setLaunchProgress(-1, 'checking_files', msg)
+        setLaunchProgress(5, 'checking_files', msg)
       } else if (phase === 'files_checked') {
         setLaunchProgress(50, 'files_checked', msg)
       } else if (phase === 'building_args') {
-        setLaunchProgress(typeof pct === 'number' ? pct : 90, 'building_params', msg)
+        setLaunchProgress(typeof pct === 'number' ? pct : 65, 'building_params', msg)
       } else if (phase === 'args_built') {
         setLaunchProgress(75, 'args_built', msg)
       } else if (phase === 'natives_done') {
@@ -138,7 +143,7 @@ export function useVersionManager(t: (key: string, ...args: any[]) => string) {
       } else if (phase === 'launching') {
         setLaunchProgress(typeof pct === 'number' ? pct : 95, 'launching', msg)
       } else {
-        setLaunchProgress(-1, 'prepare' as any, msg)
+        setLaunchProgress(2, 'prepare' as any, msg)
       }
     })
 
@@ -159,7 +164,6 @@ export function useVersionManager(t: (key: string, ...args: any[]) => string) {
           message.error(launchResult.message || '启动失败')
         }
         setTimeout(hideLaunchProgress, 2000)
-        unlisten()
         return
       }
 
@@ -168,7 +172,6 @@ export function useVersionManager(t: (key: string, ...args: any[]) => string) {
         message.success(`游戏 ${selectedVersion.value} 已启动`)
       }
       setTimeout(hideLaunchProgress, 1500)
-      unlisten()
     } catch (e) {
       console.error('启动失败:', e)
       if (!globalLaunchProgress.progress.value.canceled) {
@@ -176,17 +179,19 @@ export function useVersionManager(t: (key: string, ...args: any[]) => string) {
         message.error('启动过程中发生错误')
       }
       setTimeout(hideLaunchProgress, 2000)
-      unlisten()
     } finally {
+      unlisten()
       launching.value = false
     }
   }
 
+  let statusId = 0
   function showStatus(msg: string, type: 'info' | 'success' | 'error' = 'info') {
+    const id = ++statusId
     statusMsg.value = msg
     statusType.value = type
     setTimeout(() => {
-      if (statusMsg.value === msg) {
+      if (statusId === id) {
         statusMsg.value = ''
       }
     }, 5000)

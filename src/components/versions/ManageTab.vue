@@ -82,6 +82,13 @@
             <UiIcon name="refresh" :size="14" />
             {{ t('common.refresh') }}
           </button>
+          <button
+            class="btn-install-version"
+            @click="navigateToInstall"
+          >
+            <UiIcon name="download" :size="14" />
+            {{ t('versions.download.installNew') }}
+          </button>
           <UiInput
             v-model="searchQuery"
             :placeholder="t('versions.manage.searchVersion')"
@@ -145,7 +152,7 @@
               </div>
               <div class="col-type">
                 <span :class="['badge', 'badge-' + getLoaderClass(version.primaryLoader)]">
-                  {{ getLoaderName(version.primaryLoader) }}
+                  {{ getLoaderDisplayName(version.primaryLoader) }}
                 </span>
               </div>
               <div class="col-status">
@@ -154,6 +161,13 @@
                 </span>
               </div>
               <div class="col-actions">
+                <button
+                  class="btn-action btn-settings"
+                  :title="t('settings.title')"
+                  @click.stop="handleOpenDetail(version)"
+                >
+                  <UiIcon name="settings" :size="14" />
+                </button>
                 <button
                   v-if="!version.isBroken"
                   class="btn-action btn-play"
@@ -232,6 +246,14 @@
         </UiButton>
       </template>
     </ContentModal>
+
+    <!-- 版本设置全屏弹窗 -->
+    <VersionDetailModal
+      v-model:visible="showDetailModal"
+      :version="detailVersion"
+      @launch="handleDetailLaunch"
+      @delete="handleDetailDelete"
+    />
   </div>
 </template>
 
@@ -243,10 +265,12 @@ import { useGlassMessage } from '@/composables/useGlassMessage'
 import { globalLaunchProgress } from '@/composables/useLaunchProgress'
 import { useVersionManager } from '@/composables/useVersionManager'
 import backend from '@/api/client'
+import { getLoaderIcon, getLoaderName, getLoaderClass } from '@/utils/loader'
 import type { ScannedVersion } from '@/types/api'
 import ContentModal from '@/components/modals/ContentModal.vue'
 import UiButton from '@/components/ui/Button.vue'
 import UiInput from '@/components/ui/Input.vue'
+import VersionDetailModal from '@/components/versions/VersionDetailModal.vue'
 
 interface GamePath {
   name: string
@@ -273,6 +297,8 @@ const searchQuery = ref('')
 const scannedVersions = ref<ScannedVersion[]>([])
 
 const showConfirmModal = ref(false)
+const showDetailModal = ref(false)
+const detailVersion = ref<ScannedVersion | null>(null)
 const confirmTitle = ref('')
 const confirmContent = ref('')
 const confirmAction = ref<(() => void) | null>(null)
@@ -524,13 +550,13 @@ const handleLaunch = async (version: ScannedVersion) => {
       setTimeout(hideLaunchProgress, 2000)
       unlisten()
     } else if (phase === 'downloading' && typeof pct === 'number') {
-      setLaunchProgress(Math.max(15, pct), 'downloading_assets', msg)
+      setLaunchProgress(10 + pct * 0.38, 'downloading_assets', msg)
     } else if (phase === 'checking') {
-      setLaunchProgress(-1, 'checking_files', msg)
+      setLaunchProgress(5, 'checking_files', msg)
     } else if (phase === 'files_checked') {
       setLaunchProgress(50, 'files_checked', msg)
     } else if (phase === 'building_args') {
-      setLaunchProgress(typeof pct === 'number' ? pct : 90, 'building_params', msg)
+      setLaunchProgress(typeof pct === 'number' ? pct : 65, 'building_params', msg)
     } else if (phase === 'args_built') {
       setLaunchProgress(75, 'args_built', msg)
     } else if (phase === 'natives_done') {
@@ -540,7 +566,7 @@ const handleLaunch = async (version: ScannedVersion) => {
     } else if (phase === 'launching') {
       setLaunchProgress(typeof pct === 'number' ? pct : 95, 'launching', msg)
     } else {
-      setLaunchProgress(-1, 'prepare' as any, msg)
+      setLaunchProgress(2, 'prepare' as any, msg)
     }
   })
 
@@ -558,18 +584,14 @@ const handleLaunch = async (version: ScannedVersion) => {
         message.error(launchResult.message || '启动失败')
       }
       setTimeout(hideLaunchProgress, 2000)
-      unlisten()
       return
     }
 
-    // 后端 launch_instance 返回后游戏进程已创建
-    // 进度事件可能已经在 unlisten 中处理了，这里做兜底
     if (!globalLaunchProgress.progress.value.canceled) {
       setLaunchProgress(100, 'launched', `游戏 ${version.versionId} 已启动`)
       message.success(`游戏 ${version.versionId} 已启动`)
     }
     setTimeout(hideLaunchProgress, 1500)
-    unlisten()
   } catch (e) {
     console.error('启动失败:', e)
     if (!globalLaunchProgress.progress.value.canceled) {
@@ -577,8 +599,22 @@ const handleLaunch = async (version: ScannedVersion) => {
       message.error('启动过程中发生错误')
     }
     setTimeout(hideLaunchProgress, 2000)
+  } finally {
     unlisten()
   }
+}
+
+const handleOpenDetail = (version: ScannedVersion) => {
+  detailVersion.value = version
+  showDetailModal.value = true
+}
+
+const handleDetailLaunch = (version: ScannedVersion) => {
+  handleLaunch(version)
+}
+
+const handleDetailDelete = (version: ScannedVersion) => {
+  handleDelete(version)
 }
 
 const handleDelete = async (version: ScannedVersion) => {
@@ -607,29 +643,20 @@ const handleDelete = async (version: ScannedVersion) => {
   )
 }
 
-const getLoaderIcon = (loaderType: string | null) => {
-  switch (loaderType?.toLowerCase()) {
-    case 'fabric': return 'lab'
-    case 'forge': return 'fire'
-    case 'quilt': return 'grid'
-    default: return 'cube'
-  }
-}
-
-const getLoaderName = (loaderType: string | null) => {
+/**
+ * 获取加载器显示名称（含原版 i18n 处理）
+ */
+function getLoaderDisplayName(loaderType: string | null): string {
   if (!loaderType || loaderType === 'Unknown' || loaderType === 'release' || loaderType === 'snapshot' || loaderType === 'Vanilla') {
     return t('versions.manage.vanilla')
   }
-  return loaderType.charAt(0).toUpperCase() + loaderType.slice(1)
+  return getLoaderName(loaderType)
 }
 
-const getLoaderClass = (loaderType: string | null) => {
-  switch (loaderType?.toLowerCase()) {
-    case 'fabric': return 'fabric';
-    case 'forge': return 'forge';
-    case 'quilt': return 'quilt';
-    default: return 'vanilla';
-  }
+// ── 版本安装 ──
+
+function navigateToInstall() {
+  router.push('/versions/versions')
 }
 </script>
 
@@ -945,7 +972,7 @@ const getLoaderClass = (loaderType: string | null) => {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 12px;
+  padding: 4px 10px;
   border-radius: var(--r-sm);
   border: 1px solid var(--border);
   background: var(--bg-elevated);
@@ -955,9 +982,14 @@ const getLoaderClass = (loaderType: string | null) => {
   transition: all 150ms ease-out;
 }
 
-.btn-refresh:hover {
+.btn-refresh:hover:not(:disabled) {
   border-color: var(--primary);
   color: var(--primary);
+}
+
+.btn-refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-primary {
@@ -1182,4 +1214,126 @@ const getLoaderClass = (loaderType: string | null) => {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* 安装按钮 */
+.btn-install-version {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: var(--text-on-primary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 150ms ease-out;
+  white-space: nowrap;
+}
+
+.btn-install-version:hover {
+  background: var(--primary-hover);
+}
+
+/* 安装弹窗 */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.required {
+  color: var(--error);
+}
+
+.form-hint {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.version-display {
+  padding: 8px 12px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.path-display {
+  padding: 8px 12px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.loader-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.loader-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--bg-base);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.loader-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.loader-btn.active {
+  border-color: var(--primary);
+  background: var(--primary-alpha);
+  color: var(--primary);
+}
+
+/* 进度弹窗 */
+.progress-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-md);
+  padding: var(--s-xl) 0;
+}
+
+.progress-ring {
+  color: var(--primary);
+}
+
+.progress-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* NeoForge / OptiFine 徽章 */
+.badge-neoforge { background: rgba(140, 150, 200, 0.15); color: #6a7eb4; }
+.badge-optifine { background: rgba(200, 180, 140, 0.15); color: #b8942a; }
 </style>

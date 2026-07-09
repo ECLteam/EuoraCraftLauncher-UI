@@ -93,7 +93,7 @@
                 :style="{ width: lpState.displayPercent >= 0 ? lpState.displayPercent + '%' : undefined }"
               />
             </div>
-            <span v-if="lpState.displayPercent >= 0" class="lp-bar-percent">{{ Math.round(lpState.displayPercent) }}%</span>
+            <span class="lp-bar-percent">{{ lpState.displayPercent >= 0 ? Math.round(lpState.displayPercent) + '%' : '...' }}</span>
           </div>
 
           <!-- 信息面板 -->
@@ -115,156 +115,228 @@
           </button>
         </div>
       </Transition>
-    </div>
 
-    <!-- 右下角固定 FAB 按钮组 -->
+    <!-- 启动 / 版本设置按钮组 -->
     <div v-if="!launchProgress.visible && hasGamePath && version.versions.length > 0" class="fab-launch-bar">
-        <!-- 第一行：启动按钮 + 版本管理按钮 -->
-        <div class="fab-row-top">
-          <button
-            class="fab-launch-btn"
-            :disabled="version.launching || !version.selectedVersion || !account.currentAccount"
-            @click="version.launchGame(account.currentAccount)"
-          >
-            <UiIcon name="play" :size="16" />
-            <span class="fab-launch-label">{{ version.launching ? t('game.launching') : t('game.launch') }}</span>
-            <span class="fab-launch-version">{{ version.selectedVersion }}</span>
-          </button>
-          <button
-            class="fab-manage-btn"
-            title="版本管理"
-            @click="goToInstallVersion"
-          >
-            <UiIcon name="grid" :size="16" />
-          </button>
-        </div>
-        <!-- 第二行：版本设置按钮（与第一行等宽） -->
+      <!-- 第一行：启动按钮 + 版本管理按钮 -->
+      <div class="fab-row-top">
         <button
-          class="fab-settings-btn"
-          title="版本设置"
-          @click="openGameSettings"
+          class="fab-launch-btn"
+          :disabled="version.launching || !version.selectedVersion || !account.currentAccount"
+          @click="version.launchGame(account.currentAccount)"
         >
-          <UiIcon name="settings" :size="16" />
-          <span class="fab-settings-label">版本设置</span>
+          <UiIcon name="play" :size="16" />
+          <span class="fab-launch-label">{{ version.launching ? t('game.launching') : t('game.launch') }}</span>
+          <span class="fab-launch-version">{{ version.selectedVersion }}</span>
+        </button>
+        <button
+          class="fab-manage-btn"
+          title="版本管理"
+          @click="goToInstallVersion"
+        >
+          <UiIcon name="grid" :size="16" />
         </button>
       </div>
+      <!-- 第二行：版本设置按钮（与第一行等宽） -->
+      <button
+        class="fab-settings-btn"
+        title="版本设置"
+        @click="openGameSettings"
+      >
+        <UiIcon name="settings" :size="16" />
+        <span class="fab-settings-label">版本设置</span>
+      </button>
+    </div>
+  </div>
 
-    <!-- 账户管理弹窗 -->
+    <!-- 账户管理全屏弹窗 -->
     <ContentModal
       v-model:visible="account.showAccountModal"
       :title="t('game.accountManagement')"
       fullscreen
     >
-      <div class="account-manager">
-        <div class="account-list-section">
-          <h3 class="section-title">
-            <UiIcon name="folder" :size="16" />
-            {{ t('game.savedAccounts') }}
-          </h3>
-          <div class="account-list-card">
-            <div v-if="account.accountsLoading" class="flex-center" style="padding: 40px;">
-              <span class="text-secondary">{{ t('app.loading') }}</span>
-            </div>
+      <div class="account-page">
+        <!-- 已保存账户列表 -->
+        <div class="account-section">
+          <div class="account-section-header">
+            <h3 class="account-section-title">
+              <UiIcon name="folder" :size="16" />
+              {{ t('game.savedAccounts') }}
+            </h3>
+            <span v-if="account.accounts.length" class="account-count">{{ account.accounts.length }}</span>
+          </div>
 
-            <div v-else-if="account.accounts.length === 0" class="empty-state">
-              <UiIcon name="user-x" :size="16" />
-              <p class="empty-state-text">{{ t('game.noAccounts') }}</p>
-              <p class="text-secondary" style="font-size: 12px;">{{ t('game.noAccountsDesc') }}</p>
-            </div>
+          <div v-if="account.accountsLoading" class="account-loading">
+            <span class="text-secondary">{{ t('app.loading') }}</span>
+          </div>
 
-            <div v-else class="account-items">
-              <div
-                v-for="acc in account.accounts"
-                :key="acc.id"
-                role="button"
-                tabindex="0"
-                :class="['account-item', { active: acc.isCurrent }]"
-                @click="account.switchAccount(acc.id)"
-                @keydown.enter="account.switchAccount(acc.id)"
-              >
-                <SkinRenderer
-                  class="acc-avatar"
-                  :uuid="acc.uuid"
-                  :username="acc.alias"
-                  :type-name="acc.type"
-                  :size="40"
+          <div v-else-if="account.accounts.length === 0" class="account-empty">
+            <UiIcon name="user-x" :size="32" class="empty-icon" />
+            <p class="empty-text">{{ t('game.noAccounts') }}</p>
+            <p class="empty-hint">{{ t('game.noAccountsDesc') }}</p>
+          </div>
+
+          <div v-else class="account-items">
+            <div
+              v-for="acc in account.accounts"
+              :key="acc.id"
+              role="button"
+              tabindex="0"
+              :class="['account-item', { active: acc.isCurrent }]"
+              @click="account.switchAccount(acc.id)"
+              @keydown.enter="account.switchAccount(acc.id)"
+            >
+              <SkinRenderer
+                class="acc-avatar"
+                :uuid="acc.uuid"
+                :username="acc.alias"
+                :type-name="acc.type"
+                :size="32"
+              />
+              <div class="acc-info">
+                <div class="acc-name">{{ acc.alias }}</div>
+                <div class="acc-meta">
+                  <span :class="['type-badge', acc.type]">
+                    {{ acc.type === 'microsoft' ? t('game.accountTypeMicrosoft') : acc.type === 'authlib' ? t('game.accountTypeAuthlib') : t('game.accountTypeOffline') }}
+                  </span>
+                  <span v-if="acc.type === 'microsoft' && acc.email" class="acc-email">{{ acc.email }}</span>
+                  <span v-if="acc.type === 'authlib' && acc.auth_server" class="acc-server">{{ acc.auth_server }}</span>
+                </div>
+              </div>
+              <div class="acc-actions">
+                <span v-if="acc.isCurrent" class="acc-current">{{ t('game.current') }}</span>
+                <UiButton
+                  v-else
+                  variant="secondary"
+                  size="sm"
+                  @click="account.switchAccount(acc.id)"
+                >
+                  {{ t('game.switch') }}
+                </UiButton>
+                <UiButton
+                  variant="ghost"
+                  size="sm"
+                  icon="delete"
+                  @click="account.removeAccount(acc.id, acc.alias)"
                 />
-                <div class="acc-info">
-                  <div class="acc-name">{{ acc.alias }}</div>
-                  <div class="acc-type">
-                    <span :class="['type-badge', acc.type]">
-                      {{ acc.type === 'microsoft' ? t('game.accountTypeMicrosoft') : t('game.accountTypeOffline') }}
-                    </span>
-                    <span v-if="acc.type === 'microsoft' && acc.email" class="acc-email">{{ acc.email }}</span>
-                  </div>
-                </div>
-                <div class="acc-actions">
-                  <span v-if="acc.isCurrent" class="acc-status">{{ t('game.current') }}</span>
-                  <UiButton
-                    v-else
-                    variant="secondary"
-                    size="sm"
-                    @click="account.switchAccount(acc.id)"
-                  >
-                    {{ t('game.switch') }}
-                  </UiButton>
-                  <UiButton
-                    variant="ghost"
-                    size="sm"
-                    icon="delete"
-                    @click="account.removeAccount(acc.id, acc.alias)"
-                  />
-                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="account-add-section">
-          <h3 class="section-title">
-            <UiIcon name="add" :size="16" />
-            {{ t('game.addOfflineAccount') }}
-          </h3>
-          <div class="add-account-card">
-            <div class="add-form">
-              <div class="form-group">
-                <label class="form-label">{{ t('game.username') }}</label>
-                <UiInput
-                  v-model="account.newOfflineUsername"
-                  :placeholder="t('game.enterUsername')"
-                  @keyup.enter="account.addOfflineAccount"
-                />
-                <span class="form-hint">{{ t('game.offlineNoPassword') }}</span>
-              </div>
-              <UiButton
-                variant="primary"
-                icon="icon-add"
-                :loading="account.addingOffline"
-                :disabled="!account.newOfflineUsername.trim()"
-                @click="account.addOfflineAccount"
-              >
-                {{ t('game.addOfflineAccount') }}
-              </UiButton>
-            </div>
+        <!-- 添加账户 -->
+        <div class="account-section">
+          <div class="account-section-header">
+            <h3 class="account-section-title">
+              <UiIcon name="add" :size="16" />
+              {{ t('game.addAccount') }}
+            </h3>
           </div>
 
-          <h3 class="section-title" style="margin-top: 20px;">
-            <UiIcon name="microsoft" :size="16" />
-            {{ t('game.addMicrosoftAccount') }}
-          </h3>
-          <div class="add-account-card">
-            <div class="add-form">
-              <p class="form-hint" style="margin-bottom: 12px;">
-                {{ t('game.login.step1') }}
-              </p>
-              <UiButton
-                variant="primary"
-                icon="log-in"
-                :loading="account.startingMicrosoftLogin"
-                @click="account.startMicrosoftLogin"
-              >
-                {{ t('game.addMicrosoftAccount') }}
-              </UiButton>
+          <div class="add-cards">
+            <!-- 离线账户 -->
+            <div class="add-card">
+              <div class="add-card-header">
+                <UiIcon name="user" :size="18" />
+                <span>{{ t('game.addOfflineAccount') }}</span>
+              </div>
+              <div class="add-card-body">
+                <div class="form-group">
+                  <label class="form-label">{{ t('game.username') }}</label>
+                  <UiInput
+                    v-model="account.newOfflineUsername"
+                    :placeholder="t('game.enterUsername')"
+                    @keyup.enter="account.addOfflineAccount"
+                  />
+                </div>
+                <UiButton
+                  variant="primary"
+                  size="sm"
+                  :loading="account.addingOffline"
+                  :disabled="!account.newOfflineUsername.trim()"
+                  @click="account.addOfflineAccount"
+                >
+                  {{ t('game.addOfflineAccount') }}
+                </UiButton>
+              </div>
+            </div>
+
+            <!-- 微软账户 -->
+            <div class="add-card">
+              <div class="add-card-header">
+                <UiIcon name="microsoft" :size="18" />
+                <span>{{ t('game.addMicrosoftAccount') }}</span>
+              </div>
+              <div class="add-card-body">
+                <p class="add-card-hint">{{ t('game.login.step1') }}</p>
+                <UiButton
+                  variant="primary"
+                  size="sm"
+                  :loading="account.startingMicrosoftLogin"
+                  @click="account.startMicrosoftLogin"
+                >
+                  {{ t('game.addMicrosoftAccount') }}
+                </UiButton>
+              </div>
+            </div>
+
+            <!-- Authlib 外置登录 -->
+            <div class="add-card">
+              <div class="add-card-header" role="button" tabindex="0" @click="account.toggleAuthlibForm" @keydown.enter="account.toggleAuthlibForm">
+                <UiIcon name="shield" :size="18" />
+                <span>{{ t('auth.authlib') }}</span>
+                <UiIcon :name="account.showAuthlibForm ? 'chevron-up' : 'chevron-down'" :size="14" class="add-card-chevron" />
+              </div>
+              <div v-if="account.showAuthlibForm" class="add-card-body">
+                <!-- 预设服务器 -->
+                <div v-if="account.authlibServers.length" class="authlib-servers">
+                  <span class="servers-label">{{ t('auth.presetServers') }}</span>
+                  <div class="servers-list">
+                    <button
+                      v-for="s in account.authlibServers"
+                      :key="s.name"
+                      :class="['server-chip', { active: account.authlibServerUrl === s.url }]"
+                      @click="account.selectAuthlibServer(s)"
+                    >
+                      {{ s.name }}
+                    </button>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">{{ t('auth.serverUrl') }}</label>
+                  <UiInput
+                    v-model="account.authlibServerUrl"
+                    placeholder="https://example.com/api/yggdrasil"
+                  />
+                </div>
+                <div class="form-row">
+                  <div class="form-group form-group-half">
+                    <label class="form-label">{{ t('auth.email') }}</label>
+                    <UiInput
+                      v-model="account.authlibEmail"
+                      :placeholder="t('auth.emailPlaceholder')"
+                    />
+                  </div>
+                  <div class="form-group form-group-half">
+                    <label class="form-label">{{ t('auth.password') }}</label>
+                    <UiInput
+                      v-model="account.authlibPassword"
+                      type="password"
+                      :placeholder="t('auth.passwordPlaceholder')"
+                      @keyup.enter="account.addAuthlibAccount"
+                    />
+                  </div>
+                </div>
+                <UiButton
+                  variant="primary"
+                  size="sm"
+                  :loading="account.addingAuthlib"
+                  @click="account.addAuthlibAccount"
+                >
+                  {{ t('auth.addAuthlibAccount') }}
+                </UiButton>
+              </div>
             </div>
           </div>
         </div>
@@ -334,6 +406,22 @@
       </template>
     </ContentModal>
 
+    <!-- 客户端 ID 配置提示弹窗 -->
+    <ContentModal
+      v-model:visible="account.showClientIdModal"
+      :title="t('game.clientId.title')"
+      :closable="false"
+    >
+      <div class="client-id-content">
+        <p class="client-id-desc">{{ t('game.clientId.description') }}</p>
+        <p class="client-id-file">{{ t('game.clientId.fileHint') }}</p>
+        <pre class="client-id-example">MICROSOFT_CLIENT_ID=your_client_id_here</pre>
+      </div>
+      <template #footer>
+        <UiButton variant="primary" @click="account.cancelClientId">{{ t('common.confirm') }}</UiButton>
+      </template>
+    </ContentModal>
+
     <!-- 删除确认弹窗 -->
     <ContentModal
       v-model:visible="account.showDeleteConfirmModal"
@@ -377,11 +465,7 @@ const gamePageRef = ref<HTMLElement | null>(null)
 
 const account = useAccountManager(t)
 const version = useVersionManager(t)
-const { progress: launchProgress } = globalLaunchProgress
-
-// 启动进度缓动状态（参考 PCL-CE 的平滑进度算法）
-const lpDisplayPercent = ref(0)
-let lpRafId: number | null = null
+const { progress: launchProgress, smoothPercent } = globalLaunchProgress
 
 // 小贴士列表
 const tips = [
@@ -418,55 +502,22 @@ const lpState = computed(() => {
   return {
     title,
     versionName: version.selectedVersion || '',
-    displayPercent: lpDisplayPercent.value,
+    displayPercent: smoothPercent.value,
   }
 })
 
-// 缓动动画：每帧将 displayPercent 向 target 靠拢
-function animateProgress() {
-  if (!launchProgress.value.visible) {
-    lpRafId = null
-    return
-  }
-
-  const target = launchProgress.value.percent
-  const current = lpDisplayPercent.value
-
-  if (target < 0) {
-    // 不确定进度模式：不做数值插值
-    lpDisplayPercent.value = -1
-  } else {
-    // 缓动靠拢：showProgress += (actual - show) * 0.15 + 0.3
-    const diff = target - current
-    if (Math.abs(diff) < 0.5) {
-      lpDisplayPercent.value = target
-    } else {
-      lpDisplayPercent.value = current + diff * 0.15 + (diff > 0 ? 0.3 : -0.3)
-    }
-    lpDisplayPercent.value = Math.max(0, Math.min(100, lpDisplayPercent.value))
-  }
-
-  lpRafId = requestAnimationFrame(animateProgress)
-}
-
-// 当进度可见时启动动画循环，不可见时停止
+// 当进度可见时重置进度，不可见时无需额外操作（composable 管理动画）
 watch(() => launchProgress.value.visible, (visible) => {
   if (visible) {
-    lpDisplayPercent.value = 0
-    lpRafId = requestAnimationFrame(animateProgress)
-  } else {
-    if (lpRafId !== null) {
-      cancelAnimationFrame(lpRafId)
-      lpRafId = null
-    }
+    smoothPercent.value = 0
   }
-}, { immediate: true })
-
-onBeforeUnmount(() => {
-  if (lpRafId !== null) cancelAnimationFrame(lpRafId)
 })
 
 const hasGamePath = ref(false)
+
+// 定时器清理
+const launchCancelTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+const welcomeTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
 const playEnterAnimation = () => {
   if (gamePageRef.value) {
@@ -481,10 +532,21 @@ const playEnterAnimation = () => {
 const handleLaunchProgressCancel = async () => {
   globalLaunchProgress.cancel()
   try {
-    await backend.command('cancel_launch')
+    const res = await backend.command('cancel_launch')
+    if (!res?.success) {
+      console.warn('[LaunchCancel] 后端取消请求失败:', res?.message)
+    }
   } catch (e) {
-    // 忽略取消失败
+    console.warn('[LaunchCancel] 取消请求异常:', e)
   }
+  // 如果后端线程仍在运行，5 秒后强制重置前端状态，避免按钮长期禁用
+  setTimeout(() => {
+    if (version.launching) {
+      version.launching = false
+      console.warn('[LaunchCancel] 后端未响应，强制重置启动状态')
+    }
+    launchCancelTimer.value = null
+  }, 5000)
 }
 
 const openGameSettings = () => {
@@ -517,9 +579,10 @@ onMounted(() => {
     isWelcome.value = false
   } else {
     isWelcome.value = true
-    setTimeout(() => {
+    welcomeTimer.value = setTimeout(() => {
       isWelcome.value = false
       localStorage.setItem('euora-welcome-shown', 'true')
+      welcomeTimer.value = null
     }, 5000)
   }
 
@@ -528,6 +591,8 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   account.reset()
+  if (launchCancelTimer.value) { clearTimeout(launchCancelTimer.value); launchCancelTimer.value = null }
+  if (welcomeTimer.value) { clearTimeout(welcomeTimer.value); welcomeTimer.value = null }
 })
 </script>
 
@@ -548,10 +613,12 @@ onBeforeUnmount(() => {
 .game-right {
   width: 320px;
   min-width: 320px;
+  height: 100%;
   display: flex;
   flex-direction: column;
   padding-right: var(--s-lg);
   padding-top: 32px;
+  padding-bottom: 32px;
 }
 
 .game-right-cards {
@@ -771,14 +838,11 @@ onBeforeUnmount(() => {
    右下角固定 FAB 按钮组
    ══════════════════════════════════════════════════════ */
 .fab-launch-bar {
-  position: fixed;
-  right: calc(var(--s-lg) + var(--s-lg));
-  bottom: 64px;
-  width: calc(320px - var(--s-lg));
+  margin-top: auto;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  z-index: 50;
 }
 
 /* 第一行：启动按钮 + 版本管理按钮横向排列 */
@@ -921,63 +985,103 @@ onBeforeUnmount(() => {
 }
 
 /* ================================================================
-   账户管理弹窗
+   账户管理全屏弹窗
    ================================================================ */
-.account-manager {
-  display: flex;
-  gap: var(--s-xl);
-  min-height: 400px;
+.account-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px 32px;
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 32px;
+  height: 100%;
+  overflow-y: auto;
 }
 
-.account-list-section {
-  flex: 1;
+.account-section {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 添加账户列放在右侧 */
+.account-section:last-child {
   min-width: 0;
 }
 
-.account-add-section {
-  width: 280px;
-  flex-shrink: 0;
-}
-
-.section-title {
+.account-section-header {
   display: flex;
   align-items: center;
   gap: var(--s-sm);
+  margin-bottom: 16px;
+}
+
+.account-section-title {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: var(--s-md);
+  display: flex;
+  align-items: center;
+  gap: var(--s-sm);
+  margin: 0;
 }
 
-.account-list-card {
-  background: var(--card-bg);
-  border-top: var(--card-border-top);
-  border-bottom: var(--card-border-bottom);
-  border-radius: var(--r-sm);
-  padding: var(--s-lg);
-  min-height: 200px;
+.account-count {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  background: var(--bg-base-alt);
+  padding: 1px 8px;
+  border-radius: 10px;
 }
 
-.add-account-card {
-  background: var(--card-bg);
-  border-top: var(--card-border-top);
-  border-bottom: var(--card-border-bottom);
-  border-radius: var(--r-sm);
-  padding: var(--s-lg);
+.account-loading {
+  padding: 40px;
+  text-align: center;
+}
+
+.account-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  gap: 8px;
+  color: var(--text-tertiary);
+}
+
+.account-empty .empty-icon {
+  opacity: 0.3;
+  margin-bottom: 4px;
+}
+
+.account-empty .empty-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.account-empty .empty-hint {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin: 0;
 }
 
 /* 账户列表项 */
 .account-items {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
+  padding: 6px;
 }
 
 .account-item {
   display: flex;
   align-items: center;
-  gap: var(--s-md);
-  padding: 12px;
+  gap: 10px;
+  padding: 8px 10px;
   border-radius: var(--r-sm);
   cursor: pointer;
   border: 1px solid transparent;
@@ -994,9 +1098,9 @@ onBeforeUnmount(() => {
 }
 
 .acc-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--r-sm);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-xs);
   flex-shrink: 0;
 }
 
@@ -1005,28 +1109,28 @@ onBeforeUnmount(() => {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .acc-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.acc-type {
+.acc-meta {
   display: flex;
   align-items: center;
   gap: var(--s-sm);
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-tertiary);
 }
 
 .type-badge {
   display: inline-block;
-  padding: 1px 8px;
+  padding: 0px 6px;
   border-radius: var(--r-xs);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   background: var(--bg-base-alt);
   color: var(--text-secondary);
@@ -1042,12 +1146,27 @@ onBeforeUnmount(() => {
   color: var(--text-secondary);
 }
 
+.type-badge.authlib {
+  background: rgba(156, 39, 176, 0.15);
+  color: #ce93d8;
+}
+
 .acc-email {
   font-size: 11px;
   color: var(--text-tertiary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.acc-server {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+  font-family: var(--font-mono);
 }
 
 .acc-actions {
@@ -1057,34 +1176,100 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
 }
 
-.acc-status {
+.acc-current {
   font-size: 12px;
   color: var(--primary);
   font-weight: 500;
 }
 
-/* 空状态 */
-.empty-state {
+/* 添加账户卡片 */
+.add-cards {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  gap: var(--s-sm);
-  color: var(--text-tertiary);
+  gap: 12px;
 }
 
-.empty-state-text {
+.add-card {
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+.add-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
   font-size: 14px;
-  color: var(--text-secondary);
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.add-card-header:hover {
+  background: var(--bg-hover);
+}
+
+.add-card-chevron {
+  margin-left: auto;
+  color: var(--text-tertiary);
+  transition: transform 150ms;
+}
+
+.add-card-body {
+  padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.add-card-hint {
+  font-size: 12px;
+  color: var(--text-tertiary);
   margin: 0;
 }
 
-/* 添加账户表单 */
-.add-form {
+/* Authlib 服务器选择 */
+.authlib-servers {
   display: flex;
   flex-direction: column;
-  gap: var(--s-md);
+  gap: 6px;
+}
+
+.servers-label {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.servers-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.server-chip {
+  padding: 4px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-base-alt);
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.server-chip:hover {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.server-chip.active {
+  border-color: var(--primary);
+  background: var(--primary-alpha);
+  color: var(--primary);
 }
 
 .form-group {
@@ -1099,10 +1284,14 @@ onBeforeUnmount(() => {
   color: var(--text-secondary);
 }
 
-.form-hint {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  margin: 0;
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.form-group-half {
+  flex: 1;
+  min-width: 0;
 }
 
 /* Microsoft 登录弹窗 */
@@ -1167,6 +1356,33 @@ onBeforeUnmount(() => {
 .login-error {
   padding: 20px;
   text-align: center;
+}
+
+.client-id-content {
+  min-width: 360px;
+}
+
+.client-id-desc {
+  font-size: 14px;
+  color: var(--text-primary);
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.client-id-file {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0 0 8px;
+}
+
+.client-id-example {
+  padding: 10px 14px;
+  border-radius: var(--r-sm);
+  background: var(--bg-base-alt);
+  font-size: 13px;
+  color: var(--text-primary);
+  margin: 0;
+  user-select: all;
 }
 
 /* ══════════════════════════════════════════════════════

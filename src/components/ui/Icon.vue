@@ -19,68 +19,82 @@ const props = withDefaults(defineProps<Props>(), {
   size: 16
 })
 
-// 图标名称映射
+// 图标名称映射（模块级常量，避免每次调用重新创建）
+const iconMap: Record<string, string> = {
+  // 导航
+  'game': 'hugeicons:game',
+  'cube': 'mdi:cube-outline',
+  'folder': 'mdi:folder-outline',
+  'settings': 'mdi:cog-outline',
+  'puzzle': 'mdi:puzzle-outline',
+  'plugin': 'mdi:puzzle-outline',
+  'bug': 'mdi:bug-outline',
+  'menu': 'mdi:menu',
+  'help': 'mdi:help-circle-outline',
+
+  // 操作
+  'close': 'mdi:close',
+  'spinner': 'mdi:loading',
+  'loading': 'mdi:loading',
+  'add': 'mdi:plus',
+  'trash': 'mdi:trash-can-outline',
+  'search': 'mdi:magnify',
+  'download': 'mdi:download',
+  'play': 'mdi:play',
+  'refresh': 'mdi:refresh',
+  'check': 'mdi:check',
+  'brush': 'mdi:brush',
+
+  // 方向
+  'chevron-down': 'mdi:chevron-down',
+  'chevron-up': 'mdi:chevron-up',
+  'arrow-right': 'mdi:chevron-right',
+  'arrow-left': 'mdi:chevron-left',
+
+  // 文件
+  'file-text': 'mdi:file-document-outline',
+  'external-link': 'mdi:open-in-new',
+  'globe': 'mdi:earth',
+  'archive': 'mdi:archive-outline',
+  'calendar': 'mdi:calendar-outline',
+
+  // 通知/状态
+  'info': 'mdi:information-outline',
+  'bell': 'mdi:bell-outline',
+  'lightbulb': 'mdi:lightbulb-outline',
+
+  // 消息类型
+  'success': 'mdi:check-circle-outline',
+  'error': 'mdi:close-circle-outline',
+  'warning': 'mdi:alert-circle-outline',
+
+  // 窗口
+  'minimize': 'mdi:window-minimize',
+  'moon': 'mdi:weather-night',
+  'sun': 'mdi:weather-sunny',
+
+  // 加载器
+  'lab': 'mdi:flask-outline',
+  'fire': 'mdi:fire',
+  'grid': 'mdi:grid',
+  'eye': 'mdi:eye-outline',
+  'happy': 'mdi:emoticon-happy-outline',
+  'cloud-download': 'mdi:cloud-download-outline',
+
+  // 账户
+  'microsoft': 'mdi:microsoft',
+  'user': 'mdi:account-outline',
+  'user-x': 'mdi:account-remove-outline',
+  'game-controller': 'mdi:gamepad-variant-outline',
+  'shield': 'mdi:shield-outline',
+
+  // 任务
+  'x-mark': 'mdi:close',
+  'circle': 'mdi:circle-small',
+  'package': 'mdi:package-variant-closed',
+}
+
 const getIconName = (iconName: string) => {
-  const iconMap: Record<string, string> = {
-    // 游戏相关图标
-    'game': 'hugeicons:game',
-    'cube': 'mdi:cube-outline',
-    'folder': 'mdi:folder-outline',
-    'settings': 'mdi:cog-outline',
-    
-    // 操作图标
-    'close': 'mdi:close',
-    'loading': 'mdi:loading',
-    'spinner': 'mdi:loading',
-    'info': 'mdi:information-outline',
-    'file-text': 'mdi:file-document-outline',
-    'external-link': 'mdi:open-in-new',
-    'arrow-right': 'mdi:chevron-right',
-    'arrow-left': 'mdi:chevron-left',
-    'check': 'mdi:check',
-    'delete': 'mdi:delete-outline',
-    'trash': 'mdi:trash-can-outline',
-    'add': 'mdi:plus',
-    'help': 'mdi:help-circle-outline',
-    'help-circle': 'mdi:help-circle-outline',
-    'alert-triangle': 'mdi:alert-circle-outline',
-    'warning': 'mdi:alert-circle-outline',
-    'error': 'mdi:alert-outline',
-    'bug': 'mdi:bug-outline',
-    'menu': 'mdi:menu',
-    'left': 'mdi:chevron-left',
-    'moon': 'mdi:weather-night',
-    'sun': 'mdi:weather-sunny',
-    'minimize': 'mdi:window-minimize',
-    'maximize': 'mdi:window-maximize',
-    'restore': 'mdi:window-restore',
-    'brush': 'mdi:brush',
-    'download': 'mdi:download',
-    'search': 'mdi:magnify',
-    'log-in': 'mdi:login',
-    'play': 'mdi:play',
-    'refresh': 'mdi:refresh',
-    'lock': 'mdi:lock-outline',
-    'globe': 'mdi:earth',
-    'folder-open': 'mdi:folder-open-outline',
-    'game-controller': 'mdi:gamepad-variant-outline',
-    'chevron-down': 'mdi:chevron-down',
-    'stop': 'mdi:stop',
-    'lab': 'mdi:flask-outline',
-    'archive': 'mdi:archive-outline',
-    'happy': 'mdi:emoticon-happy-outline',
-    'calendar': 'mdi:calendar-outline',
-    'filter': 'mdi:filter-outline',
-    'fire': 'mdi:fire',
-    'grid': 'mdi:grid',
-    
-    // 微软相关
-    'microsoft': 'mdi:microsoft',
-    
-    // 用户相关
-    'user-x': 'mdi:account-remove-outline'
-  }
-  
   return iconMap[iconName] || 'mdi:help-circle-outline'
 }
 </script>

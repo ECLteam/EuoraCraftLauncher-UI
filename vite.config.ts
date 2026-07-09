@@ -13,7 +13,8 @@ export default defineConfig({
   publicDir: 'public',
   resolve: {
     alias: {
-      '@': resolve(__dirname, './src')
+      '@': resolve(__dirname, './src'),
+      'vue': 'vue/dist/vue.esm-bundler.js',
     }
   },
   server: {
@@ -24,8 +25,8 @@ export default defineConfig({
   envPrefix: ['VITE_', 'TAURI_'],
   build: {
     target: 'chrome100',
-    minify: 'terser',
     cssMinify: true,
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks: {

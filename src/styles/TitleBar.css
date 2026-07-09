@@ -184,3 +184,25 @@
   background: rgba(229, 92, 92, 0.2);
   border-color: rgba(229, 92, 92, 0.4);
 }
+
+/* 任务队列按钮 */
+.titlebar-btn-task {
+  position: relative;
+}
+
+.task-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  pointer-events: none;
+}
