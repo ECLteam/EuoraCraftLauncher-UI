@@ -1,53 +1,71 @@
 <template>
-  <div class="versions-container">
-    <div ref="tabsRef" class="tabs-wrapper">
-      <UiTabs v-model="activeTab" :items="tabs" />
+  <div class="versions-page">
+    <!-- 左侧导航 - 固定200px -->
+    <div class="versions-nav">
+      <div class="nav-header">
+        <h2 class="nav-title">
+          <UiIcon name="cube" :size="18" />
+          {{ t('sidebar.versions') }}
+        </h2>
+      </div>
+      <div class="nav-list">
+        <router-link
+          v-for="item in navItems"
+          :key="item.path"
+          :to="item.path"
+          :class="['nav-item', { active: isActive(item.path) }]"
+        >
+          <span class="nav-indicator"></span>
+          <UiIcon :name="item.icon" :size="18" class="nav-icon" />
+          <span class="nav-label">{{ item.label }}</span>
+        </router-link>
+      </div>
     </div>
 
+    <!-- 右侧内容区 -->
     <div class="versions-content" ref="contentRef">
-      <ManageTab v-if="activeTab === 'manage'" />
-      <VersionsTab v-if="activeTab === 'versions'" />
-      <ModsTab v-if="activeTab === 'mods'" />
+      <router-view v-slot="{ Component }">
+        <Transition name="page" mode="out-in">
+          <component :is="Component" />
+        </Transition>
+      </router-view>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, defineAsyncComponent } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import UiIcon from '@/components/ui/Icon.vue'
 import gsap from 'gsap'
-import '@/style/views/Versions.css'
-import UiTabs from '@/components/ui/Tabs.vue'
 
-const ManageTab = defineAsyncComponent(() => import('./versions/ManageTab.vue'))
-const VersionsTab = defineAsyncComponent(() => import('./versions/VersionsTab.vue'))
-const ModsTab = defineAsyncComponent(() => import('./versions/ModsTab.vue'))
+const { t } = useI18n()
+const route = useRoute()
 
-const tabsRef = ref<HTMLElement | null>(null)
+const navItems = computed(() => [
+  { path: '/versions/manage', icon: 'settings', label: t('versions.manageTab') },
+  { path: '/versions/versions', icon: 'cube', label: t('versions.versions') },
+])
+
+const isActive = (path: string) => route.path === path
+
 const contentRef = ref<HTMLElement | null>(null)
-const activeTab = ref('manage')
 
-const tabs = [
-  { id: 'manage', label: '管理', icon: 'icon-settings' },
-  { id: 'versions', label: '版本', icon: 'icon-cube' },
-  { id: 'mods', label: '模组', icon: 'icon-cube' }
-]
+// 页面加载动画
+const playEnterAnimation = () => {
+  if (contentRef.value) {
+    gsap.fromTo(contentRef.value,
+      { opacity: 0, y: 20, scale: 0.98 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: 'power3.out' }
+    )
+  }
+}
 
 onMounted(() => {
-  const tl = gsap.timeline()
-  
-  if (tabsRef.value) {
-    tl.fromTo(tabsRef.value,
-      { opacity: 0, y: -20, filter: 'blur(10px)' },
-      { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.6, ease: 'power3.out' }
-    )
-  }
-
-  if (contentRef.value) {
-    tl.fromTo(contentRef.value,
-      { opacity: 0, y: 20, scale: 0.98, filter: 'blur(10px)' },
-      { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 0.6, ease: 'power3.out' },
-      "-=0.4"
-    )
-  }
+  playEnterAnimation()
 })
 </script>
+
+<style scoped src="@/styles/Versions.css"></style>
+

@@ -1,7 +1,70 @@
 import { ref, computed, watch, type Ref } from 'vue'
 import type { GlobalTheme, GlobalThemeOverrides } from 'naive-ui'
-import { darkTheme, lightTheme } from 'naive-ui'
-import { getBackgroundConfig, getBackgroundImage, getThemeConfig, updateThemeConfig } from '@/utils/api'
+import { darkTheme } from 'naive-ui'
+import backend from '@/api/client'
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max)
+}
+
+function normalizeHex(hex: string): string {
+  hex = hex.replace(/^#/, '')
+  if (hex.length === 3) {
+    hex = hex.split('').map(c => c + c).join('')
+  }
+  return `#${hex}`
+}
+
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  hex = normalizeHex(hex)
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  if (!result) throw new Error('Invalid hex color')
+
+  return {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  }
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`
+}
+
+function mix(color1: string, color2: string, weight: number = 0.5): string {
+  const rgb1 = hexToRgb(color1)
+  const rgb2 = hexToRgb(color2)
+
+  const w = clamp(weight, 0, 1)
+  const r = Math.round(rgb1.r * (1 - w) + rgb2.r * w)
+  const g = Math.round(rgb1.g * (1 - w) + rgb2.g * w)
+  const b = Math.round(rgb1.b * (1 - w) + rgb2.b * w)
+
+  return rgbToHex(r, g, b)
+}
+
+function rgba(color: string, alpha: number): string {
+  const rgb = hexToRgb(color)
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${clamp(alpha, 0, 1)})`
+}
+
+function createPrimaryScale(baseColor: string): {
+  primary: string
+  primaryHover: string
+  primaryPressed: string
+  primaryLight: string
+  primaryRgb: string
+} {
+  const rgb = hexToRgb(baseColor)
+
+  return {
+    primary: baseColor,
+    primaryHover: mix(baseColor, isDark.value ? '#ffffff' : '#000000', 0.15),
+    primaryPressed: mix(baseColor, isDark.value ? '#ffffff' : '#000000', 0.3),
+    primaryLight: rgba(baseColor, 0.15),
+    primaryRgb: `${rgb.r}, ${rgb.g}, ${rgb.b}`
+  }
+}
 
 export type ThemeMode = 'light' | 'dark' | 'system'
 
@@ -10,144 +73,136 @@ interface ThemeState {
   followSystem: boolean
 }
 
-const THEME_KEY = 'euoracraft-theme'
-const COLOR_KEY = 'euoracraft-primary-color'
-const BG_IMAGE_KEY = 'euoracraft-bg-image'
-const BLUR_KEY = 'euoracraft-blur-amount'
-
-// 预设主题色
+// 预设主题色（EuoraCraft 品牌色系）
 export const presetColors = [
-  { name: '天蓝色', value: '#87CEEB' },
-  { name: '樱花粉', value: '#FFB6C1' },
-  { name: '薄荷绿', value: '#98E4D6' },
-  //{ name: '薰衣草紫', value: '#E6E6FA' },
-  { name: '默认蓝', value: '#0078d4' },
-  { name: '极客绿', value: '#107c10' },
-  { name: '活力橙', value: '#FF9F43' },
-  { name: '热情红', value: '#FF6B6B' },
+  { name: '品牌蓝', value: '#4A7FD9' },
+  { name: '天空蓝', value: '#5B9BD5' },
+  { name: '薄荷绿', value: '#52A37F' },
+  { name: '珊瑚橙', value: '#D4755B' },
+  { name: '薰衣草', value: '#8B7FD9' },
+  { name: '石墨灰', value: '#6A6D74' },
 ]
 
-// 主题色配置
 const themeColors = {
   light: {
-    primary: '#87CEEB',
-    primaryHover: '#5DADE2',
-    primaryPressed: '#4A9FD4',
-    success: '#52C41A',
-    warning: '#FAAD14',
-    error: '#FF6B6B',
-    info: '#87CEEB',
-    background: 'rgba(248, 250, 252, 0.65)',
-    backgroundHover: 'rgba(255, 255, 255, 0.8)',
-    surface: 'rgba(255, 255, 255, 0.9)',
-    text: '#1E293B',
-    textSecondary: '#64748B',
-    border: 'rgba(135, 206, 235, 0.3)',
-    shadow: 'rgba(135, 206, 235, 0.2)',
+    success: '#52c41a',
+    warning: '#faad14',
+    error: '#E55C5C',
+    info: '#4A7FD9',
+    background: 'rgba(255, 255, 255, 0.92)',
+    backgroundHover: 'rgba(255, 255, 255, 0.96)',
+    surface: 'rgba(255, 255, 255, 0.92)',
+    text: '#1A1A1A',
+    textSecondary: '#5C5C5C',
+    border: 'rgba(0, 0, 0, 0.06)',
+    shadow: 'none',
   },
   dark: {
-    primary: '#87CEEB',
-    primaryHover: '#A8D8F0',
-    primaryPressed: '#6BB9E0',
-    success: '#6DD576',
-    warning: '#FFD666',
-    error: '#FF7875',
-    info: '#87CEEB',
-    background: 'rgba(15, 23, 42, 0.65)',
-    backgroundHover: 'rgba(30, 41, 59, 0.8)',
-    surface: 'rgba(30, 41, 59, 0.9)',
-    text: '#F1F5F9',
-    textSecondary: '#94A3B8',
-    border: 'rgba(135, 206, 235, 0.2)',
-    shadow: 'rgba(0, 0, 0, 0.4)',
+    success: '#52c41a',
+    warning: '#faad14',
+    error: '#E55C5C',
+    info: '#4A7FD9',
+    background: 'rgba(35, 38, 45, 0.92)',
+    backgroundHover: 'rgba(45, 48, 55, 0.96)',
+    surface: 'rgba(35, 38, 45, 0.92)',
+    text: '#E8E9EB',
+    textSecondary: '#A0A3A8',
+    border: 'rgba(255, 255, 255, 0.08)',
+    shadow: 'none',
   }
-}
+} as const
 
-// 创建主题配置
 function createThemeOverrides(isDark: boolean, primary: string): GlobalThemeOverrides {
-  const colors = isDark ? themeColors.dark : themeColors.light
-  
+  const baseColors = isDark ? themeColors.dark : themeColors.light
+  const primaryScale = createPrimaryScale(primary)
+
   return {
     common: {
-      primaryColor: colors.primary,
-      primaryColorHover: colors.primaryHover,
-      primaryColorPressed: colors.primaryPressed,
-      primaryColorSuppl: colors.primaryHover,
-      successColor: colors.success,
-      warningColor: colors.warning,
-      errorColor: colors.error,
-      infoColor: colors.info,
-      textColorBase: colors.text,
-      textColor1: colors.text,
-      textColor2: colors.textSecondary,
-      textColor3: colors.textSecondary,
+      primaryColor: primaryScale.primary,
+      primaryColorHover: primaryScale.primaryHover,
+      primaryColorPressed: primaryScale.primaryPressed,
+      primaryColorSuppl: primaryScale.primaryHover,
+      successColor: baseColors.success,
+      warningColor: baseColors.warning,
+      errorColor: baseColors.error,
+      infoColor: baseColors.info,
+      textColorBase: baseColors.text,
+      textColor1: baseColors.text,
+      textColor2: baseColors.textSecondary,
+      textColor3: baseColors.textSecondary,
       bodyColor: 'transparent',
-      cardColor: colors.background,
-      modalColor: colors.surface,
-      popoverColor: colors.surface,
-      borderColor: colors.border,
-      dividerColor: colors.border,
+      cardColor: baseColors.background,
+      modalColor: baseColors.surface,
+      popoverColor: baseColors.surface,
+      borderColor: baseColors.border,
+      dividerColor: baseColors.border,
     },
     Button: {
-      color: colors.background,
-      colorHover: colors.backgroundHover,
-      colorPressed: colors.backgroundHover,
-      textColor: colors.text,
-      textColorHover: colors.primary,
-      border: `1px solid ${colors.border}`,
-      borderHover: `1px solid ${colors.primary}`,
+      color: baseColors.background,
+      colorHover: baseColors.backgroundHover,
+      colorPressed: baseColors.backgroundHover,
+      textColor: baseColors.text,
+      textColorHover: primaryScale.primary,
+      border: `1px solid ${baseColors.border}`,
+      borderHover: `1px solid ${primaryScale.primary}`,
     },
     Card: {
-      color: colors.background,
-      borderColor: colors.border,
+      color: baseColors.background,
+      borderColor: baseColors.border,
     },
     Input: {
-      color: colors.surface,
-      colorFocus: colors.surface,
-      border: `1px solid ${colors.border}`,
-      borderHover: `1px solid ${colors.primary}`,
-      borderFocus: `1px solid ${colors.primary}`,
-      textColor: colors.text,
-      placeholderColor: colors.textSecondary,
+      color: baseColors.surface,
+      colorFocus: baseColors.surface,
+      border: `1px solid ${baseColors.border}`,
+      borderHover: `1px solid ${primaryScale.primary}`,
+      borderFocus: `1px solid ${primaryScale.primary}`,
+      textColor: baseColors.text,
+      placeholderColor: baseColors.textSecondary,
     },
     Select: {
-      color: colors.surface,
-      colorActive: colors.backgroundHover,
-      border: `1px solid ${colors.border}`,
-      borderHover: `1px solid ${colors.primary}`,
-      borderActive: `1px solid ${colors.primary}`,
+      color: baseColors.surface,
+      colorActive: baseColors.backgroundHover,
+      border: `1px solid ${baseColors.border}`,
+      borderHover: `1px solid ${primaryScale.primary}`,
+      borderActive: `1px solid ${primaryScale.primary}`,
     },
     Switch: {
-      railColor: colors.textSecondary,
-      railColorActive: colors.primary,
+      railColor: baseColors.textSecondary,
+      railColorActive: primaryScale.primary,
     },
     Slider: {
-      fillColor: colors.primary,
-      railColor: colors.border,
+      fillColor: primaryScale.primary,
+      railColor: baseColors.border,
     },
     Tooltip: {
-      color: colors.surface,
-      textColor: colors.text,
+      color: baseColors.surface,
+      textColor: baseColors.text,
     },
     Dropdown: {
-      color: colors.surface,
-      optionColorHover: colors.backgroundHover,
+      color: baseColors.surface,
+      optionColorHover: baseColors.backgroundHover,
     },
     Menu: {
-      color: colors.background,
-      itemColorHover: colors.backgroundHover,
-      itemTextColor: colors.text,
-      itemTextColorHover: colors.primary,
+      color: baseColors.background,
+      itemColorHover: baseColors.backgroundHover,
+      itemTextColor: baseColors.text,
+      itemTextColorHover: primaryScale.primary,
     },
   }
 }
 
 // 状态
+let systemThemeListenerInitialized = false
+let initThemePromise: Promise<void> | null = null
+
 const themeMode = ref<ThemeMode>('system')
-const primaryColor = ref('#87CEEB') // 默认天蓝色
-const backgroundImage = ref('') // 默认无背景图
-const backgroundImagePath = ref('') // 背景图路径
-const blurAmount = ref(6)
+const primaryColor = ref('#4A7FD9')  // 默认品牌蓝
+const backgroundImage = ref('')
+const backgroundImagePath = ref('')
+const backgroundOpacity = ref(0.2)  // 默认 20% 亮度
+const blurAmount = ref(0)  // 禁用 backdrop-filter blur
+const sidebarCollapsed = ref(true)
+const titlebarHidden = ref(true)
 const isDark = ref(false)
 const systemDark = ref(false)
 
@@ -159,13 +214,21 @@ const themeOverrides = computed<GlobalThemeOverrides>(() => {
   return createThemeOverrides(isDark.value, primaryColor.value)
 })
 
-const colors = computed(() => isDark.value ? themeColors.dark : themeColors.light)
+const colors = computed(() => {
+  const baseColors = isDark.value ? themeColors.dark : themeColors.light
+  const primaryScale = createPrimaryScale(primaryColor.value)
+
+  return {
+    ...baseColors,
+    ...primaryScale
+  }
+})
 
 // 监听系统主题
 function initSystemThemeListener() {
   const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
   systemDark.value = mediaQuery.matches
-  
+
   mediaQuery.addEventListener('change', (e) => {
     systemDark.value = e.matches
     if (themeMode.value === 'system') {
@@ -180,86 +243,89 @@ function updateTheme() {
   } else {
     isDark.value = themeMode.value === 'dark'
   }
-  
-  // 更新 HTML 属性
+
+  const primaryScale = createPrimaryScale(primaryColor.value)
+
   document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
-  
-  // 更新 CSS 变量
-  document.documentElement.style.setProperty('--color-primary', primaryColor.value)
-  document.documentElement.style.setProperty('--bg-image', backgroundImage.value ? `url(${backgroundImage.value})` : 'none')
-  document.documentElement.style.setProperty('--bg-blur', `${blurAmount.value}px`)
-  
-  // 保存到本地存储
-  localStorage.setItem(THEME_KEY, JSON.stringify({
-    mode: themeMode.value,
-    followSystem: themeMode.value === 'system'
-  }))
-  localStorage.setItem(COLOR_KEY, primaryColor.value)
-  localStorage.setItem(BG_IMAGE_KEY, backgroundImage.value)
-  localStorage.setItem(BLUR_KEY, blurAmount.value.toString())
+  document.documentElement.style.setProperty('--primary', primaryScale.primary)
+  document.documentElement.style.setProperty('--primary-rgb', primaryScale.primaryRgb)
+  document.documentElement.style.setProperty('--primary-hover', primaryScale.primaryHover)
+  document.documentElement.style.setProperty('--primary-active', primaryScale.primaryPressed)
+  document.documentElement.style.setProperty('--primary-alpha', primaryScale.primaryLight)
+  document.documentElement.style.setProperty('--bg-image', backgroundImage.value ? `url("${backgroundImage.value}")` : 'none')
+  document.documentElement.style.setProperty('--bg-opacity', String(backgroundOpacity.value))
+  document.documentElement.style.setProperty('--bg-blur', '0px')
+
+  document.documentElement.setAttribute('data-sidebar-collapsed', sidebarCollapsed.value ? '1' : '0')
+  document.documentElement.setAttribute('data-titlebar-hidden', titlebarHidden.value ? '1' : '0')
 }
 
 function setThemeMode(mode: ThemeMode) {
   themeMode.value = mode
   updateTheme()
-  // 同时保存到后端配置
   saveThemeConfig()
 }
 
 function setPrimaryColor(color: string) {
   primaryColor.value = color
   updateTheme()
-  // 同时保存到后端配置
   saveThemeConfig()
 }
 
 function setBackgroundImage(url: string, path?: string) {
   backgroundImage.value = url
-  if (path !== undefined) {
-    backgroundImagePath.value = path
-  }
+  if (path !== undefined) backgroundImagePath.value = path
   updateTheme()
-  // 同时保存到后端配置
   saveThemeConfig()
 }
 
 function setBlurAmount(amount: number) {
   blurAmount.value = amount
   updateTheme()
-  // 同时保存到后端配置
   saveThemeConfig()
 }
 
-// 保存到后端（防抖）
+function setBackgroundOpacity(opacity: number) {
+  backgroundOpacity.value = opacity
+  updateTheme()
+  saveThemeConfig()
+}
+
+function setSidebarCollapsed(val: boolean) {
+  sidebarCollapsed.value = val
+  updateTheme()
+  saveThemeConfig()
+}
+
+function setTitlebarHidden(val: boolean) {
+  titlebarHidden.value = val
+  updateTheme()
+  saveThemeConfig()
+}
+
 let saveTimer: any = null
 async function saveThemeConfig() {
-  // 清除之前的定时器
   if (saveTimer) clearTimeout(saveTimer)
-  
-  // 设置新的防抖定时器（100ms）
   saveTimer = setTimeout(async () => {
-    if (window.pywebview && window.pywebview.api) {
+    if ((window as any).__TAURI__?.pytauri) {
       try {
-        const themeConfig = {
-          mode: themeMode.value,
-          primary_color: primaryColor.value,
-          blur_amount: blurAmount.value
-        };
-        
-        await updateThemeConfig(themeConfig);
+        const uiRes = await backend.config.get('ui')
+        const ui = uiRes.data || {}
+        await backend.config.set('ui', {
+          ...ui,
+          theme: {
+            mode: themeMode.value,
+            primary_color: primaryColor.value,
+            blur_amount: 0,
+            sidebar_collapsed: sidebarCollapsed.value,
+            titlebar_hidden: titlebarHidden.value,
+            background_opacity: backgroundOpacity.value,
+          },
+        })
       } catch (error) {
-        console.error('保存主题配置失败:', error);
+        console.error('保存主题配置失败:', error)
       }
     }
-    
-    // 同时保存到localStorage作为备份
-    localStorage.setItem(THEME_KEY, JSON.stringify({
-      mode: themeMode.value,
-      followSystem: themeMode.value === 'system'
-    }))
-    localStorage.setItem(COLOR_KEY, primaryColor.value)
-    localStorage.setItem(BG_IMAGE_KEY, backgroundImage.value)
-    localStorage.setItem(BLUR_KEY, blurAmount.value.toString())
   }, 100)
 }
 
@@ -271,82 +337,60 @@ function toggleTheme() {
   }
 }
 
-export async function initTheme() {
-  try {
-    // 尝试从后端API获取主题配置
-    if (window.pywebview && window.pywebview.api) {
-      const config = await getThemeConfig()
-      
-      if (config.success && config.data) {
-        themeMode.value = config.data.mode as ThemeMode || 'system'
-        primaryColor.value = config.data.primary_color || '#87CEEB'
-        blurAmount.value = config.data.blur_amount || 6
-      } else {
-        themeMode.value = 'system'
-        primaryColor.value = '#87CEEB'
-        blurAmount.value = 6
-      }
-      
-      // 从后端配置加载后，需要重新加载背景图片
-      if (window.pywebview && window.pywebview.api) {
-        // 获取背景图配置
-        const bgConfig = await getBackgroundConfig()
-        if (bgConfig.success && bgConfig.data) {
-          // 如果有背景图路径，加载背景图片数据
-          if (bgConfig.data.path) {
-            backgroundImagePath.value = bgConfig.data.path
-            const imgData = await getBackgroundImage()
+export async function initTheme(uiConfig?: any): Promise<void> {
+  if (!uiConfig && initThemePromise) {
+    return initThemePromise
+  }
+
+  const promise = (async () => {
+    try {
+      if (uiConfig) {
+        const themeData = uiConfig.theme || {}
+        themeMode.value = themeData.mode as ThemeMode || 'system'
+        primaryColor.value = themeData.primary_color || '#4A7FD9'
+        blurAmount.value = 0
+        sidebarCollapsed.value = themeData.sidebar_collapsed ?? true
+        titlebarHidden.value = themeData.titlebar_hidden ?? false
+
+        const bgData = uiConfig.background || {}
+        backgroundImagePath.value = bgData.path || ''
+
+        if (bgData.path && bgData.type !== 'default') {
+          try {
+            const imgData = await backend.command('image_read_file', { path: bgData.path })
             if (imgData.success && imgData.data?.base64) {
               backgroundImage.value = imgData.data.base64
             }
-          } else {
+          } catch (error) {
+            console.warn('加载背景图片失败:', error)
             backgroundImage.value = ''
-            backgroundImagePath.value = ''
-          }
-          // 如果背景配置中有模糊值，覆盖主题配置中的模糊值
-          if (typeof bgConfig.data.blur === 'number') {
-            blurAmount.value = bgConfig.data.blur
-            console.log('从背景配置中读取模糊值:', bgConfig.data.blur)
           }
         }
-      }
-    } else {
-      // 如果没有后端API，则从localStorage加载（向后兼容）
-      const saved = localStorage.getItem(THEME_KEY)
-      if (saved) {
-        const state: ThemeState = JSON.parse(saved)
-        themeMode.value = state.mode
-      }
-      
-      const savedColor = localStorage.getItem(COLOR_KEY)
-      if (savedColor) {
-        primaryColor.value = savedColor
-      } else {
-        primaryColor.value = '#87CEEB' // 默认天蓝色
-      }
 
-      const savedBgImage = localStorage.getItem(BG_IMAGE_KEY)
-      if (savedBgImage) {
-        backgroundImage.value = savedBgImage
-      } else {
-        backgroundImage.value = '' // 默认无背景图
+        if (typeof bgData.opacity === 'number') {
+          backgroundOpacity.value = bgData.opacity
+        }
       }
-
-      const savedBlur = localStorage.getItem(BLUR_KEY)
-      if (savedBlur) {
-        blurAmount.value = parseInt(savedBlur)
-      }
+    } catch (error) {
+      console.error('初始化主题失败:', error)
+      themeMode.value = 'system'
+      primaryColor.value = '#4A7FD9'
+      backgroundImage.value = ''
+      blurAmount.value = 0
     }
-  } catch (error) {
-    console.error('初始化主题失败:', error)
-    themeMode.value = 'system'
-    primaryColor.value = '#87CEEB'
-    backgroundImage.value = '' // 默认无背景图
-    blurAmount.value = 6
+
+    if (!systemThemeListenerInitialized) {
+      initSystemThemeListener()
+      systemThemeListenerInitialized = true
+    }
+    updateTheme()
+  })()
+
+  if (!uiConfig) {
+    initThemePromise = promise
   }
-  
-  initSystemThemeListener()
-  updateTheme()
+
+  return promise
 }
 
 export function useTheme() {
@@ -355,7 +399,10 @@ export function useTheme() {
     primaryColor,
     backgroundImage,
     backgroundImagePath,
+    backgroundOpacity,
     blurAmount,
+    sidebarCollapsed,
+    titlebarHidden,
     isDark,
     naiveTheme,
     themeOverrides,
@@ -364,9 +411,12 @@ export function useTheme() {
     setPrimaryColor,
     setBackgroundImage,
     setBlurAmount,
+    setBackgroundOpacity,
+    setSidebarCollapsed,
+    setTitlebarHidden,
     toggleTheme,
     initTheme,
-    updateTheme, // 导出updateTheme以便直接调用而不触发保存
+    updateTheme,
   }
 }
 
@@ -376,6 +426,7 @@ export const globalThemeState = {
   primaryColor,
   backgroundImage,
   backgroundImagePath,
+  backgroundOpacity,
   blurAmount,
   isDark,
   naiveTheme,
@@ -384,7 +435,7 @@ export const globalThemeState = {
   setThemeMode,
   setPrimaryColor,
   setBackgroundImage,
-  setBlurAmount,
+  setBackgroundOpacity,
   toggleTheme,
   initTheme,
 }

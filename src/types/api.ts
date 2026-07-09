@@ -1,11 +1,11 @@
 /**
- * API 类型定义
- * 统一前后端数据交互格式
+ * 前端定义的数据结构。
+ *
+ * 后端不关心这些字段的具体含义，只负责存/取 JSON。
+ * 社区替换前端时，可以自由增删字段，不需要改后端代码。
  */
 
-// ========== 基础响应格式 ==========
-
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
   message?: string
@@ -13,28 +13,12 @@ export interface ApiResponse<T = any> {
   timestamp?: number
 }
 
-export interface PaginatedResponse<T> extends ApiResponse<T[]> {
-  pagination: {
-    page: number
-    pageSize: number
-    total: number
-    totalPages: number
-  }
-}
-
-// ========== 配置相关类型 ==========
+// ── 应用配置 ──────────────────────────────────────────────────────
 
 export interface LauncherConfig {
   version: string
   version_type: 'dev' | 'beta' | 'release'
   debug: boolean
-}
-
-export interface UIConfig {
-  width: number
-  height: number
-  title: string
-  background: BackgroundConfig
 }
 
 export interface BackgroundConfig {
@@ -46,230 +30,125 @@ export interface BackgroundConfig {
 }
 
 export interface GameConfig {
-  minecraft_paths: string[]
-  java_auto_select: boolean
-  java_path: string
-  memory_size: number
-  java_list?: JavaInstallation[]
-}
-
-export interface JavaInstallation {
-  path: string
-  version: string
-  vendor: string
-  is_64bit: boolean
+  minecraft_paths: (string | { name: string; path: string; protected?: boolean })[]
+  java_auto?: boolean
+  java_path?: string
+  memory_auto?: boolean
+  memory_size?: number
 }
 
 export interface ThemeConfig {
   mode: 'light' | 'dark' | 'system'
   primary_color: string
   blur_amount: number
+  sidebar_collapsed: boolean
+  titlebar_hidden: boolean
 }
 
 export interface DownloadConfig {
-  mirror_source: 'official' | 'bmclapi' | 'mcbbs'
+  mirror_source: 'official' | 'bmclapi'
   download_threads: number
 }
 
-// ========== 版本管理类型 ==========
+export interface LocaleConfig {
+  locale: string
+}
+
+// ── Java ──────────────────────────────────────────────────────────
+
+export interface JavaInstallation {
+  path: string
+  version: string
+  major_version: number
+  java_type: string
+  arch: string
+  sources: string[]
+}
+
+// ── Minecraft 版本 ────────────────────────────────────────────────
 
 export interface MinecraftVersion {
   id: string
   type: 'release' | 'snapshot' | 'old_beta' | 'old_alpha'
   releaseTime: string
-  assetsIndex?: string
-  javaVersion?: {
-    component: string
-    majorVersion: number
-  }
-  downloads: {
-    client: VersionDownload
-    server?: VersionDownload
-  }
-  localPath?: string
-  installed: boolean
-  installDate?: string
-}
-
-export interface VersionDownload {
-  sha1: string
-  size: number
+  time: string
   url: string
 }
 
-export interface VersionFilter {
-  type?: ('release' | 'snapshot' | 'old_beta' | 'old_alpha')[]
-  installed?: boolean
-  search?: string
-  page?: number
-  pageSize?: number
-}
-
 export interface ScannedVersion {
-  folder: string
-  status: 'success' | 'failure'
-  loader_type: string | null
-  version: string | null
-  error: string | null
-  path: string
+  id: string
+  versionId: string
+  displayName: string
+  primaryLoader: string
+  vanillaName: string
+  hasForge: boolean
+  hasNeoForge: boolean
+  hasFabric: boolean
+  hasQuilt: boolean
+  isBroken: boolean
+  jsonPath: string
+  sourceName?: string
 }
 
-// ========== 实例管理类型 ==========
+// ── 游戏实例 ──────────────────────────────────────────────────────
 
 export interface GameInstance {
   id: string
   name: string
-  version: string
-  gamePath: string
-  lastPlayed?: string
-  playTime: number
-  modCount: number
-  icon?: string
-  javaArgs?: string
-  memory: {
-    min: number
-    max: number
-  }
+  type: string
+  isRunning: boolean
+  version?: string
 }
 
-export interface InstanceCreateRequest {
-  name: string
-  version: string
-  gamePath?: string
-  icon?: string
-  javaArgs?: string
-  memory?: {
-    min: number
-    max: number
-  }
-}
+// ── 账户 ──────────────────────────────────────────────────────────
 
-// ========== 模组管理类型 ==========
-
-export interface ModInfo {
+export interface MinecraftAccount {
   id: string
-  name: string
+  alias: string
+  type: 'microsoft' | 'offline' | 'authlib'
+  email: string
+  uuid: string
+  isCurrent?: boolean
+  skinUrl?: string
+}
+
+export interface AccountListData {
+  accounts: MinecraftAccount[]
+  current: MinecraftAccount | null
+}
+
+export interface MicrosoftLoginData {
+  status: 'pending' | 'completed' | 'error'
+  userCode?: string
+  verificationUri?: string
+  message: string
+  interval?: number
+}
+
+export interface MicrosoftPollData {
+  status: 'pending' | 'ready' | 'error'
+  message: string
+  retry_after?: number
+}
+
+// ── 用户协议 ──────────────────────────────────────────────────────
+
+export interface UserAgreement {
+  accepted: boolean
+  uuid: string
+}
+
+// ── 杂项 ──────────────────────────────────────────────────────────
+
+export interface SelectResult {
+  path: string
+}
+
+export interface ImageDataUrl {
+  dataUrl: string
+}
+
+export interface LauncherInfo {
   version: string
-  description?: string
-  authors: string[]
-  dependencies: ModDependency[]
-  filePath: string
-  fileSize: number
-  enabled: boolean
-  updateAvailable?: boolean
-  latestVersion?: string
-}
-
-export interface ModDependency {
-  modId: string
-  versionRange: string
-  optional: boolean
-}
-
-export interface ModSearchFilter {
-  query?: string
-  minecraftVersion?: string
-  modLoader?: 'fabric' | 'forge' | 'quilt'
-  category?: string
-  page?: number
-  pageSize?: number
-}
-
-// ========== 下载任务类型 ==========
-
-export interface DownloadTask {
-  id: string
-  type: 'version' | 'mod' | 'resourcepack' | 'other'
-  name: string
-  url: string
-  size: number
-  downloaded: number
-  speed: number
-  progress: number
-  status: 'pending' | 'downloading' | 'paused' | 'completed' | 'failed'
-  error?: string
-  startTime?: number
-  endTime?: number
-}
-
-// ========== 窗口控制类型 ==========
-
-export interface WindowPosition {
-  x: number
-  y: number
-  width: number
-  height: number
-}
-
-// ========== API 方法类型 ==========
-
-export interface ApiMethods {
-  // 测试连接
-  ping(): Promise<ApiResponse<{ status: string; timestamp: number }>>
-  
-  // 窗口控制
-  minimize_window(): Promise<ApiResponse>
-  close_window(): Promise<ApiResponse>
-  get_window_position(): Promise<ApiResponse<WindowPosition>>
-  set_window_position(position: Partial<WindowPosition>): Promise<ApiResponse>
-  
-  // 配置管理
-  get_launcher_config(): Promise<ApiResponse<LauncherConfig>>
-  get_background_config(): Promise<ApiResponse<BackgroundConfig>>
-  get_background_image(): Promise<ApiResponse<{ base64: string; path: string; type: string }>>
-  update_background_config(config: Partial<BackgroundConfig>): Promise<ApiResponse>
-  update_background_image(image_type: string, image_path: string): Promise<ApiResponse>
-  load_image_from_url(url: string): Promise<ApiResponse<{ path: string }>>
-  select_local_image(): Promise<ApiResponse<{ path: string }>>
-  
-  get_game_config(): Promise<ApiResponse<GameConfig>>
-  update_game_config(config: Partial<GameConfig>): Promise<ApiResponse>
-  get_java_list(): Promise<ApiResponse<JavaInstallation[]>>
-  
-  get_theme_config(): Promise<ApiResponse<ThemeConfig>>
-  update_theme_config(config: Partial<ThemeConfig>): Promise<ApiResponse>
-  
-  get_download_config(): Promise<ApiResponse<DownloadConfig>>
-  update_download_config(config: Partial<DownloadConfig>): Promise<ApiResponse>
-  
-  // 文件选择
-  select_directory(): Promise<ApiResponse<{ path: string }>>
-  select_file(filters?: { name: string; extensions: string[] }[]): Promise<ApiResponse<{ path: string }>>
-  
-  // 版本管理
-  get_minecraft_versions(filter?: VersionFilter): Promise<PaginatedResponse<MinecraftVersion>>
-  scan_versions(paths: string[]): Promise<ApiResponse<ScannedVersion[]>>
-  get_version_details(versionId: string): Promise<ApiResponse<MinecraftVersion>>
-  install_version(versionId: string, options?: { gamePath?: string }): Promise<ApiResponse<DownloadTask>>
-  uninstall_version(versionId: string): Promise<ApiResponse>
-  check_version_update(versionId: string): Promise<ApiResponse<{ updateAvailable: boolean; latestVersion?: string }>>
-  
-  // 实例管理
-  get_game_instances(): Promise<ApiResponse<GameInstance[]>>
-  get_instance_details(instanceId: string): Promise<ApiResponse<GameInstance>>
-  create_instance(request: InstanceCreateRequest): Promise<ApiResponse<GameInstance>>
-  update_instance(instanceId: string, updates: Partial<GameInstance>): Promise<ApiResponse>
-  delete_instance(instanceId: string): Promise<ApiResponse>
-  launch_instance(instanceId: string): Promise<ApiResponse<{ pid?: number }>>
-  
-  // 模组管理
-  get_instance_mods(instanceId: string): Promise<ApiResponse<ModInfo[]>>
-  search_mods(filter: ModSearchFilter): Promise<PaginatedResponse<ModInfo>>
-  install_mod(instanceId: string, modId: string): Promise<ApiResponse<DownloadTask>>
-  uninstall_mod(instanceId: string, modId: string): Promise<ApiResponse>
-  toggle_mod(instanceId: string, modId: string, enabled: boolean): Promise<ApiResponse>
-  
-  // 下载管理
-  get_download_tasks(): Promise<ApiResponse<DownloadTask[]>>
-  get_download_task(taskId: string): Promise<ApiResponse<DownloadTask>>
-  pause_download_task(taskId: string): Promise<ApiResponse>
-  resume_download_task(taskId: string): Promise<ApiResponse>
-  cancel_download_task(taskId: string): Promise<ApiResponse>
-  
-  // 诊断工具
-  diagnose_api(): Promise<ApiResponse<{
-    environment: Record<string, any>
-    apiMethods: string[]
-    connectivity: boolean
-  }>>
+  version_type: string
 }

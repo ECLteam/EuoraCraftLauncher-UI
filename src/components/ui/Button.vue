@@ -4,35 +4,49 @@
     :class="[
       `btn-${variant}`,
       `btn-${size}`,
-      { 'is-loading': loading, 'is-disabled': disabled }
+      `btn-${shape}`,
+      { 'is-loading': loading, 'is-disabled': disabled, 'is-icon-only': icon && !$slots.default }
     ]"
     :disabled="disabled || loading"
+    :title="title"
+    :aria-busy="loading"
     @click="handleClick"
   >
-    <span v-if="loading" class="loading-spinner">
-      <i class="icon icon-loading spin" />
-    </span>
-    <span v-else-if="icon" class="btn-icon">
-      <i :class="['icon', icon]" />
-    </span>
-    <span class="btn-content">
+    <!-- 涟漪效果 -->
+    <span
+      v-for="ripple in ripples"
+      :key="ripple.id"
+      class="ripple"
+      :style="{ left: ripple.x + 'px', top: ripple.y + 'px' }"
+    />
+    <span v-if="loading" class="loading-spinner"> 
+       <UiIcon name="spinner" :size="16" class="spin" /> 
+   </span> 
+   <span v-else-if="icon" class="btn-icon"> 
+       <UiIcon :name="icon.replace('icon-', '')" :size="16" /> 
+   </span>
+    <span v-if="$slots.default" class="btn-content">
       <slot />
     </span>
   </button>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useButtonFeedback } from '@/composables/useAnimation'
 
 const props = withDefaults(defineProps<{
-  variant?: 'primary' | 'secondary' | 'outline' | 'text' | 'danger'
+  variant?: 'primary' | 'secondary' | 'outline' | 'text' | 'danger' | 'ghost'
   size?: 'sm' | 'md' | 'lg'
+  shape?: 'default' | 'circle' | 'square'
   icon?: string
   loading?: boolean
   disabled?: boolean
+  title?: string
 }>(), {
   variant: 'primary',
   size: 'md',
+  shape: 'default',
   loading: false,
   disabled: false
 })
@@ -42,124 +56,30 @@ const emit = defineEmits<{
 }>()
 
 const { onClick } = useButtonFeedback()
+const ripples = ref<{ x: number; y: number; id: number }[]>([])
+
+// isIconOnly 通过模板中的 $slots.default 判断
 
 const handleClick = (event: MouseEvent) => {
   if (props.disabled || props.loading) return
+  
+  // 创建涟漪效果
+  const button = event.currentTarget as HTMLElement
+  const rect = button.getBoundingClientRect()
+  const x = event.clientX - rect.left
+  const y = event.clientY - rect.top
+  const id = Date.now()
+  
+  ripples.value.push({ x, y, id })
+  
+  // 动画结束后移除涟漪
+  setTimeout(() => {
+    ripples.value = ripples.value.filter(r => r.id !== id)
+  }, 600)
+  
   onClick(event)
   emit('click', event)
 }
 </script>
 
-<style scoped>
-.ui-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-  user-select: none;
-  white-space: nowrap;
-}
-
-.btn-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-primary {
-  background-color: var(--color-primary);
-  color: white;
-  box-shadow: 0 2px 4px rgba(0, 120, 212, 0.2);
-}
-
-.btn-primary:hover:not(:disabled) {
-  background-color: var(--color-primary-hover);
-  box-shadow: 0 4px 8px rgba(0, 120, 212, 0.3);
-  transform: translateY(-1px);
-}
-
-.btn-secondary {
-  background-color: var(--bg-surface-hover);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background-color: var(--bg-surface-active);
-  border-color: var(--text-secondary);
-}
-
-.btn-outline {
-  background-color: transparent;
-  border: 1px solid var(--color-primary);
-  color: var(--color-primary);
-}
-
-.btn-outline:hover:not(:disabled) {
-  background-color: rgba(0, 120, 212, 0.1);
-}
-
-.btn-text {
-  background-color: transparent;
-  color: var(--text-secondary);
-}
-
-.btn-text:hover:not(:disabled) {
-  background-color: rgba(0, 0, 0, 0.05);
-  color: var(--text-primary);
-}
-
-.btn-danger {
-  background-color: var(--color-error);
-  color: white;
-}
-
-.btn-danger:hover:not(:disabled) {
-  background-color: #d13438;
-  box-shadow: 0 4px 8px rgba(216, 59, 1, 0.3);
-}
-
-.btn-sm {
-  padding: 4px 12px;
-  font-size: 12px;
-  height: 28px;
-}
-
-.btn-md {
-  padding: 8px 16px;
-  font-size: 14px;
-  height: 36px;
-}
-
-.btn-lg {
-  padding: 12px 24px;
-  font-size: 16px;
-  height: 48px;
-}
-
-.is-disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-.is-loading {
-  cursor: wait;
-}
-
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-</style>
+<style scoped src="@/styles/Button.css"></style>

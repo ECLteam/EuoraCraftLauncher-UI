@@ -1,38 +1,127 @@
 <template>
-  <div class="pywebview-drag-region">
-  <header class="title-bar">
-    <div class="title-bar-left">
-      <img src="/favicon.ico" alt="Logo" class="app-logo" />
-      <span class="app-name">EuoraCraft Launcher</span>
+  <header class="titlebar" data-tauri-drag-region>
+    <!-- 左侧 -->
+    <div class="titlebar-left">
+      <template v-if="isFullscreenModalVisible">
+        <button
+          class="titlebar-back-btn"
+          @click="handleClose"
+          :title="t('common.back')"
+        >
+          <UiIcon name="arrow-left" :size="18" />
+        </button>
+        <span class="titlebar-modal-title">{{ fullscreenModalTitle }}</span>
+      </template>
+      <template v-else>
+        <div class="titlebar-brand">
+          <img src="/favicon.ico" alt="Logo" class="titlebar-logo" />
+          <span class="titlebar-app-name">{{ topNavEnabled ? 'ECL' : 'EuoraCraft Launcher' }}</span>
+        </div>
+      </template>
     </div>
-    
-    <div class="title-bar-right">
-      <button class="theme-toggle-btn" @click="toggleTheme" :title="isDark ? '切换到亮色模式' : '切换到暗色模式'">
-        <i class="icon icon-moon" v-if="isDark" />
-        <i class="icon icon-sun" v-else />
+
+    <!-- 中间拖拽区 -->
+    <div class="titlebar-center"></div>
+
+    <!-- 顶部导航菜单（横向标题栏模式，绝对定位居中） -->
+    <nav
+      v-if="topNavEnabled && !isFullscreenModalVisible"
+      class="titlebar-nav"
+    >
+      <button
+        v-for="item in menuItems"
+        :key="item.path"
+        class="titlebar-nav-item"
+        :class="{
+          active: route.path === item.path
+            || (item.path !== '/' && route.path.startsWith(item.path))
+        }"
+        @click="handleNavClick(item)"
+      >
+        <UiIcon :name="item.iconName" :size="16" />
+        <span>{{ item.label }}</span>
       </button>
-      
-      <button class="control-btn" @click="minimize" title="最小化">
-        <i class="icon icon-minimize" />
+    </nav>
+
+    <!-- 右侧窗口控制 -->
+    <div class="titlebar-right">
+      <button
+        v-if="hasActiveTasks"
+        class="titlebar-btn titlebar-btn-task"
+        @click="toggleTaskPanel"
+        :title="t('task.title')"
+      >
+        <UiIcon name="download" :size="16" />
+        <span v-if="activeTaskCount > 0" class="task-badge">{{ activeTaskCount }}</span>
       </button>
-      <button class="control-btn close-btn" @click="close" title="关闭">
-        <i class="icon icon-close" />
+      <button
+        class="titlebar-btn"
+        @click="toggleTheme"
+        :title="isDark ? t('settings.themeLight') : t('settings.themeDark')"
+      >
+        <UiIcon :name="isDark ? 'moon' : 'sun'" :size="16" />
+      </button>
+      <button
+        class="titlebar-btn"
+        @click="minimize"
+        :title="t('common.minimize')"
+      >
+        <UiIcon name="minimize" :size="16" />
+      </button>
+      <button
+        class="titlebar-btn titlebar-btn-close"
+        @click="close"
+        :title="t('common.close')"
+      >
+        <UiIcon name="close" :size="16" />
       </button>
     </div>
   </header>
-  </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 import { useTheme } from '@/composables/useTheme'
-import '@/style/components/TitleBar.css'
+import { useTopNav } from '@/composables/useTopNav'
+import { useFullscreenModal } from '@/composables/useFullscreenModal'
+import { globalTaskQueue } from '@/composables/useTaskQueue'
+import UiIcon from '@/components/ui/Icon.vue'
+import { MENU_ITEMS } from '@/constants/menu'
 
-const { isDark, toggleTheme } = useTheme()
+const { t } = useI18n()
+const { isDark, toggleTheme, titlebarHidden } = useTheme()
+const { topNavEnabled } = useTopNav()
+const fullscreenModal = useFullscreenModal()
+const route = useRoute()
+const router = useRouter()
 
-declare global {
-  interface Window { pywebview: any }
+const { hasActiveTasks, activeCount: activeTaskCount, togglePanel: toggleTaskPanel } = globalTaskQueue
+
+const isFullscreenModalVisible = computed(() => fullscreenModal.isVisible.value)
+const fullscreenModalTitle = computed(() => fullscreenModal.title.value)
+
+const menuItems = computed(() => MENU_ITEMS.map(item => ({
+  path: item.path,
+  label: t(item.labelKey),
+  iconName: item.iconName,
+})))
+
+const handleNavClick = (item: { path: string }) => {
+  router.push(item.path)
 }
 
-const minimize = () => window.pywebview?.api.minimize_window()
-const close = () => window.pywebview?.api.close_window()
+const minimize = async () => {
+  const w = (window as any).__TAURI__?.window?.getCurrentWindow?.()
+  if (w) await w.minimize()
+}
+const close = async () => {
+  const w = (window as any).__TAURI__?.window?.getCurrentWindow?.()
+  if (w) await w.close()
+}
+const handleClose = () => fullscreenModal.close()
 </script>
+
+<style scoped src="@/styles/TitleBar.css"></style>
+

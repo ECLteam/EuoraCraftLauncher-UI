@@ -1,143 +1,209 @@
 <template>
-  <div class="settings-container" ref="mainRef">
-    <UiTabs v-model="activeTab" :items="tabs" />
-    
-    <div class="settings-card">
-      <div class="settings-content">
-  
-        <div v-show="activeTab === 'general'" class="tab-wrapper">
-          <GeneralTab :settings="settings" @update:settings="handleUpdateSettings" />
-        </div>
-        <div v-show="activeTab === 'game'" class="tab-wrapper">
-          <GameTab :settings="settings" @update:settings="handleUpdateSettings" />
-        </div>
-        <div v-show="activeTab === 'about'" class="tab-wrapper">
-          <AboutTab />
-        </div>
+  <div class="settings-page">
+    <!-- 左侧导航 - 固定200px -->
+    <div class="settings-nav">
+      <div class="nav-header">
+        <h2 class="nav-title">
+          <UiIcon name="settings" :size="18" />
+          {{ t('settings.title') }}
+        </h2>
       </div>
+      <div class="nav-list">
+        <router-link
+          v-for="item in navItems"
+          :key="item.path"
+          :to="item.path"
+          :class="['nav-item', { active: isActive(item.path) }]"
+        >
+          <span class="nav-indicator"></span>
+          <UiIcon :name="item.icon" :size="18" class="nav-icon" />
+          <span class="nav-label">{{ item.label }}</span>
+        </router-link>
+      </div>
+    </div>
+
+    <!-- 右侧内容区 -->
+    <div class="settings-content">
+      <router-view v-slot="{ Component }">
+        <Transition name="page" mode="out-in">
+          <component :is="Component" :settings="settings" @update:settings="handleUpdateSettings" />
+        </Transition>
+      </router-view>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import gsap from 'gsap'
-import UiTabs from '@/components/ui/Tabs.vue'
-import GeneralTab from './settings/GeneralTab.vue'
-import GameTab from './settings/GameTab.vue'
-import AboutTab from './settings/AboutTab.vue'
-import {
-  getThemeConfig,
-  getBackgroundConfig,
-  getGameConfig,
-  getDownloadConfig
-} from '@/utils/api'
+import { ref, reactive, computed, onMounted, inject, type Ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useTheme } from '@/composables/useTheme'
+import UiIcon from '@/components/ui/Icon.vue'
+import backend from '@/api/client'
 
-const { themeMode, primaryColor, blurAmount, backgroundImage, backgroundImagePath, updateTheme, setBackgroundImage } = useTheme()
+const route = useRoute()
+const { t } = useI18n()
+const { themeMode, primaryColor, blurAmount, backgroundImagePath } = useTheme()
 
-const mainRef = ref<HTMLElement | null>(null)
-const activeTab = ref('general')
+const injectedGameConfig = inject<Readonly<Ref<any>>>('gameConfig', null as any)
+const injectedDownloadConfig = inject<Readonly<Ref<any>>>('downloadConfig', null as any)
 
-const tabs = [
-  { id: 'general', label: '通用', icon: 'icon-settings' },
-  { id: 'game', label: '游戏设置', icon: 'icon-game' },
-  { id: 'about', label: '关于', icon: 'icon-info' }
-]
+const navItems = computed(() => [
+  { path: '/settings/general', icon: 'brush', label: t('settings.general') },
+  { path: '/settings/download', icon: 'download', label: t('settings.download') },
+  { path: '/settings/game', icon: 'game', label: t('settings.gameSettings') },
+  { path: '/settings/plugins', icon: 'plugin', label: t('settings.pluginSettings') },
+  { path: '/settings/about', icon: 'info', label: t('settings.about') },
+])
+
+const isActive = (path: string) => route.path === path
+
+const getInitialGamePath = () => {
+  const paths = injectedGameConfig?.value?.minecraft_paths
+  if (!paths?.length) return './.minecraft'
+  const first = paths[0]
+  return typeof first === 'string' ? first : first?.path ?? './.minecraft'
+}
 
 const settings = reactive({
-  mode: 'system',
-  primaryColor: '#87CEEB',
-  blurAmount: 6,
-  backgroundImage: '',
-  javaAutoSelect: true,
-  javaPath: '',
-  memory: 4096,
-  gamePath: './.minecraft',
-  downloadSource: 'official',
-  downloadThreads: 4,
-  fullscreen: false,
-  windowWidth: 1280,
-  windowHeight: 720,
+  mode: themeMode.value,
+  primary_color: primaryColor.value,
+  blur_amount: blurAmount.value,
+  background_image: backgroundImagePath.value,
+  java_auto: injectedGameConfig?.value?.java_auto ?? true,
+  java_path: injectedGameConfig?.value?.java_path ?? '',
+  memory_size: injectedGameConfig?.value?.memory_size ?? 4096,
+  game_path: getInitialGamePath(),
+  mirror_source: injectedDownloadConfig?.value?.mirror_source ?? 'official',
+  download_threads: injectedDownloadConfig?.value?.download_threads ?? 4,
+  fullscreen: injectedGameConfig?.value?.fullscreen ?? false,
 })
 
 const handleUpdateSettings = (updates: any) => {
   Object.assign(settings, updates)
 }
-
-const initSettings = async () => {
-  if (!window.pywebview?.api) return
-
-  try {
-    Object.assign(settings, {
-      mode: themeMode.value,
-      primaryColor: primaryColor.value,
-      blurAmount: blurAmount.value,
-      backgroundImage: backgroundImagePath.value
-    })
-    
-    const [gameRes, downloadRes] = await Promise.all([
-      getGameConfig().catch(() => null),
-      getDownloadConfig().catch(() => null)
-    ])
-
-    if (gameRes && gameRes.success && gameRes.data) {
-      const data = gameRes.data
-      settings.javaAutoSelect = data.java_auto_select !== false
-      settings.javaPath = data.java_path || ''
-      settings.memory = data.memory_size || 4096
-      if (data.minecraft_paths?.length) {
-        settings.gamePath = data.minecraft_paths[0]
-      }
-    }
-
-    if (downloadRes && downloadRes.success && downloadRes.data) {
-      const data = downloadRes.data
-      settings.downloadSource = data.mirror_source || 'official'
-      settings.downloadThreads = data.download_threads || 4
-    }
-  } catch (error) {
-    console.error('加载配置失败:', error)
-  }
-}
-
-onMounted(() => {
-  gsap.fromTo(mainRef.value,
-    { opacity: 0, y: 10 },
-    { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }
-  )
-  
-  initSettings()
-})
 </script>
 
 <style scoped>
-.settings-container {
+:root { --settings-nav-w: 200px; }
+
+.settings-page {
   display: flex;
-  flex-direction: column;
   height: 100%;
-  overflow: hidden;
-  padding: 20px;
+  gap: 0;
 }
 
-.settings-card {
-  flex: 1;
+/* 左侧导航 200px */
+.settings-nav {
+  width: 200px;
+  min-width: 200px;
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-surface);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-color);
   overflow: hidden;
-  margin-top: 16px;
+  margin-right: var(--s-lg);
 }
 
+.nav-header {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.nav-title {
+  display: flex;
+  align-items: center;
+  gap: var(--s-sm);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.nav-list {
+  flex: 1;
+  padding: var(--s-sm) 0;
+  overflow-y: auto;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  gap: var(--s-sm);
+  position: relative;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: var(--r-sm);
+  margin: 0 8px;
+  transition: color 150ms ease-out, background 150ms ease-out;
+}
+
+.nav-item:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+/* 浅色：选中态品牌色文字 + 左 3px 色条 */
+.nav-item.active {
+  color: var(--primary);
+  background: transparent;
+  font-weight: 600;
+}
+
+/* 深色：选中态 #6B9EFF（品牌色提亮） */
+[data-theme="dark"] .nav-item.active {
+  color: #6B9EFF;
+}
+
+.nav-indicator {
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--primary);
+  opacity: 0;
+  transition: opacity 150ms ease-out;
+}
+
+[data-theme="dark"] .nav-indicator {
+  background: #6B9EFF;
+}
+
+.nav-item.active .nav-indicator {
+  opacity: 1;
+}
+
+.nav-icon {
+  flex-shrink: 0;
+}
+
+.nav-label {
+  white-space: nowrap;
+}
+
+/* 右侧内容区 */
 .settings-content {
   flex: 1;
+  min-width: 0;
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
+  padding: var(--s-xl);
   overflow-y: auto;
-  padding: 24px;
 }
 
-.tab-wrapper {
-  height: 100%;
-}
+
 </style>
