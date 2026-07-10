@@ -89,13 +89,23 @@
             <UiIcon name="download" :size="14" />
             {{ t('versions.download.installNew') }}
           </button>
-          <UiInput
-            v-model="searchQuery"
-            :placeholder="t('versions.manage.searchVersion')"
-            icon="search"
-            clearable
-            class="search-input"
-          />
+          <div class="search-box">
+            <UiIcon name="search" :size="16" class="search-icon" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              :placeholder="t('versions.manage.searchVersion')"
+              class="search-input"
+            />
+            <button
+              v-if="searchQuery"
+              class="search-clear"
+              @click="searchQuery = ''"
+              type="button"
+            >
+              <UiIcon name="close" :size="14" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -689,7 +699,7 @@ function navigateToInstall() {
 }
 
 .path-panel > .panel-header {
-  height: 40px;
+  height: 48px;
   padding: 0 12px;
   border-bottom: 1px solid var(--glass-divider);
 }
@@ -939,8 +949,64 @@ function navigateToInstall() {
   border-radius: var(--r-xs);
 }
 
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 240px;
+  height: 36px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  transition: border-color 150ms ease-out;
+}
+
+.search-box:focus-within {
+  border-color: var(--border-hover);
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+
 .search-input {
-  width: 180px;
+  width: 100%;
+  height: 100%;
+  padding: 0 32px 0 32px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--text-primary);
+  outline: none;
+  border-radius: var(--r-sm);
+}
+
+.search-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.search-clear {
+  position: absolute;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--r-xs);
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 150ms ease-out;
+}
+
+.search-clear:hover {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
 }
 
 /* 按钮 */

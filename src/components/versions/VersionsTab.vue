@@ -16,12 +16,23 @@
           <UiIcon name="refresh" :size="14" />
           {{ t('versions.download.refreshList') }}
         </button>
-        <UiInput
-          v-model="searchQuery"
-          :placeholder="t('versions.download.searchVersion')"
-          clearable
-          class="search-input"
-        />
+        <div class="search-box">
+          <UiIcon name="search" :size="16" class="search-icon" />
+          <input
+            v-model="searchQuery"
+            type="text"
+            :placeholder="t('versions.download.searchVersion')"
+            class="search-input"
+          />
+          <button
+            v-if="searchQuery"
+            class="search-clear"
+            @click="searchQuery = ''"
+            type="button"
+          >
+            <UiIcon name="close" :size="14" />
+          </button>
+        </div>
       </div>
     </div>
 
@@ -720,24 +731,64 @@ onUnmounted(() => {
   cursor: not-allowed;
 }
 
-.search-input {
-  width: 130px;
-  flex-shrink: 0;
-}
+  .search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 240px;
+    height: 36px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    transition: border-color 150ms ease-out;
+  }
 
-.search-input :deep(.ui-input-wrapper) {
-  height: 28px;
-  min-height: 28px;
-  padding: 0 8px;
-}
+  .search-box:focus-within {
+    border-color: var(--border-hover);
+  }
 
-.search-input :deep(.ui-input) {
-  font-size: 12px;
-}
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    color: var(--text-tertiary);
+    pointer-events: none;
+  }
 
-/* ── 安装弹窗 ── */
-.form-group {
-  margin-bottom: 16px;
+  .search-input {
+    width: 100%;
+    height: 100%;
+    padding: 0 32px 0 32px;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    color: var(--text-primary);
+    outline: none;
+    border-radius: var(--r-sm);
+  }
+
+  .search-input::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .search-clear {
+    position: absolute;
+    right: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: var(--r-xs);
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 150ms ease-out;
+  }
+
+  .search-clear:hover {
+    background: var(--bg-hover);
+    color: var(--text-secondary);
 }
 
 .form-group:last-child {
