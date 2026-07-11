@@ -14,8 +14,7 @@
       >
         <div
           ref="modalRef"
-          class="modal-wrapper"
-          :class="{ 'no-title': !showHeader, [`type-${type}`]: true }"
+          :class="['modal-wrapper', props.wrapperClass, { 'no-title': !showHeader, [`type-${type}`]: true }]"
           @click.stop
         >
           <!-- 头部 - 全屏模式下隐藏（标题显示在 TitleBar） -->
@@ -125,6 +124,8 @@ interface Props {
   maskClosable?: boolean
   /** 内容区域自定义类名 */
   bodyClass?: string
+  /** 自定义 wrapper 类名 */
+  wrapperClass?: string
   /** 是否锁定背景滚动 */
   lockScroll?: boolean
   /** 是否显示背景遮罩，默认不显示 */
@@ -137,6 +138,7 @@ const props = withDefaults(defineProps<Props>(), {
   showCloseBtn: true,
   showFooter: true,
   fullscreen: false,
+  wrapperClass: '',
   maskClosable: false,
   lockScroll: true,
   danger: false,

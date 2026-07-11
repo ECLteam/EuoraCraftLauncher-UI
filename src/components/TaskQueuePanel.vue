@@ -3,7 +3,9 @@
     v-model:visible="panelVisible"
     :show-footer="false"
     fullscreen
+    :title="t('taskQueue.title')"
     body-class="task-queue-body"
+    wrapper-class="task-queue-wrapper"
   >
     <template #title>
       <div class="tq-header">
@@ -153,6 +155,17 @@ function toggleExpand(taskId: string) {
 </script>
 
 <style scoped>
+.task-queue-wrapper {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.task-queue-body {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
 .tq-header {
   display: flex;
   align-items: center;

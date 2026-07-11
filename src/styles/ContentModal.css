@@ -17,13 +17,13 @@
 }
 
 .content-modal.is-fullscreen {
-  background: transparent;
+  background: transparent !important;
   align-items: stretch;
   justify-content: stretch;
 }
 
 .content-modal.is-fullscreen.has-backdrop {
-  background: var(--bg-overlay);
+  background: transparent !important;
 }
 
 .content-modal.has-backdrop {
@@ -52,7 +52,7 @@
   max-width: none;
   max-height: none;
   border-radius: 0;
-  background: var(--bg-surface);
+  background: transparent;
   border: none;
   box-shadow: none;
   overflow: hidden;
@@ -60,6 +60,29 @@
 
 .modal-wrapper.no-title {
   overflow: hidden;
+}
+
+.modal-body {
+  flex: 1;
+  overflow: auto;
+  padding: var(--s-lg);
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+}
+
+.is-fullscreen .modal-body {
+  padding: 0;
+  background: transparent;
+}
+
+.transparent-modal-wrapper {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.transparent-modal-body {
+  background: transparent !important;
 }
 
 .modal-header {
