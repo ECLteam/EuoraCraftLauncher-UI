@@ -7,19 +7,19 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    AboutTab: typeof import('./src/components/settings/AboutTab.vue')['default']
+    AboutTab: typeof import('./src/views/settings/AboutTab.vue')['default']
     Button: typeof import('./src/components/ui/Button.vue')['default']
     Card: typeof import('./src/components/ui/Card.vue')['default']
     ContentModal: typeof import('./src/components/modals/ContentModal.vue')['default']
-    DownloadTab: typeof import('./src/components/settings/DownloadTab.vue')['default']
-    GameTab: typeof import('./src/components/settings/GameTab.vue')['default']
-    GeneralTab: typeof import('./src/components/settings/GeneralTab.vue')['default']
+    DownloadTab: typeof import('./src/views/settings/DownloadTab.vue')['default']
+    GameTab: typeof import('./src/views/settings/GameTab.vue')['default']
+    GeneralTab: typeof import('./src/views/settings/GeneralTab.vue')['default']
     GlassMessage: typeof import('./src/components/ui/GlassMessage.vue')['default']
     Icon: typeof import('./src/components/ui/Icon.vue')['default']
     Input: typeof import('./src/components/ui/Input.vue')['default']
-    ManageTab: typeof import('./src/components/versions/ManageTab.vue')['default']
-    ModsTab: typeof import('./src/components/versions/ModsTab.vue')['default']
-    PluginSettingsTab: typeof import('./src/components/settings/PluginSettingsTab.vue')['default']
+    ManageTab: typeof import('./src/views/versions/ManageTab.vue')['default']
+    ModsTab: typeof import('./src/views/versions/ModsTab.vue')['default']
+    PluginSettingsTab: typeof import('./src/views/settings/PluginSettingsTab.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Select: typeof import('./src/components/ui/Select.vue')['default']
@@ -27,7 +27,7 @@ declare module 'vue' {
     SkinRenderer: typeof import('./src/components/SkinRenderer.vue')['default']
     TaskQueuePanel: typeof import('./src/components/TaskQueuePanel.vue')['default']
     TitleBar: typeof import('./src/components/layout/TitleBar.vue')['default']
-    VersionDetailModal: typeof import('./src/components/versions/VersionDetailModal.vue')['default']
-    VersionsTab: typeof import('./src/components/versions/VersionsTab.vue')['default']
+    VersionDetailModal: typeof import('./src/views/versions/VersionDetailModal.vue')['default']
+    VersionsTab: typeof import('./src/views/versions/VersionsTab.vue')['default']
   }
 }

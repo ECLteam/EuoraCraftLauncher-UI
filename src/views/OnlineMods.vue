@@ -54,32 +54,34 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { NButton, NSpin } from 'naive-ui'
+import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useGlassMessage } from '@/composables/useGlassMessage'
+import { v, formatErrors } from '@/utils/validate'
 import backend from '@/api/client'
 
 const { t } = useI18n()
 const message = useGlassMessage()
+const { loading, run } = useAsyncAction({ showSuccess: false, showError: false })
 const query = ref('')
-const loading = ref(false)
 const searched = ref(false)
 const results = ref<any[]>([])
 
+const querySchema = v.string().min(1, t('mods.queryRequired')).max(100, t('mods.queryTooLong'))
+
 async function handleSearch() {
-  if (!query.value.trim()) return
-  loading.value = true
+  const trimmed = query.value.trim()
+  const validated = querySchema.safeParse(trimmed)
+  if (!validated.success) {
+    message.error(formatErrors(validated.errors))
+    return
+  }
+
   searched.value = true
-  try {
-    const res = await backend.command('search_mods', { query: query.value.trim() })
-    if (res.success && res.data) {
-      results.value = res.data
-    } else {
-      results.value = []
-    }
-  } catch (e) {
-    console.error('搜索 Mod 失败:', e)
+  const res = await run(async () => backend.command('search_mods', { query: trimmed }))
+  if (res?.success && res.data) {
+    results.value = res.data
+  } else {
     results.value = []
-  } finally {
-    loading.value = false
   }
 }
 
@@ -113,7 +115,7 @@ async function handleInstall(mod: any) {
 
 .search-icon {
   position: absolute;
-  left: 12px;
+  left: 11px;
   color: var(--text-tertiary);
   pointer-events: none;
   z-index: 1;
@@ -121,13 +123,13 @@ async function handleInstall(mod: any) {
 
 .search-input {
   width: 100%;
-  height: 32px;
-  padding: 0 16px 0 36px;
+  height: 29px;
+  padding: 0 14px 0 32px;
   border-radius: var(--r-sm);
   border: 1px solid var(--border);
   background: var(--bg-elevated);
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: 12px;
   font-family: inherit;
   outline: none;
   transition: border-color 150ms ease-out;
@@ -144,9 +146,9 @@ async function handleInstall(mod: any) {
 .mod-result-item {
   display: flex;
   align-items: center;
-  min-height: 64px;
-  padding: 10px 12px;
-  gap: 12px;
+  min-height: 58px;
+  padding: 9px 11px;
+  gap: 11px;
   border-radius: var(--r-sm);
   transition: background 150ms ease-out;
 }
@@ -155,8 +157,8 @@ async function handleInstall(mod: any) {
 .mod-result-item + .mod-result-item { margin-top: 2px; }
 
 .mod-icon {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--r-sm);
   background: var(--primary-alpha);
   display: flex;
@@ -178,7 +180,7 @@ async function handleInstall(mod: any) {
 }
 
 .mod-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--text-primary);
   white-space: nowrap;
@@ -187,7 +189,7 @@ async function handleInstall(mod: any) {
 }
 
 .mod-desc {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -197,13 +199,13 @@ async function handleInstall(mod: any) {
 .mod-meta {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 11px;
+  gap: 7px;
+  font-size: 10px;
   color: var(--text-tertiary);
 }
 
 .mod-source {
-  padding: 0 6px;
+  padding: 0 5px;
   border-radius: var(--r-xs);
   background: var(--bg-base-alt);
   font-weight: 500;
@@ -222,5 +224,5 @@ async function handleInstall(mod: any) {
 }
 
 .empty-icon { color: var(--text-tertiary); }
-.empty-text { font-size: 14px; margin: 0; }
+.empty-text { font-size: 13px; margin: 0; }
 </style>

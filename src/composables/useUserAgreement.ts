@@ -10,41 +10,11 @@ interface UserAgreementState {
 
 const state = ref<UserAgreementState>({
   accepted: true,
-  loading: false
+  loading: false,
 })
 
-export async function acceptUserAgreement(): Promise<boolean> {
-  try {
-    state.value.loading = true
-    if (!(window as any).__TAURI__?.pytauri) {
-      state.value.accepted = true
-      return true
-    }
-
-    const result = await backend.command('user_agreement_save')
-    if (!result?.success) {
-      throw new Error(result?.message || '保存用户协议失败')
-    }
-    state.value.accepted = true
-    return true
-  } catch (e) {
-    console.error('[UserAgreement] 保存失败:', e)
-    return false
-  } finally {
-    state.value.loading = false
-  }
-}
-
-export async function rejectUserAgreement(): Promise<void> {
-  state.value.accepted = false
-
-  if ((window as any).__TAURI__?.pytauri) {
-    try {
-      await backend.command('user_agreement_clear')
-    } catch (e) {
-      console.warn('[UserAgreement] 后端清除失败:', e)
-    }
-  }
+function isTauriReady(): boolean {
+  return !!(window as unknown as { __TAURI__?: { pytauri?: unknown } }).__TAURI__?.pytauri
 }
 
 export function useUserAgreement() {
@@ -56,12 +26,51 @@ export function useUserAgreement() {
     state.value.accepted = false
   }
 
+  const acceptUserAgreement = async (): Promise<boolean> => {
+    state.value.loading = true
+    if (!isTauriReady()) {
+      state.value.accepted = true
+      state.value.loading = false
+      return true
+    }
+
+    const result = await backend.command('user_agreement_save')
+    state.value.loading = false
+    if (!result?.success) {
+      console.error('[UserAgreement] 保存失败:', result?.message)
+      return false
+    }
+    state.value.accepted = true
+    return true
+  }
+
+  const rejectUserAgreement = async (): Promise<void> => {
+    state.value.accepted = false
+    if (!isTauriReady()) return
+
+    const result = await backend.command('user_agreement_clear')
+    if (!result?.success) {
+      console.warn('[UserAgreement] 后端清除失败:', result?.message)
+    }
+  }
+
   return {
     isAccepted,
     isLoading,
     agreementUrl,
     markNotAccepted,
     acceptUserAgreement,
-    rejectUserAgreement
+    rejectUserAgreement,
   }
+}
+
+// 兼容旧调用方式，建议统一从 useUserAgreement() 解构
+export const acceptUserAgreement = async (): Promise<boolean> => {
+  const { acceptUserAgreement: accept } = useUserAgreement()
+  return accept()
+}
+
+export const rejectUserAgreement = async (): Promise<void> => {
+  const { rejectUserAgreement: reject } = useUserAgreement()
+  return reject()
 }

@@ -31,7 +31,7 @@
               :step="field.step ?? 1"
               @change="(e) => handleChange(item.name, key, Number((e.target as HTMLInputElement).value), field.type)"
               class="text-input"
-              style="width: 100px"
+              style="width: 90px"
             />
             <!-- boolean -->
             <button
@@ -63,63 +63,53 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useGlassMessage } from '@/composables/useGlassMessage'
+import { useAsyncAction } from '@/composables/useAsyncAction'
 import backend from '@/api/client'
 
 const { t } = useI18n()
-const message = useGlassMessage()
+const { loading, run } = useAsyncAction({ showSuccess: false, showError: false })
 
-const loading = ref(true)
 const pluginSettingsList = ref<any[]>([])
 
 const loadSettings = async () => {
-  loading.value = true
-  try {
-    const listRes = await backend.command('plugin_list')
-    if (!listRes?.success || !listRes.data) {
-      pluginSettingsList.value = []
-      return
-    }
-    const plugins = listRes.data as any[]
-    const result: any[] = []
-    for (const plugin of plugins) {
-      const settingsRes = await backend.command('plugin_get_settings', { plugin_name: plugin.name })
-      if (settingsRes?.success && settingsRes.data?.schema && Object.keys(settingsRes.data.schema).length > 0) {
-        result.push({
-          name: plugin.name,
-          title: plugin.title || plugin.name,
-          schema: settingsRes.data.schema,
-          values: settingsRes.data.values || {},
-        })
-      }
-    }
-    pluginSettingsList.value = result
-  } catch (e) {
-    console.error('加载插件设置失败:', e)
-  } finally {
-    loading.value = false
+  const listRes = await run(async () => backend.command('plugin_list'))
+  if (!listRes?.success || !listRes.data) {
+    pluginSettingsList.value = []
+    return
   }
+  const plugins = listRes.data as any[]
+  const result: any[] = []
+  for (const plugin of plugins) {
+    const settingsRes = await backend.command('plugin_get_settings', { plugin_name: plugin.name })
+    if (settingsRes?.success && settingsRes.data?.schema && Object.keys(settingsRes.data.schema).length > 0) {
+      result.push({
+        name: plugin.name,
+        title: plugin.title || plugin.name,
+        schema: settingsRes.data.schema,
+        values: settingsRes.data.values || {},
+      })
+    }
+  }
+  pluginSettingsList.value = result
 }
 
-const handleChange = async (pluginName: string, key: string, value: any, type: string) => {
-  try {
-    const res = await backend.command('plugin_update_setting', {
+const handleChange = async (pluginName: string, key: string, value: any, _type: string) => {
+  const res = await run(
+    async () => backend.command('plugin_update_setting', {
       plugin_name: pluginName,
       key,
       value,
-    })
-    if (res?.success) {
-      // 更新本地值
-      const item = pluginSettingsList.value.find(p => p.name === pluginName)
-      if (item) {
-        item.values[key] = value
-      }
-      message.success(t('common.saved'))
-    } else {
-      message.error(res?.message || t('common.error'))
+    }),
+    {
+      showSuccess: true,
+      successMessage: t('common.saved'),
+      showError: true,
+      errorMessage: t('common.error'),
     }
-  } catch (e: any) {
-    message.error(e.message || t('common.error'))
+  )
+  if (res?.success) {
+    const item = pluginSettingsList.value.find(p => p.name === pluginName)
+    if (item) item.values[key] = value
   }
 }
 
@@ -128,7 +118,7 @@ onMounted(loadSettings)
 
 <style scoped>
 .tab-pane {
-  max-width: 600px;
+  max-width: 540px;
 }
 
 .loading-state,
@@ -136,7 +126,7 @@ onMounted(loadSettings)
   padding: var(--s-2xl);
   text-align: center;
   color: var(--text-tertiary);
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .settings-section {
@@ -148,7 +138,7 @@ onMounted(loadSettings)
 }
 
 .section-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -176,14 +166,14 @@ onMounted(loadSettings)
 }
 
 .setting-label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 2px;
 }
 
 .setting-desc {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-tertiary);
   line-height: 1.5;
 }
@@ -196,15 +186,15 @@ onMounted(loadSettings)
 }
 
 .text-input {
-  height: 32px;
-  padding: 0 10px;
+  height: 29px;
+  padding: 0 9px;
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   background: var(--bg-elevated);
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: 12px;
   outline: none;
-  width: 200px;
+  width: 180px;
   transition: border-color 150ms ease-out;
 }
 
@@ -213,9 +203,9 @@ onMounted(loadSettings)
 }
 
 .toggle-switch {
-  width: 32px;
-  height: 20px;
-  border-radius: 16px;
+  width: 29px;
+  height: 18px;
+  border-radius: 14px;
   border: none;
   background: #D0D0D0;
   cursor: pointer;
@@ -237,8 +227,8 @@ onMounted(loadSettings)
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   background: #FFFFFF;
   transition: transform 150ms ease-out;
@@ -249,6 +239,6 @@ onMounted(loadSettings)
 }
 
 .toggle-switch.active .toggle-knob {
-  transform: translateX(12px);
+  transform: translateX(11px);
 }
 </style>

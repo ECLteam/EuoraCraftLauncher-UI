@@ -15,6 +15,7 @@
         <div
           ref="modalRef"
           :class="['modal-wrapper', props.wrapperClass, { 'no-title': !showHeader, [`type-${type}`]: true }]"
+          :style="props.width && !props.fullscreen ? { width: props.width, maxWidth: props.width } : undefined"
           @click.stop
         >
           <!-- 头部 - 全屏模式下隐藏（标题显示在 TitleBar） -->
@@ -130,6 +131,8 @@ interface Props {
   lockScroll?: boolean
   /** 是否显示背景遮罩，默认不显示 */
   showBackdrop?: boolean
+  /** 弹窗宽度（普通模式下有效，例如 720px） */
+  width?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {

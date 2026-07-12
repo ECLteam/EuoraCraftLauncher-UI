@@ -304,7 +304,7 @@ onMounted(() => {
 
 .search-icon {
   position: absolute;
-  left: 12px;
+  left: 11px;
   color: var(--text-tertiary);
   pointer-events: none;
   z-index: 1;
@@ -312,13 +312,13 @@ onMounted(() => {
 
 .search-input {
   width: 100%;
-  height: 32px;
-  padding: 0 36px 0 36px;
+  height: 29px;
+  padding: 0 32px 0 32px;
   border-radius: var(--r-sm);
   border: 1px solid var(--border);
   background: var(--bg-elevated);
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: 12px;
   font-family: inherit;
   outline: none;
   transition: border-color 150ms ease-out;
@@ -334,12 +334,12 @@ onMounted(() => {
 
 .search-clear {
   position: absolute;
-  right: 8px;
+  right: 7px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: var(--r-xs);
   border: none;
   background: transparent;
@@ -354,7 +354,7 @@ onMounted(() => {
 }
 
 .loader-filter {
-  width: 120px;
+  width: 108px;
   flex-shrink: 0;
 }
 
@@ -372,9 +372,9 @@ onMounted(() => {
 .mod-item {
   display: flex;
   align-items: center;
-  min-height: 56px;
-  padding: 8px 12px;
-  gap: 12px;
+  min-height: 50px;
+  padding: 7px 11px;
+  gap: 11px;
   border-radius: var(--r-sm);
   transition: background 150ms ease-out;
 }
@@ -389,8 +389,8 @@ onMounted(() => {
 
 /* 模组图标 */
 .mod-icon {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--r-sm);
   background: var(--primary-alpha);
   display: flex;
@@ -417,7 +417,7 @@ onMounted(() => {
 }
 
 .mod-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--text-primary);
   line-height: 1.3;
@@ -429,27 +429,27 @@ onMounted(() => {
 .mod-meta {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   flex-wrap: wrap;
 }
 
 .mod-version-tag {
   display: inline-block;
-  padding: 0 6px;
+  padding: 0 5px;
   border-radius: var(--r-xs);
   background: var(--bg-base-alt);
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-secondary);
   font-weight: 500;
 }
 
 .mod-author {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-tertiary);
 }
 
 .mod-game-version {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-tertiary);
   padding: 0 4px;
   border-radius: var(--r-xs);
@@ -459,9 +459,9 @@ onMounted(() => {
 /* 加载器标签 */
 .loader-tag {
   display: inline-block;
-  padding: 0 6px;
+  padding: 0 5px;
   border-radius: var(--r-xs);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
 }
 
@@ -477,7 +477,7 @@ onMounted(() => {
 .mod-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   flex-shrink: 0;
 }
 
@@ -496,7 +496,7 @@ onMounted(() => {
 }
 
 .empty-text {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-secondary);
   margin: 0;
 }

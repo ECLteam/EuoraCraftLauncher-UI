@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, inject, type Ref } from 'vue'
+import { ref, reactive, computed, onMounted, inject, watch, type Ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useTheme } from '@/composables/useTheme'
@@ -82,10 +82,20 @@ const settings = reactive({
 const handleUpdateSettings = (updates: any) => {
   Object.assign(settings, updates)
 }
+
+// 主题/背景配置变化时同步给子标签页
+watch([themeMode, primaryColor, blurAmount, backgroundImagePath], ([mode, color, blur, bg]) => {
+  Object.assign(settings, {
+    mode,
+    primary_color: color,
+    blur_amount: blur,
+    background_image: bg,
+  })
+})
 </script>
 
 <style scoped>
-:root { --settings-nav-w: 200px; }
+:root { --settings-nav-w: 180px; }
 
 .settings-page {
   display: flex;
@@ -93,10 +103,10 @@ const handleUpdateSettings = (updates: any) => {
   gap: 0;
 }
 
-/* 左侧导航 200px */
+/* 左侧导航 180px */
 .settings-nav {
-  width: 200px;
-  min-width: 200px;
+  width: 180px;
+  min-width: 180px;
   background: var(--card-bg);
   border-top: var(--card-border-top);
   border-bottom: var(--card-border-bottom);
@@ -110,8 +120,8 @@ const handleUpdateSettings = (updates: any) => {
 .nav-header {
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  height: 40px;
+  padding: 0 14px;
+  height: 36px;
   flex-shrink: 0;
 }
 
@@ -119,7 +129,7 @@ const handleUpdateSettings = (updates: any) => {
   display: flex;
   align-items: center;
   gap: var(--s-sm);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
@@ -134,17 +144,17 @@ const handleUpdateSettings = (updates: any) => {
 .nav-item {
   display: flex;
   align-items: center;
-  height: 40px;
-  padding: 0 16px;
+  height: 36px;
+  padding: 0 14px;
   gap: var(--s-sm);
   position: relative;
   color: var(--text-secondary);
   text-decoration: none;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   border-radius: var(--r-sm);
-  margin: 0 8px;
+  margin: 0 7px;
   transition: color 150ms ease-out, background 150ms ease-out;
 }
 
@@ -168,8 +178,8 @@ const handleUpdateSettings = (updates: any) => {
 .nav-indicator {
   position: absolute;
   left: 0;
-  top: 10px;
-  bottom: 10px;
+  top: 9px;
+  bottom: 9px;
   width: 3px;
   border-radius: 0 2px 2px 0;
   background: var(--primary);
@@ -205,5 +215,25 @@ const handleUpdateSettings = (updates: any) => {
   overflow-y: auto;
 }
 
+@media (max-width: 1000px) {
+  .settings-page {
+    gap: var(--s-md);
+  }
+  .settings-nav {
+    width: 144px;
+    min-width: 144px;
+    margin-right: var(--s-md);
+  }
+  .nav-item {
+    padding: 0 11px;
+    margin: 0 5px;
+  }
+  .nav-label {
+    font-size: 11px;
+  }
+  .settings-content {
+    padding: var(--s-lg);
+  }
+}
 
 </style>

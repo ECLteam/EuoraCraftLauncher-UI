@@ -162,6 +162,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { useClickOutside } from '@/composables/useClickOutside'
 import UiIcon from '@/components/ui/Icon.vue'
@@ -200,6 +201,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const message = useGlassMessage()
+const { run } = useAsyncAction({ showSuccess: false, showError: true, errorMessage: t('common.error') })
 
 const localSettings = ref<GameSettings>({
   java_auto: true,
@@ -274,52 +276,37 @@ const formatMemory = (mb: number): string => {
 }
 
 const loadJavaList = async () => {
-  try {
-    const result = await backend.command('java_list')
-    if (result.success && result.data) {
-      javaList.value = result.data
-    }
-  } catch (e) {
-    console.error('加载Java列表失败:', e)
+  const result = await run(async () => backend.command('java_list'))
+  if (result?.success && result.data) {
+    javaList.value = result.data
   }
 }
 
 const loadGameConfig = async () => {
-  try {
-    const result = await backend.config.get('game')
-    if (result.success && result.data) {
-      const data = result.data
-      localSettings.value = {
-        java_auto: data.java_auto ?? true,
-        java_path: data.java_path ?? '',
-        memory_auto: data.memory_auto ?? true,
-        memory_size: data.memory_size ?? 4096,
-        fullscreen: data.fullscreen ?? false
-      }
-      emit('update:settings', { ...localSettings.value })
-    }
-  } catch (e) {
-    console.error('加载游戏配置失败:', e)
+  const result = await run(async () => backend.config.get('game'))
+  if (!result?.success || !result.data) return
+  const data = result.data
+  localSettings.value = {
+    java_auto: data.java_auto ?? true,
+    java_path: data.java_path ?? '',
+    memory_auto: data.memory_auto ?? true,
+    memory_size: data.memory_size ?? 4096,
+    fullscreen: data.fullscreen ?? false
   }
+  emit('update:settings', { ...localSettings.value })
 }
 
 const saveConfig = async () => {
-  try {
-    const config = {
-      java_auto: localSettings.value.java_auto,
-      java_path: localSettings.value.java_path,
-      memory_auto: localSettings.value.memory_auto,
-      memory_size: localSettings.value.memory_size,
-      fullscreen: localSettings.value.fullscreen
-    }
-    const result = await backend.config.set('game', config)
-    if (result.success) {
-      emit('update:settings', { ...localSettings.value })
-    } else {
-      message.error(result.message || t('common.error'))
-    }
-  } catch (error) {
-    message.error(t('common.error'))
+  const config = {
+    java_auto: localSettings.value.java_auto,
+    java_path: localSettings.value.java_path,
+    memory_auto: localSettings.value.memory_auto,
+    memory_size: localSettings.value.memory_size,
+    fullscreen: localSettings.value.fullscreen
+  }
+  const result = await run(async () => backend.config.set('game', config))
+  if (result?.success) {
+    emit('update:settings', { ...localSettings.value })
   }
 }
 
@@ -365,16 +352,11 @@ const selectJava = (java: JavaInfo) => {
 }
 
 const browseJava = async () => {
-  try {
-    const result = await backend.command('select_java')
-    if (result.success && result.data?.path) {
-      localSettings.value.java_path = result.data.path
-      saveConfig()
-      message.success(t('common.success'))
-    }
-  } catch (error) {
-    message.error(t('common.error'))
-  }
+  const result = await run(async () => backend.command('select_java'))
+  if (!result?.success || !result.data?.path) return
+  localSettings.value.java_path = result.data.path
+  await saveConfig()
+  message.success(t('common.success'))
 }
 
 useClickOutside(javaSelectRef, () => { isJavaOpen.value = false })
@@ -391,7 +373,7 @@ onUnmounted(() => {
 
 <style scoped>
 .tab-pane {
-  max-width: 600px;
+  max-width: 540px;
 }
 
 .settings-section {
@@ -403,7 +385,7 @@ onUnmounted(() => {
 }
 
 .section-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -431,14 +413,14 @@ onUnmounted(() => {
 }
 
 .setting-label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 2px;
 }
 
 .setting-desc {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-tertiary);
   line-height: 1.5;
 }
@@ -452,9 +434,9 @@ onUnmounted(() => {
 
 /* 开关 */
 .toggle-switch {
-  width: 32px;
-  height: 18px;
-  border-radius: 9px;
+  width: 29px;
+  height: 16px;
+  border-radius: 8px;
   border: none;
   background: var(--bg-base-alt);
   cursor: pointer;
@@ -471,8 +453,8 @@ onUnmounted(() => {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
   background: #fff;
   transition: transform 150ms ease-out;
@@ -480,7 +462,7 @@ onUnmounted(() => {
 }
 
 .toggle-switch.active .toggle-knob {
-  transform: translateX(14px);
+  transform: translateX(13px);
 }
 
 /* Java 选择器 */
@@ -492,15 +474,15 @@ onUnmounted(() => {
 
 .custom-select {
   position: relative;
-  width: 220px;
+  width: 198px;
 }
 
 .select-trigger {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 32px;
-  padding: 0 10px;
+  height: 29px;
+  padding: 0 9px;
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   background: var(--bg-elevated);
@@ -513,7 +495,7 @@ onUnmounted(() => {
 }
 
 .selected-text {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -540,7 +522,7 @@ onUnmounted(() => {
   border-radius: var(--r-sm);
   overflow: hidden;
   z-index: 100;
-  max-height: 200px;
+  max-height: 180px;
   overflow-y: auto;
 }
 
@@ -548,9 +530,9 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: 7px 11px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-primary);
   transition: background 150ms ease-out;
 }
@@ -570,12 +552,12 @@ onUnmounted(() => {
 }
 
 .option-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
 }
 
 .option-desc {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-tertiary);
 }
 
@@ -585,12 +567,12 @@ onUnmounted(() => {
 }
 
 .btn-ghost {
-  padding: 6px 12px;
+  padding: 5px 11px;
   border-radius: var(--r-sm);
   border: 1px solid var(--border);
   background: var(--bg-elevated);
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   white-space: nowrap;
   transition: all 150ms ease-out;
@@ -603,7 +585,7 @@ onUnmounted(() => {
 
 /* 内存值 */
 .memory-value {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--primary);
   font-family: var(--font-mono);
@@ -627,7 +609,7 @@ onUnmounted(() => {
 }
 
 .memory-bar {
-  height: 8px;
+  height: 7px;
   background: var(--bg-base-alt);
   border-radius: 4px;
   overflow: hidden;
@@ -661,46 +643,24 @@ onUnmounted(() => {
 
 .slider-input {
   width: 100%;
-  height: 4px;
-  -webkit-appearance: none;
-  appearance: none;
-  background: var(--bg-base-alt);
-  border-radius: 2px;
-  outline: none;
-  cursor: pointer;
-}
-
-.slider-input::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--primary);
-  border: 2px solid var(--bg-elevated);
-  cursor: pointer;
-  transition: transform 150ms ease-out;
-}
-
-.slider-input::-webkit-slider-thumb:hover {
-  transform: scale(1.1);
 }
 
 .memory-stats {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .memory-stat-item {
   display: flex;
   align-items: center;
   gap: var(--s-sm);
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .stat-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
 }

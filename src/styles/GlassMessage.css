@@ -7,7 +7,7 @@
   flex-direction: column;
   gap: var(--s-md);
   pointer-events: none;
-  width: 320px;
+  width: 288px;
   transition: left var(--duration-normal) var(--ease-standard);
 }
 
@@ -36,18 +36,18 @@
   transition: all var(--duration-normal) var(--ease-spring);
 }
 
-.glass-message.success { border-left: 4px solid var(--success); }
-.glass-message.error   { border-left: 4px solid var(--error); }
-.glass-message.warning { border-left: 4px solid var(--warning); }
-.glass-message.info    { border-left: 4px solid var(--info); }
-.glass-message.loading { border-left: 4px solid var(--info); }
+.glass-message.success { border-left: 3px solid var(--success); }
+.glass-message.error   { border-left: 3px solid var(--error); }
+.glass-message.warning { border-left: 3px solid var(--warning); }
+.glass-message.info    { border-left: 3px solid var(--info); }
+.glass-message.loading { border-left: 3px solid var(--info); }
 
 .message-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -65,7 +65,7 @@
 }
 
 .message-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: var(--s-xs);
@@ -73,7 +73,7 @@
 }
 
 .message-body {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-secondary);
   line-height: 1.5;
   word-break: break-word;
@@ -83,8 +83,8 @@
   position: absolute;
   top: var(--s-sm);
   right: var(--s-sm);
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border: 1px solid transparent;
   background: transparent;
   color: var(--text-disabled);
@@ -114,7 +114,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 2px;
   background: var(--bg-active);
   overflow: hidden;
 }
@@ -137,12 +137,12 @@
 
 .message-list-enter-from {
   opacity: 0;
-  transform: translateX(-30px) scale(0.9);
+  transform: translateX(-27px) scale(0.9);
 }
 
 .message-list-leave-to {
   opacity: 0;
-  transform: translateX(30px) scale(0.9);
+  transform: translateX(27px) scale(0.9);
 }
 
 .message-list-move {

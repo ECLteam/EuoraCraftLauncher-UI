@@ -169,36 +169,36 @@ function toggleExpand(taskId: string) {
 .tq-header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .tq-active-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
-  border-radius: 10px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
   background: var(--color-primary, #4a90d9);
   color: #fff;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
 }
 
 .tq-content {
   flex: 1;
   overflow-y: auto;
-  padding: 0 16px;
+  padding: 0 14px;
 }
 
 .tq-list {
-  max-width: 700px;
+  max-width: 630px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 12px 0;
+  gap: 5px;
+  padding: 11px 0;
 }
 
 .tq-empty {
@@ -206,25 +206,25 @@ function toggleExpand(taskId: string) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 48px 20px;
+  padding: 43px 18px;
   text-align: center;
 }
 
 .tq-empty-icon {
   opacity: 0.3;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   color: var(--color-text-secondary, #888);
 }
 
 .tq-empty-text {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--color-text, #ddd);
-  margin: 0 0 8px;
+  margin: 0 0 7px;
 }
 
 .tq-empty-hint {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--color-text-secondary, #888);
   margin: 0;
 }
@@ -232,7 +232,7 @@ function toggleExpand(taskId: string) {
 .tq-task {
   background: var(--color-bg-card, rgba(255, 255, 255, 0.05));
   border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
-  border-radius: 8px;
+  border-radius: 7px;
   overflow: hidden;
   transition: border-color 0.2s;
 }
@@ -253,9 +253,9 @@ function toggleExpand(taskId: string) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: 7px 11px;
   cursor: pointer;
-  gap: 10px;
+  gap: 9px;
   user-select: none;
 }
 
@@ -266,19 +266,19 @@ function toggleExpand(taskId: string) {
 .tq-task-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   flex: 1;
   min-width: 0;
 }
 
 .tq-task-icon {
   flex-shrink: 0;
-  width: 26px;
-  height: 26px;
+  width: 23px;
+  height: 23px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: 5px;
   background: rgba(255, 255, 255, 0.06);
 }
 
@@ -287,7 +287,7 @@ function toggleExpand(taskId: string) {
 }
 
 .tq-task-name {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--color-text, #ddd);
   white-space: nowrap;
@@ -297,7 +297,7 @@ function toggleExpand(taskId: string) {
 
 .tq-task-meta {
   display: flex;
-  gap: 6px;
+  gap: 5px;
   margin-top: 1px;
 }
 
@@ -313,15 +313,15 @@ function toggleExpand(taskId: string) {
 .tq-task-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   flex-shrink: 0;
 }
 
 .tq-task-progress-wrap {
   display: flex;
   align-items: center;
-  gap: 6px;
-  min-width: 120px;
+  gap: 5px;
+  min-width: 108px;
 }
 
 .tq-progress-bar {
@@ -351,9 +351,9 @@ function toggleExpand(taskId: string) {
 }
 
 .tq-progress-text {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--color-text-secondary, #888);
-  min-width: 28px;
+  min-width: 25px;
   text-align: right;
 }
 
@@ -361,8 +361,8 @@ function toggleExpand(taskId: string) {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border: none;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.08);
@@ -383,14 +383,14 @@ function toggleExpand(taskId: string) {
 
 /* 展开详情 */
 .tq-task-detail {
-  padding: 0 16px 14px 60px;
+  padding: 0 14px 13px 54px;
   border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.06));
 }
 
 .tq-task-message {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--color-text-secondary, #888);
-  padding: 10px 0 4px;
+  padding: 9px 0 4px;
 }
 
 .tq-msg-label {
@@ -402,22 +402,22 @@ function toggleExpand(taskId: string) {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-top: 8px;
+  margin-top: 7px;
 }
 
 .tq-subtask {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   padding: 4px 0;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--color-text-secondary, #888);
 }
 
 .tq-subtask-name {
   font-weight: 500;
   color: var(--color-text, #ccc);
-  min-width: 80px;
+  min-width: 72px;
 }
 
 .tq-subtask-msg {
@@ -445,24 +445,24 @@ function toggleExpand(taskId: string) {
 .tq-expand-enter-to,
 .tq-expand-leave-from {
   opacity: 1;
-  max-height: 300px;
+  max-height: 270px;
 }
 
 /* 底部 */
 .tq-footer {
   display: flex;
   justify-content: flex-end;
-  padding: 12px 24px;
+  padding: 11px 22px;
   border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
 }
 
 .tq-footer-btn {
-  padding: 6px 16px;
+  padding: 5px 14px;
   border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
-  border-radius: 6px;
+  border-radius: 5px;
   background: transparent;
   color: var(--color-text-secondary, #888);
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -485,5 +485,4 @@ function toggleExpand(taskId: string) {
 @keyframes tq-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
-}
-</style>
+}</style>

@@ -1,139 +1,179 @@
-/**
- * plugin-sdk API 封装
- * 提供类型安全的统一 API 调用接口，插件开发者通过此模块与后端交互。
- * 所有调用都走统一的 backend.command() → exec_action → 后端分发的路径。
- */
+// plugin-sdk API 封装
 
 import backend from '@/api/client'
+import type {
+  AccountListData,
+  ConfigSection,
+  FileContent,
+  FsEntry,
+  ImageDataUrl,
+  ImageSelection,
+  JavaInstallation,
+  MinecraftAccount,
+  MinecraftVersion,
+  PathInfo,
+  PluginInfo,
+  PluginRoute,
+  PluginSettingsSchema,
+  ScannedVersion,
+  SelectResult,
+} from '@/types/api'
 import type { ApiResponse, JsonDict } from './types'
 
-// ── 插件命令调用（统一入口） ──
+// ── 插件命令 ──
 
-/**
- * 调用任意插件注册的命令（含系统插件命令）。
- * 命令名格式: "plugin_name:command_name"
- */
-export function callCommand<T = any>(command: string, params?: JsonDict): Promise<ApiResponse<T>> {
+export function callPluginCommand<T = unknown>(command: string, params?: JsonDict): Promise<ApiResponse<T>> {
   return backend.command('plugin_call_command', { command, params })
 }
 
+export const callCommand = callPluginCommand
+
 // ── 插件设置 ──
 
-/** 获取当前插件的设置 */
-export function getSettings(pluginName: string): Promise<ApiResponse<JsonDict>> {
+export function getPluginSettings(pluginName: string): Promise<ApiResponse<PluginSettingsSchema>> {
   return backend.command('plugin_get_settings', { plugin_name: pluginName })
 }
 
-/** 更新当前插件的某项设置 */
-export function updateSetting(pluginName: string, key: string, value: unknown): Promise<ApiResponse<null>> {
+export const getSettings = getPluginSettings
+
+export function updatePluginSetting(pluginName: string, key: string, value: unknown): Promise<ApiResponse<null>> {
   return backend.command('plugin_update_setting', { plugin_name: pluginName, key, value })
 }
 
+export const updateSetting = updatePluginSetting
+
 // ── 插件路由 ──
 
-/** 获取所有已注册的插件路由 */
-export function getRoutes(pluginId?: string): Promise<ApiResponse<any[]>> {
+export function getPluginRoutes(pluginId?: string): Promise<ApiResponse<PluginRoute[]>> {
   return backend.command('plugin_get_routes', { plugin_id: pluginId })
 }
 
-// ── 配置读写 ──
+export const getRoutes = getPluginRoutes
 
-/** 读取启动器配置 */
-export function getConfig<T = JsonDict>(section: string): Promise<ApiResponse<T>> {
+// ── 启动器配置 ──
+
+export function getLauncherConfig<T = JsonDict>(section: ConfigSection): Promise<ApiResponse<T>> {
   return backend.config.get<T>(section)
 }
 
-/** 写入启动器配置 */
-export function setConfig(section: string, data: JsonDict): Promise<ApiResponse<null>> {
+export const getConfig = getLauncherConfig
+
+export function setLauncherConfig(section: ConfigSection, data: JsonDict): Promise<ApiResponse<null>> {
   return backend.config.set(section, data)
 }
 
-// ── 游戏相关 ──
+export const setConfig = setLauncherConfig
 
-/** 获取 Minecraft 版本列表 */
-export function getMinecraftVersions(filterType?: string): Promise<ApiResponse<any[]>> {
+// ── 游戏版本 ──
+
+export function getMinecraftVersions(filterType?: string): Promise<ApiResponse<MinecraftVersion[]>> {
   return backend.command('minecraft_versions', { filter_type: filterType })
 }
 
-/** 扫描游戏目录中的版本 */
-export function scanVersions(path?: string | string[]): Promise<ApiResponse<any[]>> {
+export function scanGameVersions(path?: string | string[]): Promise<ApiResponse<ScannedVersion[]>> {
   return backend.command('scan_versions', { path })
 }
 
-/** 安装游戏版本 */
-export function installVersion(params: {
+export const scanVersions = scanGameVersions
+
+export function installGameVersion(params: {
   version_id: string
+  version_name?: string
   loader_type?: string
+  task_id?: string
   fabric_version?: string
+  forge_version?: string
+  neoforge_version?: string
+  optifine_version?: string
+  optifine_type?: string
+  optifine_patch?: string
+  quilt_version?: string
   game_path?: string
-}): Promise<ApiResponse<any>> {
+  download_threads?: number
+}): Promise<ApiResponse<void>> {
   return backend.command('install_version', params)
 }
 
-// ── Java 相关 ──
+export const installVersion = installGameVersion
 
-/** 扫描系统中的 Java 运行时 */
-export function scanJava(): Promise<ApiResponse<any[]>> {
+// ── Java ──
+
+export function scanJavaInstallations(): Promise<ApiResponse<JavaInstallation[]>> {
   return backend.command('java_scan')
 }
 
-/** 获取已保存的 Java 列表 */
-export function getJavaList(): Promise<ApiResponse<any[]>> {
+export const scanJava = scanJavaInstallations
+
+export function getJavaInstallations(): Promise<ApiResponse<JavaInstallation[]>> {
   return backend.command('java_list')
 }
 
-// ── 账户相关 ──
+export const getJavaList = getJavaInstallations
 
-/** 获取账户列表 */
-export function getAccounts(): Promise<ApiResponse<any[]>> {
+// ── 账户 ──
+
+export function getAccountList(): Promise<ApiResponse<AccountListData>> {
   return backend.command('accounts_list')
 }
 
-/** 获取当前账户 */
-export function getCurrentAccount(): Promise<ApiResponse<any>> {
+export const getAccounts = getAccountList
+
+export function getCurrentAccount(): Promise<ApiResponse<MinecraftAccount | null>> {
   return backend.command('accounts_current')
 }
 
 // ── 文件系统 ──
 
-/** 读取目录内容 */
-export function readDir(path: string): Promise<ApiResponse<{ name: string; is_dir: boolean; size: number; mtime: number }[]>> {
+export function readDirectory(path: string): Promise<ApiResponse<FsEntry[]>> {
   return backend.fs.readDir(path)
 }
 
-/** 读取文件 */
-export function readFile(path: string, mode?: 'text' | 'base64'): Promise<ApiResponse<{ content: string; size: number }>> {
+export const readDir = readDirectory
+
+export function readFileContent(path: string, mode?: 'text' | 'base64'): Promise<ApiResponse<FileContent>> {
   return backend.fs.readFile(path, mode)
 }
 
-/** 检查路径是否存在 */
-export function exists(path: string): Promise<ApiResponse<{ exists: boolean; is_dir: boolean; is_file: boolean }>> {
+export const readFile = readFileContent
+
+export function checkPathExists(path: string): Promise<ApiResponse<PathInfo>> {
   return backend.fs.exists(path)
 }
 
+export const exists = checkPathExists
+
 // ── 文件选择器 ──
 
-/** 打开目录选择器 */
-export function selectDirectory(): Promise<ApiResponse<{ path: string }>> {
+export function selectDirectory(): Promise<ApiResponse<SelectResult>> {
   return backend.command('select_directory')
 }
 
-/** 打开文件选择器 */
-export function selectImage(): Promise<ApiResponse<{ path: string }>> {
+export function selectFile(): Promise<ApiResponse<SelectResult>> {
+  return backend.command('select_file')
+}
+
+export function selectImage(): Promise<ApiResponse<ImageSelection>> {
   return backend.command('select_image')
 }
 
-// ── 事件订阅 ──
-
-/**
- * 监听后端事件。
- * 返回取消监听的函数。
- */
-export function onEvent(event: string, callback: (payload: any) => void): () => void {
-  return backend.on(event, callback)
+export function openFolder(path: string): Promise<ApiResponse<void>> {
+  return backend.command('open_folder', { path })
 }
 
-/** 取消事件监听 */
-export function offEvent(event: string, callback?: (payload: any) => void): void {
-  backend.off(event, callback)
+// ── 图片 ──
+
+export function fetchImageDataUrl(url: string): Promise<ApiResponse<ImageDataUrl>> {
+  return backend.command('image_fetch_data_url', { url })
+}
+
+// ── 插件信息 ──
+
+export function getPluginList(): Promise<ApiResponse<PluginInfo[]>> {
+  return backend.command('plugin_list')
+}
+
+export const getPlugins = getPluginList
+
+export function getPluginInfo(pluginName: string): Promise<ApiResponse<PluginInfo>> {
+  return backend.command('plugin_info', { plugin_name: pluginName })
 }

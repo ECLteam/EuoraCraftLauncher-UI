@@ -7,9 +7,9 @@
   border-radius: var(--r-sm);
   cursor: pointer;
   font-weight: 500;
-  font-size: 13px;
-  min-height: 32px;
-  padding: 6px 14px;
+  font-size: 12px;
+  min-height: 29px;
+  padding: 5px 13px;
   transition:
     transform var(--duration-fast) var(--ease-standard),
     background-color var(--duration-fast) var(--ease-standard),
@@ -26,10 +26,10 @@
 
 .ripple {
   position: absolute;
-  width: 100px;
-  height: 100px;
-  margin-left: -50px;
-  margin-top: -50px;
+  width: 90px;
+  height: 90px;
+  margin-left: -45px;
+  margin-top: -45px;
   border-radius: 50%;
   background: var(--primary-alpha);
   transform: scale(0);
@@ -42,7 +42,7 @@
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  font-size: 16px;
+  font-size: 14px;
   transition: all var(--duration-fast) var(--ease-standard);
 }
 
@@ -167,24 +167,24 @@
 }
 
 .btn-sm {
-  padding: 4px 10px;
-  font-size: 12px;
+  padding: 4px 9px;
+  font-size: 11px;
   height: var(--row-h-xs);
   min-height: var(--row-h-xs);
   border-radius: var(--r-sm);
 }
 
 .btn-md {
-  padding: 6px 14px;
-  font-size: 13px;
-  height: 32px;
+  padding: 5px 13px;
+  font-size: 12px;
+  height: 29px;
   border-radius: var(--r-sm);
 }
 
 .btn-lg {
-  padding: 10px 20px;
-  font-size: 14px;
-  height: 40px;
+  padding: 9px 18px;
+  font-size: 13px;
+  height: 36px;
   border-radius: var(--r-sm);
 }
 
@@ -195,8 +195,8 @@
 }
 
 .btn-circle.btn-sm { width: var(--row-h-xs); height: var(--row-h-xs); }
-.btn-circle.btn-md { width: 32px; height: 32px; }
-.btn-circle.btn-lg { width: 40px; height: 40px; }
+.btn-circle.btn-md { width: 29px; height: 29px; }
+.btn-circle.btn-lg { width: 36px; height: 36px; }
 
 .btn-square {
   border-radius: var(--r-sm);
@@ -205,8 +205,8 @@
 }
 
 .btn-square.btn-sm { width: var(--row-h-xs); height: var(--row-h-xs); }
-.btn-square.btn-md { width: 32px; height: 32px; }
-.btn-square.btn-lg { width: 40px; height: 40px; }
+.btn-square.btn-md { width: 29px; height: 29px; }
+.btn-square.btn-lg { width: 36px; height: 36px; }
 
 .is-disabled {
   opacity: 0.4;

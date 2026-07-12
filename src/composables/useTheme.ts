@@ -1,7 +1,13 @@
-import { ref, computed, watch, type Ref } from 'vue'
+import { ref, computed, watch, readonly, type Ref } from 'vue'
 import type { GlobalTheme, GlobalThemeOverrides } from 'naive-ui'
 import { darkTheme } from 'naive-ui'
 import backend from '@/api/client'
+import type { BackgroundConfig, ThemeConfig } from '@/types/api'
+
+interface ThemeInitPayload {
+  theme?: Partial<ThemeConfig> & { background_opacity?: number }
+  background?: Partial<BackgroundConfig>
+}
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
@@ -254,7 +260,7 @@ function updateTheme() {
   document.documentElement.style.setProperty('--primary-alpha', primaryScale.primaryLight)
   document.documentElement.style.setProperty('--bg-image', backgroundImage.value ? `url("${backgroundImage.value}")` : 'none')
   document.documentElement.style.setProperty('--bg-opacity', String(backgroundOpacity.value))
-  document.documentElement.style.setProperty('--bg-blur', '0px')
+  document.documentElement.style.setProperty('--bg-blur', `${blurAmount.value}px`)
 
   document.documentElement.setAttribute('data-sidebar-collapsed', sidebarCollapsed.value ? '1' : '0')
   document.documentElement.setAttribute('data-titlebar-hidden', titlebarHidden.value ? '1' : '0')
@@ -303,29 +309,36 @@ function setTitlebarHidden(val: boolean) {
   saveThemeConfig()
 }
 
-let saveTimer: any = null
+let saveTimer: ReturnType<typeof setTimeout> | null = null
+
+function isTauriReady(): boolean {
+  return !!(window as unknown as { __TAURI__?: { pytauri?: unknown } }).__TAURI__?.pytauri
+}
+
 async function saveThemeConfig() {
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(async () => {
-    if ((window as any).__TAURI__?.pytauri) {
-      try {
-        const uiRes = await backend.config.get('ui')
-        const ui = uiRes.data || {}
-        await backend.config.set('ui', {
-          ...ui,
-          theme: {
-            mode: themeMode.value,
-            primary_color: primaryColor.value,
-            blur_amount: 0,
-            sidebar_collapsed: sidebarCollapsed.value,
-            titlebar_hidden: titlebarHidden.value,
-            background_opacity: backgroundOpacity.value,
-          },
-        })
-      } catch (error) {
-        console.error('保存主题配置失败:', error)
-      }
-    }
+    if (!isTauriReady()) return
+    const uiRes = await backend.config.get<ThemeConfig>('ui')
+    if (!uiRes.success) return
+    const ui = uiRes.data ?? {}
+    await backend.config.set('ui', {
+      ...ui,
+      theme: {
+        mode: themeMode.value,
+        primary_color: primaryColor.value,
+        blur_amount: blurAmount.value,
+        sidebar_collapsed: sidebarCollapsed.value,
+        titlebar_hidden: titlebarHidden.value,
+        background_opacity: backgroundOpacity.value,
+      },
+      background: {
+        ...(ui.background || {}),
+        type: backgroundImage.value ? 'custom' : 'none',
+        path: backgroundImagePath.value,
+        opacity: backgroundOpacity.value,
+      },
+    })
   }, 100)
 }
 
@@ -337,46 +350,37 @@ function toggleTheme() {
   }
 }
 
-export async function initTheme(uiConfig?: any): Promise<void> {
+export async function initTheme(uiConfig?: unknown): Promise<void> {
   if (!uiConfig && initThemePromise) {
     return initThemePromise
   }
 
+  const payload = uiConfig as ThemeInitPayload | undefined
+
   const promise = (async () => {
-    try {
-      if (uiConfig) {
-        const themeData = uiConfig.theme || {}
-        themeMode.value = themeData.mode as ThemeMode || 'system'
-        primaryColor.value = themeData.primary_color || '#4A7FD9'
-        blurAmount.value = 0
-        sidebarCollapsed.value = themeData.sidebar_collapsed ?? true
-        titlebarHidden.value = themeData.titlebar_hidden ?? false
+    if (payload) {
+      const themeData = payload.theme ?? {}
+      themeMode.value = (themeData.mode as ThemeMode) || 'system'
+      primaryColor.value = themeData.primary_color || '#4A7FD9'
+      blurAmount.value = themeData.blur_amount ?? 0
+      sidebarCollapsed.value = themeData.sidebar_collapsed ?? true
+      titlebarHidden.value = themeData.titlebar_hidden ?? false
 
-        const bgData = uiConfig.background || {}
-        backgroundImagePath.value = bgData.path || ''
+      const bgData = payload.background ?? {}
+      backgroundImagePath.value = bgData.path || ''
 
-        if (bgData.path && bgData.type !== 'default') {
-          try {
-            const imgData = await backend.command('image_read_file', { path: bgData.path })
-            if (imgData.success && imgData.data?.base64) {
-              backgroundImage.value = imgData.data.base64
-            }
-          } catch (error) {
-            console.warn('加载背景图片失败:', error)
-            backgroundImage.value = ''
-          }
-        }
-
-        if (typeof bgData.opacity === 'number') {
-          backgroundOpacity.value = bgData.opacity
+      if (bgData.path && bgData.type !== 'default') {
+        const imgData = await backend.command('image_read_file', { path: bgData.path })
+        if (imgData.success && imgData.data?.base64) {
+          backgroundImage.value = imgData.data.base64
+        } else {
+          backgroundImage.value = ''
         }
       }
-    } catch (error) {
-      console.error('初始化主题失败:', error)
-      themeMode.value = 'system'
-      primaryColor.value = '#4A7FD9'
-      backgroundImage.value = ''
-      blurAmount.value = 0
+
+      if (typeof bgData.opacity === 'number') {
+        backgroundOpacity.value = bgData.opacity
+      }
     }
 
     if (!systemThemeListenerInitialized) {
@@ -395,15 +399,15 @@ export async function initTheme(uiConfig?: any): Promise<void> {
 
 export function useTheme() {
   return {
-    themeMode,
-    primaryColor,
-    backgroundImage,
-    backgroundImagePath,
-    backgroundOpacity,
-    blurAmount,
-    sidebarCollapsed,
-    titlebarHidden,
-    isDark,
+    themeMode: readonly(themeMode),
+    primaryColor: readonly(primaryColor),
+    backgroundImage: readonly(backgroundImage),
+    backgroundImagePath: readonly(backgroundImagePath),
+    backgroundOpacity: readonly(backgroundOpacity),
+    blurAmount: readonly(blurAmount),
+    sidebarCollapsed: readonly(sidebarCollapsed),
+    titlebarHidden: readonly(titlebarHidden),
+    isDark: readonly(isDark),
     naiveTheme,
     themeOverrides,
     colors,

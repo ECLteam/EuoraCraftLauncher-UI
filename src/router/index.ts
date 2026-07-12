@@ -9,8 +9,8 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/Versions.vue'),
     redirect: '/versions/manage',
     children: [
-      { path: 'manage', name: 'versions-manage', component: () => import('@/components/versions/ManageTab.vue') },
-      { path: 'versions', name: 'versions-versions', component: () => import('@/components/versions/VersionsTab.vue') },
+      { path: 'manage', name: 'versions-manage', component: () => import('@/views/versions/ManageTab.vue') },
+      { path: 'versions', name: 'versions-versions', component: () => import('@/views/versions/VersionsTab.vue') },
     ]
   },
   { path: '/plugins', name: 'plugins', component: () => import('@/views/Plugins.vue') },
@@ -20,11 +20,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/Settings.vue'),
     redirect: '/settings/general',
     children: [
-      { path: 'general', name: 'settings-general', component: () => import('@/components/settings/GeneralTab.vue') },
-      { path: 'download', name: 'settings-download', component: () => import('@/components/settings/DownloadTab.vue') },
-      { path: 'game', name: 'settings-game', component: () => import('@/components/settings/GameTab.vue') },
-      { path: 'plugins', name: 'settings-plugins', component: () => import('@/components/settings/PluginSettingsTab.vue') },
-      { path: 'about', name: 'settings-about', component: () => import('@/components/settings/AboutTab.vue') },
+      { path: 'general', name: 'settings-general', component: () => import('@/views/settings/GeneralTab.vue') },
+      { path: 'download', name: 'settings-download', component: () => import('@/views/settings/DownloadTab.vue') },
+      { path: 'game', name: 'settings-game', component: () => import('@/views/settings/GameTab.vue') },
+      { path: 'plugins', name: 'settings-plugins', component: () => import('@/views/settings/PluginSettingsTab.vue') },
+      { path: 'about', name: 'settings-about', component: () => import('@/views/settings/AboutTab.vue') },
     ]
   },
   { path: '/dev', name: 'dev', component: () => import('@/views/DevTools.vue'), meta: { devOnly: true } },

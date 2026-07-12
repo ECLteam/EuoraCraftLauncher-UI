@@ -1,23 +1,23 @@
 .dev-page {
-  padding: 24px;
-  max-width: 1200px;
+  padding: 22px;
+  max-width: 1080px;
 }
 
 .dev-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 24px;
+  margin-bottom: 22px;
 }
 
 .dev-actions {
   display: flex;
-  gap: 12px;
+  gap: 11px;
 }
 
 h1 {
-  margin: 0 0 8px 0;
-  font-size: 24px;
+  margin: 0 0 7px 0;
+  font-size: 22px;
 }
 
 .desc {
@@ -26,35 +26,35 @@ h1 {
 }
 
 .section {
-  margin-bottom: 32px;
+  margin-bottom: 29px;
 }
 
 .section h2 {
-  font-size: 16px;
-  margin-bottom: 12px;
+  font-size: 14px;
+  margin-bottom: 11px;
   color: var(--text-secondary);
 }
 
 .btn-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 11px;
 }
 
 .input-group {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  max-width: 400px;
+  gap: 11px;
+  max-width: 360px;
 }
 
 .card-group {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 14px;
 }
 
 .fullscreen-content {
-  padding: 40px;
+  padding: 36px;
   text-align: center;
 }

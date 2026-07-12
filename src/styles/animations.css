@@ -1,7 +1,15 @@
 /* ================================================================
-   SnowLuma 动画系统
+   SnowLuma 动画系统 v2
+   - 非线性缓动 × 分层过渡 × 交错编排
+   - 进入 = 弹性/弹跳，退出 = 标准减速，符合 Material Motion
+   - 所有持续时间和缓动均引用 CSS 变量
    ================================================================ */
 
+/* ═══════════════════════════════════════════════════════════════════
+   第1层 — 基础关键帧 (Atomic Keyframes)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ---- 透明度 ---- */
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -10,6 +18,8 @@
   from { opacity: 1; }
   to { opacity: 0; }
 }
+
+/* ---- 缩放 ---- */
 @keyframes scale-in {
   from { opacity: 0; transform: scale(0.92); }
   to { opacity: 1; transform: scale(1); }
@@ -18,80 +28,416 @@
   from { opacity: 1; transform: scale(1); }
   to { opacity: 0; transform: scale(0.92); }
 }
+@keyframes scale-in-bounce {
+  0% { opacity: 0; transform: scale(0.85); }
+  60% { transform: scale(1.04); }
+  80% { transform: scale(0.97); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes scale-in-spring {
+  0% { opacity: 0; transform: scale(0.7); }
+  50% { transform: scale(1.08); }
+  75% { transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* ---- 滑动 (方向性) ---- */
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes slide-down {
-  from { opacity: 0; transform: translateY(-16px); }
+  from { opacity: 0; transform: translateY(-14px); }
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes slide-left {
-  from { opacity: 0; transform: translateX(16px); }
+  from { opacity: 0; transform: translateX(14px); }
   to { opacity: 1; transform: translateX(0); }
 }
 @keyframes slide-right {
-  from { opacity: 0; transform: translateX(-16px); }
+  from { opacity: 0; transform: translateX(-14px); }
   to { opacity: 1; transform: translateX(0); }
 }
+
+/* ---- 弹性滑动 (进入用弹跳曲线) ---- */
+@keyframes slide-up-bounce {
+  0% { opacity: 0; transform: translateY(22px); }
+  60% { transform: translateY(-3px); }
+  80% { transform: translateY(2px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-up-spring {
+  0% { opacity: 0; transform: translateY(29px) scale(0.95); }
+  50% { transform: translateY(-4px) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ---- 收缩展开 (用在折叠面板) ---- */
+@keyframes expand-in {
+  from { opacity: 0; transform: scaleY(0.5); max-height: 0; }
+  to { opacity: 1; transform: scaleY(1); max-height: 500px; }
+}
+@keyframes collapse-out {
+  from { opacity: 1; transform: scaleY(1); max-height: 500px; }
+  to { opacity: 0; transform: scaleY(0.5); max-height: 0; }
+}
+
+/* ---- 旋转 ---- */
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+@keyframes spin-reverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+/* ---- 脉冲/呼吸 ---- */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74, 127, 217, 0.3); }
+  50% { box-shadow: 0 0 0 5px rgba(74, 127, 217, 0); }
+}
+@keyframes pulse-opacity {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+/* ---- 涟漪 (Button Ripple) ---- */
 @keyframes ripple-effect {
   0% { transform: scale(0); opacity: 0.4; }
   100% { transform: scale(4); opacity: 0; }
 }
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(74, 127, 217, 0.3); }
-  50% { box-shadow: 0 0 0 6px rgba(74, 127, 217, 0); }
-}
+
+/* ---- 闪烁/扫描 ---- */
 @keyframes shimmer {
   from { transform: translateX(-100%); }
   to { transform: translateX(100%); }
 }
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
 
-/* 工具类 */
-.fade-in { animation: fade-in var(--duration-normal) var(--ease-standard) forwards; }
-.scale-in { animation: scale-in var(--duration-normal) var(--ease-spring) forwards; }
-.slide-up { animation: slide-up var(--duration-normal) var(--ease-standard) forwards; }
-.slide-left { animation: slide-left var(--duration-normal) var(--ease-standard) forwards; }
-.spin { animation: spin 1s linear infinite; }
+/* ---- 划过/亮起 ---- */
+@keyframes glow-in {
+  from { box-shadow: 0 0 0 0 var(--primary-alpha); }
+  to { box-shadow: 0 0 14px 4px var(--primary-alpha); }
+}
 
-/* 页面过渡 */
-.page-enter-active { transition: opacity var(--duration-normal) var(--ease-standard), transform var(--duration-normal) var(--ease-standard); }
-.page-leave-active { transition: opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard); }
-.page-enter-from { opacity: 0; transform: translateY(8px) scale(0.98); }
-.page-leave-to { opacity: 0; transform: translateY(-8px) scale(0.98); }
+/* ---- 抖动 (用于错误提示) ---- */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
 
-/* 弹窗过渡 */
-.modal-enter-active { transition: opacity var(--duration-slow) var(--ease-out); }
-.modal-leave-active { transition: opacity var(--duration-normal) var(--ease-standard); }
-.modal-enter-from { opacity: 0; }
-.modal-leave-to { opacity: 0; }
+/* ═══════════════════════════════════════════════════════════════════
+   第2层 — CSS 工具类 (Utility Classes)
+   ═══════════════════════════════════════════════════════════════════ */
 
-.modal-scale-enter-active { transition: all var(--duration-slow) var(--ease-spring); }
-.modal-scale-leave-active { transition: all var(--duration-fast) var(--ease-standard); }
-.modal-scale-enter-from { opacity: 0; transform: scale(0.92); }
-.modal-scale-leave-to { opacity: 0; transform: scale(0.96); }
+/* ---- 线性工具 ---- */
+.fade-in          { animation: fade-in var(--duration-normal) var(--ease-smooth) forwards; }
+.fade-out         { animation: fade-out var(--duration-fast) var(--ease-exit) forwards; }
+.scale-in         { animation: scale-in var(--duration-normal) var(--ease-enter) forwards; }
+.scale-in-bounce  { animation: scale-in-bounce var(--duration-slow) var(--ease-bounce) forwards; }
+.scale-in-spring  { animation: scale-in-spring var(--duration-slower) var(--ease-spring) forwards; }
+.slide-up         { animation: slide-up var(--duration-normal) var(--ease-enter) forwards; }
+.slide-up-bounce  { animation: slide-up-bounce var(--duration-slow) var(--ease-bounce) forwards; }
+.slide-up-spring  { animation: slide-up-spring var(--duration-slower) var(--ease-spring) forwards; }
+.slide-left       { animation: slide-left var(--duration-normal) var(--ease-enter) forwards; }
+.slide-right      { animation: slide-right var(--duration-normal) var(--ease-enter) forwards; }
+.spin             { animation: spin 1s var(--ease-smooth) infinite; }
+.spin-reverse     { animation: spin-reverse 1s var(--ease-smooth) infinite; }
+.shake            { animation: shake 0.4s var(--ease-exit); }
+.breathe          { animation: breathe 3s var(--ease-smooth) infinite; }
 
-/* 列表过渡 */
-.list-enter-active { transition: all var(--duration-normal) var(--ease-spring); }
-.list-leave-active { transition: all var(--duration-fast) var(--ease-standard); }
-.list-enter-from { opacity: 0; transform: translateX(-12px); }
-.list-leave-to { opacity: 0; transform: translateX(12px); }
-.list-move { transition: transform var(--duration-normal) var(--ease-standard); }
+/* ═══════════════════════════════════════════════════════════════════
+   第3层 — Vue <Transition> 类预设
+   ═══════════════════════════════════════════════════════════════════ */
 
-/* 消息过渡 */
-.message-enter-active { transition: all var(--duration-slow) var(--ease-spring); }
-.message-leave-active { transition: all var(--duration-fast) var(--ease-standard); }
-.message-enter-from { opacity: 0; transform: translateX(-24px) scale(0.92); }
-.message-leave-to { opacity: 0; transform: translateX(24px) scale(0.92); }
-.message-move { transition: transform var(--duration-normal) var(--ease-standard); }
+/* ── 3.1 页面过渡：层级方向感 ── */
+/* 一级页面 (Game, Versions, Plugins, Settings) — 从下滑入 + 缩放 */
+.page-enter-active {
+  transition:
+    opacity var(--duration-slow) var(--ease-enter),
+    transform var(--duration-slow) var(--ease-enter);
+}
+.page-leave-active {
+  transition:
+    opacity var(--duration-fast) var(--ease-exit),
+    transform var(--duration-fast) var(--ease-exit-sharp);
+  position: absolute;
+  width: calc(100% - 29px);
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(11px) scale(0.98);
+}
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-7px) scale(0.97);
+}
 
-/* 骨架屏 */
-.skeleton-pulse { animation: skeleton-pulse 1.8s ease-in-out infinite; }
+/* ── 3.2 子页面/标签页过渡 (settings-tab, versions-tab) ── */
+.tab-enter-active {
+  transition:
+    opacity var(--duration-normal) var(--ease-enter),
+    transform var(--duration-normal) var(--ease-enter);
+}
+.tab-leave-active {
+  transition:
+    opacity var(--duration-fast) var(--ease-exit),
+    transform var(--duration-fast) var(--ease-exit);
+  position: absolute;
+  width: calc(100% - 26px);
+}
+.tab-enter-from {
+  opacity: 0;
+  transform: translateX(11px);
+}
+.tab-leave-to {
+  opacity: 0;
+  transform: translateX(-11px);
+}
 
+/* ── 3.3 弹窗过渡 ── */
+/* 遮罩层 */
+.modal-enter-active {
+  transition: opacity var(--duration-slow) var(--ease-exit);
+}
+.modal-leave-active {
+  transition: opacity var(--duration-fast) var(--ease-exit);
+}
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+/* 弹窗内容 (带弹性进入) */
+.modal-enter-active .modal-wrapper {
+  transition:
+    transform var(--duration-slow) var(--ease-spring),
+    opacity var(--duration-slow) var(--ease-exit);
+}
+.modal-leave-active .modal-wrapper {
+  transition:
+    transform var(--duration-normal) var(--ease-exit),
+    opacity var(--duration-fast) var(--ease-exit-sharp);
+}
+.modal-enter-from .modal-wrapper {
+  transform: scale(0.92);
+  opacity: 0;
+}
+.modal-leave-to .modal-wrapper {
+  transform: scale(0.96);
+  opacity: 0;
+}
+
+/* 全屏弹窗：滑动进入 */
+.is-fullscreen.modal-enter-active .modal-wrapper {
+  transition:
+    transform var(--duration-slow) var(--ease-enter),
+    opacity var(--duration-slow) var(--ease-exit);
+}
+.is-fullscreen.modal-leave-active .modal-wrapper {
+  transition:
+    transform var(--duration-normal) var(--ease-exit-sharp),
+    opacity var(--duration-fast) var(--ease-exit);
+}
+.is-fullscreen.modal-enter-from .modal-wrapper {
+  transform: translateX(100%);
+  opacity: 0.5;
+}
+.is-fullscreen.modal-leave-to .modal-wrapper {
+  transform: translateX(-50%);
+  opacity: 0;
+}
+
+/* ── 3.4 消息通知过渡 ── */
+.message-enter-active {
+  transition:
+    all var(--duration-slow) var(--ease-spring),
+    opacity var(--duration-slow) var(--ease-exit);
+}
+.message-leave-active {
+  transition:
+    all var(--duration-fast) var(--ease-exit),
+    opacity var(--duration-fast) var(--ease-exit-sharp);
+}
+.message-enter-from {
+  opacity: 0;
+  transform: translateX(-29px) scale(0.92);
+}
+.message-leave-to {
+  opacity: 0;
+  transform: translateX(29px) scale(0.92);
+}
+.message-move {
+  transition: transform var(--duration-normal) var(--ease-smooth);
+}
+
+/* ── 3.5 列表过渡 (交错入场推荐用 GSAP, CSS fallback) ── */
+.list-enter-active {
+  transition:
+    all var(--duration-normal) var(--ease-spring),
+    opacity var(--duration-normal) var(--ease-exit);
+}
+.list-leave-active {
+  transition:
+    all var(--duration-fast) var(--ease-exit),
+    opacity var(--duration-fast) var(--ease-exit-sharp);
+}
+.list-enter-from {
+  opacity: 0;
+  transform: translateX(-14px) scale(0.96);
+}
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(14px) scale(0.96);
+}
+.list-move {
+  transition: transform var(--duration-normal) var(--ease-smooth);
+}
+
+/* ── 3.6 选择下拉菜单过渡 ── */
+.select-dropdown-enter-active {
+  transition:
+    opacity var(--duration-fast) var(--ease-enter),
+    transform var(--duration-fast) var(--ease-enter);
+}
+.select-dropdown-leave-active {
+  transition:
+    opacity var(--duration-fast) var(--ease-exit),
+    transform var(--duration-fast) var(--ease-exit);
+}
+.select-dropdown-enter-from {
+  opacity: 0;
+  transform: translateY(-5px) scaleY(0.95);
+}
+.select-dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-3px) scaleY(0.97);
+}
+
+/* ── 3.7 信息卡片切换 (Tip ↔ 公告) ── */
+.info-fade-enter-active {
+  transition:
+    opacity var(--duration-normal) var(--ease-enter),
+    transform var(--duration-normal) var(--ease-enter);
+}
+.info-fade-leave-active {
+  transition:
+    opacity var(--duration-fast) var(--ease-exit),
+    transform var(--duration-fast) var(--ease-exit);
+  position: absolute;
+  width: 100%;
+}
+.info-fade-enter-from {
+  opacity: 0;
+  transform: translateY(7px);
+}
+.info-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-7px);
+}
+
+/* ── 3.8 手风琴/折叠面板过渡 ── */
+.accordion-enter-active {
+  transition:
+    max-height var(--duration-slow) var(--ease-enter),
+    opacity var(--duration-normal) var(--ease-enter);
+  overflow: hidden;
+}
+.accordion-leave-active {
+  transition:
+    max-height var(--duration-fast) var(--ease-exit),
+    opacity var(--duration-fast) var(--ease-exit);
+  overflow: hidden;
+}
+.accordion-enter-from {
+  max-height: 0;
+  opacity: 0;
+}
+.accordion-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+
+/* ── 3.9 启动进度卡片切换 (slide-out) ── */
+.slide-out-enter-active {
+  transition:
+    opacity var(--duration-slow) var(--ease-enter),
+    transform var(--duration-slow) var(--ease-spring);
+}
+.slide-out-leave-active {
+  transition:
+    opacity var(--duration-fast) var(--ease-exit),
+    transform var(--duration-fast) var(--ease-exit-sharp);
+  position: absolute;
+  width: 100%;
+}
+.slide-out-enter-from {
+  opacity: 0;
+  transform: translateY(14px) scale(0.95);
+}
+.slide-out-leave-to {
+  opacity: 0;
+  transform: translateY(-11px) scale(0.95);
+}
+
+/* ── 3.10 骨架屏 ── */
+.skeleton-pulse {
+  animation: skeleton-pulse 1.8s var(--ease-smooth) infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   第4层 — 自定义高级动画 (协议弹窗等)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* 协议弹窗整体进入 */
+@keyframes agreement-fade-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 协议图标弹性缩放 */
+@keyframes agreement-icon-scale {
+  0% { opacity: 0; transform: scale(0.7); }
+  60% { transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* 协议文字滑入 (配合 animation-delay 做交错) */
+@keyframes agreement-slide-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 协议链接按钮悬浮 */
+@keyframes agreement-btn-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+/* ── 进度环旋转 ── */
+@keyframes progress-ring-fill {
+  from { stroke-dashoffset: 283; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* ── 任务进度条动画 ── */
+@keyframes progress-bar-stripes {
+  from { background-position: 0 0; }
+  to { background-position: 18px 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   减弱动画
+   ═══════════════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

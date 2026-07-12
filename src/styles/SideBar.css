@@ -30,21 +30,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  margin: 10px 0 6px 12px;
+  width: 29px;
+  height: 29px;
+  margin: 9px 0 5px 11px;
   border-radius: var(--r-sm);
   border: 1px solid transparent;
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 150ms ease-out;
+  transition: var(--transition-fast);
   flex-shrink: 0;
   align-self: flex-start;
 }
 
 .sidebar.collapsed .sidebar-toggle {
-  margin: 10px auto 6px;
+  margin: 9px auto 5px;
   align-self: center;
 }
 
@@ -59,14 +59,14 @@
 
 .sidebar-toggle:active {
   transform: scale(0.94);
-  transition-duration: 0.06s;
+  transition-duration: var(--duration-instant);
 }
 
 .sidebar-nav {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 2px 8px;
+  padding: 2px 7px;
   gap: 2px;
   position: relative;
   overflow-y: auto;
@@ -75,13 +75,13 @@
 }
 
 .sidebar.collapsed .sidebar-nav {
-  padding: 2px 7px;
+  padding: 2px 6px;
 }
 
 /* 选中态指示器 - 左侧3px品牌色条 */
 .sidebar-active-indicator {
   position: absolute;
-  left: 8px;
+  left: 7px;
   width: 3px;
   border-radius: 0 2px 2px 0;
   background: var(--primary);
@@ -96,8 +96,8 @@
 /* 选中态背景 */
 .sidebar-active-bg {
   position: absolute;
-  left: 8px;
-  right: 8px;
+  left: 7px;
+  right: 7px;
   border-radius: var(--r-sm);
   background: var(--glass-item-active-bg);
   transition: top 150ms ease-out,
@@ -111,9 +111,9 @@
 .sidebar-item {
   display: flex;
   align-items: center;
-  height: 42px;
-  padding: 0 12px;
-  gap: 8px;
+  height: 38px;
+  padding: 0 11px;
+  gap: 7px;
   border-radius: var(--r-sm);
   color: var(--text-secondary);
   text-decoration: none !important;
@@ -121,7 +121,7 @@
   background: transparent;
   border: none;
   width: 100%;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.01em;
   white-space: nowrap;
@@ -136,7 +136,7 @@
   justify-content: center;
   padding: 0;
   gap: 0;
-  width: 42px;
+  width: 38px;
   margin: 0 auto;
 }
 
@@ -147,7 +147,7 @@
 
 .sidebar-item:active {
   transform: scale(0.98);
-  transition-duration: 0.06s;
+  transition-duration: var(--duration-instant);
 }
 
 .sidebar-item.active {
@@ -170,12 +170,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   margin-left: auto;
   border-radius: var(--r-xs);
   opacity: 0.5;
-  transition: opacity 150ms ease-out, transform 150ms ease-out;
+  transition: opacity var(--duration-normal) var(--ease-exit), transform 150ms ease-out;
   flex-shrink: 0;
 }
 
@@ -194,27 +194,27 @@
 
 .sidebar-sub-items {
   overflow: hidden;
-  max-height: 0;
+  height: 0;
   opacity: 0;
-  transition: max-height 150ms ease-out, opacity 150ms ease-out;
   margin: 0;
+  will-change: height, opacity;
 }
 
 .sidebar-sub-items.expanded {
-  max-height: 150px;
+  height: auto;
   opacity: 1;
   margin: 2px 0;
 }
 
 /* 子菜单项缩进24px */
 .sidebar-sub-item {
-  height: 34px;
-  padding-left: 44px;
-  font-size: 12px;
+  height: 31px;
+  padding-left: 40px;
+  font-size: 11px;
   font-weight: 400;
   border-radius: var(--r-sm);
-  margin: 0 0 0 24px;
-  width: calc(100% - 24px);
+  margin: 0 0 0 22px;
+  width: calc(100% - 22px);
 }
 
 .sidebar-sub-item:not(:last-child) {
@@ -223,8 +223,8 @@
 
 /* 子项图标14px */
 .sidebar-sub-item .sidebar-item-icon {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   opacity: 0.6;
 }
 
@@ -242,11 +242,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
   opacity: 0.75;
-  transition: opacity 150ms ease-out;
+  transition: opacity var(--duration-normal) var(--ease-exit);
 }
 
 .sidebar-item:hover .sidebar-item-icon,
@@ -259,7 +259,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   opacity: 1;
-  transition: opacity 150ms ease-out;
+  transition: opacity var(--duration-normal) var(--ease-exit);
 }
 
 .sidebar.collapsed .sidebar-item-text {
@@ -270,7 +270,7 @@
 
 /* 底部：帮助/设置与功能项之间1px分割线 */
 .sidebar-footer {
-  padding: 6px 8px 10px;
+  padding: 5px 7px 9px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -280,14 +280,14 @@
 }
 
 .sidebar.collapsed .sidebar-footer {
-  padding: 6px 7px 10px;
+  padding: 5px 6px 9px;
   align-items: center;
 }
 
 .sidebar.collapsed .sidebar-footer .sidebar-item {
   justify-content: center;
   padding: 0;
-  width: 42px;
+  width: 38px;
 }
 
 .sidebar-overlay {
@@ -297,30 +297,7 @@
   z-index: 90;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 150ms ease-out;
-}
-
-@media (max-width: 768px) {
-  .sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    height: 100%;
-    transform: translateX(-100%);
-    transition: transform 150ms ease-out;
-    width: var(--sidebar-w-expanded);
-    min-width: var(--sidebar-w-expanded);
-    border-right: 1px solid var(--glass-border);
-  }
-
-  .sidebar.expanded {
-    transform: translateX(0);
-  }
-
-  .sidebar.expanded ~ .sidebar-overlay {
-    opacity: 1;
-    pointer-events: auto;
-  }
+  transition: opacity var(--duration-normal) var(--ease-exit);
 }
 
 /* ========== 插件导航项 ========== */
@@ -328,5 +305,5 @@
 .sidebar-plugin-divider {
   height: 1px;
   background: var(--divider);
-  margin: 6px 16px;
+  margin: 5px 14px;
 }

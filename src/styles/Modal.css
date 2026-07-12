@@ -15,7 +15,7 @@
   border-top: var(--card-border-top);
   border-bottom: var(--card-border-bottom);
   border-radius: var(--r-sm);
-  min-width: 360px;
+  min-width: 324px;
   max-width: 90vw;
   max-height: 90vh;
   overflow: hidden;
@@ -34,7 +34,7 @@
 
 .modal-title {
   margin: 0;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -85,5 +85,6 @@
   transform: scale(0.94);
 }
 .modal-enter-from .modal-container, .modal-leave-to .modal-container {
-  transform: translateY(-12px);
+  transform: translateY(-11px);
 }
+

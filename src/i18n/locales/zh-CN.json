@@ -33,6 +33,7 @@
     "noVersions": "未找到游戏版本",
     "launch": "启动游戏",
     "launching": "启动中...",
+    "noVersionInstall": "无版本，请安装版本",
     "accountManagement": "账户管理",
     "savedAccounts": "已保存的账户",
     "current": "当前",
@@ -47,6 +48,11 @@
     "clickManageToAdd": "点击管理添加账户",
     "noAccounts": "暂无账户",
     "noAccountsDesc": "点击上方按钮添加账户",
+    "welcomeTitle": "欢迎使用 EuoraCraft Launcher",
+    "welcomeContent": "感谢使用 EuoraCraft Launcher！你可以在右侧管理账户、选择版本并启动游戏。",
+    "didYouKnow": "你知道吗",
+    "announcement": "公告",
+    "noAnnouncements": "暂无公告",
     "deleteConfirm": "确定要删除账户 \"{name}\" 吗？",
     "delete": "删除",
     "switch": "切换",
@@ -97,8 +103,8 @@
   },
   "versions": {
     "title": "版本管理",
-    "manageTab": "管理",
-    "versions": "版本",
+    "manageTab": "版本管理",
+    "versions": "版本下载",
     "modsTab": "模组",
     "manage": {
       "gamePath": "游戏路径",
@@ -313,6 +319,8 @@
     "listView": "列表视图",
     "noPlugins": "还没有安装任何插件",
     "noPluginsHint": "插件可以为启动器添加自定义功能",
+    "noDisabledPlugins": "暂无禁用插件",
+    "noDisabledPluginsHint": "所有插件均处于启用状态",
     "installFirst": "安装第一个插件",
     "noSettings": "没有需要配置的插件",
     "pluginName": "插件名称",
@@ -380,8 +388,6 @@
     "select": "选择",
     "languageRegion": "语言与区域",
     "languageDesc": "选择界面显示语言",
-    "keyringStatus": "密钥环状态",
-    "clearKeyring": "清理密钥环",
     "downloadSourceDesc": "选择游戏文件的下载源",
     "downloadThreadsDesc": "设置同时下载文件的线程数",
     "memory": "内存分配",
@@ -540,7 +546,9 @@
     "search": "搜索",
     "noResults": "未找到相关 Mod",
     "install": "安装",
-    "downloads": "次下载"
+    "downloads": "次下载",
+    "queryRequired": "请输入搜索关键词",
+    "queryTooLong": "搜索关键词过长"
   },
   "auth": {
     "authlib": "Authlib 注入",
@@ -564,12 +572,6 @@
     "statusRunning": "进行中",
     "statusCompleted": "已完成",
     "statusFailed": "失败"
-  },
-  "password": {
-    "minLength": "密码长度至少8位",
-    "mismatch": "两次输入的密码不一致",
-    "success": "主密码设置成功",
-    "failed": "设置失败"
   },
   "task": {
     "subtask": {

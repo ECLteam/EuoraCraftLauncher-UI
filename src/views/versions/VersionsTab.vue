@@ -73,7 +73,9 @@
                 :style="{ height: `${itemHeight}px` }"
               >
                 <div class="version-icon" :class="version.type">
-                  <UiIcon :name="getVersionIcon(version.type)" :size="18" />
+                  <img v-if="version.type === 'release'" src="/img/item/grass.png" alt="" class="version-icon-img" />
+                  <img v-else-if="version.type === 'snapshot'" src="/img/item/command.png" alt="" class="version-icon-img" />
+                  <UiIcon v-else :name="getVersionIcon(version.type)" :size="18" />
                 </div>
 
                 <div class="version-info">
@@ -81,9 +83,6 @@
                     <span class="version-id">{{ version.id }}</span>
                     <span :class="['badge', getVersionBadgeClass(version.type)]">
                       {{ getVersionTypeLabel(version.type) }}
-                    </span>
-                    <span v-if="isAprilFools(version.id)" class="badge badge-april">
-                      {{ t('versions.download.aprilFools') }}
                     </span>
                   </div>
                   <span class="version-date">
@@ -181,6 +180,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAsyncAction } from '@/composables/useAsyncAction'
 import backend from '@/api/client'
 import UiButton from '@/components/ui/Button.vue'
 import UiIcon from '@/components/ui/Icon.vue'
@@ -190,24 +190,25 @@ import ContentModal from '@/components/modals/ContentModal.vue'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { useAutoRefreshCache, CACHE_KEYS, CACHE_GROUPS } from '@/cache/composable'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
-import type { MinecraftVersion } from '@/types/api'
+import type { MinecraftVersionCatalog, MinecraftVersionItem } from '@/types/api'
 
 const { t } = useI18n()
 const glassMessage = useGlassMessage()
+const { run } = useAsyncAction({ showSuccess: false, showError: false })
 
 const downloading = ref<string | null>(null)
 const searchQuery = ref('')
 const selectedCategory = ref('all')
 
 const {
-  data: allVersions,
+  data: versionCatalog,
   loading,
   error: versionsError,
   fetchData: fetchVersionsData
-} = useAutoRefreshCache<MinecraftVersion[]>(
+} = useAutoRefreshCache<MinecraftVersionCatalog>(
   CACHE_KEYS.VERSIONS,
   async () => {
-    const res = await backend.command('minecraft_versions')
+    const res = await backend.command('minecraft_versions_classified')
     if (res.success && res.data) return res.data
     throw new Error('获取版本列表失败')
   },
@@ -264,7 +265,6 @@ async function loadLoaderVersions(loaderType: string, gameVersion: string) {
     const res = await backend.command(command, { game_version: gameVersion })
     // 如果请求 ID 不匹配，说明有更新的请求已发起，忽略此响应
     if (requestId !== loaderRequestId) return
-    console.log(`[${loaderType}Versions]`, gameVersion, 'success:', res.success, 'data keys:', res.data ? Object.keys(res.data) : null)
 
     if (res.success && res.data) {
       const list = Array.isArray(res.data) ? res.data : (res.data.all || [])
@@ -320,22 +320,22 @@ const installForm = ref({
   gamePath: ''
 })
 
-const categories = [
-  { id: 'all', name: '全部版本', icon: 'cube' },
-  { id: 'release', name: '正式版', icon: 'check' },
-  { id: 'snapshot', name: '快照版', icon: 'lab' },
-  { id: 'old_beta', name: '旧版 Beta', icon: 'archive' },
-  { id: 'old_alpha', name: '旧版 Alpha', icon: 'archive' },
-  { id: 'april_fools', name: '愚人节版', icon: 'happy' }
-]
+const categories = computed(() => [
+  { id: 'all', name: t('versions.download.allVersions'), icon: 'cube' },
+  { id: 'release', name: t('versions.download.release'), icon: 'check' },
+  { id: 'snapshot', name: t('versions.download.snapshot'), icon: 'lab' },
+  { id: 'april_fools', name: t('versions.download.aprilFools'), icon: 'happy' },
+  { id: 'old_beta', name: t('versions.download.oldBeta'), icon: 'archive' },
+  { id: 'old_alpha', name: t('versions.download.oldAlpha'), icon: 'archive' }
+])
 
 const currentCategoryName = computed(() => {
-  const cat = categories.find(c => c.id === selectedCategory.value)
+  const cat = categories.value.find(c => c.id === selectedCategory.value)
   return cat ? cat.name : t('versions.download.installNew')
 })
 
 const categoryOptions = computed(() =>
-  categories.map(c => ({
+  categories.value.map(c => ({
     value: c.id,
     label: `${c.name} (${getCategoryCount(c.id)})`,
   }))
@@ -349,39 +349,28 @@ const loaders = [
   { value: 'quilt', label: 'Quilt', icon: 'grid' }
 ]
 
-const aprilFoolsVersions = [
-  '22w13oneblockatatime', '20w14infinite', '3d shareware v1.34',
-  'java edition 3d shareware v1.34', '1.rv-pre1', '15w14a', '2.0',
-]
-
-function isAprilFools(versionId: string | null | undefined): boolean {
-  if (!versionId) return false
-  return aprilFoolsVersions.some(v => versionId.toLowerCase() === v.toLowerCase())
-}
-
 function getCategoryCount(categoryId: string): number {
-  if (!Array.isArray(allVersions.value)) return 0
-  if (categoryId === 'all') return allVersions.value.length
-  if (categoryId === 'april_fools') {
-    return allVersions.value.filter(v => isAprilFools(v.id)).length
-  }
-  return allVersions.value.filter(v => v.type === categoryId).length
+  const catalog = versionCatalog.value
+  if (!catalog) return 0
+  return catalog[categoryId as keyof MinecraftVersionCatalog]?.length || 0
 }
 
 const filteredVersions = computed(() => {
-  let versions = Array.isArray(allVersions.value) ? allVersions.value : []
-  if (selectedCategory.value !== 'all') {
-    if (selectedCategory.value === 'april_fools') {
-      versions = versions.filter(v => isAprilFools(v.id))
-    } else {
-      versions = versions.filter(v => v.type === selectedCategory.value)
-    }
+  const catalog = versionCatalog.value
+  let versions: MinecraftVersionItem[] = []
+  if (catalog) {
+    versions = catalog[selectedCategory.value as keyof MinecraftVersionCatalog] || []
   }
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase()
     versions = versions.filter(v => v.id.toLowerCase().includes(query))
   }
-  return versions
+  // 按发布时间降序排列
+  return versions.slice().sort((a, b) => {
+    const ta = a.releaseTime ? new Date(a.releaseTime).getTime() : 0
+    const tb = b.releaseTime ? new Date(b.releaseTime).getTime() : 0
+    return tb - ta
+  })
 })
 
 const visibleVersions = computed(() => {
@@ -393,12 +382,8 @@ const totalHeight = computed(() => (filteredVersions.value || []).length * itemH
 const topOffset = computed(() => visibleRange.value.start * itemHeight)
 
 async function fetchVersions() {
-  try {
-    await fetchVersionsData()
-    if (versionsError.value) {
-      glassMessage.error(t('versions.download.fetchFailed'))
-    }
-  } catch (e) {
+  await fetchVersionsData()
+  if (versionsError.value) {
     glassMessage.error(t('versions.download.fetchFailed'))
   }
 }
@@ -433,40 +418,29 @@ const defaultGamePath = ref('')
 const gamePaths = ref<{ value: string; label: string }[]>([])
 
 async function loadDefaultGamePath() {
-  try {
-    const res = await backend.config.get('game')
-    if (res.success && res.data) {
-      const data = res.data
-      // 构建路径下拉选项
-      const paths = data.minecraft_paths || []
-      gamePaths.value = paths.map((p: any) => {
-        const pathStr = typeof p === 'string' ? p : (p.path || '')
-        const name = typeof p === 'object' ? (p.name || pathStr) : pathStr
-        return { value: pathStr, label: name }
-      })
+  const res = await run(async () => backend.config.get('game'))
+  if (!res?.success || !res.data) return
+  const data = res.data
+  const paths = data.minecraft_paths || []
+  gamePaths.value = paths.map((p: any) => {
+    const pathStr = typeof p === 'string' ? p : (p.path || '')
+    const name = typeof p === 'object' ? (p.name || pathStr) : pathStr
+    return { value: pathStr, label: name }
+  })
 
-      // 优先使用上次选择的路径
-      if (data.last_install_path) {
-        defaultGamePath.value = data.last_install_path
-      } else if (paths.length > 0) {
-        const first = paths[0]
-        defaultGamePath.value = typeof first === 'string' ? first : (first.path || '')
-      }
-    }
-  } catch (e) {
-    console.error('加载默认游戏路径失败:', e)
+  if (data.last_install_path) {
+    defaultGamePath.value = data.last_install_path
+  } else if (paths.length > 0) {
+    const first = paths[0]
+    defaultGamePath.value = typeof first === 'string' ? first : (first.path || '')
   }
 }
 
 async function saveLastInstallPath(path: string) {
   if (!path) return
-  try {
-    const res = await backend.config.get('game')
-    const gameCfg = (res.success && res.data) ? res.data : {}
-    await backend.config.set('game', { ...gameCfg, last_install_path: path })
-  } catch (e) {
-    console.error('保存安装路径失败:', e)
-  }
+  const res = await run(async () => backend.config.get('game'))
+  const gameCfg = (res?.success && res.data) ? res.data : {}
+  await run(async () => backend.config.set('game', { ...gameCfg, last_install_path: path }))
 }
 
 function openInstallWithVersion(versionId: string) {
@@ -585,7 +559,8 @@ function getVersionTypeLabel(type: string): string {
     'release': t('versions.download.release'),
     'snapshot': t('versions.download.snapshot'),
     'old_beta': t('versions.download.oldBeta'),
-    'old_alpha': t('versions.download.oldAlpha')
+    'old_alpha': t('versions.download.oldAlpha'),
+    'april_fools': t('versions.download.aprilFools'),
   }
   return labels[type] || type
 }
@@ -595,7 +570,8 @@ function getVersionBadgeClass(type: string): string {
     'release': 'badge-success',
     'snapshot': 'badge-warning',
     'old_beta': 'badge-info',
-    'old_alpha': 'badge-info'
+    'old_alpha': 'badge-info',
+    'april_fools': 'badge-april',
   }
   return classes[type] || 'badge-default'
 }
@@ -676,42 +652,46 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
-  height: 48px;
+  padding: 0 14px;
+  height: 43px;
   border-bottom: 1px solid var(--divider);
   flex-shrink: 0;
-  gap: 12px;
+  gap: 11px;
+  min-width: 0;
 }
 
 .category-select {
-  width: 160px;
+  width: 144px;
   flex-shrink: 0;
-  height: 32px;
+  height: 29px;
 }
 
 .category-select :deep(.select-trigger) {
-  height: 32px;
+  height: 29px;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   flex-shrink: 0;
+  min-width: 0;
 }
 
 .version-count-badge {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-tertiary);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .btn-refresh {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
-  font-size: 12px;
+  padding: 4px 9px;
+  font-size: 11px;
   color: var(--text-secondary);
   background: var(--bg-elevated);
   border: 1px solid var(--border);
@@ -719,6 +699,7 @@ onUnmounted(() => {
   cursor: pointer;
   white-space: nowrap;
   transition: all 150ms;
+  flex-shrink: 0;
 }
 
 .btn-refresh:hover:not(:disabled) {
@@ -735,13 +716,31 @@ onUnmounted(() => {
     position: relative;
     display: flex;
     align-items: center;
-    width: 240px;
-    height: 36px;
+    width: 216px;
+    min-width: 108px;
+    height: 32px;
     background: var(--bg-elevated);
     border: 1px solid var(--border);
     border-radius: var(--r-sm);
     transition: border-color 150ms ease-out;
+    flex-shrink: 1;
   }
+
+@media (max-width: 1000px) {
+  .panel-header {
+    padding: 0 11px;
+    gap: 7px;
+  }
+  .category-select {
+    width: 117px;
+  }
+  .search-box {
+    width: 144px;
+  }
+  .version-count-badge {
+    max-width: 72px;
+  }
+}
 
   .search-box:focus-within {
     border-color: var(--border-hover);
@@ -749,7 +748,7 @@ onUnmounted(() => {
 
   .search-icon {
     position: absolute;
-    left: 10px;
+    left: 9px;
     color: var(--text-tertiary);
     pointer-events: none;
   }
@@ -757,10 +756,10 @@ onUnmounted(() => {
   .search-input {
     width: 100%;
     height: 100%;
-    padding: 0 32px 0 32px;
+    padding: 0 29px 0 29px;
     border: none;
     background: transparent;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-primary);
     outline: none;
     border-radius: var(--r-sm);
@@ -772,12 +771,12 @@ onUnmounted(() => {
 
   .search-clear {
     position: absolute;
-    right: 6px;
+    right: 5px;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     border-radius: var(--r-xs);
     border: none;
     background: transparent;
@@ -797,8 +796,8 @@ onUnmounted(() => {
 
 .form-group label {
   display: block;
-  margin-bottom: 6px;
-  font-size: 13px;
+  margin-bottom: 5px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-primary);
 }
@@ -809,36 +808,36 @@ onUnmounted(() => {
 
 .form-hint {
   margin: 4px 0 0;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-tertiary);
 }
 
 .version-display {
-  padding: 8px 12px;
+  padding: 7px 11px;
   background: var(--bg-base);
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .loader-options {
   display: flex;
-  gap: 8px;
+  gap: 7px;
   flex-wrap: wrap;
 }
 
 .loader-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
+  gap: 5px;
+  padding: 7px 13px;
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   background: var(--bg-base);
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
   transition: all 150ms;
 }
@@ -866,12 +865,12 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   gap: var(--s-sm);
-  padding: 10px 20px;
+  padding: 9px 18px;
   border-radius: var(--r-sm);
   border: none;
   background: var(--primary);
   color: var(--text-on-primary);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 150ms ease-out;
@@ -904,10 +903,10 @@ onUnmounted(() => {
 .version-item {
   display: flex;
   align-items: center;
-  padding: 0 12px;
+  padding: 0 11px;
   border-radius: var(--r-sm);
   transition: background 150ms ease-out;
-  gap: 12px;
+  gap: 11px;
 }
 
 .version-item:hover {
@@ -915,8 +914,8 @@ onUnmounted(() => {
 }
 
 .version-icon {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--r-sm);
   background: var(--primary-alpha);
   display: flex;
@@ -924,6 +923,21 @@ onUnmounted(() => {
   justify-content: center;
   color: var(--primary);
   flex-shrink: 0;
+}
+
+.version-icon.release,
+.version-icon.snapshot {
+  width: 40px;
+  height: 40px;
+  background: transparent;
+}
+
+.version-icon-img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
 .version-info {
@@ -941,7 +955,7 @@ onUnmounted(() => {
 }
 
 .version-id {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -950,7 +964,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-tertiary);
 }
 
@@ -966,8 +980,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  width: 32px;
-  height: 32px;
+  width: 29px;
+  height: 29px;
   border-radius: var(--r-sm);
   border: none;
   background: var(--primary);
@@ -980,13 +994,13 @@ onUnmounted(() => {
 
 .btn-install:hover {
   width: auto;
-  padding: 0 12px;
+  padding: 0 11px;
   background: var(--primary-hover);
 }
 
 .btn-install-text {
   display: none;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
 }
 
@@ -1009,14 +1023,14 @@ onUnmounted(() => {
 }
 
 .progress-text {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--text-primary);
   margin: 0;
 }
 
 .progress-subtext {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-tertiary);
   margin: 0;
 }
@@ -1024,9 +1038,9 @@ onUnmounted(() => {
 /* 徽章 */
 .badge {
   display: inline-block;
-  padding: 2px 8px;
+  padding: 2px 7px;
   border-radius: var(--r-xs);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
 }
 
@@ -1049,13 +1063,13 @@ onUnmounted(() => {
 .empty-icon { color: var(--text-tertiary); }
 
 .empty-text {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-secondary);
   margin: 0;
 }
 
 .empty-hint {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-tertiary);
   margin: 0;
 }

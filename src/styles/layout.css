@@ -18,30 +18,3 @@
   position: relative;
 }
 
-/* 移动端侧边栏 */
-@media (max-width: 768px) {
-  .sidebar {
-    position: fixed;
-    inset: 0 auto 0 0;
-    transform: translateX(-100%);
-    transition: transform 150ms ease-out;
-    width: var(--sidebar-w-expanded);
-    z-index: 100;
-  }
-  .sidebar.expanded {
-    transform: translateX(0);
-  }
-  .sidebar-overlay {
-    position: fixed;
-    inset: 0;
-    background: var(--bg-overlay);
-    z-index: 90;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 150ms ease-out;
-  }
-  .sidebar.expanded + .sidebar-overlay {
-    opacity: 1;
-    pointer-events: auto;
-  }
-}

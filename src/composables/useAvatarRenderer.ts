@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import backend from '@/api/client'
+import type { AccountType } from '@/types/api'
 
 const CACHE_TTL = 30 * 60 * 1000
 const MAX_CACHE_ENTRIES = 100
@@ -136,7 +137,7 @@ export function useAvatarRenderer() {
   async function renderAvatar(
     uuid: string | undefined,
     username: string | undefined,
-    accountType: string,
+    accountType: AccountType | string,
     size: number
   ): Promise<string | null> {
     loading.value = true
@@ -147,7 +148,7 @@ export function useAvatarRenderer() {
       const name = username?.trim() || 'Player'
 
       // 统一通过后端API获取头像，包括离线玩家
-      if ((window as any).__TAURI__?.pytauri) {
+      if ((window as unknown as { __TAURI__?: { pytauri?: unknown } }).__TAURI__?.pytauri) {
         try {
           // 对于离线玩家，设置use_default_skin=true
           const useDefaultSkin = !id || accountType.toLowerCase() === 'offline'

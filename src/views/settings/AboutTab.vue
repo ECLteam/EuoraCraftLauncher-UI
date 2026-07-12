@@ -231,7 +231,7 @@ const techStack = [
 .about-pane {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   padding: 4px 0;
 }
 
@@ -239,33 +239,33 @@ const techStack = [
 .about-card {
   background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 7px;
   overflow: hidden;
 }
 
 .card-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
-  padding: 12px 20px;
+  padding: 11px 18px;
   border-bottom: 1px solid var(--border);
 }
 
 .card-body {
-  padding: 12px 20px 20px;
+  padding: 11px 18px 18px;
 }
 
 /* 网格行 */
 .card-grid {
   display: grid;
-  grid-template-columns: 40px 1fr 150px;
+  grid-template-columns: 36px 1fr 135px;
   align-items: center;
-  min-height: 45px;
+  min-height: 40px;
   gap: 0;
 }
 
 .card-grid + .card-grid {
-  margin-top: 6px;
+  margin-top: 5px;
 }
 
 .avatar-col {
@@ -274,13 +274,13 @@ const techStack = [
 }
 
 .avatar {
-  width: 34px;
-  height: 34px;
+  width: 31px;
+  height: 31px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -288,7 +288,7 @@ const techStack = [
 .avatar-logo {
   background: var(--primary);
   color: var(--text-on-primary);
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .avatar-thanks {
@@ -301,18 +301,18 @@ const techStack = [
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 0 14px;
+  padding: 0 13px;
   min-width: 0;
 }
 
 .item-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .item-desc {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-tertiary);
   margin-top: 1px;
   line-height: 1.4;
@@ -327,13 +327,13 @@ const techStack = [
 .about-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 14px;
-  border-radius: 6px;
+  gap: 4px;
+  padding: 4px 13px;
+  border-radius: 5px;
   border: 1px solid var(--border);
   background: var(--bg-elevated);
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 11px;
   text-decoration: none;
   cursor: pointer;
   white-space: nowrap;
@@ -359,15 +359,15 @@ const techStack = [
 .tech-flow {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5px;
 }
 
 .tech-tag {
-  padding: 3px 10px;
+  padding: 3px 9px;
   border-radius: 4px;
   background: var(--bg-base);
   border: 1px solid var(--border);
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-secondary);
   font-weight: 500;
 }
@@ -375,10 +375,10 @@ const techStack = [
 /* 许可项 */
 .license-item {
   display: grid;
-  grid-template-columns: 160px 1fr auto;
+  grid-template-columns: 144px 1fr auto;
   align-items: center;
-  gap: 14px;
-  padding: 10px 0;
+  gap: 13px;
+  padding: 9px 0;
   border-bottom: 1px solid var(--border);
 }
 
@@ -388,32 +388,32 @@ const techStack = [
 }
 
 .license-name {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .license-text {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-tertiary);
   line-height: 1.5;
 }
 
 .license-btns {
   display: flex;
-  gap: 8px;
+  gap: 7px;
 }
 
 /* 法律信息 */
 .legal-text {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-secondary);
   line-height: 1.7;
-  margin: 0 0 16px;
+  margin: 0 0 14px;
 }
 
 .legal-btns {
   display: flex;
-  gap: 8px;
+  gap: 7px;
 }
 </style>

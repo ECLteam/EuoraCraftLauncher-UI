@@ -24,6 +24,7 @@
       <template v-for="(item, index) in menuItems" :key="item.path">
         <button
           class="sidebar-item"
+          :data-path="item.path"
           :class="{
             active: route.path === item.path
               || (item.path !== '/' && route.path.startsWith(item.path))
@@ -49,13 +50,14 @@
         <!-- 子菜单项 -->
         <div
           v-if="!isCollapsed && itemHasSubItems(item.path)"
-          class="sidebar-sub-items"
+          :data-parent="item.path" class="sidebar-sub-items"
           :class="{ expanded: isMenuExpanded(item.path) }"
         >
           <button
             v-for="sub in getSubItems(item.path)"
             :key="sub.path"
             class="sidebar-item sidebar-sub-item"
+            :data-path="sub.path"
             :class="{ active: route.path === sub.path }"
             @click.prevent="handleSubItemClick(sub.path)"
           >
@@ -74,6 +76,7 @@
           v-for="pRoute in pluginRoutesList"
           :key="'btn-' + pRoute.path"
           class="sidebar-item"
+          :data-path="`/plugin/${pRoute.plugin}${pRoute.path}`"
           :class="{ active: route.path === `/plugin/${pRoute.plugin}${pRoute.path}` }"
           @click.prevent="handleSubItemClick(`/plugin/${pRoute.plugin}${pRoute.path}`)"
         >
@@ -120,6 +123,7 @@
 import { ref, watch, nextTick, onMounted, computed, inject, readonly, type Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGlassMessage } from '@/composables/useGlassMessage'
+import gsap from 'gsap'
 import { useI18n } from 'vue-i18n'
 import { useTopNav } from '@/composables/useTopNav'
 import { useTheme } from '@/composables/useTheme'
@@ -235,58 +239,38 @@ const openHelp = () => {
   message.info(t('sidebar.helpMessage'))
 }
 
-const ITEM_HEIGHT = 42
-const ITEM_GAP = 2
-const ITEM_CYCLE = ITEM_HEIGHT + ITEM_GAP * 2 // 42 + 2 + 2 = 46px per collapsed item cycle
-
-/** 计算目标菜单项在侧边栏中的实际视觉偏移量（考虑子菜单展开高度） */
-const getVisualOffset = (targetPath: string): number => {
-  let offset = 2 // padding-top of sidebar-nav
-  for (const item of menuItems.value) {
-    if (item.path === targetPath) {
-      return offset
-    }
-    offset += ITEM_CYCLE
-    // 如果该菜单项的子菜单展开，累加子菜单高度
-    if (expandedMenus.value.has(item.path)) {
-      const subs = getSubItems(item.path)
-      if (subs.length > 0) {
-        // 子菜单容器 margin: 2px 0 → 4px，子项 34px + 间距 1px
-        offset += 4 + subs.length * 34 + (subs.length - 1) * 1
-      }
-    }
-  }
-  return -1
-}
-
-const updateIndicator = (targetPath: string) => {
+/** 通过实际 DOM 测量获取目标菜单项位置并更新指示器 */
+const updateActivePosition = (targetPath: string) => {
   if (isCollapsed.value) return
-  const top = getVisualOffset(targetPath)
-  if (top === -1) return
-  if (indicatorRef.value) {
-    indicatorRef.value.style.top = `${top + 10}px`
-    indicatorRef.value.style.height = `${ITEM_HEIGHT - 20}px`
+  nextTick(() => {
+    const navEl = indicatorRef.value?.parentElement
+    const targetEl = navEl?.querySelector(`.sidebar-item[data-path="${targetPath}"]`) as HTMLElement | null
+    if (!targetEl || !indicatorRef.value || !activeBgRef.value) return
+    const top = targetEl.offsetTop
+    const height = targetEl.offsetHeight
+    indicatorRef.value.style.top = `${top + 9}px`
+    indicatorRef.value.style.height = `${height - 18}px`
     indicatorRef.value.style.opacity = '1'
-  }
+    activeBgRef.value.style.top = `${top}px`
+    activeBgRef.value.style.height = `${height}px`
+    activeBgRef.value.style.opacity = '1'
+  })
 }
 
-const updateActiveBg = (targetPath: string) => {
-  if (isCollapsed.value) return
-  const top = getVisualOffset(targetPath)
-  if (top === -1) return
-  if (activeBgRef.value) {
-    activeBgRef.value.style.top = `${top}px`
-    activeBgRef.value.style.height = `${ITEM_HEIGHT}px`
-    activeBgRef.value.style.opacity = '1'
-  }
-}
+const updateIndicator = (targetPath: string) => updateActivePosition(targetPath)
+const updateActiveBg = (targetPath: string) => updateActivePosition(targetPath)
 
 const getActivePath = (): string => {
   const path = route.path
-  // 先精确匹配
+  // 先精确匹配子菜单项
+  for (const parentPath of Object.keys(subItemsMap.value)) {
+    const sub = subItemsMap.value[parentPath].find(s => s.path === path)
+    if (sub) return sub.path
+  }
+  // 精确匹配父菜单项
   const exact = menuItems.value.find(item => item.path === path)
   if (exact) return exact.path
-  // 前缀匹配
+  // 前缀匹配父菜单项
   if (path !== '/') {
     const prefix = menuItems.value.find(
       item => item.path !== '/' && path.startsWith(item.path)
@@ -322,15 +306,6 @@ watch(
       } else {
         if (indicatorRef.value) indicatorRef.value.style.opacity = '0'
         if (activeBgRef.value) activeBgRef.value.style.opacity = '0'
-      }
-      // 自动展开当前子路由对应的父菜单
-      for (const parentPath of Object.keys(subItemsMap.value)) {
-        if (newPath.startsWith(parentPath)) {
-          const newSet = new Set(expandedMenus.value)
-          newSet.add(parentPath)
-          expandedMenus.value = newSet
-          break
-        }
       }
     })
   },

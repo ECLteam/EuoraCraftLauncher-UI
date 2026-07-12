@@ -115,28 +115,6 @@
       </div>
     </div>
 
-    <!-- 密钥环管理 -->
-    <div class="settings-section">
-      <div class="section-label">Keyring</div>
-
-      <div class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label">{{ t('settings.keyringStatus') }}</div>
-          <div class="setting-desc" v-if="keyringInfo">
-            Backend: {{ keyringInfo.type }} &middot; Secure: {{ keyringInfo.secure ? 'Yes' : 'No' }}
-          </div>
-          <div class="setting-desc text-muted" v-else>
-            Keyring not initialized
-          </div>
-        </div>
-        <div class="setting-control">
-          <button class="danger-btn" @click="handleClearKeyring" :disabled="clearing">
-            {{ clearing ? 'Clearing...' : t('settings.clearKeyring') }}
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- 语言与交互 -->
     <div class="settings-section">
       <div class="section-label">{{ t('settings.languageRegion') }}</div>
@@ -199,8 +177,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onUnmounted, onMounted } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { useClickOutside } from '@/composables/useClickOutside'
 import { supportedLocales, setLocale, type LocaleCode } from '@/i18n'
@@ -227,39 +206,8 @@ const emit = defineEmits<{
 
 const { t, locale } = useI18n()
 const message = useGlassMessage()
+const { run } = useAsyncAction({ showSuccess: false, showError: true, errorMessage: t('common.error') })
 const currentLocale = computed(() => locale.value as LocaleCode)
-
-// Keyring
-const keyringInfo = ref<{ type: string; secure: boolean } | null>(null)
-const clearing = ref(false)
-
-const loadKeyringInfo = async () => {
-  try {
-    const result = await backend.command('get_keyring_info')
-    if (result.success && result.data?.initialized) {
-      keyringInfo.value = result.data
-    }
-  } catch {
-    // ignore
-  }
-}
-
-const handleClearKeyring = async () => {
-  clearing.value = true
-  try {
-    const result = await backend.command('clear_keyring')
-    if (result.success) {
-      message.success('Keyring cleared')
-      keyringInfo.value = null
-    } else {
-      message.warning(result.message || 'Failed')
-    }
-  } catch {
-    message.warning('Failed to clear keyring')
-  } finally {
-    clearing.value = false
-  }
-}
 
 const {
   setThemeMode,
@@ -306,21 +254,19 @@ async function updateUiConfig(partialTheme: Partial<{
   primary_color: string
   blur_amount: number
 }>) {
-  try {
-    const uiCfg = (await backend.config.get('ui')).data || {}
-    await backend.config.set('ui', {
-      ...uiCfg,
-      theme: {
-        ...uiCfg.theme,
-        mode: currentSettings.value.mode,
-        primary_color: currentSettings.value.primary_color,
-        blur_amount: currentSettings.value.blur_amount,
-        ...partialTheme,
-      }
-    })
-  } catch (error) {
-    message.error(t('common.error'))
-  }
+  const uiRes = await backend.config.get('ui')
+  if (!uiRes.success) return
+  const uiCfg = uiRes.data || {}
+  await run(async () => backend.config.set('ui', {
+    ...uiCfg,
+    theme: {
+      ...uiCfg.theme,
+      mode: currentSettings.value.mode,
+      primary_color: currentSettings.value.primary_color,
+      blur_amount: currentSettings.value.blur_amount,
+      ...partialTheme,
+    }
+  }))
 }
 
 const toggleLangOpen = () => {
@@ -355,35 +301,27 @@ const handleBrightnessChange = async (e: Event) => {
   bgBrightness.value = val
   const opacity = val / 100
   setBackgroundOpacity(opacity)
-  try {
-    const uiCfg = (await backend.config.get('ui')).data || {}
-    await backend.config.set('ui', {
-      ...uiCfg,
-      background: { ...(uiCfg.background || {}), opacity }
-    })
-  } catch (error) {
-    console.error('保存亮度设置失败:', error)
-  }
+  const uiRes = await backend.config.get('ui')
+  if (!uiRes.success) return
+  const uiCfg = uiRes.data || {}
+  await run(async () => backend.config.set('ui', {
+    ...uiCfg,
+    background: { ...(uiCfg.background || {}), opacity }
+  }))
 }
 
 const selectLocalImage = async () => {
-  try {
-    const result = await backend.command('select_image')
-    if (result.success && result.data?.path) {
-      updateField('background_image', result.data.path)
-      const uiCfg = (await backend.config.get('ui')).data || {}
-      await backend.config.set('ui', { ...uiCfg, background: { ...(uiCfg.background || {}), type: 'custom', path: result.data.path } })
-      const imgData = await backend.command('image_read_file', { path: result.data.path })
-      if (imgData.success && imgData.data?.base64) {
-        setBackgroundImage(imgData.data.base64, result.data.path)
-      }
-      message.success(t('common.success'))
-    } else {
-      message.error(result.message || t('common.error'))
-    }
-  } catch (error: any) {
-    message.error(error.message || t('common.error'))
+  const result = await run(async () => backend.command('select_image'))
+  if (!result?.success || !result.data?.path) return
+
+  updateField('background_image', result.data.path)
+  const uiCfg = (await backend.config.get('ui')).data || {}
+  await backend.config.set('ui', { ...uiCfg, background: { ...(uiCfg.background || {}), type: 'custom', path: result.data.path } })
+  const imgData = await backend.command('image_read_file', { path: result.data.path })
+  if (imgData.success && imgData.data?.base64) {
+    setBackgroundImage(imgData.data.base64, result.data.path)
   }
+  message.success(t('common.success'))
 }
 
 let bgTimer: any = null
@@ -398,28 +336,22 @@ const handleBgImageInput = (e: Event) => {
       await backend.config.set('ui', { ...uiNone, background: { type: 'none', path: '' } })
       return
     }
-    if (val.startsWith('http')) {
-      try {
-        message.loading('Loading...')
-        const result = await backend.command('image_save_url', { url: val })
-        if (result.success && result.data?.path) {
-          const localPath = result.data.path
-          const uiCfg2 = (await backend.config.get('ui')).data || {}
-          await backend.config.set('ui', { ...uiCfg2, background: { type: 'custom', path: localPath } })
-          updateField('background_image', localPath)
-          const imgData = await backend.command('image_read_file', { path: localPath })
-          if (imgData.success && imgData.data?.base64) {
-            setBackgroundImage(imgData.data.base64, localPath)
-            message.success(t('common.success'))
-          } else {
-            message.error('加载背景图失败: ' + imgData.message)
-          }
-        } else {
-          message.error(result.message || t('common.error'))
-        }
-      } catch (error: any) {
-        message.error(t('common.error'))
-      }
+    if (!val.startsWith('http')) return
+
+    message.loading('Loading...')
+    const result = await run(async () => backend.command('image_save_url', { url: val }))
+    if (!result?.success || !result.data?.path) return
+
+    const localPath = result.data.path
+    const uiCfg2 = (await backend.config.get('ui')).data || {}
+    await backend.config.set('ui', { ...uiCfg2, background: { type: 'custom', path: localPath } })
+    updateField('background_image', localPath)
+    const imgData = await backend.command('image_read_file', { path: localPath })
+    if (imgData.success && imgData.data?.base64) {
+      setBackgroundImage(imgData.data.base64, localPath)
+      message.success(t('common.success'))
+    } else {
+      message.error('加载背景图失败: ' + imgData.message)
     }
   }, 800)
 }
@@ -427,19 +359,13 @@ const handleBgImageInput = (e: Event) => {
 const handleLanguageChange = async (langCode: LocaleCode) => {
   isLangOpen.value = false
   await setLocale(langCode)
-  try {
-    const uiCfg = (await backend.config.get('ui')).data || {}
-    await backend.config.set('ui', { ...uiCfg, locale: langCode })
-  } catch (e) {
-    console.error('保存语言配置失败:', e)
-  }
+  const uiRes = await backend.config.get('ui')
+  if (!uiRes.success) return
+  const uiCfg = uiRes.data || {}
+  await run(async () => backend.config.set('ui', { ...uiCfg, locale: langCode }))
 }
 
 useClickOutside(langSelectRef, () => { isLangOpen.value = false })
-
-onMounted(() => {
-  loadKeyringInfo()
-})
 
 onUnmounted(() => {
   if (bgTimer) clearTimeout(bgTimer)
@@ -448,7 +374,7 @@ onUnmounted(() => {
 
 <style scoped>
 .tab-pane {
-  max-width: 600px;
+  max-width: 540px;
 }
 
 .settings-section {
@@ -460,7 +386,7 @@ onUnmounted(() => {
 }
 
 .section-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -488,14 +414,14 @@ onUnmounted(() => {
 }
 
 .setting-label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 2px;
 }
 
 .setting-desc {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-tertiary);
   line-height: 1.5;
 }
@@ -519,8 +445,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  width: 60px;
-  height: 36px;
+  width: 54px;
+  height: 32px;
   border-radius: var(--r-xs);
   border: 1px solid var(--border);
   background: transparent;
@@ -548,16 +474,16 @@ onUnmounted(() => {
 }
 
 .theme-option-label {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
 }
 
 .theme-check {
   position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 16px;
-  height: 16px;
+  top: -5px;
+  right: -5px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   background: var(--primary);
   color: var(--text-on-primary);
@@ -570,12 +496,12 @@ onUnmounted(() => {
 .color-presets {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 11px;
 }
 
 .color-dot {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   border: 2px solid transparent;
   cursor: pointer;
@@ -593,8 +519,8 @@ onUnmounted(() => {
 
 .custom-color-wrapper {
   position: relative;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
 .color-input-native {
@@ -610,12 +536,12 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   border: 1px dashed var(--border-strong);
   color: var(--text-tertiary);
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   transition: all 150ms ease-out;
 }
@@ -627,15 +553,15 @@ onUnmounted(() => {
 
 /* 输入框 */
 .text-input {
-  height: 32px;
-  padding: 0 10px;
+  height: 29px;
+  padding: 0 9px;
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   background: var(--bg-elevated);
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: 12px;
   outline: none;
-  width: 200px;
+  width: 180px;
   transition: border-color 150ms ease-out;
 }
 
@@ -654,12 +580,12 @@ onUnmounted(() => {
 }
 
 .btn-ghost {
-  padding: 6px 12px;
+  padding: 5px 11px;
   border-radius: var(--r-sm);
   border: 1px solid var(--border);
   background: var(--bg-elevated);
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   white-space: nowrap;
   transition: all 150ms ease-out;
@@ -671,65 +597,11 @@ onUnmounted(() => {
 }
 
 /* 滑块 */
-.slider-group {
-  display: flex;
-  align-items: center;
-  gap: var(--s-md);
-}
-
-.slider-input {
-  width: 160px;
-  height: 4px;
-  -webkit-appearance: none;
-  appearance: none;
-  border-radius: 2px;
-  outline: none;
-  cursor: pointer;
-}
-
-/* 浅色：轨道 #E0E0E0 */
-.slider-input {
-  background: #E0E0E0;
-}
-
-/* 深色：轨道 #4A4D55 */
-[data-theme="dark"] .slider-input {
-  background: #4A4D55;
-}
-
-.slider-input::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--primary);
-  border: 2px solid var(--bg-elevated);
-  cursor: pointer;
-  transition: transform 150ms ease-out;
-}
-
-/* 深色：滑块 #6B9EFF */
-[data-theme="dark"] .slider-input::-webkit-slider-thumb {
-  background: #6B9EFF;
-}
-
-.slider-input::-webkit-slider-thumb:hover {
-  transform: scale(1.1);
-}
-
-.slider-value {
-  font-size: 12px;
-  color: var(--text-secondary);
-  font-weight: 500;
-  min-width: 40px;
-  text-align: right;
-}
-
 /* 开关：非 iOS 风格，32px 宽 20px 高 */
 .toggle-switch {
-  width: 32px;
-  height: 20px;
-  border-radius: 16px;
+  width: 29px;
+  height: 18px;
+  border-radius: 14px;
   border: none;
   background: #D0D0D0;
   cursor: pointer;
@@ -752,8 +624,8 @@ onUnmounted(() => {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   background: #FFFFFF;
   transition: transform 150ms ease-out;
@@ -765,21 +637,21 @@ onUnmounted(() => {
 }
 
 .toggle-switch.active .toggle-knob {
-  transform: translateX(12px);
+  transform: translateX(11px);
 }
 
 /* 下拉选择 */
 .custom-select {
   position: relative;
-  width: 180px;
+  width: 162px;
 }
 
 .select-trigger {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 32px;
-  padding: 0 10px;
+  height: 29px;
+  padding: 0 9px;
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   background: var(--bg-elevated);
@@ -792,7 +664,7 @@ onUnmounted(() => {
 }
 
 .selected-text {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-primary);
 }
 
@@ -821,9 +693,9 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: 7px 11px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-primary);
   transition: background 150ms ease-out;
 }
@@ -843,11 +715,11 @@ onUnmounted(() => {
 }
 
 .lang-flag {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .lang-name {
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .check-icon {
@@ -875,12 +747,12 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 20px;
-  border-radius: 6px;
+  padding: 5px 18px;
+  border-radius: 5px;
   border: 1px solid var(--color-error);
   background: transparent;
   color: var(--color-error);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   cursor: pointer;
   transition: all 150ms ease-out;

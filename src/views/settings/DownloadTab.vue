@@ -62,7 +62,7 @@
 <script setup lang="ts">
 import { reactive, ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useGlassMessage } from '@/composables/useGlassMessage'
+import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useClickOutside } from '@/composables/useClickOutside'
 import UiIcon from '@/components/ui/Icon.vue'
 import backend from '@/api/client'
@@ -81,7 +81,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const message = useGlassMessage()
+const { run } = useAsyncAction({ showSuccess: false, showError: true, errorMessage: t('common.error') })
 
 const localSettings = reactive<DownloadSettings>({
   mirror_source: props.settings.mirror_source || 'official',
@@ -120,28 +120,20 @@ const handleDownloadSourceChange = async (value: 'official' | 'bmclapi') => {
   localSettings.mirror_source = value
   updateField('mirror_source', value)
   isOpen.value = false
-  try {
-    await backend.config.set('download', {
-      mirror_source: value,
-      download_threads: localSettings.download_threads
-    })
-  } catch (error) {
-    message.error(t('common.error'))
-  }
+  await run(async () => backend.config.set('download', {
+    mirror_source: value,
+    download_threads: localSettings.download_threads
+  }))
 }
 
 const handleThreadsChange = async (e: Event) => {
   const val = parseInt((e.target as HTMLInputElement).value)
   localSettings.download_threads = val
   updateField('download_threads', val)
-  try {
-    await backend.config.set('download', {
-      mirror_source: localSettings.mirror_source,
-      download_threads: val
-    })
-  } catch (error) {
-    message.error(t('common.error'))
-  }
+  await run(async () => backend.config.set('download', {
+    mirror_source: localSettings.mirror_source,
+    download_threads: val
+  }))
 }
 
 useClickOutside(selectRef, () => { isOpen.value = false })
@@ -149,7 +141,7 @@ useClickOutside(selectRef, () => { isOpen.value = false })
 
 <style scoped>
 .tab-pane {
-  max-width: 600px;
+  max-width: 540px;
 }
 
 .settings-section {
@@ -161,7 +153,7 @@ useClickOutside(selectRef, () => { isOpen.value = false })
 }
 
 .section-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -189,14 +181,14 @@ useClickOutside(selectRef, () => { isOpen.value = false })
 }
 
 .setting-label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 2px;
 }
 
 .setting-desc {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-tertiary);
   line-height: 1.5;
 }
@@ -211,15 +203,15 @@ useClickOutside(selectRef, () => { isOpen.value = false })
 /* 下拉选择 */
 .custom-select {
   position: relative;
-  width: 180px;
+  width: 162px;
 }
 
 .select-trigger {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 32px;
-  padding: 0 10px;
+  height: 29px;
+  padding: 0 9px;
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   background: var(--bg-elevated);
@@ -232,7 +224,7 @@ useClickOutside(selectRef, () => { isOpen.value = false })
 }
 
 .selected-text {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-primary);
 }
 
@@ -261,9 +253,9 @@ useClickOutside(selectRef, () => { isOpen.value = false })
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: 7px 11px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-primary);
   transition: background 150ms ease-out;
 }
@@ -283,12 +275,12 @@ useClickOutside(selectRef, () => { isOpen.value = false })
 }
 
 .option-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
 }
 
 .option-desc {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-tertiary);
 }
 
@@ -298,45 +290,7 @@ useClickOutside(selectRef, () => { isOpen.value = false })
 }
 
 /* 滑块 */
-.slider-group {
-  display: flex;
-  align-items: center;
-  gap: var(--s-md);
-}
 
-.slider-input {
-  width: 160px;
-  height: 4px;
-  -webkit-appearance: none;
-  appearance: none;
-  background: var(--bg-base-alt);
-  border-radius: 2px;
-  outline: none;
-  cursor: pointer;
-}
-
-.slider-input::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--primary);
-  border: 2px solid var(--bg-elevated);
-  cursor: pointer;
-  transition: transform 150ms ease-out;
-}
-
-.slider-input::-webkit-slider-thumb:hover {
-  transform: scale(1.1);
-}
-
-.slider-value {
-  font-size: 12px;
-  color: var(--text-secondary);
-  font-weight: 500;
-  min-width: 40px;
-  text-align: right;
-}
 
 .select-dropdown-enter-active,
 .select-dropdown-leave-active {

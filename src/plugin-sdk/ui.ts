@@ -306,14 +306,10 @@ export function clearSlot(id: string): void {
 
 // ── iframe 桥接 ──
 
-interface IframeBridgeOptions {
-  /** iframe 的选择器，如 '.mouse-effect-iframe' */
+export interface IframeBridgeOptions {
   selector: string
-  /** 配置更新回调，接收 iframe 和新配置值 */
-  onConfigUpdate?: (iframe: HTMLIFrameElement, config: Record<string, any>) => void
-  /** 鼠标事件类型，默认转发 mousedown/mousemove/mouseup */
+  onConfigUpdate?: (iframe: HTMLIFrameElement, config: Record<string, unknown>) => void
   mouseEvents?: string[]
-  /** 是否在 iframe 加载完成后自动调用 onConfigUpdate */
   autoConfig?: boolean
 }
 
@@ -331,7 +327,13 @@ interface IframeBridgeOptions {
  *   })
  *   // 插件卸载时: bridge.destroy()
  */
-export function createIframeBridge(options: IframeBridgeOptions): { destroy: () => void } {
+export interface IframeBridge {
+  cleanup: () => void
+  destroy: () => void
+  updateConfig: (config: Record<string, unknown>) => void
+}
+
+export function createIframeBridge(options: IframeBridgeOptions): IframeBridge {
   const selector = options.selector
   const mouseEvents = options.mouseEvents || ['mousedown', 'mousemove', 'mouseup']
   const cleanupFns: (() => void)[] = []
@@ -409,15 +411,17 @@ export function createIframeBridge(options: IframeBridgeOptions): { destroy: () 
   // 检查已有 iframe
   handleMutations()
 
+  const cleanup = () => {
+    destroyed = true
+    cleanupFns.forEach(fn => fn())
+    cleanupFns.length = 0
+    observer?.disconnect()
+    observer = null
+  }
+
   return {
-    destroy() {
-      destroyed = true
-      cleanupFns.forEach(fn => fn())
-      cleanupFns.length = 0
-      observer?.disconnect()
-      observer = null
-    },
-    // 内部暴露供事件系统调用
-    _updateConfig: updateConfig,
+    cleanup,
+    destroy: cleanup,
+    updateConfig,
   }
 }

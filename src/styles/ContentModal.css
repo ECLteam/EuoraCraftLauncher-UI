@@ -38,7 +38,7 @@
   border-radius: var(--r-sm);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-lg);
-  min-width: 420px;
+  min-width: 378px;
   max-width: 90%;
   max-height: 90%;
   will-change: transform, opacity;
@@ -107,22 +107,22 @@
 
 .modal-title {
   margin: 0;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.4;
 }
 
 .is-fullscreen .modal-title {
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .close-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 29px;
+  height: 29px;
   padding: 0;
   border: 1px solid transparent;
   border-radius: var(--r-sm);
@@ -147,7 +147,7 @@
 }
 
 .close-btn .icon {
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1;
 }
 
@@ -185,7 +185,7 @@
 .modal-enter-active,
 .modal-leave-active {
   transition:
-    opacity var(--duration-slow) var(--ease-standard);
+    opacity var(--duration-slow) var(--ease-exit);
 }
 
 .modal-enter-from,
@@ -195,14 +195,14 @@
 
 .modal-enter-active .modal-wrapper {
   transition:
-    transform var(--duration-slow) var(--ease-spring),
-    opacity var(--duration-slow) var(--ease-standard);
+    transform var(--duration-slower) var(--ease-spring),
+    opacity var(--duration-slow) var(--ease-exit);
 }
 
 .modal-leave-active .modal-wrapper {
   transition:
-    transform var(--duration-normal) var(--ease-standard),
-    opacity var(--duration-fast) var(--ease-standard);
+    transform var(--duration-normal) var(--ease-exit-sharp),
+    opacity var(--duration-fast) var(--ease-exit);
 }
 
 .content-modal:not(.is-fullscreen) .modal-wrapper {
@@ -221,14 +221,17 @@
 
 .is-fullscreen.modal-enter-from .modal-wrapper {
   transform: translateX(100%);
+  opacity: 0.5;
 }
 
 .is-fullscreen.modal-enter-active .modal-wrapper {
   transform: translateX(0);
+  opacity: 1;
 }
 
 .is-fullscreen.modal-leave-to .modal-wrapper {
-  transform: translateX(-100%);
+  transform: translateX(-50%);
+  opacity: 0;
 }
 
 .header-title {
@@ -238,7 +241,7 @@
 }
 
 .type-icon {
-  font-size: 20px;
+  font-size: 18px;
   flex-shrink: 0;
 }
 
@@ -262,7 +265,7 @@
   margin: 0;
   line-height: 1.6;
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .modal-footer .btn-primary {
@@ -299,18 +302,3 @@
   transform: translateY(0) scale(0.96);
 }
 
-@media (max-width: 640px) {
-  .content-modal:not(.is-fullscreen) {
-    padding: var(--s-lg);
-  }
-
-  .modal-wrapper {
-    min-width: auto;
-    width: 100%;
-    max-height: 100%;
-  }
-
-  .modal-body {
-    padding: var(--s-lg);
-  }
-}

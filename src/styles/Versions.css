@@ -4,10 +4,10 @@
   gap: 0;
 }
 
-/* 左侧导航 200px */
+/* 左侧导航 150px */
 .versions-nav {
-  width: 200px;
-  min-width: 200px;
+  width: 150px;
+  min-width: 150px;
   background: var(--card-bg);
   border-top: var(--card-border-top);
   border-bottom: var(--card-border-bottom);
@@ -15,14 +15,14 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  margin-right: var(--s-lg);
+  margin-right: var(--s-md);
 }
 
 .versions-nav .nav-header {
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  height: 40px;
+  padding: 0 11px;
+  height: 36px;
   flex-shrink: 0;
 }
 
@@ -30,7 +30,7 @@
   display: flex;
   align-items: center;
   gap: var(--s-sm);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
@@ -38,24 +38,24 @@
 
 .versions-nav .nav-list {
   flex: 1;
-  padding: var(--s-sm) 0;
+  padding: var(--s-xs) 0;
   overflow-y: auto;
 }
 
 .versions-nav .nav-item {
   display: flex;
   align-items: center;
-  height: 40px;
-  padding: 0 16px;
+  height: 34px;
+  padding: 0 11px;
   gap: var(--s-sm);
   position: relative;
   color: var(--text-secondary);
   text-decoration: none;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   border-radius: var(--r-sm);
-  margin: 0 8px;
+  margin: 0 5px;
   transition: color 150ms ease-out, background 150ms ease-out;
 }
 
@@ -77,8 +77,8 @@
 .versions-nav .nav-indicator {
   position: absolute;
   left: 0;
-  top: 10px;
-  bottom: 10px;
+  top: 9px;
+  bottom: 9px;
   width: 3px;
   border-radius: 0 2px 2px 0;
   background: var(--primary);
@@ -123,7 +123,7 @@
 
 .tab-fade-enter-from {
   opacity: 0;
-  transform: translateY(8px) scale(0.98);
+  transform: translateY(7px) scale(0.98);
 }
 
 .tab-fade-leave-to {
@@ -139,10 +139,10 @@
 
 
 
-/* 路径面板：240px */
+/* 路径面板：216px */
 .paths-panel {
-  width: 240px;
-  min-width: 240px;
+  width: 216px;
+  min-width: 216px;
 }
 
 .paths-list {
@@ -151,13 +151,13 @@
   gap: 2px;
 }
 
-/* 路径列表项：高 56px */
+/* 路径列表项：高 50px */
 .path-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px 8px 16px;
-  height: 56px;
+  padding: 7px 11px 7px 14px;
+  height: 50px;
   border-radius: var(--r-sm);
   cursor: pointer;
   transition: all var(--duration-fast) var(--ease-standard);
@@ -184,8 +184,8 @@
   content: "";
   position: absolute;
   left: 0;
-  top: 12px;
-  bottom: 12px;
+  top: 11px;
+  bottom: 11px;
   width: 3px;
   border-radius: 0 2px 2px 0;
   background: var(--primary);
@@ -199,9 +199,9 @@
   overflow: hidden;
 }
 
-/* 图标 18px 顶对齐 */
+/* 图标 16px 顶对齐 */
 .path-info .icon {
-  font-size: 18px;
+  font-size: 16px;
   color: var(--text-secondary);
   flex-shrink: 0;
   margin-top: 1px;
@@ -218,7 +218,7 @@
 /* 名称 13px font-weight 500 */
 .path-name {
   font-weight: 500;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -231,9 +231,9 @@
   color: var(--text-secondary);
 }
 
-/* 版本数 11px */
+/* 版本数 10px */
 .path-location {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-tertiary);
   white-space: nowrap;
   overflow: hidden;
@@ -266,10 +266,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   color: var(--text-disabled);
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .add-path-btn {
@@ -306,7 +306,7 @@
   display: flex;
   align-items: center;
   gap: var(--s-sm);
-  padding: 6px 10px;
+  padding: 5px 9px;
   background: var(--bg-base);
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
@@ -326,32 +326,32 @@
 }
 
 .strip-icon {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: var(--r-sm);
   background: var(--bg-surface);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--primary);
   flex-shrink: 0;
 }
 
 .strip-name {
   font-weight: 600;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-primary);
 }
 
 .strip-mcver {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-secondary);
 }
 
 .strip-error {
   color: var(--error);
-  font-size: 14px;
+  font-size: 13px;
   display: flex;
   align-items: center;
 }
@@ -367,7 +367,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .detail-label {
@@ -384,7 +384,7 @@
   display: flex;
   align-items: center;
   gap: var(--s-xs);
-  font-size: 11px;
+  font-size: 10px;
   color: var(--error);
   padding: var(--s-sm);
   background: var(--bg-hover);
@@ -417,7 +417,7 @@
 
 .mods-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
   gap: var(--s-sm);
   overflow-y: auto;
   padding: var(--s-xs);
@@ -445,14 +445,14 @@
 }
 
 .mod-icon {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--r-sm);
   background: var(--bg-base);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 16px;
   color: var(--text-secondary);
   flex-shrink: 0;
 }
@@ -470,7 +470,7 @@
 }
 
 .mod-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
@@ -479,7 +479,7 @@
 }
 
 .mod-desc {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-secondary);
   margin: 0 0 var(--s-xs) 0;
   line-height: 1.4;
@@ -493,7 +493,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .mod-version {
@@ -534,7 +534,7 @@
   border: 1px solid var(--border);
   background: var(--bg-base);
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: 12px;
   transition: all var(--duration-fast) var(--ease-standard);
 }
 

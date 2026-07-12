@@ -11,6 +11,7 @@
           <div id="app">
             <!-- 背景层 -->
             <div class="app-background"></div>
+            <div class="app-background-overlay"></div>
             
             <!-- 主布局 -->
             <a href="#main-content" class="skip-link">跳到主要内容</a>
@@ -39,8 +40,10 @@
                 >
                   <div class="page-container" v-if="isAgreementAccepted">
                     <router-view v-slot="{ Component, route: currentRoute }">
+                    <Transition name="page" mode="out-in">
                       <component :is="Component" :key="currentRoute.matched[0]?.path || currentRoute.path" />
-                    </router-view>
+                    </Transition>
+                  </router-view>
                     <!-- 插件：页面底部插槽 -->
                     <div id="plugin-slot-page-bottom" class="plugin-slot-container"></div>
                   </div>
@@ -93,35 +96,6 @@
                     </div>
                   </ContentModal>
 
-                  <!-- 主密码设置弹窗 -->
-                  <n-modal
-                    v-model:show="showPasswordModal"
-                    :mask-closable="false"
-                    preset="card"
-                    title="设置主密码"
-                    class="password-modal"
-                    style="width: 420px"
-                  >
-                    <n-form-item label="主密码">
-                      <n-input
-                        v-model:value="passwordInput"
-                        type="password"
-                        placeholder="请输入至少8位密码"
-                        @keydown.enter="handleSetPassword"
-                      />
-                    </n-form-item>
-                    <n-form-item label="确认密码">
-                      <n-input
-                        v-model:value="passwordConfirm"
-                        type="password"
-                        placeholder="请再次输入密码"
-                        @keydown.enter="handleSetPassword"
-                      />
-                    </n-form-item>
-                    <template #footer>
-                      <n-button type="primary" @click="handleSetPassword">确认</n-button>
-                    </template>
-                  </n-modal>
                 </main>
               </div>
             </div>
@@ -140,10 +114,6 @@ import {
   NDialogProvider,
   NMessageProvider,
   NNotificationProvider,
-  NModal,
-  NFormItem,
-  NInput,
-  NButton,
   zhCN,
   dateZhCN,
   enUS,
@@ -157,7 +127,7 @@ import TaskQueuePanel from '@/components/TaskQueuePanel.vue'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
 import { initTheme, useTheme } from '@/composables/useTheme'
 import { setMessageRef, useGlassMessage } from '@/composables/useGlassMessage'
-import { acceptUserAgreement, useUserAgreement } from '@/composables/useUserAgreement'
+import { useUserAgreement } from '@/composables/useUserAgreement'
 import { useFullscreenModal } from '@/composables/useFullscreenModal'
 import { initPluginBridge, destroyPluginBridge } from '@/composables/usePluginBridge'
 import backend from '@/api/client'
@@ -168,16 +138,13 @@ const router = useRouter()
 const { naiveTheme, themeOverrides } = useTheme()
 
 const { locale, t } = useI18n()
-const { isAccepted: isAgreementAccepted, isLoading: agreementLoading, agreementUrl, markNotAccepted } = useUserAgreement()
+const { isAccepted: isAgreementAccepted, isLoading: agreementLoading, agreementUrl, markNotAccepted, acceptUserAgreement } = useUserAgreement()
 const fullscreenModal = useFullscreenModal()
 const message = useGlassMessage()
 
 const messageRef = ref<InstanceType<typeof GlassMessage> | null>(null)
 const showAgreementModal = ref(false)
 const showQuitConfirmModal = ref(false)
-const showPasswordModal = ref(false)
-const passwordInput = ref('')
-const passwordConfirm = ref('')
 
 const isDevMode = ref(false)
 const globalGameConfig = ref<any>(null)
@@ -215,26 +182,6 @@ const handleQuitConfirm = async () => {
   if (w) await w.close()
 }
 
-const handleSetPassword = async () => {
-  if (passwordInput.value.length < 8) {
-    message.warning(t('password.minLength'))
-    return
-  }
-  if (passwordInput.value !== passwordConfirm.value) {
-    message.warning(t('password.mismatch'))
-    return
-  }
-  const result = await backend.command('set_master_password', { password: passwordInput.value })
-  if (result.success) {
-    message.success(t('password.success'))
-    showPasswordModal.value = false
-    passwordInput.value = ''
-    passwordConfirm.value = ''
-  } else {
-    message.warning(result.message || t('password.failed'))
-  }
-}
-
 let cleanupContextMenuListeners: (() => void) | null = null
 const unlistenNotify = backend.on('launcher:notify', (payload: any) => {
   if (payload.type === 'warning') {
@@ -247,10 +194,6 @@ const unlistenAgreement = backend.on('launcher:agreement_required', () => {
   markNotAccepted()
   showAgreementModal.value = true
 })
-const unlistenPassword = backend.on('keyring:password_required', () => {
-  showPasswordModal.value = true
-})
-
 // 后端推送完整配置，前端仅做渲染
 const unlistenConfigInit = backend.on('config:init', (payload: any) => {
   if (!payload) return
@@ -403,16 +346,13 @@ onMounted(async () => {
   cleanupContextMenuListeners = setupContextMenuListeners()
 
   if ((window as any).__TAURI__?.pytauri) {
-    console.log('[App] PyTauri API 已可用，开始初始化')
     fullscreenModal.reset()
 
-    // 通知后端就绪，后端推送 config:init / agreement / keyring 等事件
+    // 通知后端就绪，后端推送 config:init / agreement 等事件
     backend.command('frontend_ready').catch(() => {})
 
     // 初始化插件桥接（监听路由注册、HTML注入、脚本注入）
     initPluginBridge({} as any, router)
-
-    console.log('[App] 初始化完成')
   } else {
     console.warn('[App] PyTauri API 不可用，尝试使用本地配置')
     initTheme({})
@@ -423,7 +363,6 @@ onUnmounted(() => {
   cleanupContextMenuListeners?.()
   unlistenNotify()
   unlistenAgreement()
-  unlistenPassword()
   unlistenConfigInit()
   unlistenCssInject()
   unlistenInstallProgress()
@@ -447,7 +386,7 @@ onUnmounted(() => {
   left: 0;
   top: 0;
   bottom: 0;
-  width: 200px;
+  width: 180px;
   z-index: 5;
   pointer-events: none;
 }

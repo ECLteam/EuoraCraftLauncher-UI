@@ -132,7 +132,7 @@
                   min="512"
                   step="256"
                   class="text-input"
-                  style="width: 120px;"
+                  style="width: 108px;"
                 />
               </div>
             </div>
@@ -163,10 +163,10 @@
                   v-model="versionSettings.javaPath"
                   type="text"
                   class="text-input"
-                  style="width: 300px;"
+                  style="width: 270px;"
                   placeholder="选择 Java 可执行文件..."
                 />
-                <button class="btn-ghost" style="margin-left: 8px;">浏览</button>
+                <button class="btn-ghost" style="margin-left: 7px;">浏览</button>
               </div>
             </div>
           </div>
@@ -182,7 +182,7 @@
             <textarea
               v-model="versionSettings.jvmArgs"
               class="text-input"
-              style="width: 100%; height: 80px; resize: vertical;"
+              style="width: 100%; height: 72px; resize: vertical;"
               placeholder="例如：-XX:+UseG1GC -XX:+ParallelRefProcEnabled"
             ></textarea>
           </div>
@@ -198,7 +198,7 @@
             <textarea
               v-model="versionSettings.gameArgs"
               class="text-input"
-              style="width: 100%; height: 60px; resize: vertical;"
+              style="width: 100%; height: 54px; resize: vertical;"
               placeholder="例如：--server 127.0.0.1 --port 25565"
             ></textarea>
           </div>
@@ -323,8 +323,8 @@ function handleDelete() {
 
 /* 左侧导航 */
 .vdm-nav {
-  width: 200px;
-  min-width: 200px;
+  width: 180px;
+  min-width: 180px;
   background: var(--card-bg);
   border-right: 1px solid var(--divider);
   display: flex;
@@ -333,21 +333,21 @@ function handleDelete() {
 }
 
 .vdm-nav-header {
-  padding: 16px;
+  padding: 14px;
   border-bottom: 1px solid var(--divider);
 }
 
 .vdm-version-badge {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
+  gap: 9px;
+  padding: 7px 11px;
   background: var(--bg-elevated);
   border-radius: var(--r-sm);
 }
 
 .vdm-version-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   overflow: hidden;
@@ -357,22 +357,22 @@ function handleDelete() {
 
 .vdm-nav-list {
   flex: 1;
-  padding: 8px;
+  padding: 7px;
   overflow-y: auto;
 }
 
 .vdm-nav-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   width: 100%;
-  height: 40px;
-  padding: 0 12px;
+  height: 36px;
+  padding: 0 11px;
   border: none;
   border-radius: var(--r-sm);
   background: transparent;
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: color 150ms, background 150ms;
@@ -397,13 +397,13 @@ function handleDelete() {
 .vdm-content {
   flex: 1;
   min-width: 0;
-  padding: 24px 32px;
+  padding: 22px 29px;
   overflow-y: auto;
   background: var(--bg-base);
 }
 
 .vdm-tab {
-  max-width: 860px;
+  max-width: 774px;
 }
 
 /* 复用 settings 样式 */
@@ -416,7 +416,7 @@ function handleDelete() {
 }
 
 .section-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -444,14 +444,14 @@ function handleDelete() {
 }
 
 .setting-label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 2px;
 }
 
 .setting-desc {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-tertiary);
   line-height: 1.5;
 }
@@ -466,27 +466,27 @@ function handleDelete() {
 .info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 14px;
 }
 
 .info-item {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 12px;
+  padding: 11px;
   background: var(--card-bg);
   border-radius: var(--r-sm);
 }
 
 .info-label {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .info-value {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -495,20 +495,20 @@ function handleDelete() {
 .quick-actions {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 11px;
 }
 
 .btn-action-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 20px;
+  gap: 7px;
+  padding: 18px;
   border: 1px solid var(--divider);
   border-radius: var(--r-sm);
   background: var(--card-bg);
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: background 150ms, border-color 150ms;
@@ -521,9 +521,9 @@ function handleDelete() {
 
 /* 开关 */
 .toggle-switch {
-  width: 32px;
-  height: 18px;
-  border-radius: 9px;
+  width: 29px;
+  height: 16px;
+  border-radius: 8px;
   border: none;
   background: var(--bg-base-alt);
   cursor: pointer;
@@ -540,23 +540,23 @@ function handleDelete() {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
   background: white;
   transition: transform 150ms;
 }
 
 .toggle-switch.active .toggle-knob {
-  transform: translateX(14px);
+  transform: translateX(13px);
 }
 
 /* 徽章 */
 .badge {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 10px;
+  padding: 2px 7px;
+  border-radius: 9px;
 }
 
 .badge-success {
@@ -571,12 +571,12 @@ function handleDelete() {
 
 /* 文本框 */
 .text-input {
-  padding: 6px 10px;
+  padding: 5px 9px;
   border: 1px solid var(--divider);
   border-radius: var(--r-sm);
   background: var(--bg-elevated);
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: 12px;
   outline: none;
   transition: border-color 150ms;
 }
@@ -586,12 +586,12 @@ function handleDelete() {
 }
 
 .btn-ghost {
-  padding: 4px 12px;
+  padding: 4px 11px;
   border: 1px solid var(--divider);
   border-radius: var(--r-sm);
   background: transparent;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   transition: color 150ms, border-color 150ms;
 }
@@ -603,8 +603,8 @@ function handleDelete() {
 
 .placeholder-text {
   color: var(--text-tertiary);
-  font-size: 14px;
-  padding: 20px 0;
+  font-size: 13px;
+  padding: 18px 0;
   text-align: center;
 }
 </style>

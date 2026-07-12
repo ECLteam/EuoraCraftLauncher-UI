@@ -12,28 +12,47 @@
  * 前端定义所有数据类型。社区替换前端时只需保持接口不变。
  */
 
-import type { ApiResponse } from '@/types/api'
+import type {
+  ApiResponse,
+  BackendEvents,
+  BackendEventName,
+  CommandPayloadMap,
+  CommandResponseMap,
+  ConfigSection,
+} from '@/types/api'
 
 const CONFIG = {
   DEBUG: import.meta.env.DEV,
 } as const
 
 class Logger {
-  static log(...args: any[]) { CONFIG.DEBUG && console.log('[API]', ...args) }
-  static error(...args: any[]) { console.error('[API Error]', ...args) }
+  static log(...args: unknown[]) { CONFIG.DEBUG && console.log('[API]', ...args) }
+  static error(...args: unknown[]) { console.error('[API Error]', ...args) }
 }
 
 // ── 环境检测 ──────────────────────────────────────────────────────
 
-function getTauri(): any {
-  return (window as any).__TAURI__
+interface TauriGlobal {
+  pytauri: {
+    pyInvoke: (cmd: string, payload?: unknown) => Promise<unknown>
+  }
+  event: {
+    listen: <T = unknown>(event: string, handler: (e: { payload: T }) => void) => Promise<() => void>
+  }
+  core: {
+    convertFileSrc?: (path: string) => string
+  }
+}
+
+function getTauri(): TauriGlobal | undefined {
+  return (window as unknown as { __TAURI__?: TauriGlobal }).__TAURI__
 }
 
 function checkEnv(): boolean {
   return !!getTauri()?.pytauri
 }
 
-function getCore(): any {
+function getCore(): TauriGlobal['core'] | undefined {
   return getTauri()?.core
 }
 
@@ -41,14 +60,9 @@ function getCore(): any {
 
 const IPC_TIMEOUT_MS = 30000
 
-async function invoke(method: string, ...payloads: any[]): Promise<any> {
-  const tauri = getTauri()
-  const result = await tauri.pytauri.pyInvoke('api_call', { method, args: payloads })
-  return result
-}
-
 async function invokeWithTimeout(method: string, ...payloads: unknown[]): Promise<unknown> {
   const tauri = getTauri()
+  if (!tauri) throw new Error('Tauri 环境未就绪')
   const timeoutPromise = new Promise<never>((_, reject) =>
     setTimeout(() => reject(new Error(`IPC 调用超时 (${IPC_TIMEOUT_MS / 1000}s): ${method}`)), IPC_TIMEOUT_MS)
   )
@@ -64,7 +78,7 @@ async function call<T = unknown>(method: string, ...args: unknown[]): Promise<Ap
     if (!raw || typeof raw !== 'object') {
       return { success: false, message: '后端返回了非对象响应', timestamp: Date.now() }
     }
-    Logger.log(`${raw.success ? '✓' : '✗'} ${method} (${dur}ms)`)
+    Logger.log(`${(raw as ApiResponse).success ? 'OK' : 'ERR'} ${method} (${dur}ms)`)
     return raw as ApiResponse<T>
   } catch (e) {
     Logger.error(`${method}:`, e)
@@ -74,15 +88,19 @@ async function call<T = unknown>(method: string, ...args: unknown[]): Promise<Ap
 
 // ── 事件侦听 ──────────────────────────────────────────────────────
 
-const _eventCleanups = new Map<string, Map<(payload: any) => void, () => void>>()
+const _eventCleanups = new Map<string, Map<(payload: unknown) => void, () => void>>()
 
-async function onEvent(event: string, handler: (payload: any) => void): Promise<(() => void)> {
+async function onEvent<T = unknown>(
+  event: string,
+  handler: (payload: T) => void,
+): Promise<() => void> {
   const tauri = getTauri()
-  const unlisten = await tauri.event.listen(event, (e: { payload: any }) => handler(e.payload))
+  if (!tauri) throw new Error('Tauri 环境未就绪')
+  const unlisten = await tauri.event.listen<T>(event, (e) => handler(e.payload))
   return () => { unlisten() }
 }
 
-function offEvent(event: string, cb?: (payload: any) => void) {
+function offEvent(event: string, cb?: (payload: unknown) => void) {
   const cleanups = _eventCleanups.get(event)
   if (!cleanups) return
   if (cb) {
@@ -102,11 +120,9 @@ function offEvent(event: string, cb?: (payload: any) => void) {
 // ── 文件路径转可访问 URL ──────────────────────────────────────────
 
 async function resolveFileUrl(path: string): Promise<string | null> {
-  // 先校验路径
   const res = await call<{ path: string }>('exec_action', { name: 'file_resolve', params: { path } })
   if (!res.success || !res.data?.path) return null
 
-  // 尝试 Tauri asset protocol
   const core = getCore()
   if (core?.convertFileSrc) {
     try {
@@ -116,144 +132,52 @@ async function resolveFileUrl(path: string): Promise<string | null> {
   return null
 }
 
-// ══════════════════════════════════════════════════════════════════
-//  CommandMap — 类型安全的命令名称与参数映射
-//  社区前端替换时只需更新此映射即可获得完整类型提示。
-// ══════════════════════════════════════════════════════════════════
-
-interface CommandMap {
-  ping: undefined
-
-  // Java
-  java_scan: undefined
-  java_list: undefined
-
-  // 游戏版本
-  minecraft_versions: { filter_type?: string }
-  fabric_versions: { game_version: string }
-  forge_versions: { game_version: string }
-  neoforge_versions: { game_version: string }
-  optifine_versions: { game_version: string }
-  quilt_versions: { game_version: string }
-  scan_versions: { path?: string | string[] }
-  install_version: Record<string, string>
-  uninstall_version: { version_id: string; game_path?: string }
-
-  // 账户
-  accounts_list: undefined
-  accounts_current: undefined
-  accounts_add_offline: { username: string }
-  accounts_add_authlib: { server: { name: string; url: string; description: string }; username: string; password: string }
-  accounts_start_microsoft_login: undefined
-  accounts_poll_microsoft_login: undefined
-  accounts_complete_microsoft_login: undefined
-  accounts_switch: { account_id: string }
-  accounts_remove: { account_id: string }
-  accounts_refresh_profile: { account_id: string }
-
-  // Authlib
-  authlib_servers: undefined
-
-  // 用户协议
-  user_agreement_get: undefined
-  user_agreement_save: undefined
-  user_agreement_clear: undefined
-
-  // 图片
-  image_fetch_data_url: { url: string }
-  image_save_url: { url: string }
-  image_read_file: { path: string }
-  avatar_data_url: { uuid: string; type_name?: string; size?: number; use_default_skin?: boolean; avatar_type?: string }
-
-  // 文件选择
-  select_directory: undefined
-  select_java: undefined
-  select_image: undefined
-
-  // 游戏实例
-  instances_list: undefined
-  launch_instance: { version_id: string; game_path?: string }
-  cancel_launch: undefined
-  instance_stop: { instance_id: string }
-
-  // 插件
-  plugin_list: undefined
-  plugin_info: { plugin_name: string }
-  plugin_enable: { plugin_name: string }
-  plugin_disable: { plugin_name: string; force?: boolean }
-  plugin_unload: { plugin_name: string }
-  plugin_reload: { plugin_name: string; cascade?: boolean }
-  plugin_install: { plugin_path: string }
-  plugin_get_routes: { plugin_id?: string }
-  plugin_get_slots: Record<string, never>
-  plugin_call_command: { command: string; params?: Record<string, unknown> }
-  plugin_get_settings: { plugin_name: string }
-  plugin_update_setting: { plugin_name: string; key: string; value: unknown }
-
-  // Mod 管理（主框架）
-  get_mods: { game_path?: string }
-  toggle_mod: { game_path: string; filename: string }
-  add_mod: { game_path: string; source_path: string }
-  remove_mod: { game_path: string; filename: string }
-  open_mods_folder: { game_path: string }
-
-  // 在线 Mod 搜索
-  search_mods: { query: string; source?: string; game_version?: string; loader_type?: string; limit?: number; offset?: number }
-  get_mod_info: { mod_id: string; source: string }
-  get_mod_versions: { mod_id: string; source: string; game_version?: string; loader_type?: string }
-  download_mod: { mod_id: string; source: string; version_id: string; game_path: string; filename?: string }
-
-  // 启动器信息
-  launcher_info: undefined
-  set_master_password: { password: string }
-  get_keyring_info: undefined
-  clear_keyring: undefined
-  list_sections: undefined
-  frontend_ready: undefined
-
-  // 批量配置
-  config_get_all: undefined
-  config_get_many: { sections: string[] }
-
-  // 文件系统
-  fs_read_dir: { path: string }
-  fs_read_file: { path: string; mode?: 'text' | 'base64' }
-  fs_exists: { path: string }
-
-  // 文件路径
-  file_resolve: { path: string }
-}
-
-// ══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 //  导出
-// ══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 
 export const backend = {
 
   /** 配置存取 — 前端定义结构，后端只持久化 */
   config: {
-    get<T = any>(section: string) { return call<{ [k: string]: any } & T>('config_get', section) },
-    set(section: string, data: any) { return call('config_set', section, data) },
-    list() { return call<string[]>('config_list') },
+    get<T = unknown>(section: ConfigSection) {
+      return call<T>('config_get', section)
+    },
+    set(section: ConfigSection, data: unknown) {
+      return call('config_set', section, data)
+    },
+    list() {
+      return call<string[]>('config_list')
+    },
 
     /** 一次拉取全部配置 */
-    getAll() { return call<Record<string, any>>('config_get_all') },
+    getAll() {
+      return call<Record<string, unknown>>('config_get_all')
+    },
 
     /** 一次拉取多个分区 */
-    getMany(sections: string[]) { return call<Record<string, any>>('config_get_many', sections) },
+    getMany(sections: ConfigSection[]) {
+      return call<Record<string, unknown>>('config_get_many', sections)
+    },
   },
 
   /** 后端动作 — 类型安全 */
-  command<K extends keyof CommandMap>(name: K, params?: CommandMap[K]) {
+  command<K extends keyof CommandPayloadMap>(
+    name: K,
+    params?: CommandPayloadMap[K],
+  ): Promise<ApiResponse<CommandResponseMap[K]>> {
     return call('exec_action', { name, params })
   },
 
   /** 事件 — 后端主动推送 */
-  on(event: string, cb: (payload: any) => void): () => void {
+  on<E extends BackendEventName>(
+    event: E,
+    cb: (payload: BackendEvents[E]) => void,
+  ): () => void {
     let unlisten: (() => void) | null = null
     let unlistened = false
 
-    onEvent(event, cb).then(fn => {
+    onEvent<BackendEvents[E]>(event, cb).then(fn => {
       if (unlistened) {
         fn()
       } else {
@@ -272,24 +196,24 @@ export const backend = {
     }
   },
 
-  off(event: string, cb?: (payload: any) => void) {
+  off(event: string, cb?: (payload: unknown) => void) {
     offEvent(event, cb)
   },
 
   /** 文件系统 */
   fs: {
     readDir(path: string) {
-      return call<{ name: string; is_dir: boolean; size: number; mtime: number }[]>('exec_action', {
+      return call<import('@/types/api').FsEntry[]>('exec_action', {
         name: 'fs_read_dir', params: { path },
       })
     },
     readFile(path: string, mode: 'text' | 'base64' = 'text') {
-      return call<{ content: string; size: number }>('exec_action', {
+      return call<import('@/types/api').FileContent>('exec_action', {
         name: 'fs_read_file', params: { path, mode },
       })
     },
     exists(path: string) {
-      return call<{ exists: boolean; is_dir: boolean; is_file: boolean }>('exec_action', {
+      return call<import('@/types/api').PathInfo>('exec_action', {
         name: 'fs_exists', params: { path },
       })
     },
@@ -310,6 +234,6 @@ export const backend = {
     },
   },
 
-  }
+}
 
 export default backend

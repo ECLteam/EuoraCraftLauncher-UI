@@ -1,39 +1,113 @@
-import { ref, readonly, type App } from 'vue'
+import { ref, type App } from 'vue'
 import { useRouter } from 'vue-router'
 import backend from '@/api/client'
+import type { PluginRoute, PluginSlotItem } from '@/types/api'
 import { transpileTS } from '@/plugin-sdk/transpile'
-import { createIframeBridge, showToast, showConfirm, showLoading } from '@/plugin-sdk/ui'
-import { listen, Events } from '@/plugin-sdk/events'
+import * as ui from '@/plugin-sdk/ui'
+import { listen, unlisten, cleanup as cleanupEvents, once, Events } from '@/plugin-sdk/events'
+import * as api from '@/plugin-sdk/api'
+import {
+  initPluginState,
+  getThemeState,
+  getLauncherState,
+  getAccountState,
+  refreshAccounts,
+  watchTheme,
+  watchLauncher,
+  watchAccount,
+} from '@/plugin-sdk/state'
+import { getToken, watchToken, getMode, watchMode } from '@/plugin-sdk/theme'
+import { createHooks, runPluginCleanup } from '@/plugin-sdk/hooks'
+import { setActiveContext } from '@/plugin-sdk/context'
+import type { PluginSdkContext } from '@/plugin-sdk/types'
 
-// 暴露 plugin-sdk 到全局作用域，供插件注入的脚本使用
-;(window as any).__plugin_sdk__ = {
-  createIframeBridge,
-  showToast,
-  showConfirm,
-  showLoading,
-  listen,
-  Events,
-  transpileTS,
+interface PluginSdkGlobal {
+  __plugin_sdk__?: PluginSdkInstance
 }
 
-// ── 响应式状态 ──
+interface PluginSdkInstance {
+  plugin: PluginSdkContext
+  api: typeof api
+  ui: typeof ui
+  events: {
+    listen: typeof listen
+    unlisten: typeof unlisten
+    once: typeof once
+    cleanup: typeof cleanupEvents
+    Events: typeof Events
+  }
+  state: {
+    theme: ReturnType<typeof getThemeState>
+    launcher: ReturnType<typeof getLauncherState>
+    account: ReturnType<typeof getAccountState>
+    watchTheme: typeof watchTheme
+    watchLauncher: typeof watchLauncher
+    watchAccount: typeof watchAccount
+    refreshAccounts: typeof refreshAccounts
+  }
+  theme: {
+    getToken: typeof getToken
+    watchToken: typeof watchToken
+    getMode: typeof getMode
+    watchMode: typeof watchMode
+  }
+  hooks: ReturnType<typeof createHooks>
+  transpileTS: typeof transpileTS
+  createIframeBridge: typeof ui.createIframeBridge
+  _reportError: (err: unknown) => void
+}
 
-const pluginRoutes = ref<any[]>([])
-const pluginSlots = ref<Record<string, any[]>>({})
-const pluginCommands = ref<any[]>([])
+const sdkCache = new Map<string, PluginSdkInstance>()
 
-// ── HTML 插槽 DOM 管理 ──
+function reportPluginError(plugin: string, err: unknown): void {
+  console.error(`[PluginBridge] 插件执行失败 [${plugin}]:`, err)
+}
+
+function createPluginSdk(pluginName: string, version = ''): PluginSdkInstance {
+  const ctx: PluginSdkContext = { plugin: pluginName, version }
+  return {
+    plugin: ctx,
+    api,
+    ui,
+    events: { listen, unlisten, once, cleanup: cleanupEvents, Events },
+    state: {
+      theme: getThemeState(),
+      launcher: getLauncherState(),
+      account: getAccountState(),
+      watchTheme,
+      watchLauncher,
+      watchAccount,
+      refreshAccounts,
+    },
+    theme: { getToken, watchToken, getMode, watchMode },
+    hooks: createHooks(pluginName),
+    transpileTS,
+    createIframeBridge: ui.createIframeBridge,
+    _reportError: (err) => reportPluginError(pluginName, err),
+  }
+}
+
+function getPluginSdk(pluginName: string): PluginSdkInstance {
+  let sdk = sdkCache.get(pluginName)
+  if (!sdk) {
+    sdk = createPluginSdk(pluginName)
+    sdkCache.set(pluginName, sdk)
+  }
+  return sdk
+}
+
+;(window as unknown as PluginSdkGlobal).__plugin_sdk__ = createPluginSdk('__global__')
+
+const pluginRoutes = ref<PluginRoute[]>([])
+const pluginSlots = ref<Record<string, PluginSlotItem[]>>({})
+const pluginCommands = ref<unknown[]>([])
 
 function sanitizeHtml(html: string): string {
-  // 移除 <script> 标签
   let result = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-  // 移除内联事件处理器 (onerror, onclick, onload 等)
   result = result.replace(/\s+on\w+\s*=\s*["'][^"']*["']/gi, '')
   result = result.replace(/\s+on\w+\s*=\s*[^\s>]+/gi, '')
-  // 移除 javascript: 协议
   result = result.replace(/href\s*=\s*["']javascript:[^"']*["']/gi, 'href="#"')
   result = result.replace(/src\s*=\s*["']javascript:[^"']*["']/gi, 'src="#"')
-  // 移除危险标签
   result = result.replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe>/gi, '')
   result = result.replace(/<object\b[^>]*>[\s\S]*?<\/object>/gi, '')
   result = result.replace(/<embed\b[^>]*\/?>/gi, '')
@@ -70,24 +144,39 @@ function clearPluginSlots(pluginName: string) {
   }
 }
 
-// ── 脚本注入 ──
-// 安全警告：此功能允许插件向前端注入并执行任意 JavaScript 代码。
-// 注入的脚本拥有完整的前端权限，仅应信任经过验证的插件来源。
-
 const _injectedScripts = new Set<string>()
+
+function wrapScript(plugin: string, script: string): string {
+  return `
+try {
+  ${script}
+} catch (__e) {
+  if (window.__plugin_sdk__ && window.__plugin_sdk__._reportError) {
+    window.__plugin_sdk__._reportError(__e)
+  } else {
+    console.error('[PluginBridge] 插件脚本执行失败 [${plugin}]:', __e)
+  }
+}
+`
+}
 
 function executeScript(plugin: string, script: string) {
   const id = `plugin-script-${plugin}`
-  // 删除旧脚本
   const old = document.getElementById(id)
   if (old) old.remove()
+
+  const sdk = getPluginSdk(plugin)
+  setActiveContext({ plugin, version: '' })
+  ;(window as unknown as PluginSdkGlobal).__plugin_sdk__ = sdk
 
   const el = document.createElement('script')
   el.id = id
   el.setAttribute('data-plugin', plugin)
-  el.textContent = script
+  el.textContent = wrapScript(plugin, script)
   document.head.appendChild(el)
   _injectedScripts.add(plugin)
+
+  setActiveContext(null)
 }
 
 function cleanupScripts() {
@@ -95,10 +184,7 @@ function cleanupScripts() {
   _injectedScripts.clear()
 }
 
-// ── 路由注册 ──
-
 function setupRoutes(router: ReturnType<typeof useRouter>) {
-  // 清理旧路由
   const existing = router.getRoutes().filter(r => r.meta?.pluginRoute)
   for (const route of existing) {
     router.removeRoute(route.name!)
@@ -114,7 +200,6 @@ function setupRoutes(router: ReturnType<typeof useRouter>) {
       component: {
         template: `<div class="plugin-page" data-plugin="${pluginName}"><div id="plugin-slot-plugin-${pluginName}"></div></div>`,
         mounted() {
-          // 路由加载后触发渲染插槽内容
           setTimeout(() => renderSlot(`plugin-${pluginName}`), 50)
         },
       },
@@ -123,22 +208,21 @@ function setupRoutes(router: ReturnType<typeof useRouter>) {
   }
 }
 
-// ── 清理（插件卸载时） ──
-
 function cleanupPlugin(pluginName: string) {
-  // 清理脚本
   const scriptEl = document.getElementById(`plugin-script-${pluginName}`)
   if (scriptEl) scriptEl.remove()
   _injectedScripts.delete(pluginName)
 
-  // 清理 CSS
   const styleEl = document.getElementById(`plugin-css-${pluginName}`)
   if (styleEl) styleEl.remove()
+
+  runPluginCleanup(pluginName)
 }
 
 function fullCleanupPlugin(pluginName: string) {
   cleanupPlugin(pluginName)
   clearPluginSlots(pluginName)
+  sdkCache.delete(pluginName)
 }
 
 async function refreshRoutes(router: ReturnType<typeof useRouter>) {
@@ -149,62 +233,49 @@ async function refreshRoutes(router: ReturnType<typeof useRouter>) {
   }
 }
 
-// ── 监听器清理 ──
-
 const unlistenFns: Array<() => void> = []
+let cleanupState: (() => void) | null = null
 
-// ── 初始化（App 启动时调用） ──
+export function initPluginBridge(_app: App, router: ReturnType<typeof useRouter>) {
+  cleanupState = initPluginState()
 
-export function initPluginBridge(app: App, router: ReturnType<typeof useRouter>) {
-  // 监听 HTML 注入
-  unlistenFns.push(backend.on('plugin:html_injected', (payload: any) => {
-    const slot = payload?.slot
+  unlistenFns.push(backend.on('plugin:html_injected', (payload) => {
+    const slot = payload.slot
     const entries = pluginSlots.value[slot] || []
-    entries.push({ plugin: payload?.plugin, html: payload?.html })
+    entries.push({ plugin: payload.plugin, html: payload.html })
     pluginSlots.value[slot] = entries
     renderSlot(slot)
   }))
 
-  // 监听路由注册
   unlistenFns.push(backend.on('plugin:route_registered', () => refreshRoutes(router)))
-
-  // 监听路由注销
   unlistenFns.push(backend.on('plugin:route_unregistered', () => refreshRoutes(router)))
 
-  // 监听脚本注入
-  unlistenFns.push(backend.on('plugin:script_injected', (payload: any) => {
-    executeScript(payload?.plugin, payload?.script)
+  unlistenFns.push(backend.on('plugin:script_injected', (payload) => {
+    executeScript(payload.plugin, payload.script)
   }))
 
-  // 监听 TypeScript 注入（自动转译后执行）
-  unlistenFns.push(backend.on('plugin:typescript_injected', (payload: any) => {
+  unlistenFns.push(backend.on('plugin:typescript_injected', (payload) => {
     try {
-      const js = transpileTS(payload?.script || '')
-      executeScript(payload?.plugin, js)
+      const js = transpileTS(payload.script || '')
+      executeScript(payload.plugin, js)
     } catch (e) {
-      console.error(`[PluginBridge] TS 转译失败 [${payload?.plugin}]:`, e)
+      console.error(`[PluginBridge] TS 转译失败 [${payload.plugin}]:`, e)
     }
   }))
 
-  // 监听插件卸载/禁用，清理残留
-  unlistenFns.push(backend.on('plugin:disabled', (payload: any) => {
-    if (payload?.plugin) fullCleanupPlugin(payload.plugin)
+  unlistenFns.push(backend.on('plugin:disabled', (payload) => {
+    if (payload.plugin) fullCleanupPlugin(payload.plugin)
   }))
-  unlistenFns.push(backend.on('plugin:pre_unload', (payload: any) => {
-    if (payload?.name) fullCleanupPlugin(payload.name)
+  unlistenFns.push(backend.on('plugin:pre_unload', (payload) => {
+    if (payload.name) fullCleanupPlugin(payload.name)
   }))
-
-  // 监听插件重载清理（卸载前先清理前端残留）
-  unlistenFns.push(backend.on('plugin:cleanup', (payload: any) => {
-    if (payload?.name) fullCleanupPlugin(payload.name)
+  unlistenFns.push(backend.on('plugin:cleanup', (payload) => {
+    if (payload.name) fullCleanupPlugin(payload.name)
   }))
-
-  // 监听插件 slots 清除（后端 clear_plugin_slots 触发）
-  unlistenFns.push(backend.on('plugin:slots_cleared', (payload: any) => {
-    if (payload?.plugin) clearPluginSlots(payload.plugin)
+  unlistenFns.push(backend.on('plugin:slots_cleared', (payload) => {
+    if (payload.plugin) clearPluginSlots(payload.plugin)
   }))
 
-  // 初始加载已注册的路由和插槽
   backend.command('plugin_get_routes').then(res => {
     if (res?.success) {
       pluginRoutes.value = res.data || []
@@ -222,17 +293,20 @@ export function initPluginBridge(app: App, router: ReturnType<typeof useRouter>)
   }).catch(() => {})
 }
 
-// ── 销毁（App 卸载时调用，清理所有监听器） ──
-
 export function destroyPluginBridge() {
   for (const fn of unlistenFns) {
     try { fn() } catch {}
   }
   unlistenFns.length = 0
   cleanupScripts()
+  clearSlotElements()
+  for (const plugin of sdkCache.keys()) {
+    runPluginCleanup(plugin)
+  }
+  sdkCache.clear()
+  cleanupState?.()
+  cleanupState = null
 }
-
-// ── 暴露响应式状态和命令调用 ──
 
 export function callPluginCommand(command: string, params?: Record<string, unknown>) {
   return backend.command('plugin_call_command', { command, params })

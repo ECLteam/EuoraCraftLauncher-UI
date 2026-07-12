@@ -119,6 +119,7 @@
         </div>
       </div>
 
+      </TransitionGroup>
       <!-- 列表视图 -->
       <div v-else class="list-view">
         <div class="list-header">
@@ -181,11 +182,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { useAsyncAction } from '@/composables/useAsyncAction'
+import { useIntervalFn } from '@/composables/useIntervalFn'
 import { useGlassMessage } from '@/composables/useGlassMessage'
-import { globalLaunchProgress } from '@/composables/useLaunchProgress'
 import backend from '@/api/client'
 import UiIcon from '@/components/ui/Icon.vue'
 
@@ -202,9 +204,9 @@ interface Instance {
 const { t } = useI18n()
 const router = useRouter()
 const message = useGlassMessage()
+const { loading, run } = useAsyncAction({ showSuccess: false, showError: false })
 
 const instances = ref<Instance[]>([])
-const loading = ref(false)
 const searchQuery = ref('')
 const activeFilter = ref('all')
 const viewMode = ref<'grid' | 'list'>('grid')
@@ -232,36 +234,32 @@ const filteredInstances = computed(() => {
   return result
 })
 
-let refreshInterval: number | null = null
+const { resume: startPolling } = useIntervalFn(loadInstances, 3000)
 
 async function loadInstances() {
-  loading.value = true
-  try {
-    const result = await backend.command('instances_list')
-    if (result.success && result.data) {
-      instances.value = result.data
-    } else {
-      instances.value = []
-    }
-  } catch (e) {
-    console.error('加载实例失败:', e)
-  } finally {
-    loading.value = false
+  const result = await run(async () => backend.command('instances_list'))
+  if (result?.success && result.data) {
+    instances.value = result.data
+  } else {
+    instances.value = []
   }
 }
 
 async function launchInstance(instance: Instance) {
   message.info(`${t('instances.launching')} ${instance.name}...`)
-  try {
-    const result = await backend.command('launch_instance', {
+  const result = await run(
+    async () => backend.command('launch_instance', {
       version_id: instance.version || instance.id,
       game_path: instance.gamePath
-    })
-    if (!result.success) {
-      message.error(result.message || t('instances.launchFailed'))
+    }),
+    {
+      showSuccess: false,
+      showError: true,
+      errorMessage: t('instances.launchFailed'),
     }
-  } catch (e) {
-    message.error(t('instances.launchFailed'))
+  )
+  if (result?.success) {
+    await loadInstances()
   }
 }
 
@@ -280,13 +278,7 @@ function confirmDelete(instance: Instance) {
 
 onMounted(() => {
   loadInstances()
-  refreshInterval = window.setInterval(loadInstances, 3000)
-})
-
-onUnmounted(() => {
-  if (refreshInterval) {
-    clearInterval(refreshInterval)
-  }
+  startPolling()
 })
 </script>
 
@@ -327,8 +319,8 @@ onUnmounted(() => {
   position: relative;
   display: flex;
   align-items: center;
-  width: 220px;
-  height: 36px;
+  width: 198px;
+  height: 32px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
@@ -341,7 +333,7 @@ onUnmounted(() => {
 
 .search-icon {
   position: absolute;
-  left: 10px;
+  left: 9px;
   color: var(--text-tertiary);
   pointer-events: none;
 }
@@ -349,10 +341,10 @@ onUnmounted(() => {
 .search-input {
   width: 100%;
   height: 100%;
-  padding: 0 32px 0 32px;
+  padding: 0 29px 0 29px;
   border: none;
   background: transparent;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-primary);
   outline: none;
   border-radius: var(--r-sm);
@@ -364,12 +356,12 @@ onUnmounted(() => {
 
 .search-clear {
   position: absolute;
-  right: 6px;
+  right: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: var(--r-xs);
   border: none;
   background: transparent;
@@ -391,12 +383,12 @@ onUnmounted(() => {
 }
 
 .filter-chip {
-  padding: 4px 12px;
+  padding: 4px 11px;
   border-radius: var(--r-xs);
   border: 1px solid transparent;
   background: transparent;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   cursor: pointer;
   transition: all 150ms ease-out;
@@ -425,8 +417,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 29px;
+  height: 29px;
   border: none;
   background: var(--bg-elevated);
   color: var(--text-tertiary);
@@ -448,13 +440,13 @@ onUnmounted(() => {
 .btn-create {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
+  gap: 5px;
+  padding: 7px 14px;
   border-radius: var(--r-sm);
   border: none;
   background: var(--primary);
   color: var(--text-on-primary);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: all 150ms ease-out;
@@ -490,7 +482,7 @@ onUnmounted(() => {
 }
 
 .empty-text {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-secondary);
   margin: 0;
 }
@@ -499,12 +491,12 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   gap: var(--s-sm);
-  padding: 10px 20px;
+  padding: 9px 18px;
   border-radius: var(--r-sm);
   border: none;
   background: var(--primary);
   color: var(--text-on-primary);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 150ms ease-out;
@@ -521,7 +513,7 @@ onUnmounted(() => {
 /* 网格视图 */
 .grid-view {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(216px, 1fr));
   gap: var(--s-lg);
   padding-bottom: var(--s-lg);
 }
@@ -588,8 +580,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--r-sm);
   border: none;
   background: rgba(255, 255, 255, 0.15);
@@ -608,26 +600,26 @@ onUnmounted(() => {
 
 .running-badge {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  padding: 2px 8px;
+  top: 7px;
+  right: 7px;
+  padding: 2px 7px;
   border-radius: var(--r-xs);
   background: var(--primary);
   color: var(--text-on-primary);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
 }
 
 /* 卡片主体 */
 .card-body {
-  padding: 12px 16px;
+  padding: 11px 14px;
 }
 
 .card-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 6px;
+  margin-bottom: 5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -640,16 +632,16 @@ onUnmounted(() => {
 }
 
 .card-version-tag {
-  padding: 2px 6px;
+  padding: 2px 5px;
   border-radius: var(--r-xs);
   background: var(--bg-base-alt);
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-secondary);
   font-weight: 500;
 }
 
 .card-time {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-tertiary);
 }
 
@@ -662,9 +654,9 @@ onUnmounted(() => {
 .list-header {
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  height: 36px;
-  font-size: 12px;
+  padding: 0 14px;
+  height: 32px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--text-tertiary);
   text-transform: uppercase;
@@ -678,8 +670,8 @@ onUnmounted(() => {
 .list-row {
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  height: 56px;
+  padding: 0 14px;
+  height: 50px;
   background: var(--card-bg);
   border-bottom: 1px solid var(--divider);
   cursor: pointer;
@@ -707,14 +699,14 @@ onUnmounted(() => {
   gap: var(--s-md);
 }
 
-.col-version { width: 100px; flex-shrink: 0; }
-.col-time { width: 140px; flex-shrink: 0; }
-.col-status { width: 80px; flex-shrink: 0; }
-.col-actions { width: 120px; flex-shrink: 0; display: flex; justify-content: flex-end; gap: 4px; }
+.col-version { width: 90px; flex-shrink: 0; }
+.col-time { width: 126px; flex-shrink: 0; }
+.col-status { width: 72px; flex-shrink: 0; }
+.col-actions { width: 108px; flex-shrink: 0; display: flex; justify-content: flex-end; gap: 4px; }
 
 .list-item-icon {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--r-sm);
   background: var(--bg-base-alt);
   display: flex;
@@ -732,7 +724,7 @@ onUnmounted(() => {
 }
 
 .list-item-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--text-primary);
   white-space: nowrap;
@@ -741,24 +733,24 @@ onUnmounted(() => {
 }
 
 .version-tag {
-  padding: 2px 8px;
+  padding: 2px 7px;
   border-radius: var(--r-xs);
   background: var(--bg-base-alt);
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-secondary);
   font-weight: 500;
 }
 
 .time-text {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-tertiary);
 }
 
 .status-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  margin-right: 6px;
+  margin-right: 5px;
 }
 
 .status-running { background: var(--success); }
@@ -768,8 +760,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 25px;
+  height: 25px;
   border-radius: var(--r-xs);
   border: none;
   background: transparent;

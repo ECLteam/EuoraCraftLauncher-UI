@@ -280,7 +280,7 @@ import type { ScannedVersion } from '@/types/api'
 import ContentModal from '@/components/modals/ContentModal.vue'
 import UiButton from '@/components/ui/Button.vue'
 import UiInput from '@/components/ui/Input.vue'
-import VersionDetailModal from '@/components/versions/VersionDetailModal.vue'
+import VersionDetailModal from '@/views/versions/VersionDetailModal.vue'
 
 interface GamePath {
   name: string
@@ -691,40 +691,40 @@ function navigateToInstall() {
 
 /* 左侧路径面板 */
 .path-panel {
-  width: 200px;
-  min-width: 200px;
+  width: 160px;
+  min-width: 160px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
 .path-panel > .panel-header {
-  height: 48px;
-  padding: 0 12px;
+  height: 40px;
+  padding: 0 9px;
   border-bottom: 1px solid var(--glass-divider);
 }
 
 .path-panel > .panel-header .panel-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
-  gap: 6px;
+  gap: 5px;
 }
 
 .path-list {
   flex: 1;
   overflow-y: auto;
-  padding: 4px 0;
+  padding: 3px 0;
 }
 
 .path-item {
   display: flex;
   align-items: flex-start;
-  height: 56px;
-  padding: 8px 12px 8px 16px;
+  height: 46px;
+  padding: 6px 9px 6px 11px;
   cursor: pointer;
   position: relative;
-  gap: 8px;
+  gap: 6px;
   transition: background 150ms ease-out;
 }
 
@@ -744,8 +744,8 @@ function navigateToInstall() {
 .path-indicator {
   position: absolute;
   left: 0;
-  top: 12px;
-  bottom: 12px;
+  top: 11px;
+  bottom: 11px;
   width: 3px;
   border-radius: 0 2px 2px 0;
   background: var(--primary);
@@ -758,9 +758,9 @@ function navigateToInstall() {
 }
 
 .path-icon {
-  width: 18px;
-  height: 18px;
-  min-width: 18px;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
   margin-top: 1px;
   color: var(--text-tertiary);
   flex-shrink: 0;
@@ -774,7 +774,7 @@ function navigateToInstall() {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 /* 名称行：名称 + 版本数 */
@@ -782,17 +782,20 @@ function navigateToInstall() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
+  min-width: 0;
 }
 
 /* 名称 13px font-weight 500 */
 .path-name {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
 }
 
 /* 选中态名称加粗不换色 */
@@ -803,7 +806,7 @@ function navigateToInstall() {
 
 /* 版本数 11px */
 .path-version-count {
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 400;
   color: var(--text-tertiary);
   flex-shrink: 0;
@@ -811,7 +814,7 @@ function navigateToInstall() {
 
 /* 路径位置：超出部分 ... 截断 */
 .path-location {
-  font-size: 11px;
+  font-size: 9px;
   color: var(--text-tertiary);
   white-space: nowrap;
   overflow: hidden;
@@ -837,11 +840,16 @@ function navigateToInstall() {
 }
 
 .path-actions {
+  position: absolute;
+  right: 4px;
+  top: 4px;
   display: flex;
   gap: 2px;
   opacity: 0;
   transition: opacity 150ms ease-out;
-  margin-top: 2px;
+  background: var(--card-bg);
+  border-radius: var(--r-xs);
+  padding: 2px;
 }
 
 .path-item:hover .path-actions {
@@ -852,8 +860,8 @@ function navigateToInstall() {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   border-radius: var(--r-xs);
   border: none;
   background: transparent;
@@ -913,52 +921,64 @@ function navigateToInstall() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
-  height: 48px;
+  padding: 0 14px;
+  min-height: 43px;
   border-bottom: 1px solid var(--divider);
   flex-shrink: 0;
+  gap: var(--s-sm);
 }
 
 .panel-title {
   display: flex;
   align-items: center;
   gap: var(--s-sm);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header-left {
   display: flex;
   align-items: center;
   gap: var(--s-sm);
+  min-width: 0;
+  flex-shrink: 0;
 }
 
 .header-right {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: var(--s-sm);
+  min-width: 0;
 }
 
 .version-count-badge {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-tertiary);
   background: var(--bg-base-alt);
-  padding: 2px 8px;
+  padding: 2px 7px;
   border-radius: var(--r-xs);
+  flex-shrink: 0;
 }
 
 .search-box {
   position: relative;
   display: flex;
   align-items: center;
-  width: 240px;
-  height: 36px;
+  width: 180px;
+  min-width: 120px;
+  height: 30px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   transition: border-color 150ms ease-out;
+  flex-shrink: 1;
 }
 
 .search-box:focus-within {
@@ -967,7 +987,7 @@ function navigateToInstall() {
 
 .search-icon {
   position: absolute;
-  left: 10px;
+  left: 9px;
   color: var(--text-tertiary);
   pointer-events: none;
 }
@@ -975,10 +995,10 @@ function navigateToInstall() {
 .search-input {
   width: 100%;
   height: 100%;
-  padding: 0 32px 0 32px;
+  padding: 0 29px 0 29px;
   border: none;
   background: transparent;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-primary);
   outline: none;
   border-radius: var(--r-sm);
@@ -990,12 +1010,12 @@ function navigateToInstall() {
 
 .search-clear {
   position: absolute;
-  right: 6px;
+  right: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: var(--r-xs);
   border: none;
   background: transparent;
@@ -1014,8 +1034,8 @@ function navigateToInstall() {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 25px;
+  height: 25px;
   border-radius: var(--r-sm);
   border: 1px solid var(--border);
   background: var(--bg-elevated);
@@ -1038,12 +1058,12 @@ function navigateToInstall() {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
+  padding: 4px 9px;
   border-radius: var(--r-sm);
   border: 1px solid var(--border);
   background: var(--bg-elevated);
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   transition: all 150ms ease-out;
 }
@@ -1062,12 +1082,12 @@ function navigateToInstall() {
   display: inline-flex;
   align-items: center;
   gap: var(--s-sm);
-  padding: 10px 20px;
+  padding: 9px 18px;
   border-radius: var(--r-sm);
   border: none;
   background: var(--primary);
   color: var(--text-on-primary);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 150ms ease-out;
@@ -1079,8 +1099,8 @@ function navigateToInstall() {
 
 /* 面板底部 */
 .panel-footer {
-  height: 28px;
-  padding: 0 12px;
+  height: 25px;
+  padding: 0 11px;
   border-top: 1px solid var(--divider);
   flex-shrink: 0;
   display: flex;
@@ -1109,9 +1129,9 @@ function navigateToInstall() {
 .table-header {
   display: flex;
   align-items: center;
-  padding: 0 12px;
-  height: 36px;
-  font-size: 12px;
+  padding: 0 11px;
+  height: 32px;
+  font-size: 10px;
   font-weight: 600;
   color: var(--text-tertiary);
   text-transform: uppercase;
@@ -1121,6 +1141,7 @@ function navigateToInstall() {
   top: 0;
   background: var(--bg-elevated);
   z-index: 1;
+  white-space: nowrap;
 }
 
 .table-body {
@@ -1131,8 +1152,8 @@ function navigateToInstall() {
 .table-row {
   display: flex;
   align-items: center;
-  padding: 0 12px;
-  height: 52px;
+  padding: 0 11px;
+  height: 44px;
   border-bottom: 1px solid var(--divider);
   transition: background 150ms ease-out;
 }
@@ -1150,15 +1171,15 @@ function navigateToInstall() {
   border-bottom: none;
 }
 
-.col-icon { width: 48px; flex-shrink: 0; }
-.col-name { flex: 1; min-width: 0; }
-.col-type { width: 80px; flex-shrink: 0; }
-.col-status { width: 80px; flex-shrink: 0; }
-.col-actions { width: 80px; flex-shrink: 0; display: flex; justify-content: flex-end; gap: 4px; }
+.col-icon { width: 40px; flex-shrink: 0; }
+.col-name { flex: 1; min-width: 80px; }
+.col-type { width: 64px; flex-shrink: 0; }
+.col-status { width: 56px; flex-shrink: 0; }
+.col-actions { width: 64px; flex-shrink: 0; display: flex; justify-content: flex-end; gap: 3px; }
 
 .version-icon {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--r-sm);
   background: var(--primary-alpha);
   display: flex;
@@ -1168,23 +1189,27 @@ function navigateToInstall() {
 }
 
 .version-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--text-primary);
   display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .version-mcver {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-tertiary);
 }
 
 /* 徽章 */
 .badge {
   display: inline-block;
-  padding: 2px 8px;
+  padding: 2px 6px;
   border-radius: var(--r-xs);
-  font-size: 11px;
+  white-space: nowrap;
+  font-size: 10px;
   font-weight: 500;
 }
 
@@ -1200,8 +1225,8 @@ function navigateToInstall() {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 25px;
+  height: 25px;
   border-radius: var(--r-xs);
   border: none;
   background: transparent;
@@ -1246,13 +1271,13 @@ function navigateToInstall() {
 }
 
 .empty-text {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-secondary);
   margin: 0;
 }
 
 .empty-hint {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-quaternary, var(--text-tertiary));
   margin: 0;
   max-width: 80%;
@@ -1286,12 +1311,12 @@ function navigateToInstall() {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 12px;
+  padding: 5px 11px;
   border-radius: var(--r-sm);
   border: 1px solid var(--primary);
   background: var(--primary);
   color: var(--text-on-primary);
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   transition: all 150ms ease-out;
   white-space: nowrap;
@@ -1303,7 +1328,7 @@ function navigateToInstall() {
 
 /* 安装弹窗 */
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .form-group:last-child {
@@ -1312,8 +1337,8 @@ function navigateToInstall() {
 
 .form-group label {
   display: block;
-  margin-bottom: 6px;
-  font-size: 13px;
+  margin-bottom: 5px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-primary);
 }
@@ -1324,45 +1349,45 @@ function navigateToInstall() {
 
 .form-hint {
   margin: 4px 0 0;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-tertiary);
 }
 
 .version-display {
-  padding: 8px 12px;
+  padding: 7px 11px;
   background: var(--bg-base);
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .path-display {
-  padding: 8px 12px;
+  padding: 7px 11px;
   background: var(--bg-base);
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-secondary);
 }
 
 .loader-options {
   display: flex;
-  gap: 8px;
+  gap: 7px;
   flex-wrap: wrap;
 }
 
 .loader-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
+  gap: 5px;
+  padding: 7px 13px;
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   background: var(--bg-base);
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
   transition: all 150ms;
 }
@@ -1393,7 +1418,7 @@ function navigateToInstall() {
 }
 
 .progress-text {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--text-primary);
   margin: 0;
