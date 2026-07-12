@@ -11,12 +11,10 @@
   transition: left var(--duration-normal) var(--ease-standard);
 }
 
-/* 侧边栏展开时：通知出现在侧边栏右边 */
 [data-sidebar-collapsed="0"] .glass-message-container {
   left: calc(var(--sidebar-w-expanded) + var(--s-xl));
 }
 
-/* 侧边栏折叠时：通知出现在折叠侧边栏右边 */
 [data-sidebar-collapsed="1"] .glass-message-container {
   left: calc(var(--sidebar-w-collapsed) + var(--s-xl));
 }

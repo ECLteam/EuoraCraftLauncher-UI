@@ -1,10 +1,5 @@
-/* ================================================================
-   公共工具类 — 跨页面/跨组件共享样式
-   从各页面 CSS 中提取，消除重复定义
-   已按 0.9 缩放
-   ================================================================ */
 
-/* --- tab-pane 容器 --- */
+
 .tab-pane {
   height: 100%;
   width: 100%;
@@ -13,7 +8,6 @@
   gap: 11px;
 }
 
-/* --- toolbar --- */
 .toolbar {
   display: flex;
   justify-content: space-between;
@@ -43,12 +37,10 @@
   font-size: 16px;
 }
 
-/* --- search-input --- */
 .search-input {
   width: 180px;
 }
 
-/* --- management-layout --- */
 .management-layout {
   display: flex;
   flex: 1;
@@ -57,7 +49,6 @@
   min-height: 0;
 }
 
-/* --- panel --- */
 .panel {
   display: flex;
   flex-direction: column;
@@ -92,7 +83,6 @@
   flex-shrink: 0;
 }
 
-/* --- empty-state / loading-container --- */
 .loading-container,
 .empty-state {
   display: flex;
@@ -112,7 +102,6 @@
   font-size: 12px;
 }
 
-/* --- form-group --- */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -124,7 +113,6 @@
   color: var(--text-secondary);
 }
 
-/* --- dialog-footer --- */
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
@@ -134,7 +122,6 @@
   margin-top: 11px;
 }
 
-/* --- badge --- */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -152,7 +139,6 @@
 .badge-default   { background: var(--bg-base);       color: var(--text-secondary); border: 1px solid var(--border); }
 .badge-april     { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
 
-/* --- version-icon --- */
 .version-icon {
   width: 14px;
   height: 14px;
@@ -164,7 +150,6 @@
 .version-icon.old_beta  { background: #1890ff; }
 .version-icon.old_alpha { background: #722ed1; }
 
-/* --- loader-btn --- */
 .loader-btn {
   padding: 5px 11px;
   background: var(--bg-base);
@@ -185,7 +170,6 @@
   color: #fff;
 }
 
-/* --- progress-body --- */
 .progress-body {
   text-align: center;
   padding: 18px;
@@ -205,7 +189,6 @@
   margin: 0;
 }
 
-/* --- settings-group --- */
 .settings-group {
   margin-bottom: 22px;
 }
@@ -248,13 +231,11 @@
   flex-shrink: 0;
 }
 
-/* --- select-dropdown 过渡 --- */
 .select-dropdown-enter-active { transition: all 0.15s var(--ease-standard); }
 .select-dropdown-leave-active { transition: all 0.1s  var(--ease-standard); }
 .select-dropdown-enter-from   { opacity: 0; transform: translateY(-4px); }
 .select-dropdown-leave-to     { opacity: 0; transform: translateY(-4px); }
 
-/* --- version-count --- */
 .version-count {
   font-size: 10px;
   color: var(--text-secondary);
@@ -264,7 +245,6 @@
   border: 1px solid var(--border);
 }
 
-/* --- slider --- */
 .slider-group {
   display: flex;
   align-items: center;

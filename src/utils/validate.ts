@@ -72,7 +72,7 @@ class ObjectSchema<T extends Record<string, Schema<unknown>>> {
   }
 }
 
-type Schema<T> = StringSchema | ObjectSchema<Record<string, Schema<unknown>>>
+type Schema = StringSchema | ObjectSchema<Record<string, Schema>>
 
 type Infer<S> = S extends StringSchema
   ? string
@@ -80,11 +80,26 @@ type Infer<S> = S extends StringSchema
     ? { [K in keyof T]: Infer<T[K]> }
     : never
 
+/**
+ * 验证对象构建器。
+ */
 export const v = {
+  /**
+   * 创建字符串字段验证器。
+   */
   string: () => new StringSchema(),
-  object: <T extends Record<string, Schema<unknown>>>(shape: T) => new ObjectSchema(shape),
+  /**
+   * 创建对象结构验证器。
+   * @param shape - 对象字段的验证规则
+   */
+  object: <T extends Record<string, Schema>>(shape: T) => new ObjectSchema(shape),
 }
 
+/**
+ * 将验证错误列表格式化为可读的字符串。
+ * @param errors - 验证错误数组
+ * @returns 错误信息字符串
+ */
 export function formatErrors(errors: ValidationError[]): string {
   return errors.map(e => e.message).join('；')
 }

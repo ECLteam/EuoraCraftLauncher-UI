@@ -19,7 +19,6 @@
   -webkit-user-select: text;
 }
 
-/* 背景层：无 backdrop-filter，仅用透明度叠加 */
 .app-background {
   position: fixed;
   inset: 0;

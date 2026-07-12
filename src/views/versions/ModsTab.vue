@@ -3,63 +3,105 @@
     <!-- 顶部操作栏 -->
     <div class="mods-toolbar">
       <div class="search-bar">
-        <UiIcon name="search" :size="16" class="search-icon" />
+        <UiIcon
+          name="search"
+          :size="16"
+          class="search-icon"
+        />
         <input
           v-model="searchQuery"
           type="text"
           :placeholder="t('mods.searchPlaceholder')"
           class="search-input"
-        />
+        >
         <button
           v-if="searchQuery"
           class="search-clear"
           @click="searchQuery = ''"
         >
-          <UiIcon name="close" :size="14" />
+          <UiIcon
+            name="close"
+            :size="14"
+          />
         </button>
       </div>
-      <n-select
+      <NSelect
         v-model:value="filterLoader"
         :options="loaderFilterOptions"
         :placeholder="t('mods.filterLoader')"
         size="small"
         class="loader-filter"
-        :consistent-menu-width="false"
+        :consistentMenuWidth="false"
       />
-      <n-button type="primary" size="small" @click="handleAddMod">
+      <NButton
+        type="primary"
+        size="small"
+        @click="handleAddMod"
+      >
         <template #icon>
-          <UiIcon name="add" :size="16" />
+          <UiIcon
+            name="add"
+            :size="16"
+          />
         </template>
         {{ t('mods.add') }}
-      </n-button>
-      <n-button size="small" @click="handleOpenModsFolder">
+      </NButton>
+      <NButton
+        size="small"
+        @click="handleOpenModsFolder"
+      >
         <template #icon>
-          <UiIcon name="folder" :size="16" />
+          <UiIcon
+            name="folder"
+            :size="16"
+          />
         </template>
         {{ t('mods.openFolder') }}
-      </n-button>
-      <n-button type="info" size="small" @click="handleOnlineSearch">
+      </NButton>
+      <NButton
+        type="info"
+        size="small"
+        @click="handleOnlineSearch"
+      >
         <template #icon>
-          <UiIcon name="cloud-download" :size="16" />
+          <UiIcon
+            name="cloud-download"
+            :size="16"
+          />
         </template>
         {{ t('mods.onlineSearch') }}
-      </n-button>
+      </NButton>
     </div>
 
     <!-- 加载中 -->
-    <div v-if="loading" class="loading-state">
-      <n-spin size="medium" />
+    <div
+      v-if="loading"
+      class="loading-state"
+    >
+      <NSpin size="medium" />
       <p>{{ t('common.loading') }}</p>
     </div>
 
     <!-- 空状态 -->
-    <div v-else-if="filteredMods.length === 0" class="empty-state">
-      <UiIcon name="cube" :size="48" class="empty-icon" />
-      <p class="empty-text">{{ t('mods.empty') }}</p>
+    <div
+      v-else-if="filteredMods.length === 0"
+      class="empty-state"
+    >
+      <UiIcon
+        name="cube"
+        :size="48"
+        class="empty-icon"
+      />
+      <p class="empty-text">
+        {{ t('mods.empty') }}
+      </p>
     </div>
 
     <!-- 模组列表 -->
-    <div v-else class="mods-list">
+    <div
+      v-else
+      class="mods-list"
+    >
       <div
         v-for="mod in filteredMods"
         :key="mod.filename"
@@ -67,39 +109,53 @@
         :style="{ opacity: mod.enabled ? 1 : 0.5 }"
       >
         <div class="mod-icon">
-          <UiIcon name="cube" :size="20" />
+          <UiIcon
+            name="cube"
+            :size="20"
+          />
         </div>
 
         <div class="mod-info">
-          <div class="mod-name">{{ mod.name }}</div>
+          <div class="mod-name">
+            {{ mod.name }}
+          </div>
           <div class="mod-meta">
             <span class="mod-version-tag">{{ mod.version || '--' }}</span>
-            <span class="mod-author" v-if="mod.author">by {{ mod.author }}</span>
+            <span
+              v-if="mod.author"
+              class="mod-author"
+            >by {{ mod.author }}</span>
             <span :class="['loader-tag', 'loader-' + getLoaderClass(mod.loader_type)]">
               {{ getLoaderLabel(mod.loader_type) }}
             </span>
-            <span class="mod-game-version" v-if="mod.game_version">
+            <span
+              v-if="mod.game_version"
+              class="mod-game-version"
+            >
               MC {{ mod.game_version }}
             </span>
           </div>
         </div>
 
         <div class="mod-actions">
-          <n-switch
+          <NSwitch
             :value="mod.enabled"
-            @update:value="(val: boolean) => handleToggle(mod, val)"
             size="small"
+            @update:value="(val: boolean) => handleToggle(mod, val)"
           />
-          <n-button
+          <NButton
             size="tiny"
             type="error"
             quaternary
             @click="handleRemove(mod)"
           >
             <template #icon>
-              <UiIcon name="trash" :size="14" />
+              <UiIcon
+                name="trash"
+                :size="14"
+              />
             </template>
-          </n-button>
+          </NButton>
         </div>
       </div>
     </div>
@@ -107,13 +163,13 @@
 </template>
 
 <script setup lang="ts">
+import { NButton, NSwitch, NSpin, NSelect } from 'naive-ui'
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { NButton, NSwitch, NSpin, NSelect } from 'naive-ui'
+import backend from '@/api/client'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { getLoaderClass, getLoaderLabel } from '@/utils/loader'
-import backend from '@/api/client'
 
 interface Mod {
   filename: string
@@ -146,7 +202,10 @@ const loaderFilterOptions = [
   { label: t('loader.unknown'), value: '未知' },
 ]
 
-// 获取当前游戏路径
+/**
+ * 从后端配置读取当前游戏路径。
+ * @returns 第一个已配置的游戏路径，失败时返回默认路径
+ */
 async function getCurrentGamePath(): Promise<string> {
   try {
     const res = await backend.config.get('game')
@@ -157,11 +216,10 @@ async function getCurrentGamePath(): Promise<string> {
         return typeof first === 'string' ? first : first.path
       }
     }
-  } catch {}
+  } catch { /* 读取失败时使用默认路径 */ }
   return './.minecraft'
 }
 
-// 加载 Mod 列表
 async function loadMods() {
   loading.value = true
   try {
@@ -180,7 +238,6 @@ async function loadMods() {
   }
 }
 
-// 筛选
 const filteredMods = computed(() => {
   let list = mods.value
   if (searchQuery.value) {
@@ -193,7 +250,6 @@ const filteredMods = computed(() => {
   return list
 })
 
-// 启用/禁用 Mod
 async function handleToggle(mod: Mod, enabled: boolean) {
   try {
     const gamePath = await getCurrentGamePath()
@@ -213,7 +269,6 @@ async function handleToggle(mod: Mod, enabled: boolean) {
   }
 }
 
-// 删除 Mod
 async function handleRemove(mod: Mod) {
   try {
     const gamePath = await getCurrentGamePath()
@@ -233,7 +288,6 @@ async function handleRemove(mod: Mod) {
   }
 }
 
-// 添加 Mod
 async function handleAddMod() {
   try {
     const fileRes = await backend.command('select_file')
@@ -257,7 +311,6 @@ async function handleAddMod() {
   }
 }
 
-// 打开 Mods 文件夹
 async function handleOpenModsFolder() {
   try {
     const gamePath = await getCurrentGamePath()
@@ -279,235 +332,4 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.mods-page {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-/* 顶部操作栏 */
-.mods-toolbar {
-  display: flex;
-  align-items: center;
-  gap: var(--s-md);
-  margin-bottom: var(--s-lg);
-  flex-shrink: 0;
-}
-
-.search-bar {
-  flex: 1;
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.search-icon {
-  position: absolute;
-  left: 11px;
-  color: var(--text-tertiary);
-  pointer-events: none;
-  z-index: 1;
-}
-
-.search-input {
-  width: 100%;
-  height: 29px;
-  padding: 0 32px 0 32px;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-  font-size: 12px;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 150ms ease-out;
-}
-
-.search-input::placeholder {
-  color: var(--text-tertiary);
-}
-
-.search-input:focus {
-  border-color: var(--border-active);
-}
-
-.search-clear {
-  position: absolute;
-  right: 7px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: var(--r-xs);
-  border: none;
-  background: transparent;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  transition: all 150ms ease-out;
-}
-
-.search-clear:hover {
-  color: var(--text-primary);
-  background: var(--bg-hover);
-}
-
-.loader-filter {
-  width: 108px;
-  flex-shrink: 0;
-}
-
-/* 列表 */
-.mods-list {
-  flex: 1;
-  background: var(--card-bg);
-  border-top: var(--card-border-top);
-  border-bottom: var(--card-border-bottom);
-  border-radius: var(--r-sm);
-  overflow-y: auto;
-  padding: var(--s-lg);
-}
-
-.mod-item {
-  display: flex;
-  align-items: center;
-  min-height: 50px;
-  padding: 7px 11px;
-  gap: 11px;
-  border-radius: var(--r-sm);
-  transition: background 150ms ease-out;
-}
-
-.mod-item:hover {
-  background: var(--bg-hover);
-}
-
-.mod-item + .mod-item {
-  margin-top: 2px;
-}
-
-/* 模组图标 */
-.mod-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--r-sm);
-  background: var(--primary-alpha);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--primary);
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.mod-icon img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* 模组信息 */
-.mod-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.mod-name {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-primary);
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mod-meta {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  flex-wrap: wrap;
-}
-
-.mod-version-tag {
-  display: inline-block;
-  padding: 0 5px;
-  border-radius: var(--r-xs);
-  background: var(--bg-base-alt);
-  font-size: 10px;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.mod-author {
-  font-size: 10px;
-  color: var(--text-tertiary);
-}
-
-.mod-game-version {
-  font-size: 10px;
-  color: var(--text-tertiary);
-  padding: 0 4px;
-  border-radius: var(--r-xs);
-  background: var(--bg-base-alt);
-}
-
-/* 加载器标签 */
-.loader-tag {
-  display: inline-block;
-  padding: 0 5px;
-  border-radius: var(--r-xs);
-  font-size: 10px;
-  font-weight: 500;
-}
-
-.loader-forge { background: rgba(140, 130, 180, 0.15); color: #7a6eaa; }
-.loader-fabric { background: rgba(218, 190, 140, 0.15); color: #b8944a; }
-.loader-neoforge { background: rgba(140, 150, 200, 0.15); color: #6a7eb4; }
-.loader-quilt { background: rgba(140, 180, 160, 0.15); color: #5a9a72; }
-.loader-optifine { background: rgba(200, 180, 140, 0.15); color: #b8942a; }
-.loader-liteloader { background: rgba(160, 180, 200, 0.15); color: #5a7a9a; }
-.loader-unknown { background: var(--bg-base-alt); color: var(--text-secondary); }
-
-/* 操作区域 */
-.mod-actions {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  flex-shrink: 0;
-}
-
-/* 空状态 */
-.empty-state {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--s-md);
-}
-
-.empty-icon {
-  color: var(--text-tertiary);
-}
-
-.empty-text {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.loading-state {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--s-md);
-  color: var(--text-secondary);
-}
-</style>
+<style scoped src="@/styles/ModsTab.css"></style>

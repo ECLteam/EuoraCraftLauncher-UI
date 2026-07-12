@@ -78,7 +78,6 @@
   padding: 2px 6px;
 }
 
-/* 选中态指示器 - 左侧3px品牌色条 */
 .sidebar-active-indicator {
   position: absolute;
   left: 7px;
@@ -93,7 +92,6 @@
   z-index: 10;
 }
 
-/* 选中态背景 */
 .sidebar-active-bg {
   position: absolute;
   left: 7px;
@@ -165,7 +163,6 @@
   color: var(--text-primary);
 }
 
-/* ========== 子菜单项 ========== */
 .sidebar-item-chevron {
   display: flex;
   align-items: center;
@@ -206,7 +203,6 @@
   margin: 2px 0;
 }
 
-/* 子菜单项缩进24px */
 .sidebar-sub-item {
   height: 31px;
   padding-left: 40px;
@@ -221,7 +217,6 @@
   margin-bottom: 1px;
 }
 
-/* 子项图标14px */
 .sidebar-sub-item .sidebar-item-icon {
   width: 13px;
   height: 13px;
@@ -268,7 +263,6 @@
   pointer-events: none;
 }
 
-/* 底部：帮助/设置与功能项之间1px分割线 */
 .sidebar-footer {
   padding: 5px 7px 9px;
   display: flex;
@@ -299,8 +293,6 @@
   pointer-events: none;
   transition: opacity var(--duration-normal) var(--ease-exit);
 }
-
-/* ========== 插件导航项 ========== */
 
 .sidebar-plugin-divider {
   height: 1px;

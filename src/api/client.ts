@@ -19,6 +19,9 @@ import type {
   CommandPayloadMap,
   CommandResponseMap,
   ConfigSection,
+  FileContent,
+  FsEntry,
+  PathInfo,
 } from '@/types/api'
 
 const CONFIG = {
@@ -26,7 +29,12 @@ const CONFIG = {
 } as const
 
 class Logger {
-  static log(...args: unknown[]) { CONFIG.DEBUG && console.log('[API]', ...args) }
+  static log(...args: unknown[]) {
+    if (CONFIG.DEBUG) {
+      // eslint-disable-next-line no-console
+      console.log('[API]', ...args)
+    }
+  }
   static error(...args: unknown[]) { console.error('[API Error]', ...args) }
 }
 
@@ -60,6 +68,13 @@ function getCore(): TauriGlobal['core'] | undefined {
 
 const IPC_TIMEOUT_MS = 30000
 
+/**
+ * 带超时的 IPC 调用。
+ * @param method - 后端方法名
+ * @param payloads - 传递给后端的参数列表
+ * @returns 后端返回的原始数据
+ * @throws 当 Tauri 环境未就绪或调用超时时抛出错误
+ */
 async function invokeWithTimeout(method: string, ...payloads: unknown[]): Promise<unknown> {
   const tauri = getTauri()
   if (!tauri) throw new Error('Tauri 环境未就绪')
@@ -69,6 +84,12 @@ async function invokeWithTimeout(method: string, ...payloads: unknown[]): Promis
   return Promise.race([tauri.pytauri.pyInvoke('api_call', { method, args: payloads }), timeoutPromise])
 }
 
+/**
+ * 统一调用后端方法并包装为 ApiResponse。
+ * @param method - 后端方法名
+ * @param args - 方法参数列表
+ * @returns 包含 success/data/message 的标准响应
+ */
 async function call<T = unknown>(method: string, ...args: unknown[]): Promise<ApiResponse<T>> {
   const start = performance.now()
   try {
@@ -90,6 +111,12 @@ async function call<T = unknown>(method: string, ...args: unknown[]): Promise<Ap
 
 const _eventCleanups = new Map<string, Map<(payload: unknown) => void, () => void>>()
 
+/**
+ * 注册单次事件监听器。
+ * @param event - 事件名称
+ * @param handler - 事件处理函数
+ * @returns 取消监听的函数
+ */
 async function onEvent<T = unknown>(
   event: string,
   handler: (payload: T) => void,
@@ -100,18 +127,23 @@ async function onEvent<T = unknown>(
   return () => { unlisten() }
 }
 
+/**
+ * 移除事件监听器。
+ * @param event - 事件名称
+ * @param cb - 要移除的回调函数，不传则移除该事件所有监听
+ */
 function offEvent(event: string, cb?: (payload: unknown) => void) {
   const cleanups = _eventCleanups.get(event)
   if (!cleanups) return
   if (cb) {
     const unlisten = cleanups.get(cb)
     if (unlisten) {
-      try { unlisten() } catch {}
+      try { unlisten() } catch { /* 清理时忽略错误 */ }
       cleanups.delete(cb)
     }
   } else {
     for (const fn of cleanups.values()) {
-      try { fn() } catch {}
+      try { fn() } catch { /* 清理时忽略错误 */ }
     }
     cleanups.clear()
   }
@@ -119,6 +151,11 @@ function offEvent(event: string, cb?: (payload: unknown) => void) {
 
 // ── 文件路径转可访问 URL ──────────────────────────────────────────
 
+/**
+ * 将本地文件路径转换为可在 DOM 中使用的 URL。
+ * @param path - 本地文件路径
+ * @returns 可访问的 URL，转换失败时返回 null
+ */
 async function resolveFileUrl(path: string): Promise<string | null> {
   const res = await call<{ path: string }>('exec_action', { name: 'file_resolve', params: { path } })
   if (!res.success || !res.data?.path) return null
@@ -127,7 +164,7 @@ async function resolveFileUrl(path: string): Promise<string | null> {
   if (core?.convertFileSrc) {
     try {
       return core.convertFileSrc(res.data.path)
-    } catch {}
+    } catch { /* 转换失败时返回 null */ }
   }
   return null
 }
@@ -161,7 +198,12 @@ export const backend = {
     },
   },
 
-  /** 后端动作 — 类型安全 */
+  /**
+   * 调用后端动作命令。
+   * @param name - 命令名称
+   * @param params - 命令参数
+   * @returns 命令执行结果
+   */
   command<K extends keyof CommandPayloadMap>(
     name: K,
     params?: CommandPayloadMap[K],
@@ -169,7 +211,12 @@ export const backend = {
     return call('exec_action', { name, params })
   },
 
-  /** 事件 — 后端主动推送 */
+  /**
+   * 监听后端事件。
+   * @param event - 事件名称
+   * @param cb - 事件回调函数
+   * @returns 取消监听的函数
+   */
   on<E extends BackendEventName>(
     event: E,
     cb: (payload: BackendEvents[E]) => void,
@@ -203,17 +250,17 @@ export const backend = {
   /** 文件系统 */
   fs: {
     readDir(path: string) {
-      return call<import('@/types/api').FsEntry[]>('exec_action', {
+      return call<FsEntry[]>('exec_action', {
         name: 'fs_read_dir', params: { path },
       })
     },
     readFile(path: string, mode: 'text' | 'base64' = 'text') {
-      return call<import('@/types/api').FileContent>('exec_action', {
+      return call<FileContent>('exec_action', {
         name: 'fs_read_file', params: { path, mode },
       })
     },
     exists(path: string) {
-      return call<import('@/types/api').PathInfo>('exec_action', {
+      return call<PathInfo>('exec_action', {
         name: 'fs_exists', params: { path },
       })
     },

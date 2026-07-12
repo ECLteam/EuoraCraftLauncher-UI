@@ -13,15 +13,32 @@
       :title="isCollapsed ? t('sidebar.expand') : t('sidebar.collapse')"
       @click="toggleCollapse"
     >
-      <UiIcon :name="isCollapsed ? 'chevron-down' : 'menu'" :size="18" />
+      <UiIcon
+        :name="isCollapsed ? 'chevron-down' : 'menu'"
+        :size="18"
+      />
     </button>
 
     <!-- 导航区域 -->
-    <nav class="sidebar-nav" @mouseleave="handleMouseLeave">
-      <div v-if="!isCollapsed" class="sidebar-active-bg" ref="activeBgRef"></div>
-      <div v-if="!isCollapsed" class="sidebar-active-indicator" ref="indicatorRef"></div>
+    <nav
+      class="sidebar-nav"
+      @mouseleave="handleMouseLeave"
+    >
+      <div
+        v-if="!isCollapsed"
+        ref="activeBgRef"
+        class="sidebar-active-bg"
+      />
+      <div
+        v-if="!isCollapsed"
+        ref="indicatorRef"
+        class="sidebar-active-indicator"
+      />
 
-      <template v-for="(item, index) in menuItems" :key="item.path">
+      <template
+        v-for="(item, index) in menuItems"
+        :key="item.path"
+      >
         <button
           class="sidebar-item"
           :data-path="item.path"
@@ -34,7 +51,10 @@
           @click.prevent="handleItemClick(item)"
         >
           <span class="sidebar-item-icon">
-            <UiIcon :name="item.iconName" :size="20" />
+            <UiIcon
+              :name="item.iconName"
+              :size="20"
+            />
           </span>
           <span class="sidebar-item-text">{{ item.label }}</span>
           <span
@@ -43,14 +63,18 @@
             :class="{ expanded: isMenuExpanded(item.path) }"
             @click.stop="toggleMenu(item.path)"
           >
-            <UiIcon name="chevron-down" :size="14" />
+            <UiIcon
+              name="chevron-down"
+              :size="14"
+            />
           </span>
         </button>
 
         <!-- 子菜单项 -->
         <div
           v-if="!isCollapsed && itemHasSubItems(item.path)"
-          :data-parent="item.path" class="sidebar-sub-items"
+          :data-parent="item.path"
+          class="sidebar-sub-items"
           :class="{ expanded: isMenuExpanded(item.path) }"
         >
           <button
@@ -62,7 +86,10 @@
             @click.prevent="handleSubItemClick(sub.path)"
           >
             <span class="sidebar-item-icon">
-              <UiIcon :name="sub.iconName" :size="16" />
+              <UiIcon
+                :name="sub.iconName"
+                :size="16"
+              />
             </span>
             <span class="sidebar-item-text">{{ sub.label }}</span>
           </button>
@@ -71,7 +98,11 @@
 
       <!-- 插件注册的导航项 -->
       <template v-if="!isCollapsed">
-        <div v-for="pRoute in pluginRoutesList" :key="pRoute.path" class="sidebar-plugin-divider"></div>
+        <div
+          v-for="pRoute in pluginRoutesList"
+          :key="pRoute.path"
+          class="sidebar-plugin-divider"
+        />
         <button
           v-for="pRoute in pluginRoutesList"
           :key="'btn-' + pRoute.path"
@@ -81,7 +112,10 @@
           @click.prevent="handleSubItemClick(`/plugin/${pRoute.plugin}${pRoute.path}`)"
         >
           <span class="sidebar-item-icon">
-            <UiIcon :name="pRoute.icon || 'plugin'" :size="16" />
+            <UiIcon
+              :name="pRoute.icon || 'plugin'"
+              :size="16"
+            />
           </span>
           <span class="sidebar-item-text">{{ pRoute.title }}</span>
         </button>
@@ -98,7 +132,10 @@
         @click.prevent="handleItemClick({ path: '/dev' })"
       >
         <span class="sidebar-item-icon">
-          <UiIcon name="bug" :size="20" />
+          <UiIcon
+            name="bug"
+            :size="20"
+          />
         </span>
         <span class="sidebar-item-text">{{ t('sidebar.debug') }}</span>
       </button>
@@ -108,7 +145,10 @@
         @click.prevent="openHelp"
       >
         <span class="sidebar-item-icon">
-          <UiIcon name="help" :size="20" />
+          <UiIcon
+            name="help"
+            :size="20"
+          />
         </span>
         <span class="sidebar-item-text">{{ t('sidebar.help') }}</span>
       </button>
@@ -116,19 +156,21 @@
   </aside>
 
   <!-- 移动端遮罩 -->
-  <div class="sidebar-overlay" @click="isExpanded = false"></div>
+  <div
+    class="sidebar-overlay"
+    @click="isExpanded = false"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, computed, inject, readonly, type Ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useGlassMessage } from '@/composables/useGlassMessage'
-import gsap from 'gsap'
+import { ref, watch, nextTick, onMounted, computed, inject, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useTopNav } from '@/composables/useTopNav'
-import { useTheme } from '@/composables/useTheme'
+import { useRoute, useRouter } from 'vue-router'
 import UiIcon from '@/components/ui/Icon.vue'
+import { useGlassMessage } from '@/composables/useGlassMessage'
 import { pluginRoutes } from '@/composables/usePluginBridge'
+import { useTheme } from '@/composables/useTheme'
+import { useTopNav } from '@/composables/useTopNav'
 import { MENU_ITEMS } from '@/constants/menu'
 
 defineOptions({ inheritAttrs: false })
@@ -297,7 +339,7 @@ const handleMouseLeave = () => {
 
 watch(
   () => route.path,
-  (newPath) => {
+  () => {
     nextTick(() => {
       const activePath = getActivePath()
       if (activePath) {

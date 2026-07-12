@@ -1,5 +1,3 @@
-// 版本管理状态
-
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import backend from '@/api/client'

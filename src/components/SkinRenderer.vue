@@ -1,5 +1,8 @@
 <template>
-  <div class="skin-container" :style="containerStyle">
+  <div
+    class="skin-container"
+    :style="containerStyle"
+  >
     <img
       v-if="avatarUrl"
       :src="avatarUrl"
@@ -7,14 +10,13 @@
       :width="size"
       :height="size"
       alt="avatar"
-    />
+    >
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, type CSSProperties } from 'vue'
 import { useAvatarRenderer } from '@/composables/useAvatarRenderer'
-import type { CSSProperties } from 'vue'
 
 interface Props {
   uuid?: string
@@ -24,6 +26,8 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  uuid: '',
+  username: '',
   typeName: 'Mojang',
   size: 64
 })

@@ -447,7 +447,10 @@ export interface BackendEvents {
     launcher: LauncherConfig
     game: GameConfig
     download: DownloadConfig
-    ui: ThemeConfig
+    ui: ThemeConfig & {
+      locale?: string
+      background?: Partial<BackgroundConfig>
+    }
   }
   'launcher:notify': {
     type: 'info' | 'warning' | 'error'

@@ -24,12 +24,25 @@
 }
 
 .modal-header {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: var(--s-md) var(--s-lg);
   border-bottom: 1px solid var(--divider);
+  gap: var(--s-md);
   min-height: var(--row-h);
+}
+
+.header-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: var(--s-sm);
 }
 
 .modal-title {
@@ -37,38 +50,68 @@
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
+  line-height: 1.4;
 }
 
-.modal-close {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: var(--s-xs);
-  border-radius: var(--r-sm);
+.header-title .icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.type-confirm .header-title .icon {
+  color: var(--primary);
+}
+
+.type-alert .header-title .icon {
+  color: var(--info);
+}
+
+.type-warning .header-title .icon {
+  color: var(--warning);
+}
+
+.type-agreement .header-title .icon {
+  color: var(--primary);
+}
+
+.close-btn {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 29px;
+  height: 29px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
   transition: all var(--duration-fast) var(--ease-standard);
+  flex-shrink: 0;
 }
 
-.modal-close:hover {
-  background: var(--bg-hover-strong);
+.close-btn:hover {
+  background: var(--bg-hover);
   color: var(--text-primary);
-}
-
-.modal-close:focus-visible {
-  outline: none;
-  box-shadow: var(--glow-focus);
+  border-color: var(--border-hover);
 }
 
 .modal-body {
   flex: 1;
   padding: var(--s-lg);
   overflow-y: auto;
+  color: var(--text-primary);
+}
+
+.modal-content-text {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  font-size: 13px;
 }
 
 .modal-footer {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -77,14 +120,28 @@
   border-top: 1px solid var(--divider);
 }
 
-.modal-enter-active, .modal-leave-active {
-  transition: all var(--duration-normal) var(--ease-standard);
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity var(--duration-normal) var(--ease-standard);
 }
-.modal-enter-from, .modal-leave-to {
+
+.modal-enter-from,
+.modal-leave-to {
   opacity: 0;
-  transform: scale(0.94);
 }
-.modal-enter-from .modal-container, .modal-leave-to .modal-container {
+
+.modal-enter-active .modal-container {
+  transition: transform var(--duration-normal) var(--ease-standard);
+}
+
+.modal-leave-active .modal-container {
+  transition: transform var(--duration-normal) var(--ease-standard);
+}
+
+.modal-enter-from .modal-container {
   transform: translateY(-11px);
 }
 
+.modal-leave-to .modal-container {
+  transform: translateY(-11px);
+}

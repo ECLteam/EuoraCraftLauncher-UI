@@ -366,7 +366,6 @@
     "game": "游戏设置",
     "gameSettings": "游戏设置",
     "about": "关于",
-    "pluginSettings": "插件设置",
     "downloadSettings": "下载设置",
     "language": "语言",
     "theme": "主题",
@@ -585,6 +584,8 @@
     "empty": "暂无任务",
     "emptyHint": "安装游戏版本时会在此显示任务进度",
     "currentStatus": "当前状态：",
+    "runningCount": "{count} 个任务进行中",
+    "allDone": "全部完成",
     "clearCompleted": "清除已完成 ({count})"
   }
 }

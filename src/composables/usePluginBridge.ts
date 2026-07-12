@@ -1,11 +1,9 @@
-import { ref, type App } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref } from 'vue'
 import backend from '@/api/client'
-import type { PluginRoute, PluginSlotItem } from '@/types/api'
-import { transpileTS } from '@/plugin-sdk/transpile'
-import * as ui from '@/plugin-sdk/ui'
-import { listen, unlisten, cleanup as cleanupEvents, once, Events } from '@/plugin-sdk/events'
 import * as api from '@/plugin-sdk/api'
+import { setActiveContext } from '@/plugin-sdk/context'
+import { listen, unlisten, cleanup as cleanupEvents, once, Events } from '@/plugin-sdk/events'
+import { createHooks, runPluginCleanup } from '@/plugin-sdk/hooks'
 import {
   initPluginState,
   getThemeState,
@@ -17,9 +15,11 @@ import {
   watchAccount,
 } from '@/plugin-sdk/state'
 import { getToken, watchToken, getMode, watchMode } from '@/plugin-sdk/theme'
-import { createHooks, runPluginCleanup } from '@/plugin-sdk/hooks'
-import { setActiveContext } from '@/plugin-sdk/context'
+import { transpileTS } from '@/plugin-sdk/transpile'
+import * as ui from '@/plugin-sdk/ui'
 import type { PluginSdkContext } from '@/plugin-sdk/types'
+import type { PluginRoute, PluginSlotItem } from '@/types/api'
+import type { useRouter } from 'vue-router'
 
 interface PluginSdkGlobal {
   __plugin_sdk__?: PluginSdkInstance
@@ -236,7 +236,7 @@ async function refreshRoutes(router: ReturnType<typeof useRouter>) {
 const unlistenFns: Array<() => void> = []
 let cleanupState: (() => void) | null = null
 
-export function initPluginBridge(_app: App, router: ReturnType<typeof useRouter>) {
+export function initPluginBridge(router: ReturnType<typeof useRouter>) {
   cleanupState = initPluginState()
 
   unlistenFns.push(backend.on('plugin:html_injected', (payload) => {
@@ -295,7 +295,7 @@ export function initPluginBridge(_app: App, router: ReturnType<typeof useRouter>
 
 export function destroyPluginBridge() {
   for (const fn of unlistenFns) {
-    try { fn() } catch {}
+    try { fn() } catch { /* 清理时忽略错误 */ }
   }
   unlistenFns.length = 0
   cleanupScripts()

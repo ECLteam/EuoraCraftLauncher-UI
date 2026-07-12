@@ -1,0 +1,447 @@
+.install-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  height: 43px;
+  border-bottom: 1px solid var(--divider);
+  flex-shrink: 0;
+  gap: 11px;
+  min-width: 0;
+}
+
+.category-select {
+  width: 144px;
+  flex-shrink: 0;
+  height: 29px;
+}
+
+.category-select :deep(.select-trigger) {
+  height: 29px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.version-count-badge {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 150ms;
+  flex-shrink: 0;
+}
+
+.btn-refresh:hover:not(:disabled) {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+  .search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 216px;
+    min-width: 108px;
+    height: 32px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    transition: border-color 150ms ease-out;
+    flex-shrink: 1;
+  }
+
+@media (max-width: 1000px) {
+  .panel-header {
+    padding: 0 11px;
+    gap: 7px;
+  }
+  .category-select {
+    width: 117px;
+  }
+  .search-box {
+    width: 144px;
+  }
+  .version-count-badge {
+    max-width: 72px;
+  }
+}
+
+  .search-box:focus-within {
+    border-color: var(--border-hover);
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 9px;
+    color: var(--text-tertiary);
+    pointer-events: none;
+  }
+
+  .search-input {
+    width: 100%;
+    height: 100%;
+    padding: 0 29px 0 29px;
+    border: none;
+    background: transparent;
+    font-size: 12px;
+    color: var(--text-primary);
+    outline: none;
+    border-radius: var(--r-sm);
+  }
+
+  .search-input::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .search-clear {
+    position: absolute;
+    right: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: var(--r-xs);
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 150ms ease-out;
+  }
+
+  .search-clear:hover {
+    background: var(--bg-hover);
+    color: var(--text-secondary);
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.required {
+  color: var(--error);
+}
+
+.form-hint {
+  margin: 4px 0 0;
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.version-display {
+  padding: 7px 11px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.loader-options {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.loader-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--bg-base);
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.loader-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.loader-btn.active {
+  border-color: var(--primary);
+  background: var(--primary-alpha);
+  color: var(--primary);
+}
+
+.version-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-sm);
+  padding: 9px 18px;
+  border-radius: var(--r-sm);
+  border: none;
+  background: var(--primary);
+  color: var(--text-on-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 150ms ease-out;
+}
+
+.btn-primary:hover { background: var(--primary-hover); }
+
+.version-content {
+  flex: 1;
+  overflow: hidden;
+}
+
+.version-list-scroll {
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--s-lg);
+}
+
+.virtual-scroll-container {
+  position: relative;
+}
+
+.virtual-scroll-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.version-item {
+  display: flex;
+  align-items: center;
+  padding: 0 11px;
+  border-radius: var(--r-sm);
+  transition: background 150ms ease-out;
+  gap: 11px;
+}
+
+.version-item:hover {
+  background: var(--bg-hover);
+}
+
+.version-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-sm);
+  background: var(--primary-alpha);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.version-icon.release,
+.version-icon.snapshot {
+  width: 40px;
+  height: 40px;
+  background: transparent;
+}
+
+.version-icon-img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.version-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.version-header {
+  display: flex;
+  align-items: center;
+  gap: var(--s-sm);
+}
+
+.version-id {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.version-date {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.version-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.btn-install {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 29px;
+  height: 29px;
+  border-radius: var(--r-sm);
+  border: none;
+  background: var(--primary);
+  color: var(--text-on-primary);
+  cursor: pointer;
+  transition: all 150ms ease-out;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.btn-install:hover {
+  width: auto;
+  padding: 0 11px;
+  background: var(--primary-hover);
+}
+
+.btn-install-text {
+  display: none;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.btn-install:hover .btn-install-text {
+  display: inline;
+}
+
+.progress-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-md);
+  padding: var(--s-xl) 0;
+}
+
+.progress-ring {
+  color: var(--primary);
+}
+
+.progress-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.progress-subtext {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: var(--r-xs);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.badge-success { background: var(--success-alpha); color: var(--success); }
+.badge-warning { background: var(--warning-alpha); color: var(--warning); }
+.badge-info { background: var(--info-alpha); color: var(--info); }
+.badge-default { background: var(--bg-base-alt); color: var(--text-secondary); }
+.badge-april { background: rgba(240, 168, 200, 0.15); color: #c880a0; }
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--s-md);
+}
+
+.empty-icon { color: var(--text-tertiary); }
+
+.empty-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.empty-hint {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--s-md);
+  color: var(--text-secondary);
+}
+
+.spin { animation: spin 1s linear infinite; }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

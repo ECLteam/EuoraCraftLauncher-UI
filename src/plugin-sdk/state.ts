@@ -2,15 +2,15 @@
 
 import { ref, readonly, watch, type DeepReadonly, type Ref } from 'vue'
 import backend from '@/api/client'
-import type { AccountListData, LauncherConfig, MinecraftAccount, ThemeConfig } from '@/types/api'
 import type { AccountState, LauncherState, ThemeState } from './types'
+import type { AccountListData, LauncherConfig, ThemeConfig } from '@/types/api'
 
 const themeState = ref<ThemeState>({
   mode: 'system',
   isDark: false,
-  primaryColor: '#4A7FD9',
+  primaryColor: '',
   backgroundImage: '',
-  backgroundOpacity: 0.2,
+  backgroundOpacity: 0,
 })
 
 const launcherState = ref<LauncherState>({
@@ -28,9 +28,15 @@ let initialized = false
 const unlistenFns: (() => void)[] = []
 
 function syncTheme(ui: Partial<ThemeConfig> & { background_opacity?: number }): void {
-  themeState.value.mode = ui.mode || 'system'
-  themeState.value.primaryColor = ui.primary_color || '#4A7FD9'
-  themeState.value.backgroundOpacity = typeof ui.background_opacity === 'number' ? ui.background_opacity : 0.2
+  if (ui.mode) {
+    themeState.value.mode = ui.mode
+  }
+  if (ui.primary_color) {
+    themeState.value.primaryColor = ui.primary_color
+  }
+  if (typeof ui.background_opacity === 'number') {
+    themeState.value.backgroundOpacity = ui.background_opacity
+  }
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
   themeState.value.isDark = ui.mode === 'dark' || (ui.mode === 'system' && prefersDark)
 }

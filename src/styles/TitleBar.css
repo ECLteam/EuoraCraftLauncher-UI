@@ -87,7 +87,6 @@
   -webkit-app-region: drag;
 }
 
-/* 顶部导航菜单 - 选中态用底部2px指示条，不用背景色块 */
 .titlebar-nav {
   position: absolute;
   left: 50%;
@@ -185,7 +184,6 @@
   border-color: rgba(229, 92, 92, 0.4);
 }
 
-/* 任务队列按钮 */
 .titlebar-btn-task {
   position: relative;
 }

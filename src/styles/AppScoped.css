@@ -1,0 +1,21 @@
+.plugin-slot-container {
+  width: 100%;
+}
+
+.plugin-slot-container:empty {
+  display: none;
+}
+
+.plugin-sidebar-slot {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 180px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.plugin-sidebar-slot .plugin-slot-item {
+  pointer-events: auto;
+}

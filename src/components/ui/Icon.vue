@@ -1,7 +1,14 @@
 <!-- src/components/ui/Icon.vue -->
 <template>
-  <span :class="['icon', `icon-${name}`, className]" :style="style">
-    <Icon :icon="getIconName(name)" :width="size" :height="size" />
+  <span
+    :class="['icon', `icon-${name}`, className]"
+    :style="style"
+  >
+    <Icon
+      :icon="getIconName(name)"
+      :width="size"
+      :height="size"
+    />
   </span>
 </template>
 
@@ -15,8 +22,10 @@ interface Props {
   style?: Record<string, string>
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  size: 16
+withDefaults(defineProps<Props>(), {
+  size: 16,
+  className: '',
+  style: () => ({}),
 })
 
 // 图标名称映射（模块级常量，避免每次调用重新创建）

@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
     <div class="glass-message-container">
-      <transition-group name="message-list">
+      <TransitionGroup name="message-list">
         <div
           v-for="msg in messages"
           :key="msg.id"
@@ -11,12 +11,23 @@
           @mouseleave="resumeTimer(msg)"
         >
           <div class="message-icon">
-            <UiIcon :name="msg.type" :size="20" :style="{ color: getIconColor(msg.type) }" />
+            <UiIcon
+              :name="msg.type"
+              :size="20"
+              :style="{ color: getIconColor(msg.type) }"
+            />
           </div>
 
           <div class="message-content">
-            <div v-if="msg.title" class="message-title">{{ msg.title }}</div>
-            <div class="message-body">{{ msg.content }}</div>
+            <div
+              v-if="msg.title"
+              class="message-title"
+            >
+              {{ msg.title }}
+            </div>
+            <div class="message-body">
+              {{ msg.content }}
+            </div>
           </div>
 
           <UiButton 
@@ -29,7 +40,10 @@
             @click="remove(msg.id)"
           />
 
-          <div v-if="msg.duration > 0" class="message-progress">
+          <div
+            v-if="msg.duration > 0"
+            class="message-progress"
+          >
             <div 
               class="progress-bar" 
               :style="{ 
@@ -39,7 +53,7 @@
             />
           </div>
         </div>
-      </transition-group>
+      </TransitionGroup>
     </div>
   </Teleport>
 </template>
@@ -69,9 +83,14 @@ interface MessageItem extends MessageOptions {
   remaining: number
 }
 
+interface TimerEntry {
+  interval: ReturnType<typeof setInterval>
+  timeout: ReturnType<typeof setTimeout>
+}
+
 const messages = ref<MessageItem[]>([])
 const progressMap = ref<Record<string, number>>({})
-const timerMap = ref<Record<string, any>>({})
+const timerMap = ref<Record<string, TimerEntry>>({})
 
 const getIconColor = (type: MessageType) => ({
   success: '#4ade80',

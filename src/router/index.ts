@@ -1,6 +1,5 @@
 // src/router/index.ts
-import { createRouter, createWebHashHistory } from 'vue-router'
-import type { RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-router'
 
 const routes: RouteRecordRaw[] = [
   { path: '/',        name: 'game',    component: () => import('@/views/Game.vue') },
@@ -23,7 +22,6 @@ const routes: RouteRecordRaw[] = [
       { path: 'general', name: 'settings-general', component: () => import('@/views/settings/GeneralTab.vue') },
       { path: 'download', name: 'settings-download', component: () => import('@/views/settings/DownloadTab.vue') },
       { path: 'game', name: 'settings-game', component: () => import('@/views/settings/GameTab.vue') },
-      { path: 'plugins', name: 'settings-plugins', component: () => import('@/views/settings/PluginSettingsTab.vue') },
       { path: 'about', name: 'settings-about', component: () => import('@/views/settings/AboutTab.vue') },
     ]
   },

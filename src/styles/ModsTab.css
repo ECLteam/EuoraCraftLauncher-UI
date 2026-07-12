@@ -1,0 +1,223 @@
+.mods-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.mods-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--s-md);
+  margin-bottom: var(--s-lg);
+  flex-shrink: 0;
+}
+
+.search-bar {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 11px;
+  color: var(--text-tertiary);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.search-input {
+  width: 100%;
+  height: 29px;
+  padding: 0 32px 0 32px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 150ms ease-out;
+}
+
+.search-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.search-input:focus {
+  border-color: var(--border-active);
+}
+
+.search-clear {
+  position: absolute;
+  right: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--r-xs);
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 150ms ease-out;
+}
+
+.search-clear:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.loader-filter {
+  width: 108px;
+  flex-shrink: 0;
+}
+
+.mods-list {
+  flex: 1;
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
+  overflow-y: auto;
+  padding: var(--s-lg);
+}
+
+.mod-item {
+  display: flex;
+  align-items: center;
+  min-height: 50px;
+  padding: 7px 11px;
+  gap: 11px;
+  border-radius: var(--r-sm);
+  transition: background 150ms ease-out;
+}
+
+.mod-item:hover {
+  background: var(--bg-hover);
+}
+
+.mod-item + .mod-item {
+  margin-top: 2px;
+}
+
+.mod-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-sm);
+  background: var(--primary-alpha);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.mod-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mod-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mod-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mod-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.mod-version-tag {
+  display: inline-block;
+  padding: 0 5px;
+  border-radius: var(--r-xs);
+  background: var(--bg-base-alt);
+  font-size: 10px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.mod-author {
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.mod-game-version {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  padding: 0 4px;
+  border-radius: var(--r-xs);
+  background: var(--bg-base-alt);
+}
+
+.loader-tag {
+  display: inline-block;
+  padding: 0 5px;
+  border-radius: var(--r-xs);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.loader-forge { background: rgba(140, 130, 180, 0.15); color: #7a6eaa; }
+.loader-fabric { background: rgba(218, 190, 140, 0.15); color: #b8944a; }
+.loader-neoforge { background: rgba(140, 150, 200, 0.15); color: #6a7eb4; }
+.loader-quilt { background: rgba(140, 180, 160, 0.15); color: #5a9a72; }
+.loader-optifine { background: rgba(200, 180, 140, 0.15); color: #b8942a; }
+.loader-liteloader { background: rgba(160, 180, 200, 0.15); color: #5a7a9a; }
+.loader-unknown { background: var(--bg-base-alt); color: var(--text-secondary); }
+
+.mod-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-md);
+}
+
+.empty-icon {
+  color: var(--text-tertiary);
+}
+
+.empty-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.loading-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-md);
+  color: var(--text-secondary);
+}

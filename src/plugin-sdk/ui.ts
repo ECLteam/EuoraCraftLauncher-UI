@@ -19,7 +19,9 @@ interface ElementOptions {
 
 /**
  * 创建 HTML 元素并设置属性。
- * 链式调用风格，简化 DOM 操作。
+ * @param tag - HTML 标签名
+ * @param options - 元素配置，包括 class、style、attrs、text、children、events 等
+ * @returns 创建好的 HTML 元素
  */
 export function createElement<K extends keyof HTMLElementTagNameMap>(
   tag: K,
@@ -37,7 +39,7 @@ export function createElement<K extends keyof HTMLElementTagNameMap>(
   if (options.style) {
     for (const [key, value] of Object.entries(options.style)) {
       if (value !== undefined) {
-        (el.style as any)[key] = value
+        el.style.setProperty(key, value)
       }
     }
   }
@@ -89,8 +91,10 @@ export const $ = {
 // ── 消息提示 ──
 
 /**
- * 简单的消息提示系统。
- * 插件开发者可用此显示通知，无需依赖启动器的消息组件。
+ * 显示一条轻量消息提示。
+ * @param message - 提示文本
+ * @param type - 提示类型
+ * @param duration - 显示时长，单位毫秒
  */
 export function showToast(message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info', duration = 3000): void {
   const colors: Record<string, string> = {
@@ -136,7 +140,9 @@ export function showToast(message: string, type: 'info' | 'success' | 'warning' 
 
 /**
  * 显示确认对话框。
- * 返回 Promise，用户确认后 resolve(true)，取消后 resolve(false)。
+ * @param title - 对话框标题
+ * @param message - 对话框内容
+ * @returns 用户确认返回 true，取消返回 false
  */
 export function showConfirm(title: string, message: string): Promise<boolean> {
   return new Promise((resolve) => {
@@ -219,7 +225,10 @@ export function showConfirm(title: string, message: string): Promise<boolean> {
 // ── 加载指示器 ──
 
 /**
- * 创建加载指示器，返回 remove 函数。
+ * 在指定容器内创建加载指示器。
+ * @param container - 父容器
+ * @param text - 加载提示文本
+ * @returns 移除加载指示器的函数
  */
 export function showLoading(container: HTMLElement, text = '加载中...'): () => void {
   const spinner = createElement('div', {
@@ -264,7 +273,10 @@ export function showLoading(container: HTMLElement, text = '加载中...'): () =
 // ── 空状态 ──
 
 /**
- * 创建空状态占位。
+ * 在容器内创建空状态占位。
+ * @param container - 父容器
+ * @param text - 提示文本
+ * @param icon - 图标字符
  */
 export function showEmpty(container: HTMLElement, text = '暂无数据', icon = '📦'): void {
   const empty = createElement('div', {
@@ -290,14 +302,16 @@ export function showEmpty(container: HTMLElement, text = '暂无数据', icon = 
 
 /**
  * 获取插槽容器元素。
- * 插槽名对应后端 inject_html 的 slot 参数。
+ * @param id - 插槽 ID，对应后端 inject_html 的 slot 参数
+ * @returns 插槽 DOM 元素，不存在时返回 null
  */
 export function getSlot(id: string): HTMLElement | null {
   return document.getElementById(`plugin-slot-${id}`)
 }
 
 /**
- * 清空插槽内容。
+ * 清空指定插槽内容。
+ * @param id - 插槽 ID
  */
 export function clearSlot(id: string): void {
   const el = getSlot(id)
@@ -314,18 +328,7 @@ export interface IframeBridgeOptions {
 }
 
 /**
- * 创建通用的 iframe 桥接。
- * 自动监听 DOM 中指定 iframe 的增删，转发鼠标事件，处理配置更新。
- * 返回 destroy 函数用于清理。
- *
- * 使用示例:
- *   const bridge = createIframeBridge({
- *     selector: '.my-effect-iframe',
- *     onConfigUpdate: (iframe, config) => {
- *       iframe.contentWindow?.postMessage({ type: 'config', ...config }, '*')
- *     }
- *   })
- *   // 插件卸载时: bridge.destroy()
+ * iframe 桥接对象。
  */
 export interface IframeBridge {
   cleanup: () => void
@@ -333,6 +336,11 @@ export interface IframeBridge {
   updateConfig: (config: Record<string, unknown>) => void
 }
 
+/**
+ * 创建 iframe 桥接，用于插件效果 iframe 与主窗口通信。
+ * @param options - 桥接配置，包括选择器、鼠标事件、配置更新回调等
+ * @returns 包含 cleanup、destroy、updateConfig 的桥接对象
+ */
 export function createIframeBridge(options: IframeBridgeOptions): IframeBridge {
   const selector = options.selector
   const mouseEvents = options.mouseEvents || ['mousedown', 'mousemove', 'mouseup']
@@ -376,7 +384,7 @@ export function createIframeBridge(options: IframeBridgeOptions): IframeBridge {
     }
   }
 
-  function updateConfig(config: Record<string, any>) {
+  function updateConfig(config: Record<string, unknown>) {
     if (!options.onConfigUpdate) return
     const iframes = document.querySelectorAll(selector)
     for (const el of iframes) {

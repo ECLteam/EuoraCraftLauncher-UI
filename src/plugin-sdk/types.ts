@@ -1,5 +1,7 @@
 // plugin-sdk 专属类型，游戏/启动器数据类型统一从 @/types/api 导出
 
+import type { MinecraftAccount } from '@/types/api'
+
 export type CleanupFn = () => void
 
 export interface PluginSdkContext {
@@ -22,8 +24,8 @@ export interface LauncherState {
 }
 
 export interface AccountState {
-  current: import('@/types/api').MinecraftAccount | null
-  list: import('@/types/api').MinecraftAccount[]
+  current: MinecraftAccount | null
+  list: MinecraftAccount[]
 }
 
 // 统一从 @/types/api 重新导出常用数据类型，避免维护两份定义

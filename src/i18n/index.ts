@@ -1,7 +1,13 @@
 import { createI18n } from 'vue-i18n'
-import zhCN from './locales/zh-CN.json'
-import enUS from './locales/en-US.json'
 import backend from '@/api/client'
+import enUS from './locales/en-US.json'
+import zhCN from './locales/zh-CN.json'
+
+interface TauriGlobal {
+  __TAURI__?: {
+    pytauri?: unknown
+  }
+}
 
 // 支持的语言列表
 export const supportedLocales = [
@@ -11,23 +17,12 @@ export const supportedLocales = [
 
 export type LocaleCode = typeof supportedLocales[number]['code']
 
-// 默认语言
 export const defaultLocale: LocaleCode = 'zh-CN'
 
-// 获取初始语言
-function getInitialLocale(): LocaleCode {
-  const stored = localStorage.getItem('locale')
-  if (stored && supportedLocales.some(l => l.code === stored)) return stored as LocaleCode
-  const browserLang = navigator.language
-  if (browserLang.startsWith('zh')) return 'zh-CN'
-  return 'en-US'
-}
-
-// 创建 i18n 实例
 export const i18n = createI18n({
   legacy: false,
-  locale: getInitialLocale(),
-  fallbackLocale: 'zh-CN',
+  locale: defaultLocale,
+  fallbackLocale: defaultLocale,
   missingWarn: import.meta.env.DEV,
   fallbackWarn: import.meta.env.DEV,
   messages: {
@@ -36,18 +31,18 @@ export const i18n = createI18n({
   }
 })
 
-// 从后端加载语言配置
+/**
+ * 从后端配置加载并应用语言。
+ * @returns 最终生效的语言代码
+ */
 export async function loadLocaleFromBackend(): Promise<LocaleCode> {
   try {
-    // 检查 PyTauri 是否可用
-    if (typeof window !== 'undefined' && (window as any).__TAURI__?.pytauri) {
+    if (typeof window !== 'undefined' && (window as unknown as TauriGlobal).__TAURI__?.pytauri) {
       const result = await backend.config.get('ui')
       if (result.success && result.data?.locale) {
         const locale = result.data.locale as LocaleCode
         if (supportedLocales.some(l => l.code === locale)) {
-          // 更新 i18n 语言
           i18n.global.locale.value = locale
-          // 更新 HTML lang 属性
           document.documentElement.setAttribute('lang', locale)
           return locale
         }
@@ -56,18 +51,19 @@ export async function loadLocaleFromBackend(): Promise<LocaleCode> {
   } catch (error) {
     console.warn('[i18n] 从后端加载语言配置失败:', error)
   }
-  return getInitialLocale()
+  return defaultLocale
 }
 
-// 切换语言函数（同时更新后端和前端）
+/**
+ * 切换前端语言并同步保存到后端。
+ * @param locale - 目标语言代码
+ */
 export async function setLocale(locale: LocaleCode): Promise<void> {
-  // 更新前端
   i18n.global.locale.value = locale
   document.documentElement.setAttribute('lang', locale)
-  
-  // 尝试保存到后端
+
   try {
-    if (typeof window !== 'undefined' && (window as any).__TAURI__?.pytauri) {
+    if (typeof window !== 'undefined' && (window as unknown as TauriGlobal).__TAURI__?.pytauri) {
       const ui = (await backend.config.get('ui')).data || {}
       await backend.config.set('ui', { ...ui, locale })
     }
@@ -76,7 +72,9 @@ export async function setLocale(locale: LocaleCode): Promise<void> {
   }
 }
 
-// 获取当前语言
+/**
+ * 获取当前生效的语言代码。
+ */
 export function getCurrentLocale(): LocaleCode {
   return i18n.global.locale.value as LocaleCode
 }

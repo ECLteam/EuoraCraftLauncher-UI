@@ -1,20 +1,23 @@
 <template>
-  <n-config-provider 
+  <NConfigProvider 
     :theme="naiveTheme" 
-    :theme-overrides="themeOverrides"
+    :themeOverrides="themeOverrides"
     :locale="naiveLocale"
-    :date-locale="naiveDateLocale"
+    :dateLocale="naiveDateLocale"
   >
-    <n-dialog-provider>
-      <n-message-provider>
-        <n-notification-provider>
+    <NDialogProvider>
+      <NMessageProvider>
+        <NNotificationProvider>
           <div id="app">
             <!-- 背景层 -->
-            <div class="app-background"></div>
-            <div class="app-background-overlay"></div>
+            <div class="app-background" />
+            <div class="app-background-overlay" />
             
             <!-- 主布局 -->
-            <a href="#main-content" class="skip-link">跳到主要内容</a>
+            <a
+              href="#main-content"
+              class="skip-link"
+            >跳到主要内容</a>
             <div class="app-layout">
               <!-- 顶部栏 - 始终可交互 -->
               <TitleBar 
@@ -30,22 +33,38 @@
                 <SideBar />
 
                 <!-- 插件：侧栏扩展插槽 -->
-                <div id="plugin-slot-sidebar-extra" class="plugin-slot-container plugin-sidebar-slot"></div>
+                <div
+                  id="plugin-slot-sidebar-extra"
+                  class="plugin-slot-container plugin-sidebar-slot"
+                />
                 
                 <!-- 内容区 - 全屏弹窗仅覆盖此区域 -->
                 <main 
+                  id="main-content"
                   class="main-content"
                   :class="{ 'content-disabled': !isAgreementAccepted && !agreementLoading }"
-                  id="main-content" tabindex="-1"
+                  tabindex="-1"
                 >
-                  <div class="page-container" v-if="isAgreementAccepted">
-                    <router-view v-slot="{ Component, route: currentRoute }">
-                    <Transition name="page" mode="out-in">
-                      <component :is="Component" :key="currentRoute.matched[0]?.path || currentRoute.path" />
-                    </Transition>
-                  </router-view>
+                  <div
+                    v-if="isAgreementAccepted"
+                    class="page-container"
+                  >
+                    <RouterView v-slot="{ Component, route: currentRoute }">
+                      <Transition
+                        name="page"
+                        mode="out-in"
+                      >
+                        <component
+                          :is="Component"
+                          :key="currentRoute.matched[0]?.path || currentRoute.path"
+                        />
+                      </Transition>
+                    </RouterView>
                     <!-- 插件：页面底部插槽 -->
-                    <div id="plugin-slot-page-bottom" class="plugin-slot-container"></div>
+                    <div
+                      id="plugin-slot-page-bottom"
+                      class="plugin-slot-container"
+                    />
                   </div>
                   
                   <!-- 未同意协议时的占位提示 
@@ -61,25 +80,24 @@
                   <TaskQueuePanel />
 
                   <!-- 退出确认弹窗 -->
-                  <ContentModal
+                  <Modal
                     v-model:visible="showQuitConfirmModal"
                     type="confirm"
                     :title="t('common.confirm')"
                     :content="t('agreement.quitConfirm')"
                     danger
-                    show-backdrop
                     @confirm="handleQuitConfirm"
                   />
 
                   <!-- 用户协议弹窗 -->
-                  <ContentModal
+                  <Modal
                     :visible="showAgreementModal"
                     type="agreement"
                     :title="t('agreement.title')"
                     :closable="false"
-                    :show-close-btn="false"
-                    :show-footer="true"
-                    body-class="agreement-modal-body"
+                    :showCloseBtn="false"
+                    :showFooter="true"
+                    bodyClass="agreement-modal-body"
                     @confirm="handleAgreementAccept"
                     @cancel="handleAgreementReject"
                   >
@@ -88,27 +106,30 @@
                         <UiIcon name="file-text" />
                       </div>
                       <h2>{{ t('agreement.pleaseRead') }}</h2>
-                      <p class="agreement-desc">{{ t('agreement.description') }}</p>
-                      <a :href="agreementUrl" target="_blank" class="agreement-link-btn">
+                      <p class="agreement-desc">
+                        {{ t('agreement.description') }}
+                      </p>
+                      <a
+                        :href="agreementUrl"
+                        target="_blank"
+                        class="agreement-link-btn"
+                      >
                         <UiIcon name="external-link" />
                         {{ t('agreement.viewFull') }}
                       </a>
                     </div>
-                  </ContentModal>
-
+                  </Modal>
                 </main>
               </div>
             </div>
           </div>
-        </n-notification-provider>
-      </n-message-provider>
-    </n-dialog-provider>
-  </n-config-provider>
+        </NNotificationProvider>
+      </NMessageProvider>
+    </NDialogProvider>
+  </NConfigProvider>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, provide, readonly } from 'vue'
-import { useI18n } from 'vue-i18n'
 import {
   NConfigProvider,
   NDialogProvider,
@@ -119,20 +140,23 @@ import {
   enUS,
   dateEnUS
 } from 'naive-ui'
-import TitleBar from '@/components/layout/TitleBar.vue'
+import { ref, onMounted, onUnmounted, computed, provide, readonly, type Ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+import backend from '@/api/client'
 import SideBar from '@/components/layout/SideBar.vue'
-import GlassMessage from '@/components/ui/GlassMessage.vue'
-import ContentModal from '@/components/modals/ContentModal.vue'
+import TitleBar from '@/components/layout/TitleBar.vue'
+import Modal from '@/components/modals/Modal.vue'
 import TaskQueuePanel from '@/components/TaskQueuePanel.vue'
+import GlassMessage from '@/components/ui/GlassMessage.vue'
+import { useFullscreenModal } from '@/composables/useFullscreenModal'
+import { setMessageRef, useGlassMessage } from '@/composables/useGlassMessage'
+import { initPluginBridge, destroyPluginBridge } from '@/composables/usePluginBridge'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
 import { initTheme, useTheme } from '@/composables/useTheme'
-import { setMessageRef, useGlassMessage } from '@/composables/useGlassMessage'
 import { useUserAgreement } from '@/composables/useUserAgreement'
-import { useFullscreenModal } from '@/composables/useFullscreenModal'
-import { initPluginBridge, destroyPluginBridge } from '@/composables/usePluginBridge'
-import backend from '@/api/client'
 import { i18n, supportedLocales } from '@/i18n'
-import { useRouter } from 'vue-router'
+import type { BackendEvents, DownloadConfig, GameConfig, InstallProgress } from '@/types/api'
 
 const router = useRouter()
 const { naiveTheme, themeOverrides } = useTheme()
@@ -147,11 +171,11 @@ const showAgreementModal = ref(false)
 const showQuitConfirmModal = ref(false)
 
 const isDevMode = ref(false)
-const globalGameConfig = ref<any>(null)
-const globalDownloadConfig = ref<any>(null)
+const globalGameConfig = ref<GameConfig | null>(null)
+const globalDownloadConfig = ref<DownloadConfig | null>(null)
 provide('devMode', readonly(isDevMode))
-provide('gameConfig', readonly(globalGameConfig) as Readonly<Ref<any>>)
-provide('downloadConfig', readonly(globalDownloadConfig) as Readonly<Ref<any>>)
+provide('gameConfig', readonly(globalGameConfig) as Readonly<Ref<GameConfig | null>>)
+provide('downloadConfig', readonly(globalDownloadConfig) as Readonly<Ref<DownloadConfig | null>>)
 
 provide('agreementAccepted', readonly(isAgreementAccepted))
 
@@ -176,14 +200,23 @@ const handleAgreementReject = () => {
   showQuitConfirmModal.value = true
 }
 
+interface TauriGlobal {
+  __TAURI__?: {
+    pytauri?: unknown
+    window?: {
+      getCurrentWindow?: () => { close: () => Promise<void> }
+    }
+  }
+}
+
 const handleQuitConfirm = async () => {
   showQuitConfirmModal.value = false
-  const w = (window as any).__TAURI__?.window?.getCurrentWindow?.()
+  const w = (window as unknown as TauriGlobal).__TAURI__?.window?.getCurrentWindow?.()
   if (w) await w.close()
 }
 
 let cleanupContextMenuListeners: (() => void) | null = null
-const unlistenNotify = backend.on('launcher:notify', (payload: any) => {
+const unlistenNotify = backend.on('launcher:notify', (payload) => {
   if (payload.type === 'warning') {
     message.warning(payload.message, 8000)
   } else if (payload.type === 'info') {
@@ -194,10 +227,7 @@ const unlistenAgreement = backend.on('launcher:agreement_required', () => {
   markNotAccepted()
   showAgreementModal.value = true
 })
-// 后端推送完整配置，前端仅做渲染
-const unlistenConfigInit = backend.on('config:init', (payload: any) => {
-  if (!payload) return
-
+function applyConfigPayload(payload: BackendEvents['config:init']) {
   const launcher = payload.launcher
   if (launcher) {
     isDevMode.value = launcher.is_dev === true
@@ -217,17 +247,23 @@ const unlistenConfigInit = backend.on('config:init', (payload: any) => {
   if (ui) {
     if (ui.locale) {
       const loc = ui.locale
-      if (supportedLocales.some((l: any) => l.code === loc)) {
-        i18n.global.locale.value = loc as any
+      if (supportedLocales.some(l => l.code === loc)) {
+        i18n.global.locale.value = loc
         document.documentElement.setAttribute('lang', loc)
       }
     }
     initTheme(ui)
   }
+}
+
+// 后端推送完整配置，前端仅做渲染
+const unlistenConfigInit = backend.on('config:init', (payload) => {
+  if (!payload) return
+  applyConfigPayload(payload)
 })
 
 // 插件 CSS 注入：创建或更新 <style> 标签
-const unlistenCssInject = backend.on('plugin:css_injected', (payload: any) => {
+const unlistenCssInject = backend.on('plugin:css_injected', (payload) => {
   const pluginName = payload?.plugin || 'unknown'
   const css = payload?.css || ''
   const id = `plugin-css-${pluginName}`
@@ -242,7 +278,7 @@ const unlistenCssInject = backend.on('plugin:css_injected', (payload: any) => {
 })
 
 // 全局安装进度 → 任务队列
-const unlistenInstallProgress = backend.on('game:install_progress', (payload: any) => {
+const unlistenInstallProgress = backend.on('game:install_progress', (payload: InstallProgress) => {
   const taskId = payload?.task_id
   if (!taskId) return
 
@@ -345,19 +381,32 @@ onMounted(async () => {
 
   cleanupContextMenuListeners = setupContextMenuListeners()
 
-  if ((window as any).__TAURI__?.pytauri) {
+  if ((window as unknown as TauriGlobal).__TAURI__?.pytauri) {
     fullscreenModal.reset()
 
     // 通知后端就绪，后端推送 config:init / agreement 等事件
-    backend.command('frontend_ready').catch(() => {})
+    backend.command('frontend_ready').catch(() => { /* 忽略就绪通知错误 */ })
+
+    // 主动拉取初始配置，前端不再自己生成默认配置
+    loadInitialConfig()
 
     // 初始化插件桥接（监听路由注册、HTML注入、脚本注入）
-    initPluginBridge({} as any, router)
+    initPluginBridge(router)
   } else {
-    console.warn('[App] PyTauri API 不可用，尝试使用本地配置')
-    initTheme({})
+    console.warn('[App] PyTauri API 不可用，配置无法从后端加载')
   }
 })
+
+async function loadInitialConfig() {
+  try {
+    const result = await backend.config.getMany(['launcher', 'game', 'download', 'ui'])
+    if (result.success && result.data) {
+      applyConfigPayload(result.data as BackendEvents['config:init'])
+    }
+  } catch (error) {
+    console.warn('[App] 主动拉取初始配置失败:', error)
+  }
+}
 
 onUnmounted(() => {
   cleanupContextMenuListeners?.()
@@ -371,27 +420,4 @@ onUnmounted(() => {
 </script>
 
 <style src="@/styles/app.css"></style>
-
-<style scoped>
-.plugin-slot-container {
-  width: 100%;
-}
-
-.plugin-slot-container:empty {
-  display: none;
-}
-
-.plugin-sidebar-slot {
-  position: fixed;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 180px;
-  z-index: 5;
-  pointer-events: none;
-}
-
-.plugin-sidebar-slot .plugin-slot-item {
-  pointer-events: auto;
-}
-</style>
+<style scoped src="@/styles/AppScoped.css"></style>

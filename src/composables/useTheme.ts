@@ -1,6 +1,5 @@
-import { ref, computed, watch, readonly, type Ref } from 'vue'
-import type { GlobalTheme, GlobalThemeOverrides } from 'naive-ui'
-import { darkTheme } from 'naive-ui'
+import { darkTheme, type GlobalTheme, type GlobalThemeOverrides } from 'naive-ui'
+import { ref, computed, readonly } from 'vue'
 import backend from '@/api/client'
 import type { BackgroundConfig, ThemeConfig } from '@/types/api'
 
@@ -54,6 +53,11 @@ function rgba(color: string, alpha: number): string {
   return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${clamp(alpha, 0, 1)})`
 }
 
+/**
+ * 根据基础色生成主题主色阶。
+ * @param baseColor - 十六进制基础色
+ * @returns 包含主色、悬停色、按下色、浅色及 RGB 值的色阶对象
+ */
 function createPrimaryScale(baseColor: string): {
   primary: string
   primaryHover: string
@@ -73,11 +77,6 @@ function createPrimaryScale(baseColor: string): {
 }
 
 export type ThemeMode = 'light' | 'dark' | 'system'
-
-interface ThemeState {
-  mode: ThemeMode
-  followSystem: boolean
-}
 
 // 预设主题色（EuoraCraft 品牌色系）
 export const presetColors = [
@@ -118,6 +117,12 @@ const themeColors = {
   }
 } as const
 
+/**
+ * 创建 naive-ui 主题覆盖配置。
+ * @param isDark - 是否为深色模式
+ * @param primary - 主题主色
+ * @returns naive-ui 主题覆盖对象
+ */
 function createThemeOverrides(isDark: boolean, primary: string): GlobalThemeOverrides {
   const baseColors = isDark ? themeColors.dark : themeColors.light
   const primaryScale = createPrimaryScale(primary)
@@ -202,13 +207,13 @@ let systemThemeListenerInitialized = false
 let initThemePromise: Promise<void> | null = null
 
 const themeMode = ref<ThemeMode>('system')
-const primaryColor = ref('#4A7FD9')  // 默认品牌蓝
+const primaryColor = ref('')
 const backgroundImage = ref('')
 const backgroundImagePath = ref('')
-const backgroundOpacity = ref(0.2)  // 默认 20% 亮度
-const blurAmount = ref(0)  // 禁用 backdrop-filter blur
-const sidebarCollapsed = ref(true)
-const titlebarHidden = ref(true)
+const backgroundOpacity = ref(0)
+const blurAmount = ref(0)
+const sidebarCollapsed = ref(false)
+const titlebarHidden = ref(false)
 const isDark = ref(false)
 const systemDark = ref(false)
 
@@ -230,7 +235,9 @@ const colors = computed(() => {
   }
 })
 
-// 监听系统主题
+/**
+ * 监听系统深色模式偏好变化。
+ */
 function initSystemThemeListener() {
   const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
   systemDark.value = mediaQuery.matches
@@ -350,6 +357,10 @@ function toggleTheme() {
   }
 }
 
+/**
+ * 初始化主题状态。
+ * @param uiConfig - 后端推送的 UI 配置，首次调用后会被缓存
+ */
 export async function initTheme(uiConfig?: unknown): Promise<void> {
   if (!uiConfig && initThemePromise) {
     return initThemePromise
@@ -358,16 +369,28 @@ export async function initTheme(uiConfig?: unknown): Promise<void> {
   const payload = uiConfig as ThemeInitPayload | undefined
 
   const promise = (async () => {
-    if (payload) {
-      const themeData = payload.theme ?? {}
-      themeMode.value = (themeData.mode as ThemeMode) || 'system'
-      primaryColor.value = themeData.primary_color || '#4A7FD9'
-      blurAmount.value = themeData.blur_amount ?? 0
-      sidebarCollapsed.value = themeData.sidebar_collapsed ?? true
-      titlebarHidden.value = themeData.titlebar_hidden ?? false
+    if (payload?.theme) {
+      const themeData = payload.theme
+      if (themeData.mode) {
+        themeMode.value = themeData.mode as ThemeMode
+      }
+      if (themeData.primary_color) {
+        primaryColor.value = themeData.primary_color
+      }
+      if (typeof themeData.blur_amount === 'number') {
+        blurAmount.value = themeData.blur_amount
+      }
+      if (typeof themeData.sidebar_collapsed === 'boolean') {
+        sidebarCollapsed.value = themeData.sidebar_collapsed
+      }
+      if (typeof themeData.titlebar_hidden === 'boolean') {
+        titlebarHidden.value = themeData.titlebar_hidden
+      }
+    }
 
-      const bgData = payload.background ?? {}
-      backgroundImagePath.value = bgData.path || ''
+    if (payload?.background) {
+      const bgData = payload.background
+      backgroundImagePath.value = bgData.path ?? ''
 
       if (bgData.path && bgData.type !== 'default') {
         const imgData = await backend.command('image_read_file', { path: bgData.path })
@@ -376,6 +399,8 @@ export async function initTheme(uiConfig?: unknown): Promise<void> {
         } else {
           backgroundImage.value = ''
         }
+      } else {
+        backgroundImage.value = ''
       }
 
       if (typeof bgData.opacity === 'number') {
@@ -397,6 +422,10 @@ export async function initTheme(uiConfig?: unknown): Promise<void> {
   return promise
 }
 
+/**
+ * 获取全局主题状态及操作方法。
+ * @returns 主题相关的响应式状态与 setter
+ */
 export function useTheme() {
   return {
     themeMode: readonly(themeMode),

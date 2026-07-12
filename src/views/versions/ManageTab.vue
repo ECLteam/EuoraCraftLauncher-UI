@@ -6,11 +6,21 @@
       <div class="path-panel">
         <div class="panel-header">
           <h3 class="panel-title">
-            <UiIcon name="folder" :size="16" />
+            <UiIcon
+              name="folder"
+              :size="16"
+            />
             {{ t('versions.manage.gamePath') }}
           </h3>
-          <button class="btn-add" @click="addNewPath" :title="t('common.add')">
-            <UiIcon name="add" :size="16" />
+          <button
+            class="btn-add"
+            :title="t('common.add')"
+            @click="addNewPath"
+          >
+            <UiIcon
+              name="add"
+              :size="16"
+            />
           </button>
         </div>
 
@@ -21,8 +31,12 @@
             :class="['path-item', { active: selectedPathIndex === index }]"
             @click="selectPath(index)"
           >
-            <div class="path-indicator"></div>
-            <UiIcon name="folder" :size="16" class="path-icon" />
+            <div class="path-indicator" />
+            <UiIcon
+              name="folder"
+              :size="16"
+              class="path-icon"
+            />
             <div class="path-info">
               <div class="path-name-row">
                 <span class="path-name">{{ item.name || t('versions.manage.unnamedPath') }}</span>
@@ -32,22 +46,34 @@
                   {{ t('versions.manage.versionCount', { count: getPathVersionCount(item.path) }) }}
                 </span>
               </div>
-              <span class="path-location" :title="item.path">{{ item.path }}</span>
+              <span
+                class="path-location"
+                :title="item.path"
+              >{{ item.path }}</span>
             </div>
-            <div v-if="!item.protected" class="path-actions">
+            <div
+              v-if="!item.protected"
+              class="path-actions"
+            >
               <button
                 class="path-action-btn"
                 :title="t('common.edit')"
                 @click.stop="editPath(index)"
               >
-                <UiIcon name="settings" :size="14" />
+                <UiIcon
+                  name="settings"
+                  :size="14"
+                />
               </button>
               <button
                 class="path-action-btn path-action-delete"
                 :title="t('common.delete')"
                 @click.stop="removePath(index)"
               >
-                <UiIcon name="trash" :size="14" />
+                <UiIcon
+                  name="trash"
+                  :size="14"
+                />
               </button>
             </div>
           </div>
@@ -59,164 +85,235 @@
       </div>
 
       <!-- 分隔线 -->
-      <div class="path-divider"></div>
+      <div class="path-divider" />
 
       <!-- 右侧版本列表 -->
       <div class="version-panel">
-      <div class="panel-header">
-        <div class="header-left">
-          <h3 class="panel-title">
-            <UiIcon name="cube" :size="16" />
-            {{ currentPathName }}
-          </h3>
-          <span v-if="currentPathVersions.length > 0" class="version-count-badge">
-            {{ t('versions.manage.versionCount', { count: currentPathVersions.length }) }}
-          </span>
-        </div>
-        <div class="header-right">
-          <button
-            class="btn-refresh"
-            @click="handleRefresh"
-            :disabled="refreshLoading"
-          >
-            <UiIcon name="refresh" :size="14" />
-            {{ t('common.refresh') }}
-          </button>
-          <button
-            class="btn-install-version"
-            @click="navigateToInstall"
-          >
-            <UiIcon name="download" :size="14" />
-            {{ t('versions.download.installNew') }}
-          </button>
-          <div class="search-box">
-            <UiIcon name="search" :size="16" class="search-icon" />
-            <input
-              v-model="searchQuery"
-              type="text"
-              :placeholder="t('versions.manage.searchVersion')"
-              class="search-input"
-            />
-            <button
-              v-if="searchQuery"
-              class="search-clear"
-              @click="searchQuery = ''"
-              type="button"
+        <div class="panel-header">
+          <div class="header-left">
+            <h3 class="panel-title">
+              <UiIcon
+                name="cube"
+                :size="16"
+              />
+              {{ currentPathName }}
+            </h3>
+            <span
+              v-if="currentPathVersions.length > 0"
+              class="version-count-badge"
             >
-              <UiIcon name="close" :size="14" />
+              {{ t('versions.manage.versionCount', { count: currentPathVersions.length }) }}
+            </span>
+          </div>
+          <div class="header-right">
+            <button
+              class="btn-refresh"
+              :disabled="refreshLoading"
+              @click="handleRefresh"
+            >
+              <UiIcon
+                name="refresh"
+                :size="14"
+              />
+              {{ t('common.refresh') }}
+            </button>
+            <button
+              class="btn-install-version"
+              @click="navigateToInstall"
+            >
+              <UiIcon
+                name="download"
+                :size="14"
+              />
+              {{ t('versions.download.installNew') }}
+            </button>
+            <div class="search-box">
+              <UiIcon
+                name="search"
+                :size="16"
+                class="search-icon"
+              />
+              <input
+                v-model="searchQuery"
+                type="text"
+                :placeholder="t('versions.manage.searchVersion')"
+                class="search-input"
+              >
+              <button
+                v-if="searchQuery"
+                class="search-clear"
+                type="button"
+                @click="searchQuery = ''"
+              >
+                <UiIcon
+                  name="close"
+                  :size="14"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="version-content">
+          <!-- 未选择路径 -->
+          <div
+            v-if="selectedPathIndex === -1"
+            class="empty-state"
+          >
+            <UiIcon
+              name="folder"
+              :size="48"
+              class="empty-icon"
+            />
+            <p class="empty-text">
+              {{ t('versions.manage.selectPathHint') }}
+            </p>
+            <p
+              v-if="gamePaths.length === 0"
+              class="empty-hint"
+            >
+              {{ t('versions.manage.addPathToStart') }}
+            </p>
+            <button
+              v-if="gamePaths.length === 0"
+              class="btn-primary"
+              @click="addNewPath"
+            >
+              <UiIcon
+                name="add"
+                :size="16"
+              />
+              {{ t('common.add') }}
             </button>
           </div>
-        </div>
-      </div>
 
-      <div class="version-content">
-        <!-- 未选择路径 -->
-        <div v-if="selectedPathIndex === -1" class="empty-state">
-          <UiIcon name="folder" :size="48" class="empty-icon" />
-          <p class="empty-text">{{ t('versions.manage.selectPathHint') }}</p>
-          <p v-if="gamePaths.length === 0" class="empty-hint">{{ t('versions.manage.addPathToStart') }}</p>
-          <button v-if="gamePaths.length === 0" class="btn-primary" @click="addNewPath">
-            <UiIcon name="add" :size="16" />
-            {{ t('common.add') }}
-          </button>
-        </div>
-
-        <!-- 加载中 -->
-        <div v-else-if="loading" class="loading-state">
-          <UiIcon name="spinner" class="spin" :size="24" />
-          <p>{{ t('versions.manage.scanning') }}</p>
-        </div>
-
-        <!-- 空状态 -->
-        <div v-else-if="currentPathVersions.length === 0" class="empty-state">
-          <UiIcon name="cube" :size="48" class="empty-icon" />
-          <p class="empty-text">{{ t('versions.manage.noVersionsFound') }}</p>
-          <p class="empty-hint">{{ t('versions.manage.currentPath') }}: {{ currentPath?.path }}</p>
-        </div>
-
-        <!-- 版本列表 -->
-        <div v-else class="version-table">
-          <div class="table-header">
-            <span class="col-icon"></span>
-            <span class="col-name">{{ t('versions.manage.versionName') }}</span>
-            <span class="col-type">{{ t('versions.manage.loaderType') }}</span>
-            <span class="col-status">{{ t('versions.manage.status') }}</span>
-            <span class="col-actions"></span>
+          <!-- 加载中 -->
+          <div
+            v-else-if="loading"
+            class="loading-state"
+          >
+            <UiIcon
+              name="spinner"
+              class="spin"
+              :size="24"
+            />
+            <p>{{ t('versions.manage.scanning') }}</p>
           </div>
 
-          <div class="table-body">
-            <div
-              v-for="version in filteredVersions"
-              :key="version.versionId"
-              :class="['table-row', { selected: versionManager.selectedVersion === version.versionId }]"
-              @click="handleSelectVersion(version)"
-            >
-              <div class="col-icon">
-                <div class="version-icon">
-                  <UiIcon :name="getLoaderIcon(version.primaryLoader)" :size="18" />
+          <!-- 空状态 -->
+          <div
+            v-else-if="currentPathVersions.length === 0"
+            class="empty-state"
+          >
+            <UiIcon
+              name="cube"
+              :size="48"
+              class="empty-icon"
+            />
+            <p class="empty-text">
+              {{ t('versions.manage.noVersionsFound') }}
+            </p>
+            <p class="empty-hint">
+              {{ t('versions.manage.currentPath') }}: {{ currentPath?.path }}
+            </p>
+          </div>
+
+          <!-- 版本列表 -->
+          <div
+            v-else
+            class="version-table"
+          >
+            <div class="table-header">
+              <span class="col-icon" />
+              <span class="col-name">{{ t('versions.manage.versionName') }}</span>
+              <span class="col-type">{{ t('versions.manage.loaderType') }}</span>
+              <span class="col-status">{{ t('versions.manage.status') }}</span>
+              <span class="col-actions" />
+            </div>
+
+            <div class="table-body">
+              <div
+                v-for="version in filteredVersions"
+                :key="version.versionId"
+                :class="['table-row', { selected: versionManager.selectedVersion === version.versionId }]"
+                @click="handleSelectVersion(version)"
+              >
+                <div class="col-icon">
+                  <div class="version-icon">
+                    <UiIcon
+                      :name="getLoaderIcon(version.primaryLoader)"
+                      :size="18"
+                    />
+                  </div>
                 </div>
-              </div>
-              <div class="col-name">
-                <span class="version-name">{{ version.versionId }}</span>
-                <span class="version-mcver">{{ version.vanillaName || t('versions.manage.unknownVersion') }}</span>
-              </div>
-              <div class="col-type">
-                <span :class="['badge', 'badge-' + getLoaderClass(version.primaryLoader)]">
-                  {{ getLoaderDisplayName(version.primaryLoader) }}
-                </span>
-              </div>
-              <div class="col-status">
-                <span :class="['badge', version.isBroken ? 'badge-error' : 'badge-success']">
-                  {{ version.isBroken ? t('versions.manage.statusBroken') : t('versions.manage.statusAvailable') }}
-                </span>
-              </div>
-              <div class="col-actions">
-                <button
-                  class="btn-action btn-settings"
-                  :title="t('settings.title')"
-                  @click.stop="handleOpenDetail(version)"
-                >
-                  <UiIcon name="settings" :size="14" />
-                </button>
-                <button
-                  v-if="!version.isBroken"
-                  class="btn-action btn-play"
-                  :title="t('common.launch')"
-                  @click.stop="handleLaunch(version)"
-                >
-                  <UiIcon name="play" :size="14" />
-                </button>
-                <button
-                  class="btn-action btn-delete"
-                  :title="t('common.delete')"
-                  @click.stop="handleDelete(version)"
-                >
-                  <UiIcon name="trash" :size="14" />
-                </button>
+                <div class="col-name">
+                  <span class="version-name">{{ version.versionId }}</span>
+                  <span class="version-mcver">{{ version.vanillaName || t('versions.manage.unknownVersion') }}</span>
+                </div>
+                <div class="col-type">
+                  <span :class="['badge', 'badge-' + getLoaderClass(version.primaryLoader)]">
+                    {{ getLoaderDisplayName(version.primaryLoader) }}
+                  </span>
+                </div>
+                <div class="col-status">
+                  <span :class="['badge', version.isBroken ? 'badge-error' : 'badge-success']">
+                    {{ version.isBroken ? t('versions.manage.statusBroken') : t('versions.manage.statusAvailable') }}
+                  </span>
+                </div>
+                <div class="col-actions">
+                  <button
+                    class="btn-action btn-settings"
+                    :title="t('settings.title')"
+                    @click.stop="handleOpenDetail(version)"
+                  >
+                    <UiIcon
+                      name="settings"
+                      :size="14"
+                    />
+                  </button>
+                  <button
+                    v-if="!version.isBroken"
+                    class="btn-action btn-play"
+                    :title="t('common.launch')"
+                    @click.stop="handleLaunch(version)"
+                  >
+                    <UiIcon
+                      name="play"
+                      :size="14"
+                    />
+                  </button>
+                  <button
+                    class="btn-action btn-delete"
+                    :title="t('common.delete')"
+                    @click.stop="handleDelete(version)"
+                  >
+                    <UiIcon
+                      name="trash"
+                      :size="14"
+                    />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    </div>
 
     <!-- 确认弹窗 -->
-    <ContentModal
+    <Modal
       v-model:visible="showConfirmModal"
       type="confirm"
       :title="confirmTitle"
       :content="confirmContent"
       danger
-      show-backdrop
       @confirm="handleConfirmAction"
     />
 
     <!-- 添加/编辑路径弹窗 -->
-    <ContentModal
+    <Modal
       v-model:visible="showPathModal"
       :title="isEditing ? t('versions.manage.editPath') : t('versions.manage.addGamePath')"
-      show-backdrop
     >
       <div class="path-form">
         <div class="form-group">
@@ -236,8 +333,8 @@
             />
             <UiButton
               variant="secondary"
-              @click="browseForPath"
               :disabled="isDefaultPath"
+              @click="browseForPath"
             >
               {{ t('common.browse') }}
             </UiButton>
@@ -246,16 +343,21 @@
       </div>
 
       <template #footer>
-        <UiButton variant="secondary" @click="showPathModal = false">{{ t('common.cancel') }}</UiButton>
+        <UiButton
+          variant="secondary"
+          @click="showPathModal = false"
+        >
+          {{ t('common.cancel') }}
+        </UiButton>
         <UiButton
           variant="primary"
-          @click="savePath"
           :disabled="!pathForm.name || !pathForm.path"
+          @click="savePath"
         >
           {{ isEditing ? t('common.save') : t('common.add') }}
         </UiButton>
       </template>
-    </ContentModal>
+    </Modal>
 
     <!-- 版本设置全屏弹窗 -->
     <VersionDetailModal
@@ -271,16 +373,16 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import backend from '@/api/client'
+import Modal from '@/components/modals/Modal.vue'
+import UiButton from '@/components/ui/Button.vue'
+import UiInput from '@/components/ui/Input.vue'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { globalLaunchProgress } from '@/composables/useLaunchProgress'
 import { useVersionManager } from '@/composables/useVersionManager'
-import backend from '@/api/client'
 import { getLoaderIcon, getLoaderName, getLoaderClass } from '@/utils/loader'
-import type { ScannedVersion } from '@/types/api'
-import ContentModal from '@/components/modals/ContentModal.vue'
-import UiButton from '@/components/ui/Button.vue'
-import UiInput from '@/components/ui/Input.vue'
 import VersionDetailModal from '@/views/versions/VersionDetailModal.vue'
+import type { LaunchProgress, MinecraftPathEntry, ScannedVersion } from '@/types/api'
 
 interface GamePath {
   name: string
@@ -365,7 +467,7 @@ const fetchGamePaths = async () => {
     const response = await backend.config.get('game')
     if (response.success && response.data) {
       const paths = response.data.minecraft_paths || []
-      gamePaths.value = paths.map((p: any) => {
+      gamePaths.value = paths.map((p: MinecraftPathEntry) => {
         if (typeof p === 'string') {
           return { name: getPathNameFromPath(p), path: p }
         }
@@ -460,7 +562,7 @@ const savePath = async () => {
   try {
     const configResponse = await backend.config.get('game')
     if (configResponse.success && configResponse.data) {
-      let updatedPaths = [...gamePaths.value]
+      const updatedPaths = [...gamePaths.value]
 
       if (isEditing.value && editingIndex.value >= 0) {
         updatedPaths[editingIndex.value] = { ...pathForm.value }
@@ -512,7 +614,7 @@ const removePath = async (index: number) => {
             minecraft_paths: gamePaths.value
           })
         }
-      } catch (error) {
+      } catch {
         gamePaths.value.splice(index, 0, removed)
         return
       }
@@ -540,7 +642,7 @@ const handleLaunch = async (version: ScannedVersion) => {
   showLaunchProgress({ cancelable: true })
 
   // 监听启动进度事件
-  const unlisten = backend.on('game:launch_progress', (payload: any) => {
+  const unlisten = backend.on('game:launch_progress', (payload: LaunchProgress) => {
     // 已取消则忽略后续事件
     if (globalLaunchProgress.progress.value.canceled) {
       unlisten()
@@ -576,7 +678,7 @@ const handleLaunch = async (version: ScannedVersion) => {
     } else if (phase === 'launching') {
       setLaunchProgress(typeof pct === 'number' ? pct : 95, 'launching', msg)
     } else {
-      setLaunchProgress(2, 'prepare' as any, msg)
+      setLaunchProgress(2, 'prepare', msg)
     }
   })
 
@@ -670,761 +772,4 @@ function navigateToInstall() {
 }
 </script>
 
-<style scoped>
-.manage-page {
-  display: flex;
-  height: 100%;
-  min-width: 0;
-  overflow: hidden;
-}
-
-/* 统一容器：路径 + 版本在一个卡片内 */
-.manage-container {
-  flex: 1;
-  display: flex;
-  background: var(--card-bg);
-  border-top: var(--card-border-top);
-  border-bottom: var(--card-border-bottom);
-  border-radius: var(--r-sm);
-  overflow: hidden;
-}
-
-/* 左侧路径面板 */
-.path-panel {
-  width: 160px;
-  min-width: 160px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.path-panel > .panel-header {
-  height: 40px;
-  padding: 0 9px;
-  border-bottom: 1px solid var(--glass-divider);
-}
-
-.path-panel > .panel-header .panel-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-primary);
-  gap: 5px;
-}
-
-.path-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 3px 0;
-}
-
-.path-item {
-  display: flex;
-  align-items: flex-start;
-  height: 46px;
-  padding: 6px 9px 6px 11px;
-  cursor: pointer;
-  position: relative;
-  gap: 6px;
-  transition: background 150ms ease-out;
-}
-
-.path-item:hover:not(.active) {
-  background: var(--glass-item-hover);
-}
-
-/* 选中态：浅色 #F5F8FF / 深色 rgba(74,127,217,0.12) */
-.path-item.active {
-  background: #F5F8FF;
-}
-
-[data-theme="dark"] .path-item.active {
-  background: rgba(74, 127, 217, 0.12);
-}
-
-.path-indicator {
-  position: absolute;
-  left: 0;
-  top: 11px;
-  bottom: 11px;
-  width: 3px;
-  border-radius: 0 2px 2px 0;
-  background: var(--primary);
-  opacity: 0;
-  transition: opacity 150ms ease-out;
-}
-
-.path-item.active .path-indicator {
-  opacity: 1;
-}
-
-.path-icon {
-  width: 16px;
-  height: 16px;
-  min-width: 16px;
-  margin-top: 1px;
-  color: var(--text-tertiary);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.path-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-/* 名称行：名称 + 版本数 */
-.path-name-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 5px;
-  min-width: 0;
-}
-
-/* 名称 13px font-weight 500 */
-.path-name {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex: 1;
-  min-width: 0;
-}
-
-/* 选中态名称加粗不换色 */
-.path-item.active .path-name {
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-/* 版本数 11px */
-.path-version-count {
-  font-size: 9px;
-  font-weight: 400;
-  color: var(--text-tertiary);
-  flex-shrink: 0;
-}
-
-/* 路径位置：超出部分 ... 截断 */
-.path-location {
-  font-size: 9px;
-  color: var(--text-tertiary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* "0 个版本" 用特定颜色 */
-.path-version-count.is-empty {
-  color: #AAAAAA;
-}
-
-[data-theme="dark"] .path-version-count.is-empty {
-  color: #555860;
-}
-
-/* 浅色选中 #5C5C5C / 深色选中 #A0A3A8 */
-.path-item.active .path-version-count {
-  color: #5C5C5C;
-}
-
-[data-theme="dark"] .path-item.active .path-version-count {
-  color: #A0A3A8;
-}
-
-.path-actions {
-  position: absolute;
-  right: 4px;
-  top: 4px;
-  display: flex;
-  gap: 2px;
-  opacity: 0;
-  transition: opacity 150ms ease-out;
-  background: var(--card-bg);
-  border-radius: var(--r-xs);
-  padding: 2px;
-}
-
-.path-item:hover .path-actions {
-  opacity: 1;
-}
-
-.path-action-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: var(--r-xs);
-  border: none;
-  background: transparent;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  transition: all 150ms ease-out;
-}
-
-.path-action-btn:hover {
-  background: var(--glass-item-hover);
-  color: var(--text-primary);
-}
-
-.path-action-delete:hover {
-  color: var(--error);
-}
-
-/* 分隔线：加宽 + 加深颜色，增强分界感 */
-.path-divider {
-  width: 2px;
-  background: var(--border);
-  flex-shrink: 0;
-  position: relative;
-}
-
-/* 上下边框延伸 */
-.path-divider::before,
-.path-divider::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 1px;
-}
-
-.path-divider::before {
-  top: 0;
-  background: var(--border);
-}
-
-.path-divider::after {
-  bottom: 0;
-  background: var(--border);
-}
-
-/* 右侧版本面板 */
-.version-panel {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* 面板头部 */
-.panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 14px;
-  min-height: 43px;
-  border-bottom: 1px solid var(--divider);
-  flex-shrink: 0;
-  gap: var(--s-sm);
-}
-
-.panel-title {
-  display: flex;
-  align-items: center;
-  gap: var(--s-sm);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: var(--s-sm);
-  min-width: 0;
-  flex-shrink: 0;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: var(--s-sm);
-  min-width: 0;
-}
-
-.version-count-badge {
-  font-size: 11px;
-  color: var(--text-tertiary);
-  background: var(--bg-base-alt);
-  padding: 2px 7px;
-  border-radius: var(--r-xs);
-  flex-shrink: 0;
-}
-
-.search-box {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 180px;
-  min-width: 120px;
-  height: 30px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  transition: border-color 150ms ease-out;
-  flex-shrink: 1;
-}
-
-.search-box:focus-within {
-  border-color: var(--border-hover);
-}
-
-.search-icon {
-  position: absolute;
-  left: 9px;
-  color: var(--text-tertiary);
-  pointer-events: none;
-}
-
-.search-input {
-  width: 100%;
-  height: 100%;
-  padding: 0 29px 0 29px;
-  border: none;
-  background: transparent;
-  font-size: 12px;
-  color: var(--text-primary);
-  outline: none;
-  border-radius: var(--r-sm);
-}
-
-.search-input::placeholder {
-  color: var(--text-tertiary);
-}
-
-.search-clear {
-  position: absolute;
-  right: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: var(--r-xs);
-  border: none;
-  background: transparent;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  transition: all 150ms ease-out;
-}
-
-.search-clear:hover {
-  background: var(--bg-hover);
-  color: var(--text-secondary);
-}
-
-/* 按钮 */
-.btn-add {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 25px;
-  height: 25px;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
-  color: var(--text-tertiary);
-  cursor: pointer;
-  transition: all 150ms ease-out;
-}
-
-.btn-add:hover {
-  background: var(--primary-alpha);
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
-.btn-add:active {
-  transform: scale(0.95);
-}
-
-.btn-refresh {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 9px;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
-  color: var(--text-secondary);
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 150ms ease-out;
-}
-
-.btn-refresh:hover:not(:disabled) {
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
-.btn-refresh:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s-sm);
-  padding: 9px 18px;
-  border-radius: var(--r-sm);
-  border: none;
-  background: var(--primary);
-  color: var(--text-on-primary);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 150ms ease-out;
-}
-
-.btn-primary:hover {
-  background: var(--primary-hover);
-}
-
-/* 面板底部 */
-.panel-footer {
-  height: 25px;
-  padding: 0 11px;
-  border-top: 1px solid var(--divider);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-}
-
-.footer-text {
-  font-size: 10px;
-  font-weight: 400;
-  color: var(--text-tertiary);
-}
-
-/* 版本内容 */
-.version-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--s-lg);
-}
-
-/* 表格 */
-.version-table {
-  display: flex;
-  flex-direction: column;
-}
-
-.table-header {
-  display: flex;
-  align-items: center;
-  padding: 0 11px;
-  height: 32px;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  border-bottom: 1px solid var(--divider);
-  position: sticky;
-  top: 0;
-  background: var(--bg-elevated);
-  z-index: 1;
-  white-space: nowrap;
-}
-
-.table-body {
-  display: flex;
-  flex-direction: column;
-}
-
-.table-row {
-  display: flex;
-  align-items: center;
-  padding: 0 11px;
-  height: 44px;
-  border-bottom: 1px solid var(--divider);
-  transition: background 150ms ease-out;
-}
-
-.table-row:hover {
-  background: var(--bg-hover);
-}
-
-.table-row.selected {
-  background: var(--primary-alpha);
-  border-left: 3px solid var(--primary);
-}
-
-.table-row:last-child {
-  border-bottom: none;
-}
-
-.col-icon { width: 40px; flex-shrink: 0; }
-.col-name { flex: 1; min-width: 80px; }
-.col-type { width: 64px; flex-shrink: 0; }
-.col-status { width: 56px; flex-shrink: 0; }
-.col-actions { width: 64px; flex-shrink: 0; display: flex; justify-content: flex-end; gap: 3px; }
-
-.version-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--r-sm);
-  background: var(--primary-alpha);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--primary);
-}
-
-.version-name {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-primary);
-  display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.version-mcver {
-  font-size: 11px;
-  color: var(--text-tertiary);
-}
-
-/* 徽章 */
-.badge {
-  display: inline-block;
-  padding: 2px 6px;
-  border-radius: var(--r-xs);
-  white-space: nowrap;
-  font-size: 10px;
-  font-weight: 500;
-}
-
-.badge-vanilla { background: var(--bg-base-alt); color: var(--text-secondary); }
-.badge-fabric { background: rgba(218, 190, 140, 0.15); color: #b8944a; }
-.badge-forge { background: rgba(140, 130, 180, 0.15); color: #7a6eaa; }
-.badge-quilt { background: rgba(140, 180, 160, 0.15); color: #5a9a72; }
-.badge-success { background: var(--success-alpha); color: var(--success); }
-.badge-error { background: var(--error-alpha); color: var(--error); }
-
-/* 操作按钮 */
-.btn-action {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 25px;
-  height: 25px;
-  border-radius: var(--r-xs);
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  transition: all 150ms ease-out;
-  opacity: 0;
-}
-
-.table-row:hover .btn-action {
-  opacity: 1;
-}
-
-.btn-play {
-  color: var(--primary);
-}
-
-.btn-play:hover {
-  background: var(--primary-alpha);
-}
-
-.btn-delete {
-  color: var(--text-tertiary);
-}
-
-.btn-delete:hover {
-  color: var(--error);
-  background: var(--error-alpha);
-}
-
-/* 空状态 */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  gap: var(--s-md);
-}
-
-.empty-icon {
-  color: var(--text-tertiary);
-}
-
-.empty-text {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.empty-hint {
-  font-size: 10px;
-  color: var(--text-quaternary, var(--text-tertiary));
-  margin: 0;
-  max-width: 80%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: default;
-}
-
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  gap: var(--s-md);
-  color: var(--text-secondary);
-}
-
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-/* 安装按钮 */
-.btn-install-version {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 5px 11px;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--primary);
-  background: var(--primary);
-  color: var(--text-on-primary);
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 150ms ease-out;
-  white-space: nowrap;
-}
-
-.btn-install-version:hover {
-  background: var(--primary-hover);
-}
-
-/* 安装弹窗 */
-.form-group {
-  margin-bottom: 14px;
-}
-
-.form-group:last-child {
-  margin-bottom: 0;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.required {
-  color: var(--error);
-}
-
-.form-hint {
-  margin: 4px 0 0;
-  font-size: 10px;
-  color: var(--text-tertiary);
-}
-
-.version-display {
-  padding: 7px 11px;
-  background: var(--bg-base);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.path-display {
-  padding: 7px 11px;
-  background: var(--bg-base);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.loader-options {
-  display: flex;
-  gap: 7px;
-  flex-wrap: wrap;
-}
-
-.loader-btn {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 7px 13px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--bg-base);
-  color: var(--text-secondary);
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 150ms;
-}
-
-.loader-btn:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
-.loader-btn.active {
-  border-color: var(--primary);
-  background: var(--primary-alpha);
-  color: var(--primary);
-}
-
-/* 进度弹窗 */
-.progress-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--s-md);
-  padding: var(--s-xl) 0;
-}
-
-.progress-ring {
-  color: var(--primary);
-}
-
-.progress-text {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-/* NeoForge / OptiFine 徽章 */
-.badge-neoforge { background: rgba(140, 150, 200, 0.15); color: #6a7eb4; }
-.badge-optifine { background: rgba(200, 180, 140, 0.15); color: #b8942a; }
-</style>
+<style scoped src="@/styles/ManageTab.css"></style>

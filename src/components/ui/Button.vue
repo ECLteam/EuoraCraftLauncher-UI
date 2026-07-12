@@ -19,13 +19,29 @@
       class="ripple"
       :style="{ left: ripple.x + 'px', top: ripple.y + 'px' }"
     />
-    <span v-if="loading" class="loading-spinner"> 
-       <UiIcon name="spinner" :size="16" class="spin" /> 
-   </span> 
-   <span v-else-if="icon" class="btn-icon"> 
-       <UiIcon :name="icon.replace('icon-', '')" :size="16" /> 
-   </span>
-    <span v-if="$slots.default" class="btn-content">
+    <span
+      v-if="loading"
+      class="loading-spinner"
+    > 
+      <UiIcon
+        name="spinner"
+        :size="16"
+        class="spin"
+      /> 
+    </span> 
+    <span
+      v-else-if="icon"
+      class="btn-icon"
+    > 
+      <UiIcon
+        :name="icon.replace('icon-', '')"
+        :size="16"
+      /> 
+    </span>
+    <span
+      v-if="$slots.default"
+      class="btn-content"
+    >
       <slot />
     </span>
   </button>
@@ -47,8 +63,10 @@ const props = withDefaults(defineProps<{
   variant: 'primary',
   size: 'md',
   shape: 'default',
+  icon: '',
   loading: false,
-  disabled: false
+  disabled: false,
+  title: ''
 })
 
 const emit = defineEmits<{

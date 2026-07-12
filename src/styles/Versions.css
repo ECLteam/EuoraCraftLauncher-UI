@@ -4,7 +4,6 @@
   gap: 0;
 }
 
-/* 左侧导航 150px */
 .versions-nav {
   width: 150px;
   min-width: 150px;
@@ -131,15 +130,6 @@
   transform: translateY(-4px) scale(0.99);
 }
 
-
-
-
-
-
-
-
-
-/* 路径面板：216px */
 .paths-panel {
   width: 216px;
   min-width: 216px;
@@ -151,7 +141,6 @@
   gap: 2px;
 }
 
-/* 路径列表项：高 50px */
 .path-item {
   display: flex;
   justify-content: space-between;
@@ -170,7 +159,6 @@
   background: var(--bg-hover);
 }
 
-/* 选中态：左 3px 色条 + 背景 */
 .path-item.active {
   background: #F5F8FF;
   font-weight: 600;
@@ -199,7 +187,6 @@
   overflow: hidden;
 }
 
-/* 图标 16px 顶对齐 */
 .path-info .icon {
   font-size: 16px;
   color: var(--text-secondary);
@@ -215,7 +202,6 @@
   min-width: 0;
 }
 
-/* 名称 13px font-weight 500 */
 .path-name {
   font-weight: 500;
   font-size: 12px;
@@ -225,13 +211,11 @@
   text-overflow: ellipsis;
 }
 
-/* 选中态名称加粗不换色 */
 .path-item.active .path-name {
   font-weight: 600;
   color: var(--text-secondary);
 }
 
-/* 版本数 10px */
 .path-location {
   font-size: 10px;
   color: var(--text-tertiary);
@@ -241,7 +225,6 @@
   margin-top: 2px;
 }
 
-/* "0 个版本" 用特定颜色 */
 .path-location:empty::before {
   content: "空";
   color: #AAAAAA;
@@ -292,8 +275,6 @@
   align-items: center;
   gap: var(--s-md);
 }
-
-
 
 .versions-strip {
   display: flex;
@@ -377,8 +358,6 @@
 .detail-value {
   font-weight: 500;
 }
-
-
 
 .error-message {
   display: flex;
@@ -508,19 +487,9 @@
   color: var(--text-tertiary);
 }
 
-
-
-
-
-
-
-
-
 .path-form {
   padding: var(--s-lg);
 }
-
-
 
 .input-with-button {
   display: flex;
@@ -543,5 +512,3 @@
   border-color: var(--border-focus);
   box-shadow: var(--glow-focus);
 }
-
-

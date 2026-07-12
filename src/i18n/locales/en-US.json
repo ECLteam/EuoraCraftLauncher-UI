@@ -366,7 +366,6 @@
     "game": "Game Settings",
     "gameSettings": "Game Settings",
     "about": "About",
-    "pluginSettings": "Plugin Settings",
     "downloadSettings": "Download Settings",
     "language": "Language",
     "theme": "Theme",
@@ -585,6 +584,8 @@
     "empty": "No tasks",
     "emptyHint": "Task progress will be shown here when installing game versions",
     "currentStatus": "Current status: ",
+    "runningCount": "{count} task(s) running",
+    "allDone": "All done",
     "clearCompleted": "Clear completed ({count})"
   }
 }

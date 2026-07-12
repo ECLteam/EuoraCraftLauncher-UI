@@ -1,5 +1,5 @@
 import { gsap } from 'gsap'
-import { onScopeDispose, type Ref } from 'vue'
+import { onScopeDispose, unref, type Ref } from 'vue'
 
 /* ═══════════════════════════════════════════════════════════════════
    SnowLuma Animation Engine
@@ -88,7 +88,7 @@ export function useButtonFeedback() {
 export function usePageEnter(target: string | HTMLElement | Ref<HTMLElement | null>) {
   if (prefersReducedMotion()) return
 
-  const el = typeof target === 'string' ? target : (target as any)?.value || target
+  const el = unref(target)
 
   gsap.from(el, {
     opacity: 0,
@@ -139,7 +139,7 @@ export function useStaggerEntry(
     from = 'start',
   } = options
 
-  const targets = Array.isArray(items) ? items : (items as Ref)?.value || []
+  const targets = unref(items) || []
 
   if (!targets || targets.length === 0) return
 
@@ -174,15 +174,14 @@ export function useExpandCollapse(
 ) {
   if (prefersReducedMotion()) return
 
-  const el = (container as any)?.value || container
+  const el = unref(container)
   if (!el) return
 
-  const expanded = (isExpanded as any)?.value ?? isExpanded
+  const expanded = unref(isExpanded)
 
   if (expanded) {
     // 展开
     gsap.set(el, { display: 'block' })
-    const height = el.scrollHeight
     gsap.from(el, {
       height: 0,
       opacity: 0,
@@ -222,7 +221,7 @@ export function useSortAnimation(
 ) {
   if (prefersReducedMotion()) return null
 
-  const el = (container as any)?.value || container
+  const el = unref(container)
   if (!el) return null
 
   // Flip 动画 — 监听子项位置变化并平滑过渡
@@ -274,7 +273,7 @@ export function useCountUp(
 ) {
   if (prefersReducedMotion()) return
 
-  const el = (target as any)?.value || target
+  const el = unref(target)
   if (!el) return
 
   const { duration = DURATION.slower, ease = EASE.enter } = options || {}
@@ -298,7 +297,7 @@ export function useCountUp(
 export function useHighlightFlash(target: HTMLElement | Ref<HTMLElement | null>) {
   if (prefersReducedMotion()) return
 
-  const el = (target as any)?.value || target
+  const el = unref(target)
   if (!el) return
 
   gsap.fromTo(
@@ -323,7 +322,7 @@ export function useSlidePanel(
 ) {
   if (prefersReducedMotion()) return
 
-  const el = (panel as any)?.value || panel
+  const el = unref(panel)
   if (!el) return
 
   const xFrom = direction === 'right' ? '100%' : '-100%'
@@ -385,5 +384,5 @@ export function useSequence(
 // ═══════════════════════════════════════════════════════════════════
 
 export function killTweens(targets: (string | HTMLElement) | (string | HTMLElement)[]) {
-  gsap.killTweensOf(targets as any)
+  gsap.killTweensOf(targets)
 }

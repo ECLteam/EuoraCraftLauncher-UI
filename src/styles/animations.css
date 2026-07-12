@@ -1,15 +1,5 @@
-/* ================================================================
-   SnowLuma 动画系统 v2
-   - 非线性缓动 × 分层过渡 × 交错编排
-   - 进入 = 弹性/弹跳，退出 = 标准减速，符合 Material Motion
-   - 所有持续时间和缓动均引用 CSS 变量
-   ================================================================ */
 
-/* ═══════════════════════════════════════════════════════════════════
-   第1层 — 基础关键帧 (Atomic Keyframes)
-   ═══════════════════════════════════════════════════════════════════ */
 
-/* ---- 透明度 ---- */
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -19,7 +9,6 @@
   to { opacity: 0; }
 }
 
-/* ---- 缩放 ---- */
 @keyframes scale-in {
   from { opacity: 0; transform: scale(0.92); }
   to { opacity: 1; transform: scale(1); }
@@ -41,7 +30,6 @@
   100% { opacity: 1; transform: scale(1); }
 }
 
-/* ---- 滑动 (方向性) ---- */
 @keyframes slide-up {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: translateY(0); }
@@ -59,7 +47,6 @@
   to { opacity: 1; transform: translateX(0); }
 }
 
-/* ---- 弹性滑动 (进入用弹跳曲线) ---- */
 @keyframes slide-up-bounce {
   0% { opacity: 0; transform: translateY(22px); }
   60% { transform: translateY(-3px); }
@@ -72,7 +59,6 @@
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* ---- 收缩展开 (用在折叠面板) ---- */
 @keyframes expand-in {
   from { opacity: 0; transform: scaleY(0.5); max-height: 0; }
   to { opacity: 1; transform: scaleY(1); max-height: 500px; }
@@ -82,7 +68,6 @@
   to { opacity: 0; transform: scaleY(0.5); max-height: 0; }
 }
 
-/* ---- 旋转 ---- */
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
@@ -92,7 +77,6 @@
   to { transform: rotate(0deg); }
 }
 
-/* ---- 脉冲/呼吸 ---- */
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 0 0 rgba(74, 127, 217, 0.3); }
   50% { box-shadow: 0 0 0 5px rgba(74, 127, 217, 0); }
@@ -106,13 +90,11 @@
   50% { transform: scale(1.04); }
 }
 
-/* ---- 涟漪 (Button Ripple) ---- */
 @keyframes ripple-effect {
   0% { transform: scale(0); opacity: 0.4; }
   100% { transform: scale(4); opacity: 0; }
 }
 
-/* ---- 闪烁/扫描 ---- */
 @keyframes shimmer {
   from { transform: translateX(-100%); }
   to { transform: translateX(100%); }
@@ -122,24 +104,17 @@
   50% { opacity: 0.6; }
 }
 
-/* ---- 划过/亮起 ---- */
 @keyframes glow-in {
   from { box-shadow: 0 0 0 0 var(--primary-alpha); }
   to { box-shadow: 0 0 14px 4px var(--primary-alpha); }
 }
 
-/* ---- 抖动 (用于错误提示) ---- */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
   20%, 40%, 60%, 80% { transform: translateX(4px); }
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   第2层 — CSS 工具类 (Utility Classes)
-   ═══════════════════════════════════════════════════════════════════ */
-
-/* ---- 线性工具 ---- */
 .fade-in          { animation: fade-in var(--duration-normal) var(--ease-smooth) forwards; }
 .fade-out         { animation: fade-out var(--duration-fast) var(--ease-exit) forwards; }
 .scale-in         { animation: scale-in var(--duration-normal) var(--ease-enter) forwards; }
@@ -155,12 +130,6 @@
 .shake            { animation: shake 0.4s var(--ease-exit); }
 .breathe          { animation: breathe 3s var(--ease-smooth) infinite; }
 
-/* ═══════════════════════════════════════════════════════════════════
-   第3层 — Vue <Transition> 类预设
-   ═══════════════════════════════════════════════════════════════════ */
-
-/* ── 3.1 页面过渡：层级方向感 ── */
-/* 一级页面 (Game, Versions, Plugins, Settings) — 从下滑入 + 缩放 */
 .page-enter-active {
   transition:
     opacity var(--duration-slow) var(--ease-enter),
@@ -182,7 +151,6 @@
   transform: translateY(-7px) scale(0.97);
 }
 
-/* ── 3.2 子页面/标签页过渡 (settings-tab, versions-tab) ── */
 .tab-enter-active {
   transition:
     opacity var(--duration-normal) var(--ease-enter),
@@ -204,8 +172,6 @@
   transform: translateX(-11px);
 }
 
-/* ── 3.3 弹窗过渡 ── */
-/* 遮罩层 */
 .modal-enter-active {
   transition: opacity var(--duration-slow) var(--ease-exit);
 }
@@ -217,7 +183,6 @@
   opacity: 0;
 }
 
-/* 弹窗内容 (带弹性进入) */
 .modal-enter-active .modal-wrapper {
   transition:
     transform var(--duration-slow) var(--ease-spring),
@@ -237,7 +202,6 @@
   opacity: 0;
 }
 
-/* 全屏弹窗：滑动进入 */
 .is-fullscreen.modal-enter-active .modal-wrapper {
   transition:
     transform var(--duration-slow) var(--ease-enter),
@@ -257,7 +221,6 @@
   opacity: 0;
 }
 
-/* ── 3.4 消息通知过渡 ── */
 .message-enter-active {
   transition:
     all var(--duration-slow) var(--ease-spring),
@@ -280,7 +243,6 @@
   transition: transform var(--duration-normal) var(--ease-smooth);
 }
 
-/* ── 3.5 列表过渡 (交错入场推荐用 GSAP, CSS fallback) ── */
 .list-enter-active {
   transition:
     all var(--duration-normal) var(--ease-spring),
@@ -303,7 +265,6 @@
   transition: transform var(--duration-normal) var(--ease-smooth);
 }
 
-/* ── 3.6 选择下拉菜单过渡 ── */
 .select-dropdown-enter-active {
   transition:
     opacity var(--duration-fast) var(--ease-enter),
@@ -323,7 +284,6 @@
   transform: translateY(-3px) scaleY(0.97);
 }
 
-/* ── 3.7 信息卡片切换 (Tip ↔ 公告) ── */
 .info-fade-enter-active {
   transition:
     opacity var(--duration-normal) var(--ease-enter),
@@ -345,7 +305,6 @@
   transform: translateY(-7px);
 }
 
-/* ── 3.8 手风琴/折叠面板过渡 ── */
 .accordion-enter-active {
   transition:
     max-height var(--duration-slow) var(--ease-enter),
@@ -367,7 +326,6 @@
   opacity: 0;
 }
 
-/* ── 3.9 启动进度卡片切换 (slide-out) ── */
 .slide-out-enter-active {
   transition:
     opacity var(--duration-slow) var(--ease-enter),
@@ -389,55 +347,41 @@
   transform: translateY(-11px) scale(0.95);
 }
 
-/* ── 3.10 骨架屏 ── */
 .skeleton-pulse {
   animation: skeleton-pulse 1.8s var(--ease-smooth) infinite;
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   第4层 — 自定义高级动画 (协议弹窗等)
-   ═══════════════════════════════════════════════════════════════════ */
-
-/* 协议弹窗整体进入 */
 @keyframes agreement-fade-in {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* 协议图标弹性缩放 */
 @keyframes agreement-icon-scale {
   0% { opacity: 0; transform: scale(0.7); }
   60% { transform: scale(1.08); }
   100% { opacity: 1; transform: scale(1); }
 }
 
-/* 协议文字滑入 (配合 animation-delay 做交错) */
 @keyframes agreement-slide-up {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* 协议链接按钮悬浮 */
 @keyframes agreement-btn-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-2px); }
 }
 
-/* ── 进度环旋转 ── */
 @keyframes progress-ring-fill {
   from { stroke-dashoffset: 283; }
   to { stroke-dashoffset: 0; }
 }
 
-/* ── 任务进度条动画 ── */
 @keyframes progress-bar-stripes {
   from { background-position: 0 0; }
   to { background-position: 18px 0; }
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   减弱动画
-   ═══════════════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

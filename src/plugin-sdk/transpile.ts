@@ -163,7 +163,6 @@ function stripLineParamTypes(line: string): string {
 
 /** 处理括号内的参数，剥离类型 */
 function stripParamsInParens(params: string): string {
-  const result: string[] = []
   let depth = 0
   let current = ''
 
@@ -217,7 +216,7 @@ function stripParamsInParens(params: string): string {
   }
 
   // 最终清理：移除残留的独立类型注解
-  let cleaned = current
+  const cleaned = current
     .replace(/:\s*[\w<>[\],\s|&'"`]+(?=\s*,|\s*\)|$)/g, '')
     .replace(/:\s*\([^)]*\)(?=\s*,|\s*\)|$)/g, '')
 

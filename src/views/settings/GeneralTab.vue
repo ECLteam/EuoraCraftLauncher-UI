@@ -2,12 +2,18 @@
   <div class="tab-pane">
     <!-- 外观 -->
     <div class="settings-section">
-      <div class="section-label">{{ t('settings.appearance') }}</div>
+      <div class="section-label">
+        {{ t('settings.appearance') }}
+      </div>
 
       <div class="setting-item">
         <div class="setting-info">
-          <div class="setting-label">{{ t('settings.theme') }}</div>
-          <div class="setting-desc">{{ t('settings.themeDesc') }}</div>
+          <div class="setting-label">
+            {{ t('settings.theme') }}
+          </div>
+          <div class="setting-desc">
+            {{ t('settings.themeDesc') }}
+          </div>
         </div>
         <div class="setting-control">
           <div class="theme-options">
@@ -17,9 +23,17 @@
               :class="['theme-option', { active: currentSettings.mode === opt.value }]"
               @click="handleThemeChange(opt.value as ThemeMode)"
             >
-              <UiIcon :name="opt.icon" :size="18" />
+              <UiIcon
+                :name="opt.icon"
+                :size="18"
+              />
               <span class="theme-option-label">{{ opt.label }}</span>
-              <UiIcon v-if="currentSettings.mode === opt.value" name="check" :size="14" class="theme-check" />
+              <UiIcon
+                v-if="currentSettings.mode === opt.value"
+                name="check"
+                :size="14"
+                class="theme-check"
+              />
             </div>
           </div>
         </div>
@@ -27,8 +41,12 @@
 
       <div class="setting-item">
         <div class="setting-info">
-          <div class="setting-label">{{ t('settings.primaryColor') }}</div>
-          <div class="setting-desc">{{ t('settings.primaryColorDesc') }}</div>
+          <div class="setting-label">
+            {{ t('settings.primaryColor') }}
+          </div>
+          <div class="setting-desc">
+            {{ t('settings.primaryColorDesc') }}
+          </div>
         </div>
         <div class="setting-control">
           <div class="color-presets">
@@ -39,14 +57,14 @@
               :style="{ backgroundColor: color.value }"
               :title="color.name"
               @click="handleColorChange(color.value)"
-            ></div>
+            />
             <div class="custom-color-wrapper">
               <input
                 type="color"
                 :value="currentSettings.primary_color"
-                @input="handleColorInput"
                 class="color-input-native"
-              />
+                @input="handleColorInput"
+              >
               <span class="custom-color-label">+</span>
             </div>
           </div>
@@ -55,27 +73,40 @@
 
       <div class="setting-item">
         <div class="setting-info">
-          <div class="setting-label">{{ t('settings.background') }}</div>
-          <div class="setting-desc">{{ t('settings.backgroundDesc') }}</div>
+          <div class="setting-label">
+            {{ t('settings.background') }}
+          </div>
+          <div class="setting-desc">
+            {{ t('settings.backgroundDesc') }}
+          </div>
         </div>
         <div class="setting-control">
           <div class="bg-input-group">
             <input
               type="text"
               :value="currentSettings.background_image"
-              @input="handleBgImageInput"
               :placeholder="t('settings.backgroundPlaceholder')"
               class="text-input"
-            />
-            <button class="btn-ghost" @click="selectLocalImage">{{ t('common.browse') }}</button>
+              @input="handleBgImageInput"
+            >
+            <button
+              class="btn-ghost"
+              @click="selectLocalImage"
+            >
+              {{ t('common.browse') }}
+            </button>
           </div>
         </div>
       </div>
 
       <div class="setting-item">
         <div class="setting-info">
-          <div class="setting-label">{{ t('settings.backgroundBrightness') }}</div>
-          <div class="setting-desc">{{ t('settings.backgroundBrightnessDesc') }}</div>
+          <div class="setting-label">
+            {{ t('settings.backgroundBrightness') }}
+          </div>
+          <div class="setting-desc">
+            {{ t('settings.backgroundBrightnessDesc') }}
+          </div>
         </div>
         <div class="setting-control">
           <div class="slider-group">
@@ -85,9 +116,9 @@
               min="0"
               max="100"
               step="1"
-              @change="handleBrightnessChange"
               class="slider-input"
-            />
+              @change="handleBrightnessChange"
+            >
             <span class="slider-value">{{ bgBrightness }}%</span>
           </div>
         </div>
@@ -95,8 +126,12 @@
 
       <div class="setting-item">
         <div class="setting-info">
-          <div class="setting-label">{{ t('settings.backgroundBlur') }}</div>
-          <div class="setting-desc">{{ t('settings.backgroundBlurDesc') }}</div>
+          <div class="setting-label">
+            {{ t('settings.backgroundBlur') }}
+          </div>
+          <div class="setting-desc">
+            {{ t('settings.backgroundBlurDesc') }}
+          </div>
         </div>
         <div class="setting-control">
           <div class="slider-group">
@@ -106,9 +141,9 @@
               min="0"
               max="20"
               step="1"
-              @change="handleBlurChange"
               class="slider-input"
-            />
+              @change="handleBlurChange"
+            >
             <span class="slider-value">{{ currentSettings.blur_amount }}px</span>
           </div>
         </div>
@@ -117,26 +152,47 @@
 
     <!-- 语言与交互 -->
     <div class="settings-section">
-      <div class="section-label">{{ t('settings.languageRegion') }}</div>
+      <div class="section-label">
+        {{ t('settings.languageRegion') }}
+      </div>
 
       <div class="setting-item">
         <div class="setting-info">
-          <div class="setting-label">{{ t('settings.language') }}</div>
-          <div class="setting-desc">{{ t('settings.languageDesc') }}</div>
+          <div class="setting-label">
+            {{ t('settings.language') }}
+          </div>
+          <div class="setting-desc">
+            {{ t('settings.languageDesc') }}
+          </div>
         </div>
         <div class="setting-control">
-          <div class="custom-select" :class="{ open: isLangOpen }" ref="langSelectRef">
-            <div class="select-trigger" @click="toggleLangOpen">
+          <div
+            ref="langSelectRef"
+            class="custom-select"
+            :class="{ open: isLangOpen }"
+          >
+            <div
+              class="select-trigger"
+              @click="toggleLangOpen"
+            >
               <span class="selected-text">
                 <span class="lang-option">
                   <span class="lang-flag">{{ selectedLanguage?.flag }}</span>
                   <span class="lang-name">{{ selectedLanguage?.name }}</span>
                 </span>
               </span>
-              <UiIcon name="chevron-down" class="select-arrow" :class="{ rotated: isLangOpen }" :size="14" />
+              <UiIcon
+                name="chevron-down"
+                class="select-arrow"
+                :class="{ rotated: isLangOpen }"
+                :size="14"
+              />
             </div>
-            <transition name="select-dropdown">
-              <div v-show="isLangOpen" class="select-dropdown">
+            <Transition name="select-dropdown">
+              <div
+                v-show="isLangOpen"
+                class="select-dropdown"
+              >
                 <div
                   v-for="lang in supportedLocales"
                   :key="lang.code"
@@ -148,27 +204,36 @@
                     <span class="lang-flag">{{ lang.flag }}</span>
                     <span class="lang-name">{{ lang.name }}</span>
                   </div>
-                  <UiIcon v-if="currentLocale === lang.code" name="check" :size="14" class="check-icon" />
+                  <UiIcon
+                    v-if="currentLocale === lang.code"
+                    name="check"
+                    :size="14"
+                    class="check-icon"
+                  />
                 </div>
               </div>
-            </transition>
+            </Transition>
           </div>
         </div>
       </div>
 
       <div class="setting-item">
         <div class="setting-info">
-          <div class="setting-label">{{ t('settings.topNav') }}</div>
-          <div class="setting-desc">{{ t('settings.topNavDesc') }}</div>
+          <div class="setting-label">
+            {{ t('settings.topNav') }}
+          </div>
+          <div class="setting-desc">
+            {{ t('settings.topNavDesc') }}
+          </div>
         </div>
         <div class="setting-control">
           <button
             :class="['toggle-switch', { active: topNavEnabled }]"
-            @click="toggleTopNav"
             role="switch"
             :aria-checked="topNavEnabled"
+            @click="toggleTopNav"
           >
-            <span class="toggle-knob"></span>
+            <span class="toggle-knob" />
           </button>
         </div>
       </div>
@@ -179,14 +244,14 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import backend from '@/api/client'
+import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
-import { useGlassMessage } from '@/composables/useGlassMessage'
 import { useClickOutside } from '@/composables/useClickOutside'
-import { supportedLocales, setLocale, type LocaleCode } from '@/i18n'
+import { useGlassMessage } from '@/composables/useGlassMessage'
 import { useTheme, type ThemeMode, presetColors } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
-import UiIcon from '@/components/ui/Icon.vue'
-import backend from '@/api/client'
+import { supportedLocales, setLocale, type LocaleCode } from '@/i18n'
 
 interface GeneralSettings {
   mode?: string
@@ -220,10 +285,10 @@ const {
 const { topNavEnabled, toggleTopNav } = useTopNav()
 
 const currentSettings = computed(() => ({
-  mode: props.settings?.mode || 'system',
-  primary_color: props.settings?.primary_color || '#4A7FD9',
-  blur_amount: props.settings?.blur_amount ?? 6,
-  background_image: props.settings?.background_image || '',
+  mode: props.settings?.mode ?? '',
+  primary_color: props.settings?.primary_color ?? '',
+  blur_amount: props.settings?.blur_amount,
+  background_image: props.settings?.background_image ?? '',
 }))
 
 const bgBrightness = ref(Math.round(backgroundOpacity.value * 100))
@@ -241,7 +306,7 @@ const selectedLanguage = computed(() =>
   supportedLocales.find(l => l.code === currentLocale.value)
 )
 
-const updateField = (field: string, value: any) => {
+const updateField = (field: keyof GeneralSettings, value: string | number | boolean) => {
   emit('update:settings', { ...props.settings, [field]: value })
 }
 
@@ -324,7 +389,7 @@ const selectLocalImage = async () => {
   message.success(t('common.success'))
 }
 
-let bgTimer: any = null
+let bgTimer: ReturnType<typeof setTimeout> | null = null
 const handleBgImageInput = (e: Event) => {
   const val = (e.target as HTMLInputElement).value
   updateField('background_image', val)
@@ -372,400 +437,5 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
-.tab-pane {
-  max-width: 540px;
-}
+<style scoped src="@/styles/GeneralTab.css"></style>
 
-.settings-section {
-  margin-bottom: var(--s-2xl);
-}
-
-.settings-section:last-child {
-  margin-bottom: 0;
-}
-
-.section-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: var(--s-lg);
-  padding-bottom: var(--s-sm);
-  border-bottom: 1px solid var(--divider);
-}
-
-.setting-item {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--s-xl);
-  margin-bottom: var(--s-xl);
-}
-
-.setting-item:last-child {
-  margin-bottom: 0;
-}
-
-.setting-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.setting-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 2px;
-}
-
-.setting-desc {
-  font-size: 11px;
-  color: var(--text-tertiary);
-  line-height: 1.5;
-}
-
-.setting-control {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
-
-/* 主题选择 */
-.theme-options {
-  display: flex;
-  gap: var(--s-md);
-}
-
-/* 主题选择：60px × 36px 圆角 4px */
-.theme-option {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  width: 54px;
-  height: 32px;
-  border-radius: var(--r-xs);
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 150ms ease-out;
-  position: relative;
-}
-
-.theme-option:hover {
-  border-color: var(--border-hover);
-  color: var(--text-primary);
-}
-
-/* 浅色选中：边框 + 勾选图标 */
-.theme-option.active {
-  border-color: var(--primary);
-  color: var(--primary);
-  background: transparent;
-}
-
-/* 深色选中：边框 rgba(255,255,255,0.3) */
-[data-theme="dark"] .theme-option.active {
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.theme-option-label {
-  font-size: 10px;
-  font-weight: 500;
-}
-
-.theme-check {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--primary);
-  color: var(--text-on-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* 主题色圆点：20px，间距 12px */
-.color-presets {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-}
-
-.color-dot {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: all 150ms ease-out;
-}
-
-.color-dot:hover {
-  transform: scale(1.1);
-}
-
-.color-dot.active {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px var(--primary-alpha);
-}
-
-.custom-color-wrapper {
-  position: relative;
-  width: 18px;
-  height: 18px;
-}
-
-.color-input-native {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.custom-color-label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 1px dashed var(--border-strong);
-  color: var(--text-tertiary);
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 150ms ease-out;
-}
-
-.custom-color-label:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
-/* 输入框 */
-.text-input {
-  height: 29px;
-  padding: 0 9px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-  font-size: 12px;
-  outline: none;
-  width: 180px;
-  transition: border-color 150ms ease-out;
-}
-
-.text-input:focus {
-  border-color: var(--border-hover);
-}
-
-.text-input::placeholder {
-  color: var(--text-tertiary);
-}
-
-.bg-input-group {
-  display: flex;
-  align-items: center;
-  gap: var(--s-sm);
-}
-
-.btn-ghost {
-  padding: 5px 11px;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
-  color: var(--text-secondary);
-  font-size: 11px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 150ms ease-out;
-}
-
-.btn-ghost:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
-/* 滑块 */
-/* 开关：非 iOS 风格，32px 宽 20px 高 */
-.toggle-switch {
-  width: 29px;
-  height: 18px;
-  border-radius: 14px;
-  border: none;
-  background: #D0D0D0;
-  cursor: pointer;
-  position: relative;
-  transition: background 150ms ease-out;
-  padding: 0;
-  flex-shrink: 0;
-}
-
-/* 深色模式关闭态 */
-[data-theme="dark"] .toggle-switch {
-  background: #4A4D55;
-}
-
-.toggle-switch.active {
-  background: var(--primary);
-}
-
-.toggle-knob {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #FFFFFF;
-  transition: transform 150ms ease-out;
-}
-
-/* 深色模式关闭态圆球 */
-[data-theme="dark"] .toggle-switch:not(.active) .toggle-knob {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.toggle-switch.active .toggle-knob {
-  transform: translateX(11px);
-}
-
-/* 下拉选择 */
-.custom-select {
-  position: relative;
-  width: 162px;
-}
-
-.select-trigger {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 29px;
-  padding: 0 9px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--bg-elevated);
-  cursor: pointer;
-  transition: border-color 150ms ease-out;
-}
-
-.select-trigger:hover {
-  border-color: var(--border-hover);
-}
-
-.selected-text {
-  font-size: 12px;
-  color: var(--text-primary);
-}
-
-.select-arrow {
-  color: var(--text-tertiary);
-  transition: transform 150ms ease-out;
-}
-
-.select-arrow.rotated {
-  transform: rotate(180deg);
-}
-
-.select-dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  overflow: hidden;
-  z-index: 100;
-}
-
-.select-option {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 7px 11px;
-  cursor: pointer;
-  font-size: 12px;
-  color: var(--text-primary);
-  transition: background 150ms ease-out;
-}
-
-.select-option:hover {
-  background: var(--bg-hover);
-}
-
-.select-option.active {
-  color: var(--primary);
-}
-
-.option-content {
-  display: flex;
-  align-items: center;
-  gap: var(--s-sm);
-}
-
-.lang-flag {
-  font-size: 13px;
-}
-
-.lang-name {
-  font-size: 12px;
-}
-
-.check-icon {
-  color: var(--primary);
-  flex-shrink: 0;
-}
-
-.select-dropdown-enter-active,
-.select-dropdown-leave-active {
-  transition: all 150ms ease-out;
-}
-
-.select-dropdown-enter-from,
-.select-dropdown-leave-to {
-  opacity: 0;
-  transform: translateY(-4px);
-}
-
-/* 密钥环 */
-.text-muted {
-  color: var(--text-tertiary);
-}
-
-.danger-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 5px 18px;
-  border-radius: 5px;
-  border: 1px solid var(--color-error);
-  background: transparent;
-  color: var(--color-error);
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 150ms ease-out;
-  white-space: nowrap;
-}
-
-.danger-btn:hover:not(:disabled) {
-  background: var(--color-error);
-  color: #fff;
-}
-
-.danger-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-</style>

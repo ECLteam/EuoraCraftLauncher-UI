@@ -1,13 +1,13 @@
 // 插件生命周期钩子，按插件名隔离
 
 import backend from '@/api/client'
+import type { CleanupFn } from './types'
 import type {
   BackendEventName,
   BackendEvents,
   CommandName,
   CommandPayloadMap,
 } from '@/types/api'
-import type { CleanupFn } from './types'
 
 const cleanupRegistry = new Map<string, CleanupFn[]>()
 
@@ -26,7 +26,7 @@ export function runPluginCleanup(plugin: string): void {
   const list = cleanupRegistry.get(plugin)
   if (!list) return
   for (const fn of [...list].reverse()) {
-    try { fn() } catch {}
+    try { fn() } catch { /* 清理时忽略错误 */ }
   }
   cleanupRegistry.delete(plugin)
 }
