@@ -13,9 +13,9 @@ export function useTopNav() {
   }
 
   // 顶部栏是否启用（启用即显示）：语义上与 titlebarHidden 相反
-  const topNavEnabled = computed({
+  const topNavEnabled = computed<boolean>({
     get: () => !titlebarHidden.value,
-    set: (val) => setTitlebarHidden(!val),
+    set: (val: boolean) => setTitlebarHidden(!val),
   })
 
   return {

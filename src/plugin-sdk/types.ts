@@ -1,126 +1,68 @@
-/**
- * plugin-sdk 通用类型定义
- * 插件开发者可直接引入使用，无需额外声明类型
- */
+// plugin-sdk 专属类型，游戏/启动器数据类型统一从 @/types/api 导出
 
-// ── API 响应 ──
+import type { MinecraftAccount } from '@/types/api'
 
-export interface ApiResponse<T = any> {
-  success: boolean
-  data?: T
-  message?: string
-  timestamp?: number
-}
+export type CleanupFn = () => void
 
-// ── 插件元信息 ──
-
-export interface PluginInfo {
-  name: string
-  version: string
-  title: string
-  description: string
-  author: string
-  icon: string
-  status: string
-  error: string | null
-  is_system: boolean
-}
-
-// ── 配置 ──
-
-export interface PluginSettingsSchema {
-  [key: string]: {
-    type: 'string' | 'number' | 'boolean' | 'select'
-    default: any
-    label: string
-    description?: string
-    options?: { label: string; value: any }[]
-  }
-}
-
-// ── 路由 ──
-
-export interface PluginRoute {
+export interface PluginSdkContext {
   plugin: string
-  path: string
-  title: string
-  icon: string
-}
-
-// ── 事件载荷 ──
-
-export interface PluginEventPayload {
-  plugin: string
-  [key: string]: any
-}
-
-export interface PluginSettingsChangedPayload {
-  plugin: string
-  key: string
-  old_value: any
-  new_value: any
-}
-
-// ── 游戏相关 ──
-
-export interface GameVersion {
-  id: string
-  type: string
-  release_time: string
-  url: string
-}
-
-export interface JavaInfo {
-  path: string
   version: string
-  arch: string
-  vendor: string
 }
 
-export interface AccountInfo {
-  id: string
-  username: string
-  type: 'offline' | 'microsoft'
-  uuid?: string
-  avatar_url?: string
+export interface ThemeConfig {
+  mode: 'light' | 'dark' | 'system'
+  primaryColor: string
+  backgroundImage: string
+  backgroundOpacity: number
 }
 
-// ── 模组相关 ──
+export interface ThemeState extends ThemeConfig {
+  isDark: boolean
+}
 
-export interface ModInfo {
-  filename: string
-  name: string
+export type LauncherVersionType = 'dev' | 'beta' | 'release'
+
+export interface LauncherState {
   version: string
-  author: string
-  loader_type: string
-  game_version: string
-  enabled: boolean
+  versionType: LauncherVersionType
+  devMode: boolean
 }
 
-export interface OnlineModResult {
-  id: string
-  slug: string
-  title: string
-  description: string
-  author: string
-  icon_url: string
-  downloads: number
-  versions: string[]
-  categories: string[]
-  source: 'modrinth' | 'curseforge'
+export interface AccountState {
+  current: MinecraftAccount | null
+  list: MinecraftAccount[]
 }
 
-// ── 下载进度 ──
-
-export interface DownloadProgress {
-  filename: string
-  total: number
-  downloaded: number
-  speed: number
-  percent: number
-  status: 'downloading' | 'completed' | 'error' | 'pending'
-}
-
-// ── 通用字典 ──
-
-export type JsonDict = Record<string, any>
+// 统一从 @/types/api 重新导出常用数据类型，避免维护两份定义
+export type {
+  ApiResponse,
+  MinecraftVersion,
+  ScannedVersion,
+  JavaInstallation,
+  JsonDict,
+  MinecraftAccount,
+  AccountListData,
+  PluginInfo,
+  PluginRoute,
+  PluginSettingsSchema,
+  ModItem,
+  ModSearchItem,
+  ModVersion,
+  ResourcePack,
+  ShaderPack,
+  SaveEntry,
+  FsEntry,
+  FileContent,
+  PathInfo,
+  SelectResult,
+  ImageSelection,
+  ImageDataUrl,
+  DownloadProgress,
+  InstallProgress,
+  LaunchProgress,
+  BackendEvents,
+  BackendEventName,
+  CommandName,
+  CommandPayloadMap,
+  CommandResponseMap,
+} from '@/types/api'

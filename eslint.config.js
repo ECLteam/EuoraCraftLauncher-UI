@@ -1,13 +1,17 @@
 import js from '@eslint/js'
-import ts from 'typescript-eslint'
+import importPlugin from 'eslint-plugin-import'
 import vue from 'eslint-plugin-vue'
 import globals from 'globals'
+import ts from 'typescript-eslint'
 
 export default ts.config(
   js.configs.recommended,
   ...ts.configs.recommended,
   ...vue.configs['flat/recommended'],
   {
+    plugins: {
+      import: importPlugin,
+    },
     languageOptions: {
       globals: {
         ...globals.browser,

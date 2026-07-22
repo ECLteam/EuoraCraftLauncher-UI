@@ -6,30 +6,47 @@
     :tabindex="isInteractive ? 0 : undefined"
     @keydown="handleKeydown"
   >
-    <div v-if="$slots.header || title" class="card-header">
+    <div
+      v-if="$slots.header || title"
+      class="card-header"
+    >
       <slot name="header">
         <div class="header-content">
-          <i v-if="icon" :class="['icon', icon]" />
+          <i
+            v-if="icon"
+            :class="['icon', icon]"
+          />
           <span class="title-text">{{ title }}</span>
         </div>
-        <div v-if="$slots.actions" class="header-actions">
+        <div
+          v-if="$slots.actions"
+          class="header-actions"
+        >
           <slot name="actions" />
         </div>
       </slot>
     </div>
     
-    <div class="card-body" :class="bodyClass">
+    <div
+      class="card-body"
+      :class="bodyClass"
+    >
       <slot />
     </div>
     
-    <div v-if="$slots.footer" class="card-footer">
+    <div
+      v-if="$slots.footer"
+      class="card-footer"
+    >
       <slot name="footer" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, useAttrs } from 'vue'
+import { computed } from 'vue'
+
+defineOptions({ name: 'UiCard' })
 
 const props = defineProps<{
   title?: string
@@ -43,7 +60,6 @@ const emit = defineEmits<{
   click: [event: MouseEvent]
 }>()
 
-const attrs = useAttrs()
 const isInteractive = computed(() => props.interactive || false)
 
 const handleKeydown = (event: KeyboardEvent) => {
@@ -56,4 +72,4 @@ const handleKeydown = (event: KeyboardEvent) => {
 }
 </script>
 
-<style scoped src="@/styles/Card.css"></style>
+<style scoped src="@/styles/components/ui/Card.css"></style>

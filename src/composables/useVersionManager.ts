@@ -1,25 +1,33 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import backend from '@/api/client'
+import {
+  LAUNCH_PROGRESS,
+  DOWNLOAD_BASE_PROGRESS,
+  DOWNLOAD_PROGRESS_SCALE,
+  LAUNCH_SUCCESS_HIDE_DELAY,
+  LAUNCH_ERROR_HIDE_DELAY,
+  STATUS_MESSAGE_AUTO_HIDE,
+} from '@/config/game'
 import { useGlassMessage } from './useGlassMessage'
 import { globalLaunchProgress } from './useLaunchProgress'
+import type { ScannedVersion, LaunchProgress, GameConfig } from '@/types/api'
 
 export interface VersionItem {
   id: string
   type: string
+  versionType: ScannedVersion['versionType']
+  gamePath: string
 }
 
-// 全局共享状态，确保游戏页和版本管理页选择同步
 const globalVersions = ref<VersionItem[]>([])
 const globalSelectedVersion = ref<string>('')
+const currentGamePath = ref<string>('')
 
-// 模块级共享当前游戏路径，确保各组件实例间同步
-const currentGamePath = ref('')
-
-export function useVersionManager(t: (key: string, ...args: any[]) => string) {
+export function useVersionManager(t: (key: string, ...args: unknown[]) => string) {
   const message = useGlassMessage()
   const router = useRouter()
-  const { show: showLaunchProgress, hide: hideLaunchProgress, setProgress: setLaunchProgress, cancel: cancelLaunchProgress } = globalLaunchProgress
+  const { show: showLaunchProgress, hide: hideLaunchProgress, setProgress: setLaunchProgress } = globalLaunchProgress
 
   const versions = globalVersions
   const selectedVersion = globalSelectedVersion
@@ -28,54 +36,70 @@ export function useVersionManager(t: (key: string, ...args: any[]) => string) {
   const statusMsg = ref<string>('')
   const statusType = ref<'info' | 'success' | 'error'>('info')
 
-  async function loadVersions(gamePath?: string) {
+  async function loadVersions() {
     loading.value = true
-    try {
-      const configRes = await backend.config.get('game')
-      const minecraftPaths = configRes.data?.minecraft_paths ?? []
-      if (!minecraftPaths.length) {
-        showStatus(t('game.status.noGameDir'), 'error')
-        return
-      }
-
-      const stringPaths = [...new Set(minecraftPaths.map((path: any) =>
-        typeof path === 'string' ? path : path.path
-      ))]
-      const scanRes = await backend.command('scan_versions', { path: stringPaths })
-      if (scanRes.success && scanRes.data) {
-        const seen = new Set<string>()
-        versions.value = scanRes.data
-          .filter((v: any) => !v.isBroken)
-          .filter((v: any) => {
-            const id = v.versionId || v.id
-            if (seen.has(id)) return false
-            seen.add(id)
-            return true
-          })
-          .map((v: any) => ({ id: v.versionId || v.id, type: v.primaryLoader || 'Vanilla' }))
-
-        if (versions.value.length > 0 && !selectedVersion.value) {
-          selectedVersion.value = versions.value[0].id
-        }
-
-        // 记录第一个游戏路径
-        if (stringPaths.length > 0) {
-          currentGamePath.value = stringPaths[0]
-        }
-
-        showStatus(t('game.status.foundVersions', { count: versions.value.length }), 'success')
-      } else {
-        showStatus(t('game.status.scanFailed'), 'error')
-      }
-    } catch (e) {
-      showStatus(t('game.status.fetchFailed'), 'error')
-    } finally {
+    const configRes = await backend.config.get<GameConfig>('game')
+    const minecraftPaths = configRes.data?.minecraft_paths ?? []
+    if (!minecraftPaths.length) {
       loading.value = false
+      showStatus(t('game.status.noGameDir'), 'error')
+      return
     }
+
+    const stringPaths = [...new Set(minecraftPaths.map((path) =>
+      typeof path === 'string' ? path : path.path
+    ))]
+    const scanRes = await backend.command('scan_versions', { path: stringPaths })
+    loading.value = false
+    if (!scanRes.success || !scanRes.data) {
+      showStatus(t('game.status.scanFailed'), 'error')
+      return
+    }
+
+    const seen = new Set<string>()
+    versions.value = scanRes.data
+      .filter((v: ScannedVersion) => !v.isBroken)
+      .filter((v: ScannedVersion) => {
+        const id = v.versionId || v.id
+        const gamePath = getVersionGamePath(v, stringPaths[0] ?? '')
+        const key = `${gamePath}\0${id}`
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+      .map((v: ScannedVersion) => ({
+        id: v.versionId || v.id,
+        type: v.primaryLoader || 'Vanilla',
+        versionType: v.versionType,
+        gamePath: getVersionGamePath(v, stringPaths[0] ?? ''),
+      }))
+
+    const selected = versions.value.find((version) =>
+      version.id === selectedVersion.value && version.gamePath === currentGamePath.value
+    ) ?? versions.value.find((version) => version.id === selectedVersion.value)
+      ?? versions.value[0]
+    if (selected) {
+      selectVersion(selected.id, selected.gamePath)
+    } else {
+      selectedVersion.value = ''
+      currentGamePath.value = ''
+    }
+
+    showStatus(t('game.status.foundVersions', { count: versions.value.length }), 'success')
   }
 
-  function selectVersion(id: string) {
+  function getVersionGamePath(version: ScannedVersion, fallback: string): string {
+    if (version.path) return version.path
+    const pathMatch = version.jsonPath?.match(/^(.*)[\\/]versions[\\/]/i)
+    return pathMatch?.[1] || fallback
+  }
+
+  function selectVersion(id: string, gamePath?: string) {
     selectedVersion.value = id
+    const selected = gamePath
+      ? versions.value.find((version) => version.id === id && version.gamePath === gamePath)
+      : versions.value.find((version) => version.id === id)
+    currentGamePath.value = selected?.gamePath || gamePath || currentGamePath.value
   }
 
   function setGamePath(path: string) {
@@ -106,7 +130,7 @@ export function useVersionManager(t: (key: string, ...args: any[]) => string) {
     router.push({ name: 'game' })
     showLaunchProgress({ cancelable: true })
 
-    const unlisten = backend.on('game:launch_progress', (payload: any) => {
+    const unlisten = backend.on('game:launch_progress', (payload: LaunchProgress) => {
       if (globalLaunchProgress.progress.value.canceled) {
         unlisten()
         return
@@ -118,71 +142,62 @@ export function useVersionManager(t: (key: string, ...args: any[]) => string) {
 
       if (phase === 'launched') {
         setLaunchProgress(100, 'success', msg)
-        setTimeout(hideLaunchProgress, 1500)
+        setTimeout(hideLaunchProgress, LAUNCH_SUCCESS_HIDE_DELAY)
         unlisten()
       } else if (phase === 'error') {
         setLaunchProgress(0, 'error', msg)
-        setTimeout(hideLaunchProgress, 2000)
+        setTimeout(hideLaunchProgress, LAUNCH_ERROR_HIDE_DELAY)
         unlisten()
       } else if (phase === 'preparing') {
-        setLaunchProgress(3, 'preparing', msg)
+        setLaunchProgress(LAUNCH_PROGRESS.preparing!, 'preparing', msg)
       } else if (phase === 'downloading' && typeof pct === 'number') {
-        setLaunchProgress(10 + pct * 0.38, 'downloading_assets', msg)
+        setLaunchProgress(DOWNLOAD_BASE_PROGRESS + pct * DOWNLOAD_PROGRESS_SCALE, 'downloading_assets', msg)
       } else if (phase === 'checking') {
-        setLaunchProgress(5, 'checking_files', msg)
+        setLaunchProgress(LAUNCH_PROGRESS.checking!, 'checking_files', msg)
       } else if (phase === 'files_checked') {
-        setLaunchProgress(50, 'files_checked', msg)
+        setLaunchProgress(LAUNCH_PROGRESS.files_checked!, 'files_checked', msg)
       } else if (phase === 'building_args') {
-        setLaunchProgress(typeof pct === 'number' ? pct : 65, 'building_params', msg)
+        setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.building_args!, 'building_params', msg)
       } else if (phase === 'args_built') {
-        setLaunchProgress(75, 'args_built', msg)
+        setLaunchProgress(LAUNCH_PROGRESS.args_built!, 'args_built', msg)
       } else if (phase === 'natives_done') {
-        setLaunchProgress(85, 'natives_done', msg)
+        setLaunchProgress(LAUNCH_PROGRESS.natives_done!, 'natives_done', msg)
       } else if (phase === 'about_to_launch') {
-        setLaunchProgress(92, 'about_to_launch', msg)
+        setLaunchProgress(LAUNCH_PROGRESS.about_to_launch!, 'about_to_launch', msg)
       } else if (phase === 'launching') {
-        setLaunchProgress(typeof pct === 'number' ? pct : 95, 'launching', msg)
+        setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.launching!, 'launching', msg)
       } else {
-        setLaunchProgress(2, 'prepare' as any, msg)
+        setLaunchProgress(2, 'prepare', msg)
       }
     })
 
-    try {
-      setLaunchProgress(0, 'prepare', `正在准备启动 ${selectedVersion.value}...`)
+    setLaunchProgress(0, 'prepare', `正在准备启动 ${selectedVersion.value}...`)
 
-      const launchResult = await backend.command('launch_instance', {
-        version_id: selectedVersion.value,
-        game_path: currentGamePath.value,
-      })
+    const launchResult = await backend.command('launch_instance', {
+      version_id: selectedVersion.value,
+      game_path: currentGamePath.value,
+    })
 
-      if (!launchResult.success) {
-        const isCanceled = launchResult.message === '启动已取消'
-        if (isCanceled) {
-          setLaunchProgress(0, 'error', '已取消')
-        } else if (!globalLaunchProgress.progress.value.canceled) {
-          setLaunchProgress(0, 'error', launchResult.message || '启动失败')
-          message.error(launchResult.message || '启动失败')
-        }
-        setTimeout(hideLaunchProgress, 2000)
-        return
-      }
+    unlisten()
+    launching.value = false
 
-      if (!globalLaunchProgress.progress.value.canceled) {
-        setLaunchProgress(100, 'launched', `游戏 ${selectedVersion.value} 已启动`)
-        message.success(`游戏 ${selectedVersion.value} 已启动`)
-      }
-      setTimeout(hideLaunchProgress, 1500)
-    } catch (e) {
-      console.error('启动失败:', e)
-      if (!globalLaunchProgress.progress.value.canceled) {
-        setLaunchProgress(0, 'error', '启动过程中发生错误')
-        message.error('启动过程中发生错误')
+    if (!launchResult.success) {
+      const isCanceled = launchResult.message === '启动已取消'
+      if (isCanceled) {
+        setLaunchProgress(0, 'error', '已取消')
+      } else if (!globalLaunchProgress.progress.value.canceled) {
+        setLaunchProgress(0, 'error', launchResult.message || '启动失败')
+        message.error(launchResult.message || '启动失败')
       }
       setTimeout(hideLaunchProgress, 2000)
-    } finally {
-      unlisten()
-      launching.value = false
+      return
     }
+
+    if (!globalLaunchProgress.progress.value.canceled) {
+      setLaunchProgress(100, 'launched', `游戏 ${selectedVersion.value} 已启动`)
+      message.success(`游戏 ${selectedVersion.value} 已启动`)
+    }
+    setTimeout(hideLaunchProgress, 1500)
   }
 
   let statusId = 0
@@ -194,7 +209,7 @@ export function useVersionManager(t: (key: string, ...args: any[]) => string) {
       if (statusId === id) {
         statusMsg.value = ''
       }
-    }, 5000)
+    }, STATUS_MESSAGE_AUTO_HIDE)
   }
 
   return reactive({

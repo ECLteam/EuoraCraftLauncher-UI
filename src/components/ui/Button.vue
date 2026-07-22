@@ -19,13 +19,29 @@
       class="ripple"
       :style="{ left: ripple.x + 'px', top: ripple.y + 'px' }"
     />
-    <span v-if="loading" class="loading-spinner"> 
-       <UiIcon name="spinner" :size="16" class="spin" /> 
-   </span> 
-   <span v-else-if="icon" class="btn-icon"> 
-       <UiIcon :name="icon.replace('icon-', '')" :size="16" /> 
-   </span>
-    <span v-if="$slots.default" class="btn-content">
+    <span
+      v-if="loading"
+      class="loading-spinner"
+    > 
+      <UiIcon
+        name="spinner"
+        :size="16"
+        class="spin"
+      /> 
+    </span> 
+    <span
+      v-else-if="icon"
+      class="btn-icon"
+    > 
+      <UiIcon
+        :name="icon.replace('icon-', '')"
+        :size="16"
+      /> 
+    </span>
+    <span
+      v-if="$slots.default"
+      class="btn-content"
+    >
       <slot />
     </span>
   </button>
@@ -34,6 +50,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useButtonFeedback } from '@/composables/useAnimation'
+
+defineOptions({ name: 'UiButton' })
 
 const props = withDefaults(defineProps<{
   variant?: 'primary' | 'secondary' | 'outline' | 'text' | 'danger' | 'ghost'
@@ -47,8 +65,10 @@ const props = withDefaults(defineProps<{
   variant: 'primary',
   size: 'md',
   shape: 'default',
+  icon: '',
   loading: false,
-  disabled: false
+  disabled: false,
+  title: ''
 })
 
 const emit = defineEmits<{
@@ -82,4 +102,4 @@ const handleClick = (event: MouseEvent) => {
 }
 </script>
 
-<style scoped src="@/styles/Button.css"></style>
+<style scoped src="@/styles/components/ui/Button.css"></style>

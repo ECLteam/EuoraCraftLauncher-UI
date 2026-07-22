@@ -1,22 +1,29 @@
 <template>
-  <div class="ui-input-wrapper" :class="{ 'is-focused': isFocused, 'is-disabled': disabled }">
-    <UiIcon v-if="leadingIcon" :name="leadingIcon.replace('icon-', '')" class="prefix-icon" />
+  <div
+    class="ui-input-wrapper"
+    :class="{ 'is-focused': isFocused, 'is-disabled': disabled }"
+  >
+    <UiIcon
+      v-if="leadingIcon"
+      :name="leadingIcon.replace('icon-', '')"
+      class="prefix-icon"
+    />
     
     <input
+      :id="id"
       ref="inputRef"
       :value="modelValue"
       :type="type"
       :placeholder="placeholder"
       :disabled="disabled"
       :readonly="readonly"
-      :id="id"
       :aria-label="ariaLabel"
       class="ui-input"
       @input="handleInput"
       @focus="isFocused = true"
       @blur="isFocused = false"
       @keydown.enter="$emit('enter')"
-    />
+    >
     
     <button
       v-if="clearable && modelValue"
@@ -28,12 +35,18 @@
       <UiIcon name="close" />
     </button>
     
-    <UiIcon v-if="suffixIcon" :name="suffixIcon.replace('icon-', '')" class="suffix-icon" />
+    <UiIcon
+      v-if="suffixIcon"
+      :name="suffixIcon.replace('icon-', '')"
+      class="suffix-icon"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+
+defineOptions({ name: 'UiInput' })
 
 const props = withDefaults(defineProps<{
   modelValue: string | number
@@ -49,9 +62,14 @@ const props = withDefaults(defineProps<{
 }>(), {
   type: 'text',
   modelValue: '',
+  placeholder: '',
   disabled: false,
   readonly: false,
-  clearable: false
+  clearable: false,
+  prefixIcon: '',
+  suffixIcon: '',
+  id: '',
+  ariaLabel: ''
 })
 
 const leadingIcon = computed(() => props.prefixIcon)
@@ -77,4 +95,4 @@ const handleClear = () => {
 }
 </script>
 
-<style scoped src="@/styles/Input.css"></style>
+<style scoped src="@/styles/components/ui/Input.css"></style>

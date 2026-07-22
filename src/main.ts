@@ -1,9 +1,9 @@
-import { createApp } from 'vue'
 import { create as createNaiveUI } from 'naive-ui'
-import router from '@/router'
+import { createApp } from 'vue'
 import App from '@/App.vue'
 import { initTheme } from '@/composables/useTheme'
 import { i18n, getCurrentLocale, loadLocaleFromBackend } from '@/i18n'
+import router from '@/router'
 import UiIcon from './components/ui/Icon.vue'
 import '@/styles/main.css'
 

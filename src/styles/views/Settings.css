@@ -1,0 +1,136 @@
+:root { --settings-nav-w: 180px; }
+
+.settings-page {
+  display: flex;
+  height: 100%;
+  gap: 0;
+}
+
+.settings-nav {
+  width: 180px;
+  min-width: 180px;
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin-right: var(--s-lg);
+}
+
+.nav-header {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.nav-title {
+  display: flex;
+  align-items: center;
+  gap: var(--s-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.nav-list {
+  flex: 1;
+  padding: var(--s-sm) 0;
+  overflow-y: auto;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 14px;
+  gap: var(--s-sm);
+  position: relative;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: var(--r-sm);
+  margin: 0 7px;
+  transition: color var(--duration-fast) ease-out, background var(--duration-fast) ease-out;
+}
+
+.nav-item:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.nav-item.active {
+  color: var(--primary);
+  background: transparent;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .nav-item.active {
+  color: var(--info);
+}
+
+.nav-indicator {
+  position: absolute;
+  left: 0;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--primary);
+  opacity: 0;
+  transition: opacity var(--duration-fast) ease-out;
+}
+
+[data-theme="dark"] .nav-indicator {
+  background: var(--info);
+}
+
+.nav-item.active .nav-indicator {
+  opacity: 1;
+}
+
+.nav-icon {
+  flex-shrink: 0;
+}
+
+.nav-label {
+  white-space: nowrap;
+}
+
+.settings-content {
+  flex: 1;
+  min-width: 0;
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
+  padding: var(--s-xl);
+  overflow-y: auto;
+}
+
+@media (max-width: 1000px) {
+  .settings-page {
+    gap: var(--s-md);
+  }
+  .settings-nav {
+    width: 144px;
+    min-width: 144px;
+    margin-right: var(--s-md);
+  }
+  .nav-item {
+    padding: 0 11px;
+    margin: 0 5px;
+  }
+  .nav-label {
+    font-size: 11px;
+  }
+  .settings-content {
+    padding: var(--s-lg);
+  }
+}

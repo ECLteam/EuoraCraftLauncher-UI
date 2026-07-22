@@ -1,4 +1,5 @@
 import { ref, readonly } from 'vue'
+import { LAUNCH_STAGES } from '@/config/game'
 
 interface LaunchProgressState {
   visible: boolean
@@ -18,23 +19,7 @@ const state = ref<LaunchProgressState>({
   canceled: false,
 })
 
-const STAGES = {
-  prepare: '准备启动...',
-  preparing: '正在准备...',
-  checking_files: '检查游戏文件完整性...',
-  files_checked: '文件校验完成',
-  completing_files: '补全缺失文件...',
-  downloading_assets: '下载游戏资源...',
-  building_params: '构建启动参数...',
-  args_built: '参数构建完成',
-  extracting_natives: '解压原生库...',
-  natives_done: '原生库解压完成',
-  about_to_launch: '即将启动...',
-  launching: '启动游戏进程...',
-  completed: '启动成功！',
-  success: '启动成功！',
-  error: '启动失败',
-}
+const STAGES = LAUNCH_STAGES
 
 // 平滑动画
 let _targetPercent = 0

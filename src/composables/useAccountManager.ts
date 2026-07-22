@@ -1,20 +1,19 @@
-import { ref, computed, reactive, onScopeDispose } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import backend from '@/api/client'
+import { useClipboard } from './useClipboard'
 import { useGlassMessage } from './useGlassMessage'
+import { useIntervalFn } from './useIntervalFn'
+import type {
+  AuthlibServer,
+  MinecraftAccount,
+  MicrosoftLoginData,
+} from '@/types/api'
 
-export interface Account {
-  id: string
-  alias: string
-  type: 'microsoft' | 'offline' | 'authlib'
-  email: string
-  uuid: string
-  isCurrent?: boolean
-  skinUrl?: string
-  auth_server?: string
-}
+export type Account = MinecraftAccount
 
-export function useAccountManager(t: (key: string, ...args: any[]) => string) {
+export function useAccountManager(t: (key: string, ...args: unknown[]) => string) {
   const message = useGlassMessage()
+  const { copied: copiedUserCode, copy: copyToClipboard } = useClipboard()
 
   const accounts = ref<Account[]>([])
   const currentAccount = ref<Account | null>(null)
@@ -30,16 +29,18 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
   const authlibEmail = ref('')
   const authlibPassword = ref('')
   const addingAuthlib = ref(false)
-  const authlibServers = ref<{ name: string; url: string; description: string }[]>([])
+  const authlibServers = ref<AuthlibServer[]>([])
   const authlibServersLoading = ref(false)
 
   const showMicrosoftLoginModal = ref(false)
   const startingMicrosoftLogin = ref(false)
   const completingMicrosoftLogin = ref(false)
   const microsoftLoginStatus = ref<'pending' | 'loading' | 'error'>('pending')
-  const microsoftLoginData = ref<{ userCode: string; verificationUri: string }>({ userCode: '', verificationUri: '' })
+  const microsoftLoginData = ref<Pick<MicrosoftLoginData, 'userCode' | 'verificationUri'>>({
+    userCode: '',
+    verificationUri: '',
+  })
   const microsoftLoginError = ref('')
-  const copiedUserCode = ref(false)
 
   const showClientIdModal = ref(false)
 
@@ -51,13 +52,37 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
     return t('game.deleteConfirm', { name: accountToDelete.value.alias })
   })
 
-  let pollTimer: ReturnType<typeof setInterval> | null = null
-  let pollInterval = 5000
+  const pollInterval = ref(5000)
   let isPolling = false
 
-  onScopeDispose(() => {
-    stopPolling()
-  })
+  const { resume: startPolling, pause: stopPolling, runOnce } = useIntervalFn(
+    async () => {
+      if (!showMicrosoftLoginModal.value || microsoftLoginStatus.value !== 'pending') {
+        stopPolling()
+        return
+      }
+      if (isPolling) return
+      isPolling = true
+      const res = await backend.command('accounts_poll_microsoft_login')
+      isPolling = false
+      if (!res.success) return
+      if (res.data?.status === 'ready') {
+        stopPolling()
+        microsoftLoginStatus.value = 'loading'
+        await completeMicrosoftLogin()
+      } else if (res.data?.status === 'error') {
+        stopPolling()
+        microsoftLoginStatus.value = 'error'
+        microsoftLoginError.value = res.data.message || t('game.login.failed')
+        message.error(microsoftLoginError.value)
+      } else if (res.data?.status === 'pending' && res.data?.retry_after && res.data.retry_after > 0) {
+        stopPolling()
+        pollInterval.value = res.data.retry_after * 1000
+        startPolling()
+      }
+    },
+    () => pollInterval.value
+  )
 
   const accountTypeLabel = computed(() => {
     const type = currentAccount.value?.type
@@ -68,16 +93,13 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
 
   async function loadAccounts() {
     accountsLoading.value = true
-    try {
-      const res = await backend.command('accounts_list')
-      if (res.success && res.data) {
-        accounts.value = res.data.accounts || []
-        currentAccount.value = res.data.current
-      }
-    } catch (e) {
+    const res = await backend.command('accounts_list')
+    accountsLoading.value = false
+    if (res.success && res.data) {
+      accounts.value = res.data.accounts || []
+      currentAccount.value = res.data.current
+    } else {
       message.error(t('game.status.accountLoadFailed'))
-    } finally {
-      accountsLoading.value = false
     }
   }
 
@@ -98,33 +120,24 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
     }
 
     addingOffline.value = true
-    try {
-      const res = await backend.command('accounts_add_offline', { username })
-      if (res.success) {
-        message.success(t('game.status.accountAdded'))
-        newOfflineUsername.value = ''
-        await loadAccounts()
-      } else {
-        message.error(res.message || t('game.status.accountAddFailed'))
-      }
-    } catch (e) {
-      message.error(t('game.status.accountAddFailed'))
-    } finally {
-      addingOffline.value = false
+    const res = await backend.command('accounts_add_offline', { username })
+    addingOffline.value = false
+    if (res.success) {
+      message.success(t('game.status.accountAdded'))
+      newOfflineUsername.value = ''
+      await loadAccounts()
+    } else {
+      message.error(res.message || t('game.status.accountAddFailed'))
     }
   }
 
   async function switchAccount(accountId: string) {
-    try {
-      const res = await backend.command('accounts_switch', { account_id: accountId })
-      if (res.success) {
-        message.success(t('game.status.accountSwitched'))
-        await loadAccounts()
-      } else {
-        message.error(res.message || t('game.status.accountSwitchFailed'))
-      }
-    } catch (e) {
-      message.error(t('game.status.accountSwitchFailed'))
+    const res = await backend.command('accounts_switch', { account_id: accountId })
+    if (res.success) {
+      message.success(t('game.status.accountSwitched'))
+      await loadAccounts()
+    } else {
+      message.error(res.message || t('game.status.accountSwitchFailed'))
     }
   }
 
@@ -137,20 +150,15 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
     if (!accountToDelete.value) return
 
     deletingAccount.value = true
-    try {
-      const res = await backend.command('accounts_remove', { account_id: accountToDelete.value.id })
-      if (res.success) {
-        message.success(t('game.status.accountRemoved'))
-        showDeleteConfirmModal.value = false
-        await loadAccounts()
-      } else {
-        message.error(res.message || t('game.status.accountRemoveFailed'))
-      }
-    } catch (e) {
-      message.error(t('game.status.accountRemoveFailed'))
-    } finally {
-      deletingAccount.value = false
-      accountToDelete.value = null
+    const res = await backend.command('accounts_remove', { account_id: accountToDelete.value.id })
+    deletingAccount.value = false
+    accountToDelete.value = null
+    if (res.success) {
+      message.success(t('game.status.accountRemoved'))
+      showDeleteConfirmModal.value = false
+      await loadAccounts()
+    } else {
+      message.error(res.message || t('game.status.accountRemoveFailed'))
     }
   }
 
@@ -158,15 +166,10 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
 
   async function loadAuthlibServers() {
     authlibServersLoading.value = true
-    try {
-      const res = await backend.command('authlib_servers')
-      if (res.success && res.data) {
-        authlibServers.value = res.data
-      }
-    } catch (e) {
-      // 静默
-    } finally {
-      authlibServersLoading.value = false
+    const res = await backend.command('authlib_servers')
+    authlibServersLoading.value = false
+    if (res.success && res.data) {
+      authlibServers.value = res.data
     }
   }
 
@@ -177,7 +180,7 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
     }
   }
 
-  function selectAuthlibServer(server: { name: string; url: string; description: string }) {
+  function selectAuthlibServer(server: AuthlibServer) {
     authlibServerUrl.value = server.url
   }
 
@@ -200,132 +203,71 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
     }
 
     addingAuthlib.value = true
-    try {
-      const res = await backend.command('accounts_add_authlib', {
-        server_url: serverUrl,
-        email,
-        password,
-      })
-      if (res.success) {
-        message.success(t('game.status.accountAdded'))
-        authlibServerUrl.value = ''
-        authlibEmail.value = ''
-        authlibPassword.value = ''
-        showAuthlibForm.value = false
-        await loadAccounts()
-      } else {
-        message.error(res.message || t('game.status.accountAddFailed'))
-      }
-    } catch (e) {
-      message.error(t('game.status.accountAddFailed'))
-    } finally {
-      addingAuthlib.value = false
+    const res = await backend.command('accounts_add_authlib', {
+      server_url: serverUrl,
+      email,
+      password,
+    })
+    addingAuthlib.value = false
+    if (res.success) {
+      message.success(t('game.status.accountAdded'))
+      authlibServerUrl.value = ''
+      authlibEmail.value = ''
+      authlibPassword.value = ''
+      showAuthlibForm.value = false
+      await loadAccounts()
+    } else {
+      message.error(res.message || t('game.status.accountAddFailed'))
     }
   }
 
   async function startMicrosoftLogin() {
     startingMicrosoftLogin.value = true
-    try {
-      const res = await backend.command('accounts_start_microsoft_login')
-      if (res.success) {
-        if (res.data?.needs_client_id) {
-          showClientIdModal.value = true
-          startingMicrosoftLogin.value = false
-          return
-        }
-        if (res.data?.status === 'completed') {
-          message.success(t('game.login.success'))
-          await loadAccounts()
-        } else if (res.data?.status === 'pending' || (res.data?.verificationUri && res.data?.userCode)) {
-          microsoftLoginData.value = {
-            userCode: res.data.userCode || '',
-            verificationUri: res.data.verificationUri || ''
-          }
-          microsoftLoginStatus.value = 'pending'
-          showMicrosoftLoginModal.value = true
-          if (res.data?.interval) {
-            pollInterval = res.data.interval * 1000
-          }
-          startPolling()
-        } else {
-          message.error(res.data?.message || res.message || t('game.login.failed'))
-        }
-      } else {
-        message.error(res.message || t('game.login.failed'))
-      }
-    } catch (e) {
-      message.error(t('game.login.failed'))
-    } finally {
-      startingMicrosoftLogin.value = false
-    }
-  }
-
-  function startPolling() {
-    stopPolling()
-    pollLoginStatus()
-    pollTimer = setInterval(pollLoginStatus, pollInterval)
-  }
-
-  function stopPolling() {
-    if (pollTimer) {
-      clearInterval(pollTimer)
-      pollTimer = null
-    }
-    isPolling = false
-  }
-
-  async function pollLoginStatus() {
-    if (!showMicrosoftLoginModal.value || microsoftLoginStatus.value !== 'pending') {
-      stopPolling()
+    const res = await backend.command('accounts_start_microsoft_login')
+    startingMicrosoftLogin.value = false
+    if (!res.success) {
+      message.error(res.message || t('game.login.failed'))
       return
     }
-    if (isPolling) return
-    isPolling = true
-    try {
-      const res = await backend.command('accounts_poll_microsoft_login')
-      if (res.success) {
-        if (res.data?.status === 'ready') {
-          stopPolling()
-          microsoftLoginStatus.value = 'loading'
-          await completeMicrosoftLogin()
-        } else if (res.data?.status === 'error') {
-          stopPolling()
-          microsoftLoginStatus.value = 'error'
-          microsoftLoginError.value = res.data.message || t('game.login.failed')
-          message.error(microsoftLoginError.value)
-        } else if (res.data?.status === 'pending' && res.data?.retry_after && res.data.retry_after > 0) {
-          stopPolling()
-          pollInterval = res.data.retry_after * 1000
-          startPolling()
-        }
-      }
-    } catch (e) {
-      // 轮询失败时静默等待下次轮询
-    } finally {
-      isPolling = false
+    if (res.data?.needs_client_id) {
+      showClientIdModal.value = true
+      return
     }
+    if (res.data?.status === 'completed') {
+      message.success(t('game.login.success'))
+      await loadAccounts()
+      return
+    }
+    if (res.data?.status === 'pending' || (res.data?.verificationUri && res.data?.userCode)) {
+      microsoftLoginData.value = {
+        userCode: res.data.userCode || '',
+        verificationUri: res.data.verificationUri || ''
+      }
+      microsoftLoginStatus.value = 'pending'
+      showMicrosoftLoginModal.value = true
+      if (res.data?.interval) {
+        pollInterval.value = res.data.interval * 1000
+      }
+      runOnce()
+      startPolling()
+      return
+    }
+    message.error(res.data?.message || res.message || t('game.login.failed'))
   }
 
   async function completeMicrosoftLogin() {
     completingMicrosoftLogin.value = true
     microsoftLoginStatus.value = 'loading'
-    try {
-      const res = await backend.command('accounts_complete_microsoft_login')
-      if (res.success && res.data?.account) {
-        message.success(t('game.login.success'))
-        showMicrosoftLoginModal.value = false
-        await loadAccounts()
-      } else {
-        microsoftLoginStatus.value = 'error'
-        microsoftLoginError.value = res.message || res.data?.message || t('game.login.failed')
-        message.error(microsoftLoginError.value)
-      }
-    } catch (e) {
+    const res = await backend.command('accounts_complete_microsoft_login')
+    completingMicrosoftLogin.value = false
+    if (res.success && res.data?.account) {
+      message.success(t('game.login.success'))
+      showMicrosoftLoginModal.value = false
+      await loadAccounts()
+    } else {
       microsoftLoginStatus.value = 'error'
-      microsoftLoginError.value = t('game.login.failed')
-      message.error(t('game.login.failed'))
-    } finally {
-      completingMicrosoftLogin.value = false
+      microsoftLoginError.value = res.message || res.data?.message || t('game.login.failed')
+      message.error(microsoftLoginError.value)
     }
   }
 
@@ -341,15 +283,7 @@ export function useAccountManager(t: (key: string, ...args: any[]) => string) {
   }
 
   async function copyUserCode() {
-    try {
-      await navigator.clipboard.writeText(microsoftLoginData.value.userCode)
-      copiedUserCode.value = true
-      setTimeout(() => {
-        copiedUserCode.value = false
-      }, 2000)
-    } catch (e) {
-      // 忽略复制失败
-    }
+    await copyToClipboard(microsoftLoginData.value.userCode || '')
   }
 
   function reset() {

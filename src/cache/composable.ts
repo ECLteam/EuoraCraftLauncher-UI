@@ -1,4 +1,5 @@
 // 提供响应式缓存管理，方便Vue组件使用
+// 简单持久化单值场景推荐使用 VueUse 的 useLocalStorage，本模块保留用于 TTL/分组/批量场景
 
 import { ref, onScopeDispose, type Ref } from 'vue'
 import { globalCache, type CacheOptions, CACHE_KEYS, CACHE_GROUPS } from '@/cache'
@@ -26,7 +27,7 @@ interface CacheHookReturn<T> {
 /**
  * 使用全局缓存
  */
-export function useGlobalCache<T = any>(
+export function useGlobalCache<T = unknown>(
   key: string,
   defaultValue: T | null = null,
   options: CacheOptions = {}
@@ -36,7 +37,6 @@ export function useGlobalCache<T = any>(
   const error = ref(false)
   const isValid = ref(false)
 
-  // 初始化时加载缓存
   const loadFromCache = () => {
     try {
       const cached = globalCache.get<T>(key)
@@ -56,7 +56,6 @@ export function useGlobalCache<T = any>(
     }
   }
 
-  // 设置缓存
   const setCache = (value: T, setOptions: CacheOptions = {}) => {
     try {
       const mergedOptions = { ...options, ...setOptions }
@@ -70,7 +69,6 @@ export function useGlobalCache<T = any>(
     }
   }
 
-  // 删除缓存
   const deleteCache = () => {
     try {
       globalCache.delete(key)
@@ -83,7 +81,6 @@ export function useGlobalCache<T = any>(
     }
   }
 
-  // 刷新缓存
   const refresh = () => {
     deleteCache()
     loadFromCache()
@@ -92,7 +89,6 @@ export function useGlobalCache<T = any>(
   // 注意：globalCache 基于 Map，非响应式，无法通过 watch 监听其变化。
   // 跨组件缓存同步需依赖 setCache/deleteCache 方法手动更新 data ref。
 
-  // 初始化加载
   loadFromCache()
 
   return {
@@ -109,7 +105,7 @@ export function useGlobalCache<T = any>(
 /**
  * 使用带自动刷新的缓存
  */
-export function useAutoRefreshCache<T = any>(
+export function useAutoRefreshCache<T = unknown>(
   key: string,
   fetchFn: () => Promise<T>,
   options: CacheOptions & { autoRefresh?: boolean } = {}

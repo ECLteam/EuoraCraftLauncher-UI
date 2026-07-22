@@ -1,14 +1,15 @@
 {
   "app": {
     "title": "EuoraCraft Launcher",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "delete": "Delete"
   },
   "sidebar": {
     "toggle": "Toggle Sidebar",
     "collapse": "Collapse Sidebar",
     "expand": "Expand Sidebar",
     "game": "Game",
-    "versions": "Versions",
+    "versions": "Download",
     "instances": "Instances",
     "plugins": "Plugins",
     "settings": "Settings",
@@ -33,6 +34,7 @@
     "noVersions": "No game versions found",
     "launch": "Launch Game",
     "launching": "Launching...",
+    "noVersionInstall": "No version, please install",
     "accountManagement": "Account Management",
     "savedAccounts": "Saved Accounts",
     "current": "Current",
@@ -47,6 +49,11 @@
     "clickManageToAdd": "Click Manage to add account",
     "noAccounts": "No accounts",
     "noAccountsDesc": "Click the button above to add an account",
+    "welcomeTitle": "Welcome to EuoraCraft Launcher",
+    "welcomeContent": "Thanks for using EuoraCraft Launcher! You can manage accounts, select versions, and launch the game from the right panel.",
+    "didYouKnow": "Did You Know",
+    "announcement": "Announcement",
+    "noAnnouncements": "No announcements",
     "deleteConfirm": "Are you sure you want to delete account \"{name}\"?",
     "delete": "Delete",
     "switch": "Switch",
@@ -97,8 +104,8 @@
   },
   "versions": {
     "title": "Version Management",
-    "manageTab": "Manage",
-    "versions": "Versions",
+    "manageTab": "Manage Versions",
+    "versions": "Download Versions",
     "modsTab": "Mods",
     "manage": {
       "gamePath": "Game Path",
@@ -313,6 +320,8 @@
     "listView": "List View",
     "noPlugins": "No plugins installed yet",
     "noPluginsHint": "Plugins can add custom functionality to the launcher",
+    "noDisabledPlugins": "No disabled plugins",
+    "noDisabledPluginsHint": "All plugins are enabled",
     "installFirst": "Install your first plugin",
     "noSettings": "No plugins to configure",
     "pluginName": "Plugin Name",
@@ -358,7 +367,6 @@
     "game": "Game Settings",
     "gameSettings": "Game Settings",
     "about": "About",
-    "pluginSettings": "Plugin Settings",
     "downloadSettings": "Download Settings",
     "language": "Language",
     "theme": "Theme",
@@ -380,8 +388,6 @@
     "select": "Select",
     "languageRegion": "Language & Region",
     "languageDesc": "Choose interface display language",
-    "keyringStatus": "Keyring Status",
-    "clearKeyring": "Clear Keyring",
     "downloadSourceDesc": "Choose download source for game files",
     "downloadThreadsDesc": "Set number of simultaneous download threads",
     "memory": "Memory",
@@ -440,8 +446,16 @@
     "mouseEffectOpacityDesc": "Adjust the opacity of particles",
     "mouseEffectSpeed": "Particle Speed",
     "mouseEffectSpeedDesc": "Adjust the speed of particles"
-  },
-  "common": {
+    },
+    "error": {
+        "defaultTitle": "Critical Error",
+        "detail": "Error Details",
+        "close": "Close",
+        "exportLogs": "Export Logs",
+        "exported": "Logs exported. Please contact the developer with the log file.",
+        "contactDeveloper": "Please send the exported log file to the developer for troubleshooting."
+    },
+    "common": {
     "confirm": "Confirm",
     "cancel": "Cancel",
     "save": "Save",
@@ -540,7 +554,9 @@
     "search": "Search",
     "noResults": "No mods found",
     "install": "Install",
-    "downloads": "downloads"
+    "downloads": "downloads",
+    "queryRequired": "Please enter a search term",
+    "queryTooLong": "Search term is too long"
   },
   "auth": {
     "authlib": "Authlib Injector",
@@ -565,12 +581,6 @@
     "statusCompleted": "Completed",
     "statusFailed": "Failed"
   },
-  "password": {
-    "minLength": "Password must be at least 8 characters",
-    "mismatch": "Passwords do not match",
-    "success": "Master password set successfully",
-    "failed": "Setup failed"
-  },
   "task": {
     "subtask": {
       "downloadJson": "Download version info",
@@ -583,6 +593,8 @@
     "empty": "No tasks",
     "emptyHint": "Task progress will be shown here when installing game versions",
     "currentStatus": "Current status: ",
+    "runningCount": "{count} task(s) running",
+    "allDone": "All done",
     "clearCompleted": "Clear completed ({count})"
   }
 }

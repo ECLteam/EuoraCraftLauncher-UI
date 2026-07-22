@@ -1,27 +1,18 @@
 @font-face {
-  font-family: "MiSans VF";
-  src: url("/fonts/MiSansVF.ttf") format("truetype-variations");
-  font-weight: 100 900;
+  font-family: "HarmonyOS Sans SC";
+  src: url("/fonts/HarmonyOS_Sans_SC_Regular.ttf") format("truetype");
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
-/* ================================================================
-   EuoraCraft Design System
-   非模糊亚克力质感、小圆角、利落专业
-   ================================================================ */
-
 :root {
-  /* ================================================================
-     字体系统
-     ================================================================ */
-  --font-body: "MiSans VF", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-display: "MiSans VF", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  
+  --font-body: "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", "SF Mono", "Fira Mono", "Droid Sans Mono", monospace;
 
-  /* ================================================================
-     品牌色
-     ================================================================ */
+  
   --primary: #4A7FD9;
   --primary-hover: #3D6EC2;
   --primary-active: #3560A8;
@@ -34,7 +25,6 @@
   --accent-active: #3560A8;
   --accent-alpha: rgba(74, 127, 217, 0.15);
 
-  /* 语义色 */
   --success: #52c41a;
   --success-alpha: rgba(82, 196, 26, 0.12);
   --warning: #faad14;
@@ -44,10 +34,9 @@
   --info: #4A7FD9;
   --info-alpha: rgba(74, 127, 217, 0.12);
 
-  /* ================================================================
-     背景层（浅色模式）
-     ================================================================ */
+  
   --bg-base: #F0F1F3;
+  --bg-base-rgb: 240, 241, 243;
   --bg-base-alt: #E8E9EB;
   --bg-elevated: #FFFFFF;
   --bg-surface: rgba(255, 255, 255, 0.92);
@@ -58,9 +47,7 @@
   --bg-overlay: rgba(0, 0, 0, 0.25);
   --bg-overlay-strong: rgba(0, 0, 0, 0.40);
 
-  /* ================================================================
-     文字系统（浅色模式）
-     ================================================================ */
+  
   --text-primary: #1A1A1A;
   --text-secondary: #5C5C5C;
   --text-tertiary: #8A8A8A;
@@ -68,9 +55,7 @@
   --text-on-primary: #FFFFFF;
   --text-link: #4A7FD9;
 
-  /* ================================================================
-     边框系统
-     ================================================================ */
+  
   --border: #E0E0E0;
   --border-strong: #D0D0D0;
   --border-hover: rgba(74, 127, 217, 0.30);
@@ -78,18 +63,13 @@
   --border-focus: rgba(74, 127, 217, 0.50);
   --divider: #E0E0E0;
 
-  /* ================================================================
-     卡片材质（浅色模式）
-     - 非模糊亚克力：用纯色透明度模拟
-     ================================================================ */
-  --card-bg: rgba(255, 255, 255, 0.92);
+  
+  --card-bg: rgba(255, 255, 255, 0.75);
   --card-border-top: 1px solid rgba(255, 255, 255, 0.6);
   --card-border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   --card-shadow: none;
 
-  /* ================================================================
-     阴影系统：最小化，不使用阴影表达层次
-     ================================================================ */
+  
   --shadow-xs: none;
   --shadow-sm: none;
   --shadow-md: none;
@@ -97,9 +77,7 @@
   --shadow-xl: none;
   --shadow-hover: none;
 
-  /* ================================================================
-     圆角系统：统一 6px，标签/徽章 4px，禁止超过 6px
-     ================================================================ */
+  
   --r-xs: 4px;
   --r-sm: 6px;
   --r-md: 6px;
@@ -107,60 +85,78 @@
   --r-xl: 6px;
   --r-full: 9999px;
 
-  /* 兼容别名 */
   --radius-sm: var(--r-sm);
   --radius-lg: var(--r-lg);
 
-  /* ================================================================
-     间距系统：4px 基准
-     ================================================================ */
+  
   --s-xs: 4px;
-  --s-sm: 8px;
-  --s-md: 12px;
-  --s-lg: 16px;
-  --s-xl: 24px;
-  --s-2xl: 32px;
-  --s-3xl: 48px;
+  --s-sm: 7px;
+  --s-md: 11px;
+  --s-lg: 14px;
+  --s-xl: 22px;
+  --s-2xl: 29px;
+  --s-3xl: 43px;
 
-  /* ================================================================
-     尺寸系统
-     ================================================================ */
-  --row-h: 44px;
-  --row-h-sm: 36px;
-  --row-h-xs: 28px;
-  --sidebar-w-collapsed: 56px;
-  --sidebar-w-expanded: 200px;
-  --titlebar-h: 48px;
+  
+  --row-h: 40px;
+  --row-h-sm: 32px;
+  --row-h-xs: 25px;
+  --sidebar-w-collapsed: 50px;
+  --sidebar-w-expanded: 180px;
+  --titlebar-h: 43px;
 
-  /* ================================================================
-     动效系统：统一 150ms ease-out
-     ================================================================ */
+  
+
   --duration-instant: 0.06s;
   --duration-fast: 0.15s;
-  --duration-normal: 0.15s;
-  --duration-slow: 0.2s;
-  --duration-slower: 0.3s;
+  --duration-normal: 0.25s;
+  --duration-slow: 0.35s;
+  --duration-slower: 0.5s;
+  --duration-slowest: 0.7s;
 
-  --ease-standard: cubic-bezier(0, 0, 0.2, 1);
+  --ease-enter: cubic-bezier(0.05, 0.7, 0.1, 1.0);
+  --ease-enter-sharp: cubic-bezier(0.05, 0.5, 0.1, 1.0);
+
+  --ease-exit: cubic-bezier(0.0, 0.0, 0.3, 1.0);
+  --ease-exit-sharp: cubic-bezier(0.0, 0.0, 0.5, 1.0);
+
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ease-smooth: cubic-bezier(0, 0, 0.2, 1);
-  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-spring-gentle: cubic-bezier(0.3, 1.2, 0.5, 1);
+  --ease-bounce: cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  --ease-bounce-gentle: cubic-bezier(0.22, 0.9, 0.36, 1.1);
 
-  --transition-fast: all var(--duration-fast) ease-out;
-  --transition-normal: all var(--duration-normal) ease-out;
-  --transition-slow: all var(--duration-slow) ease-out;
-  --transition-spring: all var(--duration-normal) var(--ease-spring);
+  --ease-smooth: cubic-bezier(0.4, 0.0, 0.2, 1);
+  --ease-emphasized: cubic-bezier(0.2, 0.0, 0.0, 1.0);
+  --ease-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1.0);
+  --ease-emphasized-accelerate: cubic-bezier(0.3, 0.0, 0.8, 0.15);
 
-  /* ================================================================
-     发光系统
-     ================================================================ */
+  --ease-standard: var(--ease-smooth);
+  --ease-out: var(--ease-exit);
+
+  --stagger-xs: 20ms;
+  --stagger-sm: 40ms;
+  --stagger-md: 60ms;
+  --stagger-lg: 80ms;
+  --stagger-xl: 120ms;
+
+  --transition-fast: all var(--duration-fast) var(--ease-exit);
+  --transition-normal: all var(--duration-normal) var(--ease-smooth);
+  --transition-slow: all var(--duration-slow) var(--ease-smooth);
+  --transition-spring: all var(--duration-slow) var(--ease-spring);
+  --transition-bounce: all var(--duration-slow) var(--ease-bounce);
+  --transition-enter: all var(--duration-normal) var(--ease-enter);
+  --transition-exit: all var(--duration-normal) var(--ease-exit);
+
+  
+  --slider-track: var(--bg-base-alt);
+  --slider-thumb: var(--primary);
+
+  
   --glow-focus: 0 0 0 2px rgba(74, 127, 217, 0.25);
   --glow-focus-pink: 0 0 0 2px rgba(74, 127, 217, 0.25);
   --glow-focus-error: 0 0 0 2px rgba(229, 92, 92, 0.25);
 
-  /* ================================================================
-     表面态
-     ================================================================ */
+  
   --glass-bg: rgba(255, 255, 255, 0.92);
   --glass-bg-sidebar: #FFFFFF;
   --glass-border: #E0E0E0;
@@ -175,19 +171,15 @@
   --overlay-bg: rgba(0, 0, 0, 0.25);
   --bg-overlay-tint: rgba(240, 241, 243, 0.15);
 
-  /* ================================================================
-     背景图相关（无 backdrop-filter blur）
-     ================================================================ */
+  
   --bg-image: none;
   --bg-opacity: 0.2;
   --bg-blur: 0px;
 }
 
-/* ================================================================
-   暗色模式
-   ================================================================ */
 [data-theme="dark"] {
   --bg-base: #1A1C23;
+  --bg-base-rgb: 26, 28, 35;
   --bg-base-alt: #21242B;
   --bg-elevated: #21242B;
   --bg-surface: rgba(35, 38, 45, 0.92);
@@ -198,7 +190,6 @@
   --bg-overlay: rgba(0, 0, 0, 0.50);
   --bg-overlay-strong: rgba(0, 0, 0, 0.65);
 
-  /* 深色文字系统 */
   --text-primary: #E8E9EB;
   --text-secondary: #A0A3A8;
   --text-tertiary: #6A6D74;
@@ -206,7 +197,9 @@
   --text-on-primary: #FFFFFF;
   --text-link: #6B9EFF;
 
-  /* 深色边框系统 */
+  --slider-track: #4A4D55;
+  --slider-thumb: #6B9EFF;
+
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.12);
   --border-hover: rgba(74, 127, 217, 0.35);
@@ -214,8 +207,7 @@
   --border-focus: rgba(74, 127, 217, 0.55);
   --divider: rgba(255, 255, 255, 0.08);
 
-  /* 深色卡片材质 */
-  --card-bg: rgba(35, 38, 45, 0.92);
+  --card-bg: rgba(35, 38, 45, 0.75);
   --card-border-top: 1px solid rgba(255, 255, 255, 0.08);
   --card-border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 
@@ -223,7 +215,6 @@
   --glow-focus-pink: 0 0 0 2px rgba(74, 127, 217, 0.35);
   --glow-focus-error: 0 0 0 2px rgba(229, 92, 92, 0.35);
 
-  /* 深色表面态 */
   --glass-bg: rgba(35, 38, 45, 0.92);
   --glass-bg-sidebar: #21242B;
   --glass-border: rgba(255, 255, 255, 0.08);
@@ -239,9 +230,6 @@
   --bg-overlay-tint: rgba(0, 0, 0, 0.20);
 }
 
-/* ================================================================
-   全局重置
-   ================================================================ */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -253,7 +241,7 @@ html, body {
   width: 100%;
   overflow: hidden;
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 450;
   line-height: 1.6;
   color: var(--text-primary);
@@ -263,24 +251,20 @@ html, body {
   text-rendering: optimizeLegibility;
 }
 
-/* ================================================================
-   排版层级
-   ================================================================ */
-h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.3; }
-h2 { font-size: 20px; font-weight: 650; letter-spacing: -0.01em; line-height: 1.3; }
-h3 { font-size: 16px; font-weight: 600; line-height: 1.4; }
-h4 { font-size: 14px; font-weight: 600; line-height: 1.4; }
-h5 { font-size: 13px; font-weight: 600; line-height: 1.5; }
-h6 { font-size: 12px; font-weight: 600; line-height: 1.5; }
+h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.3; }
+h2 { font-size: 18px; font-weight: 650; letter-spacing: -0.01em; line-height: 1.3; }
+h3 { font-size: 14px; font-weight: 600; line-height: 1.4; }
+h4 { font-size: 13px; font-weight: 600; line-height: 1.4; }
+h5 { font-size: 12px; font-weight: 600; line-height: 1.5; }
+h6 { font-size: 11px; font-weight: 600; line-height: 1.5; }
 
 p { margin-bottom: var(--s-md); line-height: 1.6; }
 
-/* 数据数字 */
 .data-number {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
-  font-size: 28px;
+  font-size: 25px;
   font-weight: 700;
   line-height: 1;
   color: var(--primary);
@@ -288,39 +272,30 @@ p { margin-bottom: var(--s-md); line-height: 1.6; }
 }
 .data-number .unit {
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-secondary);
   margin-left: var(--s-xs);
 }
 .data-label {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
-/* ================================================================
-   滚动条
-   ================================================================ */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(74, 127, 217, 0.15); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(74, 127, 217, 0.28); }
 ::-webkit-scrollbar-corner { background: transparent; }
 
-/* ================================================================
-   选中态
-   ================================================================ */
 ::selection {
   background: rgba(74, 127, 217, 0.18);
   color: var(--text-primary);
 }
 
-/* ================================================================
-   全局链接
-   ================================================================ */
 a {
   color: var(--primary);
   text-decoration: none;
@@ -333,17 +308,11 @@ img {
   user-select: none;
 }
 
-/* ================================================================
-   全局 Focus 环
-   ================================================================ */
 :focus-visible {
   outline: none;
   box-shadow: var(--glow-focus);
 }
 
-/* ================================================================
-   工具类：卡片材质（非模糊亚克力）
-   ================================================================ */
 .glass {
   background: var(--card-bg);
   border-top: var(--card-border-top);
@@ -359,22 +328,12 @@ img {
   transition: var(--transition-fast);
 }
 
-/* ================================================================
-   骨架屏
-   ================================================================ */
-@keyframes skeleton-pulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.5; }
-}
 .skeleton {
   background: rgba(74, 127, 217, 0.08);
   border-radius: var(--r-sm);
   animation: skeleton-pulse 1.8s ease-in-out infinite;
 }
 
-/* ================================================================
-   减弱动画
-   ================================================================ */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

@@ -7,27 +7,21 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    AboutTab: typeof import('./src/components/settings/AboutTab.vue')['default']
+    AvatarRenderer: typeof import('./src/components/game/AvatarRenderer.vue')['default']
     Button: typeof import('./src/components/ui/Button.vue')['default']
     Card: typeof import('./src/components/ui/Card.vue')['default']
-    ContentModal: typeof import('./src/components/modals/ContentModal.vue')['default']
-    DownloadTab: typeof import('./src/components/settings/DownloadTab.vue')['default']
-    GameTab: typeof import('./src/components/settings/GameTab.vue')['default']
-    GeneralTab: typeof import('./src/components/settings/GeneralTab.vue')['default']
+    ErrorModal: typeof import('./src/components/modals/ErrorModal.vue')['default']
+    FullscreenModal: typeof import('./src/components/modals/FullscreenModal.vue')['default']
     GlassMessage: typeof import('./src/components/ui/GlassMessage.vue')['default']
     Icon: typeof import('./src/components/ui/Icon.vue')['default']
     Input: typeof import('./src/components/ui/Input.vue')['default']
-    ManageTab: typeof import('./src/components/versions/ManageTab.vue')['default']
-    ModsTab: typeof import('./src/components/versions/ModsTab.vue')['default']
-    PluginSettingsTab: typeof import('./src/components/settings/PluginSettingsTab.vue')['default']
+    Modal: typeof import('./src/components/modals/Modal.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Select: typeof import('./src/components/ui/Select.vue')['default']
     SideBar: typeof import('./src/components/layout/SideBar.vue')['default']
-    SkinRenderer: typeof import('./src/components/SkinRenderer.vue')['default']
-    TaskQueuePanel: typeof import('./src/components/TaskQueuePanel.vue')['default']
+    Slider: typeof import('./src/components/ui/Slider.vue')['default']
+    TaskQueuePanel: typeof import('./src/components/panels/TaskQueuePanel.vue')['default']
     TitleBar: typeof import('./src/components/layout/TitleBar.vue')['default']
-    VersionDetailModal: typeof import('./src/components/versions/VersionDetailModal.vue')['default']
-    VersionsTab: typeof import('./src/components/versions/VersionsTab.vue')['default']
   }
 }

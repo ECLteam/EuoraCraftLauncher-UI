@@ -15,8 +15,10 @@ interface TauriCore {
   }
 }
 
-interface Window {
-  __TAURI__?: TauriCore
+declare global {
+  interface Window {
+    __TAURI__?: TauriCore
+  }
 }
 
 export {}

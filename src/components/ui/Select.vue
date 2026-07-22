@@ -1,25 +1,44 @@
 <template>
   <div
-    class="ui-select"
-    :class="{ open: isOpen }"
     ref="selectRef"
     v-click-outside="close"
+    class="ui-select"
+    :class="{ open: isOpen }"
   >
-    <div class="select-trigger" @click="toggle">
+    <div
+      class="select-trigger"
+      @click="toggle"
+    >
       <span class="selected-text">
-        <slot name="trigger" :selected="selectedOption">
+        <slot
+          name="trigger"
+          :selected="selectedOption"
+        >
           <template v-if="selectedOption">
             {{ selectedOption.label || selectedOption.value }}
           </template>
-          <span v-else class="placeholder">{{ placeholder }}</span>
+          <span
+            v-else
+            class="placeholder"
+          >{{ placeholder }}</span>
         </slot>
       </span>
-      <UiIcon name="arrow-right" class="select-arrow" :class="{ rotated: isOpen }" />
+      <UiIcon
+        name="arrow-right"
+        class="select-arrow"
+        :class="{ rotated: isOpen }"
+      />
     </div>
 
-    <transition name="select-dropdown">
-      <div v-show="isOpen" class="select-dropdown">
-        <div v-if="searchable" class="select-search">
+    <Transition name="select-dropdown">
+      <div
+        v-show="isOpen"
+        class="select-dropdown"
+      >
+        <div
+          v-if="searchable"
+          class="select-search"
+        >
           <UiInput
             v-model="searchQuery"
             :placeholder="searchPlaceholder"
@@ -35,32 +54,48 @@
             @click="select(option.value)"
           >
             <div class="option-content">
-              <slot name="option" :option="option" :active="modelValue === option.value">
+              <slot
+                name="option"
+                :option="option"
+                :active="modelValue === option.value"
+              >
                 <span class="option-label">{{ option.label || option.value }}</span>
-                <span v-if="option.desc" class="option-desc">{{ option.desc }}</span>
+                <span
+                  v-if="option.desc"
+                  class="option-desc"
+                >{{ option.desc }}</span>
               </slot>
             </div>
-            <UiIcon v-if="modelValue === option.value" name="check" class="check-icon" />
+            <UiIcon
+              v-if="modelValue === option.value"
+              name="check"
+              class="check-icon"
+            />
           </div>
-          <div v-if="filteredOptions.length === 0" class="select-empty">
+          <div
+            v-if="filteredOptions.length === 0"
+            class="select-empty"
+          >
             {{ emptyText }}
           </div>
         </div>
       </div>
-    </transition>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, type DirectiveBinding } from 'vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import UiInput from '@/components/ui/Input.vue'
+
+defineOptions({ name: 'UiSelect' })
 
 export interface SelectOption {
   label?: string
   value: string
   desc?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 const props = withDefaults(defineProps<{
@@ -120,18 +155,22 @@ watch(() => props.modelValue, () => {
   searchQuery.value = ''
 })
 
+interface ClickOutsideElement extends HTMLElement {
+  __clickOutsideHandler?: (e: MouseEvent) => void
+}
+
 const vClickOutside = {
-  mounted(el: HTMLElement, binding: any) {
+  mounted(el: ClickOutsideElement, binding: DirectiveBinding<() => void>) {
     const handler = (e: MouseEvent) => {
       if (!el.contains(e.target as Node)) {
         binding.value()
       }
     }
     document.addEventListener('click', handler)
-    ;(el as any).__clickOutsideHandler = handler
+    el.__clickOutsideHandler = handler
   },
-  unmounted(el: HTMLElement) {
-    const handler = (el as any).__clickOutsideHandler
+  unmounted(el: ClickOutsideElement) {
+    const handler = el.__clickOutsideHandler
     if (handler) {
       document.removeEventListener('click', handler)
     }
@@ -139,4 +178,4 @@ const vClickOutside = {
 }
 </script>
 
-<style scoped src="@/styles/Select.css"></style>
+<style scoped src="@/styles/components/ui/Select.css"></style>

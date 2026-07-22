@@ -4,7 +4,7 @@
     :class="{
       collapsed: isCollapsed,
       expanded: isExpanded,
-      'modal-hidden': !agreementAccepted || topNavEnabled
+      'modal-hidden': !agreementAccepted || topNavEnabled || isFullscreenModalVisible
     }"
   >
     <!-- 折叠切换按钮 -->
@@ -13,17 +13,40 @@
       :title="isCollapsed ? t('sidebar.expand') : t('sidebar.collapse')"
       @click="toggleCollapse"
     >
-      <UiIcon :name="isCollapsed ? 'chevron-down' : 'menu'" :size="18" />
+      <UiIcon
+        :name="isCollapsed ? 'chevron-down' : 'menu'"
+        :size="18"
+      />
     </button>
 
     <!-- 导航区域 -->
-    <nav class="sidebar-nav" @mouseleave="handleMouseLeave">
-      <div v-if="!isCollapsed" class="sidebar-active-bg" ref="activeBgRef"></div>
-      <div v-if="!isCollapsed" class="sidebar-active-indicator" ref="indicatorRef"></div>
+    <nav
+      class="sidebar-nav"
+      @mouseleave="handleMouseLeave"
+    >
+      <!-- 插件：侧边栏顶部插槽 -->
+      <div
+        id="plugin-slot-sidebar-top"
+        class="plugin-slot-container"
+      />
+      <div
+        v-if="!isCollapsed"
+        ref="activeBgRef"
+        class="sidebar-active-bg"
+      />
+      <div
+        v-if="!isCollapsed"
+        ref="indicatorRef"
+        class="sidebar-active-indicator"
+      />
 
-      <template v-for="(item, index) in menuItems" :key="item.path">
+      <template
+        v-for="(item, index) in menuItems"
+        :key="item.path"
+      >
         <button
           class="sidebar-item"
+          :data-path="item.path"
           :class="{
             active: route.path === item.path
               || (item.path !== '/' && route.path.startsWith(item.path))
@@ -33,7 +56,10 @@
           @click.prevent="handleItemClick(item)"
         >
           <span class="sidebar-item-icon">
-            <UiIcon :name="item.iconName" :size="20" />
+            <UiIcon
+              :name="item.iconName"
+              :size="20"
+            />
           </span>
           <span class="sidebar-item-text">{{ item.label }}</span>
           <span
@@ -42,13 +68,17 @@
             :class="{ expanded: isMenuExpanded(item.path) }"
             @click.stop="toggleMenu(item.path)"
           >
-            <UiIcon name="chevron-down" :size="14" />
+            <UiIcon
+              name="chevron-down"
+              :size="14"
+            />
           </span>
         </button>
 
         <!-- 子菜单项 -->
         <div
           v-if="!isCollapsed && itemHasSubItems(item.path)"
+          :data-parent="item.path"
           class="sidebar-sub-items"
           :class="{ expanded: isMenuExpanded(item.path) }"
         >
@@ -56,11 +86,15 @@
             v-for="sub in getSubItems(item.path)"
             :key="sub.path"
             class="sidebar-item sidebar-sub-item"
+            :data-path="sub.path"
             :class="{ active: route.path === sub.path }"
             @click.prevent="handleSubItemClick(sub.path)"
           >
             <span class="sidebar-item-icon">
-              <UiIcon :name="sub.iconName" :size="16" />
+              <UiIcon
+                :name="sub.iconName"
+                :size="16"
+              />
             </span>
             <span class="sidebar-item-text">{{ sub.label }}</span>
           </button>
@@ -69,16 +103,24 @@
 
       <!-- 插件注册的导航项 -->
       <template v-if="!isCollapsed">
-        <div v-for="pRoute in pluginRoutesList" :key="pRoute.path" class="sidebar-plugin-divider"></div>
+        <div
+          v-for="pRoute in pluginRoutesList"
+          :key="pRoute.path"
+          class="sidebar-plugin-divider"
+        />
         <button
           v-for="pRoute in pluginRoutesList"
           :key="'btn-' + pRoute.path"
           class="sidebar-item"
+          :data-path="`/plugin/${pRoute.plugin}${pRoute.path}`"
           :class="{ active: route.path === `/plugin/${pRoute.plugin}${pRoute.path}` }"
           @click.prevent="handleSubItemClick(`/plugin/${pRoute.plugin}${pRoute.path}`)"
         >
           <span class="sidebar-item-icon">
-            <UiIcon :name="pRoute.icon || 'plugin'" :size="16" />
+            <UiIcon
+              :name="pRoute.icon || 'plugin'"
+              :size="16"
+            />
           </span>
           <span class="sidebar-item-text">{{ pRoute.title }}</span>
         </button>
@@ -95,7 +137,10 @@
         @click.prevent="handleItemClick({ path: '/dev' })"
       >
         <span class="sidebar-item-icon">
-          <UiIcon name="bug" :size="20" />
+          <UiIcon
+            name="bug"
+            :size="20"
+          />
         </span>
         <span class="sidebar-item-text">{{ t('sidebar.debug') }}</span>
       </button>
@@ -105,7 +150,10 @@
         @click.prevent="openHelp"
       >
         <span class="sidebar-item-icon">
-          <UiIcon name="help" :size="20" />
+          <UiIcon
+            name="help"
+            :size="20"
+          />
         </span>
         <span class="sidebar-item-text">{{ t('sidebar.help') }}</span>
       </button>
@@ -113,23 +161,28 @@
   </aside>
 
   <!-- 移动端遮罩 -->
-  <div class="sidebar-overlay" @click="isExpanded = false"></div>
+  <div
+    class="sidebar-overlay"
+    @click="isExpanded = false"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, computed, inject, readonly, type Ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useGlassMessage } from '@/composables/useGlassMessage'
+import { ref, watch, nextTick, onMounted, computed, inject, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useTopNav } from '@/composables/useTopNav'
-import { useTheme } from '@/composables/useTheme'
+import { useRoute, useRouter } from 'vue-router'
 import UiIcon from '@/components/ui/Icon.vue'
+import { useFullscreenModal } from '@/composables/useFullscreenModal'
+import { useGlassMessage } from '@/composables/useGlassMessage'
 import { pluginRoutes } from '@/composables/usePluginBridge'
+import { useTheme } from '@/composables/useTheme'
+import { useTopNav } from '@/composables/useTopNav'
 import { MENU_ITEMS } from '@/constants/menu'
 
-defineOptions({ inheritAttrs: false })
+defineOptions({ name: 'SideBar', inheritAttrs: false })
 
 const { sidebarCollapsed, setSidebarCollapsed } = useTheme()
+const { isVisible: isFullscreenModalVisible } = useFullscreenModal()
 const isCollapsed = computed({
   get: () => sidebarCollapsed.value,
   set: (val) => setSidebarCollapsed(val),
@@ -164,10 +217,16 @@ const settingsSubItems = computed(() => [
 
 const versionsSubItems = computed(() => [
   { path: '/versions/manage', label: t('versions.manageTab'), iconName: 'settings' },
-  { path: '/versions/versions', label: t('versions.versions'), iconName: 'cube' },
+    { path: '/versions/versions', label: t('versions.versions'), iconName: 'download' },
 ])
 
-const subItemsMap = computed(() => ({
+interface SubMenuItem {
+  path: string
+  label: string
+  iconName: string
+}
+
+const subItemsMap = computed<Record<string, SubMenuItem[]>>(() => ({
   '/settings': settingsSubItems.value,
   '/versions': versionsSubItems.value,
 }))
@@ -235,58 +294,38 @@ const openHelp = () => {
   message.info(t('sidebar.helpMessage'))
 }
 
-const ITEM_HEIGHT = 42
-const ITEM_GAP = 2
-const ITEM_CYCLE = ITEM_HEIGHT + ITEM_GAP * 2 // 42 + 2 + 2 = 46px per collapsed item cycle
-
-/** 计算目标菜单项在侧边栏中的实际视觉偏移量（考虑子菜单展开高度） */
-const getVisualOffset = (targetPath: string): number => {
-  let offset = 2 // padding-top of sidebar-nav
-  for (const item of menuItems.value) {
-    if (item.path === targetPath) {
-      return offset
-    }
-    offset += ITEM_CYCLE
-    // 如果该菜单项的子菜单展开，累加子菜单高度
-    if (expandedMenus.value.has(item.path)) {
-      const subs = getSubItems(item.path)
-      if (subs.length > 0) {
-        // 子菜单容器 margin: 2px 0 → 4px，子项 34px + 间距 1px
-        offset += 4 + subs.length * 34 + (subs.length - 1) * 1
-      }
-    }
-  }
-  return -1
-}
-
-const updateIndicator = (targetPath: string) => {
+/** 通过实际 DOM 测量获取目标菜单项位置并更新指示器 */
+const updateActivePosition = (targetPath: string) => {
   if (isCollapsed.value) return
-  const top = getVisualOffset(targetPath)
-  if (top === -1) return
-  if (indicatorRef.value) {
-    indicatorRef.value.style.top = `${top + 10}px`
-    indicatorRef.value.style.height = `${ITEM_HEIGHT - 20}px`
+  nextTick(() => {
+    const navEl = indicatorRef.value?.parentElement
+    const targetEl = navEl?.querySelector(`.sidebar-item[data-path="${targetPath}"]`) as HTMLElement | null
+    if (!targetEl || !indicatorRef.value || !activeBgRef.value) return
+    const top = targetEl.offsetTop
+    const height = targetEl.offsetHeight
+    indicatorRef.value.style.top = `${top + 9}px`
+    indicatorRef.value.style.height = `${height - 18}px`
     indicatorRef.value.style.opacity = '1'
-  }
+    activeBgRef.value.style.top = `${top}px`
+    activeBgRef.value.style.height = `${height}px`
+    activeBgRef.value.style.opacity = '1'
+  })
 }
 
-const updateActiveBg = (targetPath: string) => {
-  if (isCollapsed.value) return
-  const top = getVisualOffset(targetPath)
-  if (top === -1) return
-  if (activeBgRef.value) {
-    activeBgRef.value.style.top = `${top}px`
-    activeBgRef.value.style.height = `${ITEM_HEIGHT}px`
-    activeBgRef.value.style.opacity = '1'
-  }
-}
+const updateIndicator = (targetPath: string) => updateActivePosition(targetPath)
+const updateActiveBg = (targetPath: string) => updateActivePosition(targetPath)
 
 const getActivePath = (): string => {
   const path = route.path
-  // 先精确匹配
+  // 先精确匹配子菜单项
+  for (const parentPath of Object.keys(subItemsMap.value)) {
+    const sub = subItemsMap.value[parentPath]?.find(s => s.path === path)
+    if (sub) return sub.path
+  }
+  // 精确匹配父菜单项
   const exact = menuItems.value.find(item => item.path === path)
   if (exact) return exact.path
-  // 前缀匹配
+  // 前缀匹配父菜单项
   if (path !== '/') {
     const prefix = menuItems.value.find(
       item => item.path !== '/' && path.startsWith(item.path)
@@ -298,7 +337,8 @@ const getActivePath = (): string => {
 
 const handleMouseEnter = (index: number) => {
   if (index < menuItems.value.length) {
-    updateIndicator(menuItems.value[index].path)
+    const item = menuItems.value[index]
+    if (item) updateIndicator(item.path)
   }
 }
 
@@ -313,7 +353,7 @@ const handleMouseLeave = () => {
 
 watch(
   () => route.path,
-  (newPath) => {
+  () => {
     nextTick(() => {
       const activePath = getActivePath()
       if (activePath) {
@@ -322,15 +362,6 @@ watch(
       } else {
         if (indicatorRef.value) indicatorRef.value.style.opacity = '0'
         if (activeBgRef.value) activeBgRef.value.style.opacity = '0'
-      }
-      // 自动展开当前子路由对应的父菜单
-      for (const parentPath of Object.keys(subItemsMap.value)) {
-        if (newPath.startsWith(parentPath)) {
-          const newSet = new Set(expandedMenus.value)
-          newSet.add(parentPath)
-          expandedMenus.value = newSet
-          break
-        }
       }
     })
   },
@@ -363,5 +394,5 @@ onMounted(() => {
 })
 </script>
 
-<style scoped src="@/styles/SideBar.css"></style>
+<style scoped src="@/styles/components/layout/SideBar.css"></style>
 

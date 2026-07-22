@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
     <div class="glass-message-container">
-      <transition-group name="message-list">
+      <TransitionGroup name="message-list">
         <div
           v-for="msg in messages"
           :key="msg.id"
@@ -11,12 +11,23 @@
           @mouseleave="resumeTimer(msg)"
         >
           <div class="message-icon">
-            <UiIcon :name="msg.type" :size="20" :style="{ color: getIconColor(msg.type) }" />
+            <UiIcon
+              :name="msg.type"
+              :size="20"
+              :style="{ color: getIconColor(msg.type) }"
+            />
           </div>
 
           <div class="message-content">
-            <div v-if="msg.title" class="message-title">{{ msg.title }}</div>
-            <div class="message-body">{{ msg.content }}</div>
+            <div
+              v-if="msg.title"
+              class="message-title"
+            >
+              {{ msg.title }}
+            </div>
+            <div class="message-body">
+              {{ msg.content }}
+            </div>
           </div>
 
           <UiButton 
@@ -29,7 +40,10 @@
             @click="remove(msg.id)"
           />
 
-          <div v-if="msg.duration > 0" class="message-progress">
+          <div
+            v-if="msg.duration > 0"
+            class="message-progress"
+          >
             <div 
               class="progress-bar" 
               :style="{ 
@@ -39,7 +53,7 @@
             />
           </div>
         </div>
-      </transition-group>
+      </TransitionGroup>
     </div>
   </Teleport>
 </template>
@@ -48,6 +62,8 @@
 import { ref } from 'vue'
 import UiButton from '@/components/ui/Button.vue'
 import UiIcon from '@/components/ui/Icon.vue'
+
+defineOptions({ name: 'GlassMessage' })
 
 export type MessageType = 'success' | 'error' | 'warning' | 'info' | 'loading'
 
@@ -69,9 +85,14 @@ interface MessageItem extends MessageOptions {
   remaining: number
 }
 
+interface TimerEntry {
+  interval: ReturnType<typeof setInterval>
+  timeout: ReturnType<typeof setTimeout>
+}
+
 const messages = ref<MessageItem[]>([])
 const progressMap = ref<Record<string, number>>({})
-const timerMap = ref<Record<string, any>>({})
+const timerMap = ref<Record<string, TimerEntry>>({})
 
 const getIconColor = (type: MessageType) => ({
   success: '#4ade80',
@@ -109,8 +130,11 @@ const add = (options: MessageOptions) => {
 
 const startTimer = (msg: MessageItem) => {
   if (timerMap.value[msg.id]) {
-    clearTimeout(timerMap.value[msg.id].timeout)
-    clearInterval(timerMap.value[msg.id].interval)
+    const previousTimer = timerMap.value[msg.id]
+    if (previousTimer) {
+      clearTimeout(previousTimer.timeout)
+      clearInterval(previousTimer.interval)
+    }
   }
   
   const endTime = Date.now() + msg.remaining
@@ -158,7 +182,7 @@ const remove = (id: string) => {
   
   messages.value.splice(idx, 1)
   delete progressMap.value[id]
-  msg.onClose?.()
+  msg?.onClose?.()
 }
 
 defineExpose({
@@ -173,4 +197,4 @@ defineExpose({
 })
 </script>
 
-<style scoped src="@/styles/GlassMessage.css"></style>
+<style scoped src="@/styles/components/ui/GlassMessage.css"></style>

@@ -1,97 +1,14 @@
 /**
  * plugin-sdk UI 工具函数
- * 提供创建 UI 元素、消息提示、对话框等快捷方法。
- * 插件开发者无需直接操作 DOM 即可构建前端界面。
+ * 提供创建 UI 元素、消息提示、对话框、模态框、通知、右键菜单等快捷方法。
  */
 
-// ── 元素创建 ──
+import { createElement, $ } from './dom'
 
-interface ElementOptions {
-  class?: string | string[]
-  id?: string
-  style?: Partial<CSSStyleDeclaration>
-  attrs?: Record<string, string>
-  text?: string
-  html?: string
-  children?: (HTMLElement | string)[]
-  events?: Record<string, (e: Event) => void>
-}
-
-/**
- * 创建 HTML 元素并设置属性。
- * 链式调用风格，简化 DOM 操作。
- */
-export function createElement<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  options: ElementOptions = {}
-): HTMLElementTagNameMap[K] {
-  const el = document.createElement(tag)
-
-  if (options.class) {
-    const classes = Array.isArray(options.class) ? options.class : options.class.split(/\s+/)
-    el.classList.add(...classes.filter(Boolean))
-  }
-  if (options.id) el.id = options.id
-  if (options.text) el.textContent = options.text
-  if (options.html) el.innerHTML = options.html
-  if (options.style) {
-    for (const [key, value] of Object.entries(options.style)) {
-      if (value !== undefined) {
-        (el.style as any)[key] = value
-      }
-    }
-  }
-  if (options.attrs) {
-    for (const [key, value] of Object.entries(options.attrs)) {
-      el.setAttribute(key, value)
-    }
-  }
-  if (options.children) {
-    for (const child of options.children) {
-      if (typeof child === 'string') {
-        el.appendChild(document.createTextNode(child))
-      } else {
-        el.appendChild(child)
-      }
-    }
-  }
-  if (options.events) {
-    for (const [event, handler] of Object.entries(options.events)) {
-      el.addEventListener(event, handler)
-    }
-  }
-
-  return el
-}
-
-/**
- * 创建元素快捷方法集合
- */
-export const $ = {
-  div: (opts?: ElementOptions) => createElement('div', opts),
-  span: (opts?: ElementOptions) => createElement('span', opts),
-  button: (opts?: ElementOptions) => createElement('button', opts),
-  input: (opts?: ElementOptions) => createElement('input', opts),
-  a: (opts?: ElementOptions) => createElement('a', opts),
-  p: (opts?: ElementOptions) => createElement('p', opts),
-  h2: (opts?: ElementOptions) => createElement('h2', opts),
-  h3: (opts?: ElementOptions) => createElement('h3', opts),
-  img: (opts?: ElementOptions) => createElement('img', opts),
-  label: (opts?: ElementOptions) => createElement('label', opts),
-  select: (opts?: ElementOptions) => createElement('select', opts),
-  option: (opts?: ElementOptions) => createElement('option', opts),
-  textarea: (opts?: ElementOptions) => createElement('textarea', opts),
-  section: (opts?: ElementOptions) => createElement('section', opts),
-  pre: (opts?: ElementOptions) => createElement('pre', opts),
-  code: (opts?: ElementOptions) => createElement('code', opts),
-}
+export { createElement, $ }
 
 // ── 消息提示 ──
 
-/**
- * 简单的消息提示系统。
- * 插件开发者可用此显示通知，无需依赖启动器的消息组件。
- */
 export function showToast(message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info', duration = 3000): void {
   const colors: Record<string, string> = {
     info: '#3b82f6',
@@ -134,10 +51,6 @@ export function showToast(message: string, type: 'info' | 'success' | 'warning' 
 
 // ── 确认对话框 ──
 
-/**
- * 显示确认对话框。
- * 返回 Promise，用户确认后 resolve(true)，取消后 resolve(false)。
- */
 export function showConfirm(title: string, message: string): Promise<boolean> {
   return new Promise((resolve) => {
     const overlay = createElement('div', {
@@ -216,11 +129,334 @@ export function showConfirm(title: string, message: string): Promise<boolean> {
   })
 }
 
+// ── 模态框 ──
+
+export interface ModalOptions {
+  title?: string
+  content: string | HTMLElement
+  width?: string
+  height?: string
+  closable?: boolean
+  footer?: HTMLElement
+  onClose?: () => void
+  className?: string
+}
+
+export function showModal(options: ModalOptions): { close: () => void; el: HTMLElement } {
+  const overlay = createElement('div', {
+    class: `plugin-modal-overlay ${options.className || ''}`,
+    style: {
+      position: 'fixed',
+      inset: '0',
+      background: 'rgba(0,0,0,0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: '99997',
+    },
+  })
+
+  const modal = createElement('div', {
+    class: 'plugin-modal',
+    style: {
+      background: 'var(--bg-elevated, #1e1e2e)',
+      borderRadius: '12px',
+      width: options.width || '480px',
+      maxWidth: '90vw',
+      maxHeight: options.height || '80vh',
+      display: 'flex',
+      flexDirection: 'column',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+      border: '1px solid var(--border, rgba(255,255,255,0.1))',
+      overflow: 'hidden',
+    },
+  })
+
+  const header = createElement('div', {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '16px 20px',
+      borderBottom: '1px solid var(--divider, rgba(255,255,255,0.06))',
+    },
+    children: [
+      createElement('span', {
+        style: { fontSize: '16px', fontWeight: '600', color: 'var(--text-primary, #e0e0e0)' },
+        text: options.title || '',
+      }),
+    ],
+  })
+
+  if (options.closable !== false) {
+    const closeBtn = createElement('button', {
+      text: '✕',
+      style: {
+        background: 'none',
+        border: 'none',
+        color: 'var(--text-secondary, #a0a0a0)',
+        cursor: 'pointer',
+        fontSize: '16px',
+        padding: '4px 8px',
+        borderRadius: '4px',
+      },
+      events: {
+        click: () => close(),
+        mouseenter: (e) => { (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.06)' },
+        mouseleave: (e) => { (e.target as HTMLElement).style.background = 'none' },
+      },
+    })
+    header.appendChild(closeBtn)
+  }
+
+  const body = createElement('div', {
+    style: {
+      padding: '20px',
+      overflow: 'auto',
+      flex: '1',
+      color: 'var(--text-primary, #e0e0e0)',
+      fontSize: '14px',
+      lineHeight: '1.6',
+    },
+  })
+
+  if (typeof options.content === 'string') {
+    body.innerHTML = options.content
+  } else {
+    body.appendChild(options.content)
+  }
+
+  modal.appendChild(header)
+  modal.appendChild(body)
+
+  if (options.footer) {
+    const footer = createElement('div', {
+      style: {
+        padding: '12px 20px',
+        borderTop: '1px solid var(--divider, rgba(255,255,255,0.06))',
+        display: 'flex',
+        justifyContent: 'flex-end',
+        gap: '8px',
+      },
+    })
+    footer.appendChild(options.footer)
+    modal.appendChild(footer)
+  }
+
+  overlay.appendChild(modal)
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay && options.closable !== false) {
+      close()
+    }
+  })
+
+  document.body.appendChild(overlay)
+
+  function close() {
+    options.onClose?.()
+    overlay.remove()
+  }
+
+  return { close, el: modal }
+}
+
+// ── 通知 ──
+
+export interface NotificationOptions {
+  title: string
+  message: string
+  type?: 'info' | 'success' | 'warning' | 'error'
+  duration?: number
+  onClick?: () => void
+}
+
+export function showNotification(options: NotificationOptions): () => void {
+  const colors: Record<string, { bg: string; border: string }> = {
+    info: { bg: 'rgba(59,130,246,0.1)', border: '#3b82f6' },
+    success: { bg: 'rgba(34,197,94,0.1)', border: '#22c55e' },
+    warning: { bg: 'rgba(245,158,11,0.1)', border: '#f59e0b' },
+    error: { bg: 'rgba(239,68,68,0.1)', border: '#ef4444' },
+  }
+  const c = colors[options.type || 'info'] ?? colors.info!
+
+  const notification = createElement('div', {
+    class: 'plugin-notification',
+    style: {
+      position: 'fixed',
+      top: '48px',
+      right: '20px',
+      padding: '14px 18px',
+      borderRadius: '10px',
+      background: c.bg,
+      borderLeft: `3px solid ${c.border}`,
+      color: 'var(--text-primary, #e0e0e0)',
+      fontSize: '13px',
+      zIndex: '99996',
+      minWidth: '280px',
+      maxWidth: '400px',
+      boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+      cursor: options.onClick ? 'pointer' : 'default',
+      transition: 'opacity 200ms, transform 200ms',
+      opacity: '0',
+      transform: 'translateX(20px)',
+    },
+    children: [
+      createElement('div', {
+        style: { fontWeight: '600', marginBottom: '4px', fontSize: '14px' },
+        text: options.title,
+      }),
+      createElement('div', {
+        style: { color: 'var(--text-secondary, #a0a0a0)', fontSize: '12px', lineHeight: '1.4' },
+        text: options.message,
+      }),
+    ],
+    events: options.onClick ? { click: options.onClick } : {},
+  })
+
+  document.body.appendChild(notification)
+  requestAnimationFrame(() => {
+    notification.style.opacity = '1'
+    notification.style.transform = 'translateX(0)'
+  })
+
+  if (options.duration && options.duration > 0) {
+    const timer = setTimeout(() => dismiss(), options.duration)
+    const dismiss = () => {
+      clearTimeout(timer)
+      notification.style.opacity = '0'
+      notification.style.transform = 'translateX(20px)'
+      setTimeout(() => notification.remove(), 200)
+    }
+    return dismiss
+  }
+
+  return () => {
+    notification.style.opacity = '0'
+    notification.style.transform = 'translateX(20px)'
+    setTimeout(() => notification.remove(), 200)
+  }
+}
+
+// ── 右键菜单 ──
+
+export interface ContextMenuItem {
+  label: string
+  icon?: string
+  disabled?: boolean
+  danger?: boolean
+  divider?: boolean
+  onClick?: () => void
+  children?: ContextMenuItem[]
+}
+
+export function showContextMenu(
+  x: number,
+  y: number,
+  items: ContextMenuItem[]
+): { close: () => void } {
+  const existing = document.querySelector('.plugin-context-menu')
+  if (existing) existing.remove()
+
+  const menu = createElement('div', {
+    class: 'plugin-context-menu',
+    style: {
+      position: 'fixed',
+      left: `${x}px`,
+      top: `${y}px`,
+      background: 'var(--bg-elevated, #1e1e2e)',
+      borderRadius: '8px',
+      border: '1px solid var(--border, rgba(255,255,255,0.1))',
+      boxShadow: '0 6px 24px rgba(0,0,0,0.4)',
+      padding: '4px',
+      zIndex: '99999',
+      minWidth: '160px',
+      fontSize: '13px',
+    },
+  })
+
+  function buildItems(list: ContextMenuItem[]): HTMLElement[] {
+    const els: HTMLElement[] = []
+    for (const item of list) {
+      if (item.divider) {
+        els.push(createElement('div', {
+          style: {
+            height: '1px',
+            background: 'var(--divider, rgba(255,255,255,0.06))',
+            margin: '4px 8px',
+          },
+        }))
+        continue
+      }
+
+      const itemEl = createElement('div', {
+        class: 'plugin-context-menu-item',
+        style: {
+          padding: '8px 12px',
+          borderRadius: '6px',
+          cursor: item.disabled ? 'not-allowed' : 'pointer',
+          color: item.danger
+            ? 'var(--danger, #ef4444)'
+            : item.disabled
+              ? 'var(--text-tertiary, #666)'
+              : 'var(--text-primary, #e0e0e0)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          opacity: item.disabled ? '0.5' : '1',
+        },
+        children: [
+          item.icon ? createElement('span', { text: item.icon, style: { fontSize: '14px' } }) : null,
+          createElement('span', { text: item.label }),
+        ].filter(Boolean) as HTMLElement[],
+        events: item.disabled ? {} : {
+          click: () => {
+            item.onClick?.()
+            close()
+          },
+          mouseenter: (e) => {
+            if (!item.disabled) (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.06)'
+          },
+          mouseleave: (e) => {
+            (e.target as HTMLElement).style.background = 'transparent'
+          },
+        },
+      })
+
+      els.push(itemEl)
+    }
+    return els
+  }
+
+  const children = buildItems(items)
+  for (const child of children) {
+    menu.appendChild(child)
+  }
+
+  document.body.appendChild(menu)
+
+  const rect = menu.getBoundingClientRect()
+  if (rect.right > window.innerWidth) {
+    menu.style.left = `${x - rect.width}px`
+  }
+  if (rect.bottom > window.innerHeight) {
+    menu.style.top = `${y - rect.height}px`
+  }
+
+  function close() {
+    menu.remove()
+    document.removeEventListener('click', close, true)
+  }
+
+  setTimeout(() => {
+    document.addEventListener('click', close, true)
+  }, 0)
+
+  return { close }
+}
+
 // ── 加载指示器 ──
 
-/**
- * 创建加载指示器，返回 remove 函数。
- */
 export function showLoading(container: HTMLElement, text = '加载中...'): () => void {
   const spinner = createElement('div', {
     class: 'plugin-loading',
@@ -249,7 +485,6 @@ export function showLoading(container: HTMLElement, text = '加载中...'): () =
     ],
   })
 
-  // 注入旋转动画
   if (!document.getElementById('plugin-spin-keyframes')) {
     const style = document.createElement('style')
     style.id = 'plugin-spin-keyframes'
@@ -263,9 +498,6 @@ export function showLoading(container: HTMLElement, text = '加载中...'): () =
 
 // ── 空状态 ──
 
-/**
- * 创建空状态占位。
- */
 export function showEmpty(container: HTMLElement, text = '暂无数据', icon = '📦'): void {
   const empty = createElement('div', {
     class: 'plugin-empty',
@@ -288,17 +520,10 @@ export function showEmpty(container: HTMLElement, text = '暂无数据', icon = 
 
 // ── 插槽渲染 ──
 
-/**
- * 获取插槽容器元素。
- * 插槽名对应后端 inject_html 的 slot 参数。
- */
 export function getSlot(id: string): HTMLElement | null {
   return document.getElementById(`plugin-slot-${id}`)
 }
 
-/**
- * 清空插槽内容。
- */
 export function clearSlot(id: string): void {
   const el = getSlot(id)
   if (el) el.innerHTML = ''
@@ -306,32 +531,20 @@ export function clearSlot(id: string): void {
 
 // ── iframe 桥接 ──
 
-interface IframeBridgeOptions {
-  /** iframe 的选择器，如 '.mouse-effect-iframe' */
+export interface IframeBridgeOptions {
   selector: string
-  /** 配置更新回调，接收 iframe 和新配置值 */
-  onConfigUpdate?: (iframe: HTMLIFrameElement, config: Record<string, any>) => void
-  /** 鼠标事件类型，默认转发 mousedown/mousemove/mouseup */
+  onConfigUpdate?: (iframe: HTMLIFrameElement, config: Record<string, unknown>) => void
   mouseEvents?: string[]
-  /** 是否在 iframe 加载完成后自动调用 onConfigUpdate */
   autoConfig?: boolean
 }
 
-/**
- * 创建通用的 iframe 桥接。
- * 自动监听 DOM 中指定 iframe 的增删，转发鼠标事件，处理配置更新。
- * 返回 destroy 函数用于清理。
- *
- * 使用示例:
- *   const bridge = createIframeBridge({
- *     selector: '.my-effect-iframe',
- *     onConfigUpdate: (iframe, config) => {
- *       iframe.contentWindow?.postMessage({ type: 'config', ...config }, '*')
- *     }
- *   })
- *   // 插件卸载时: bridge.destroy()
- */
-export function createIframeBridge(options: IframeBridgeOptions): { destroy: () => void } {
+export interface IframeBridge {
+  cleanup: () => void
+  destroy: () => void
+  updateConfig: (config: Record<string, unknown>) => void
+}
+
+export function createIframeBridge(options: IframeBridgeOptions): IframeBridge {
   const selector = options.selector
   const mouseEvents = options.mouseEvents || ['mousedown', 'mousemove', 'mouseup']
   const cleanupFns: (() => void)[] = []
@@ -374,7 +587,7 @@ export function createIframeBridge(options: IframeBridgeOptions): { destroy: () 
     }
   }
 
-  function updateConfig(config: Record<string, any>) {
+  function updateConfig(config: Record<string, unknown>) {
     if (!options.onConfigUpdate) return
     const iframes = document.querySelectorAll(selector)
     for (const el of iframes) {
@@ -390,7 +603,6 @@ export function createIframeBridge(options: IframeBridgeOptions): { destroy: () 
     }
   }
 
-  // 监听 DOM 变化
   observer = new MutationObserver((mutations) => {
     if (destroyed) return
     for (const mutation of mutations) {
@@ -405,19 +617,88 @@ export function createIframeBridge(options: IframeBridgeOptions): { destroy: () 
   })
 
   observer.observe(document.body, { childList: true, subtree: true })
-
-  // 检查已有 iframe
   handleMutations()
 
+  const cleanup = () => {
+    destroyed = true
+    cleanupFns.forEach(fn => fn())
+    cleanupFns.length = 0
+    observer?.disconnect()
+    observer = null
+  }
+
   return {
-    destroy() {
-      destroyed = true
-      cleanupFns.forEach(fn => fn())
-      cleanupFns.length = 0
-      observer?.disconnect()
-      observer = null
-    },
-    // 内部暴露供事件系统调用
-    _updateConfig: updateConfig,
+    cleanup,
+    destroy: cleanup,
+    updateConfig,
+  }
+}
+
+// ── 工具提示 ──
+
+export function createTooltip(
+  target: HTMLElement,
+  content: string,
+  position: 'top' | 'bottom' | 'left' | 'right' = 'top'
+): () => void {
+  let tooltip: HTMLElement | null = null
+
+  function show() {
+    if (tooltip) return
+    tooltip = createElement('div', {
+      class: 'plugin-tooltip',
+      style: {
+        position: 'fixed',
+        padding: '6px 10px',
+        borderRadius: '6px',
+        background: 'var(--bg-elevated, #1e1e2e)',
+        color: 'var(--text-primary, #e0e0e0)',
+        fontSize: '12px',
+        zIndex: '99999',
+        border: '1px solid var(--border, rgba(255,255,255,0.1))',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+        pointerEvents: 'none',
+        whiteSpace: 'nowrap',
+        opacity: '0',
+        transition: 'opacity 150ms',
+      },
+      text: content,
+    })
+
+    document.body.appendChild(tooltip)
+    const rect = target.getBoundingClientRect()
+    const ttRect = tooltip.getBoundingClientRect()
+
+    const posMap = {
+      top: { left: rect.left + rect.width / 2 - ttRect.width / 2, top: rect.top - ttRect.height - 8 },
+      bottom: { left: rect.left + rect.width / 2 - ttRect.width / 2, top: rect.bottom + 8 },
+      left: { left: rect.left - ttRect.width - 8, top: rect.top + rect.height / 2 - ttRect.height / 2 },
+      right: { left: rect.right + 8, top: rect.top + rect.height / 2 - ttRect.height / 2 },
+    }
+    const pos = posMap[position]
+    tooltip.style.left = `${pos.left}px`
+    tooltip.style.top = `${pos.top}px`
+
+    requestAnimationFrame(() => { if (tooltip) tooltip.style.opacity = '1' })
+  }
+
+  function hide() {
+    if (tooltip) {
+      tooltip.style.opacity = '0'
+      setTimeout(() => { tooltip?.remove(); tooltip = null }, 150)
+    }
+  }
+
+  target.addEventListener('mouseenter', show)
+  target.addEventListener('mouseleave', hide)
+  target.addEventListener('focus', show)
+  target.addEventListener('blur', hide)
+
+  return () => {
+    target.removeEventListener('mouseenter', show)
+    target.removeEventListener('mouseleave', hide)
+    target.removeEventListener('focus', show)
+    target.removeEventListener('blur', hide)
+    hide()
   }
 }

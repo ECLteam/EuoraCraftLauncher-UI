@@ -1,5 +1,7 @@
 import { ref } from 'vue'
 import backend from '@/api/client'
+import { getAvatarUrl as buildAvatarUrl } from '@/config/urls'
+import type { AccountType } from '@/types/api'
 
 const CACHE_TTL = 30 * 60 * 1000
 const MAX_CACHE_ENTRIES = 100
@@ -62,38 +64,32 @@ export function renderOfflineAvatar(username: string, size: number): string {
   const ctx = canvas.getContext('2d')
   if (!ctx) return ''
 
-  // 根据用户名确定使用Steve还是Alex皮肤
   const skinType = getHueFromString(username) % 2 === 0 ? 'steve' : 'alex'
-  
-  // 创建默认Minecraft皮肤颜色
+
   const skinColors = {
     steve: {
-      skin: '#8B4513',  // 棕色皮肤
-      shirt: '#3F51B5', // 蓝色衬衫
-      pants: '#4CAF50', // 绿色裤子
-      hair: '#000000'   // 黑色头发
+      skin: '#8B4513',
+      shirt: '#3F51B5',
+      pants: '#4CAF50',
+      hair: '#000000'
     },
     alex: {
-      skin: '#D2B48C',  // 浅棕色皮肤
-      shirt: '#E91E63', // 粉色衬衫
-      pants: '#9C27B0', // 紫色裤子
-      hair: '#FF5722'   // 橙色头发
+      skin: '#D2B48C',
+      shirt: '#E91E63',
+      pants: '#9C27B0',
+      hair: '#FF5722'
     }
   }
 
   const colors = skinColors[skinType]
-  
-  // 绘制背景
+
   ctx.fillStyle = colors.skin
   ctx.fillRect(0, 0, size, size)
 
-  // 计算像素大小
   const pixel = Math.max(1, Math.floor(size / 8))
   const offsetX = Math.floor((size - pixel * 8) / 2)
   const offsetY = Math.floor((size - pixel * 8) / 2)
 
-  // 绘制Minecraft风格的头像
-  // 头部轮廓
   ctx.fillStyle = colors.skin
   ctx.fillRect(offsetX, offsetY, pixel * 8, pixel * 8)
 
@@ -125,8 +121,7 @@ export async function loadAvatarImage(url: string): Promise<HTMLImageElement | n
 }
 
 export function getAvatarUrl(uuid: string, size: number): string {
-  const cleanUuid = uuid.replace(/-/g, '')
-  return `https://crafatar.com/avatars/${cleanUuid}?size=${size}&overlay=true&default=MHF_Steve`
+  return buildAvatarUrl(uuid, size)
 }
 
 export function useAvatarRenderer() {
@@ -136,7 +131,7 @@ export function useAvatarRenderer() {
   async function renderAvatar(
     uuid: string | undefined,
     username: string | undefined,
-    accountType: string,
+    accountType: AccountType | string,
     size: number
   ): Promise<string | null> {
     loading.value = true
@@ -147,7 +142,7 @@ export function useAvatarRenderer() {
       const name = username?.trim() || 'Player'
 
       // 统一通过后端API获取头像，包括离线玩家
-      if ((window as any).__TAURI__?.pytauri) {
+      if ((window as unknown as { __TAURI__?: { pytauri?: unknown } }).__TAURI__?.pytauri) {
         try {
           // 对于离线玩家，设置use_default_skin=true
           const useDefaultSkin = !id || accountType.toLowerCase() === 'offline'
@@ -190,7 +185,7 @@ export function useAvatarRenderer() {
 
       error.value = true
       return renderOfflineAvatar(name, size)
-    } catch (e) {
+    } catch {
       error.value = true
       return renderOfflineAvatar(username || 'Player', size)
     } finally {

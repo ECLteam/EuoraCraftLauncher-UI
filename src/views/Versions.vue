@@ -4,41 +4,64 @@
     <div class="versions-nav">
       <div class="nav-header">
         <h2 class="nav-title">
-          <UiIcon name="cube" :size="18" />
+          <UiIcon
+            name="cube"
+            :size="18"
+          />
           {{ t('sidebar.versions') }}
         </h2>
       </div>
       <div class="nav-list">
-        <router-link
+        <RouterLink
           v-for="item in navItems"
           :key="item.path"
           :to="item.path"
           :class="['nav-item', { active: isActive(item.path) }]"
         >
-          <span class="nav-indicator"></span>
-          <UiIcon :name="item.icon" :size="18" class="nav-icon" />
+          <span class="nav-indicator" />
+          <UiIcon
+            :name="item.icon"
+            :size="18"
+            class="nav-icon"
+          />
           <span class="nav-label">{{ item.label }}</span>
-        </router-link>
+        </RouterLink>
       </div>
+      <!-- 插件：版本页导航底部插槽 -->
+      <div
+        id="plugin-slot-versions-nav-bottom"
+        class="plugin-slot-container"
+      />
     </div>
 
     <!-- 右侧内容区 -->
-    <div class="versions-content" ref="contentRef">
-      <router-view v-slot="{ Component }">
-        <Transition name="page" mode="out-in">
+    <div
+      ref="contentRef"
+      class="versions-content"
+    >
+      <!-- 插件：版本页内容区顶部插槽 -->
+      <div
+        id="plugin-slot-versions-content-top"
+        class="plugin-slot-container"
+      />
+      <RouterView v-slot="{ Component }">
+        <Transition
+          name="page"
+          mode="out-in"
+        >
           <component :is="Component" />
         </Transition>
-      </router-view>
+      </RouterView>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import UiIcon from '@/components/ui/Icon.vue'
 import gsap from 'gsap'
+import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
+import UiIcon from '@/components/ui/Icon.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -67,5 +90,5 @@ onMounted(() => {
 })
 </script>
 
-<style scoped src="@/styles/Versions.css"></style>
+<style scoped src="@/styles/views/Versions.css"></style>
 
