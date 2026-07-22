@@ -46,6 +46,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 
+defineOptions({ name: 'UiInput' })
+
 const props = withDefaults(defineProps<{
   modelValue: string | number
   type?: string
@@ -93,4 +95,4 @@ const handleClear = () => {
 }
 </script>
 
-<style scoped src="@/styles/Input.css"></style>
+<style scoped src="@/styles/components/ui/Input.css"></style>

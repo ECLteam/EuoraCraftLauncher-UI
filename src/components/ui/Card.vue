@@ -46,6 +46,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+defineOptions({ name: 'UiCard' })
+
 const props = defineProps<{
   title?: string
   icon?: string
@@ -70,4 +72,4 @@ const handleKeydown = (event: KeyboardEvent) => {
 }
 </script>
 
-<style scoped src="@/styles/Card.css"></style>
+<style scoped src="@/styles/components/ui/Card.css"></style>

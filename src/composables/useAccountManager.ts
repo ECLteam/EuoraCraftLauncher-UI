@@ -283,7 +283,7 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
   }
 
   async function copyUserCode() {
-    await copyToClipboard(microsoftLoginData.value.userCode)
+    await copyToClipboard(microsoftLoginData.value.userCode || '')
   }
 
   function reset() {

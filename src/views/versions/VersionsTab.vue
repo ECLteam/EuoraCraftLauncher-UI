@@ -49,6 +49,10 @@
             />
           </button>
         </div>
+        <div
+          id="plugin-slot-versions-list-toolbar"
+          class="plugin-slot-container"
+        />
       </div>
     </div>
 
@@ -119,17 +123,14 @@
               >
                 <div
                   class="version-icon"
-                  :class="version.type"
+                  :class="[
+                    version.type,
+                    { 'has-image': Boolean(getVersionImage(version.type)) },
+                  ]"
                 >
                   <img
-                    v-if="version.type === 'release'"
-                    src="/img/item/grass.png"
-                    alt=""
-                    class="version-icon-img"
-                  >
-                  <img
-                    v-else-if="version.type === 'snapshot'"
-                    src="/img/item/command.png"
+                    v-if="getVersionImage(version.type)"
+                    :src="getVersionImage(version.type)"
                     alt=""
                     class="version-icon-img"
                   >
@@ -269,7 +270,23 @@ import UiSelect from '@/components/ui/Select.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
-import type { MinecraftPathEntry, MinecraftVersionCatalog, MinecraftVersionItem } from '@/types/api'
+import {
+  VERSION_FILTERS,
+  INSTALLABLE_LOADERS,
+  LOADER_COMMAND_MAP,
+  getVersionIcon as _getVersionIcon,
+  getVersionImage as _getVersionImage,
+  getVersionBadgeClass as _getVersionBadgeClass,
+  VERSION_LABEL_KEY_MAP,
+} from '@/config/version'
+import type {
+  CommandPayloadMap,
+  GameConfig,
+  MinecraftPathEntry,
+  MinecraftVersionCatalog,
+  MinecraftVersionItem,
+  MinecraftVersionType,
+} from '@/types/api'
 
 const { t } = useI18n()
 const glassMessage = useGlassMessage()
@@ -307,14 +324,6 @@ const loaderVersionsLoading = ref(false)
 /** 请求 ID，用于防止加载器版本请求的竞态条件 */
 let loaderRequestId = 0
 
-/** 加载器命令映射 */
-const LOADER_COMMAND_MAP: Record<string, string> = {
-  fabric: 'fabric_versions',
-  forge: 'forge_versions',
-  neoforge: 'neoforge_versions',
-  quilt: 'quilt_versions',
-}
-
 /** 设置指定加载器的版本列表 */
 function setLoaderVersions(loaderType: string, versions: string[]) {
   switch (loaderType) {
@@ -346,7 +355,12 @@ async function loadLoaderVersions(loaderType: string, gameVersion: string) {
     if (requestId !== loaderRequestId) return
 
     if (res.success && res.data) {
-      const list = Array.isArray(res.data) ? res.data : (res.data.all || [])
+      const loaderData: unknown = res.data
+      const list = Array.isArray(loaderData)
+        ? loaderData
+        : (loaderData && typeof loaderData === 'object' && 'all' in loaderData && Array.isArray(loaderData.all)
+            ? loaderData.all
+            : [])
       const mapped = list.map((v: unknown) => {
         if (v && typeof v === 'object') {
           const item = v as Record<string, unknown>
@@ -405,14 +419,13 @@ const installForm = ref({
   gamePath: ''
 })
 
-const categories = computed(() => [
-  { id: 'all', name: t('versions.download.allVersions'), icon: 'cube' },
-  { id: 'release', name: t('versions.download.release'), icon: 'check' },
-  { id: 'snapshot', name: t('versions.download.snapshot'), icon: 'lab' },
-  { id: 'april_fools', name: t('versions.download.aprilFools'), icon: 'happy' },
-  { id: 'old_beta', name: t('versions.download.oldBeta'), icon: 'archive' },
-  { id: 'old_alpha', name: t('versions.download.oldAlpha'), icon: 'archive' }
-])
+const categories = computed(() =>
+  VERSION_FILTERS.map(c => ({
+    id: c.id,
+    name: t(c.labelKey),
+    icon: c.icon,
+  }))
+)
 
 const categoryOptions = computed(() =>
   categories.value.map(c => ({
@@ -421,13 +434,11 @@ const categoryOptions = computed(() =>
   }))
 )
 
-const loaders = [
-  { value: 'vanilla', label: '原版', icon: 'cube' },
-  { value: 'fabric', label: 'Fabric', icon: 'grid' },
-  { value: 'forge', label: 'Forge', icon: 'fire' },
-  { value: 'neoforge', label: 'NeoForge', icon: 'fire' },
-  { value: 'quilt', label: 'Quilt', icon: 'grid' }
-]
+const loaders = INSTALLABLE_LOADERS.map(l => ({
+  value: l.value,
+  label: l.label,
+  icon: l.icon,
+}))
 
 function getCategoryCount(categoryId: string): number {
   const catalog = versionCatalog.value
@@ -435,12 +446,42 @@ function getCategoryCount(categoryId: string): number {
   return catalog[categoryId as keyof MinecraftVersionCatalog]?.length || 0
 }
 
+/**
+ * 构建版本 ID 到真实类型的映射表。
+ * 后端返回的 all 数组中 type 可能全部为 'all'，需要按分类数组校正。
+ */
+const versionTypeMap = computed(() => {
+  const catalog = versionCatalog.value
+  const map = new Map<string, string>()
+  if (!catalog) return map
+  const typeKeys: (keyof MinecraftVersionCatalog)[] = ['release', 'snapshot', 'april_fools', 'old_beta', 'old_alpha']
+  for (const type of typeKeys) {
+    const list = catalog[type]
+    if (!Array.isArray(list)) continue
+    for (const v of list) {
+      if (v?.id) map.set(v.id, type)
+    }
+  }
+  return map
+})
+
 const filteredVersions = computed(() => {
   const catalog = versionCatalog.value
   let versions: MinecraftVersionItem[] = []
   if (catalog) {
     versions = catalog[selectedCategory.value as keyof MinecraftVersionCatalog] || []
   }
+
+  // 校正 all 分类下版本的 type，避免全部显示为 'all'
+  const typeMap = versionTypeMap.value
+  versions = versions.map(v => {
+    const realType = typeMap.get(v.id)
+    if (realType && realType !== 'all' && v.type !== realType) {
+      return { ...v, type: realType as MinecraftVersionType }
+    }
+    return v
+  })
+
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase()
     versions = versions.filter(v => v.id.toLowerCase().includes(query))
@@ -493,7 +534,7 @@ const defaultGamePath = ref('')
 const gamePaths = ref<{ value: string; label: string }[]>([])
 
 async function loadDefaultGamePath() {
-  const res = await run(async () => backend.config.get('game'))
+  const res = await run(async () => backend.config.get<GameConfig>('game'))
   if (!res?.success || !res.data) return
   const data = res.data
   const paths = data.minecraft_paths || []
@@ -507,13 +548,15 @@ async function loadDefaultGamePath() {
     defaultGamePath.value = data.last_install_path
   } else if (paths.length > 0) {
     const first = paths[0]
-    defaultGamePath.value = typeof first === 'string' ? first : (first.path || '')
+    if (first) {
+      defaultGamePath.value = typeof first === 'string' ? first : (first.path || '')
+    }
   }
 }
 
 async function saveLastInstallPath(path: string) {
   if (!path) return
-  const res = await run(async () => backend.config.get('game'))
+  const res = await run(async () => backend.config.get<GameConfig>('game'))
   const gameCfg = (res?.success && res.data) ? res.data : {}
   await run(async () => backend.config.set('game', { ...gameCfg, last_install_path: path }))
 }
@@ -585,7 +628,7 @@ async function doInstall() {
   // 不自动打开面板，用户通过顶部栏按钮查看
 
   try {
-    const params: Record<string, unknown> = {
+    const params: CommandPayloadMap['install_version'] = {
       version_id: versionId,
       loader_type: loader,
       task_id: taskId,
@@ -594,8 +637,10 @@ async function doInstall() {
       params.version_name = versionName
     }
     if (loaderVersion) {
-      const versionKey = `${loader}_version`
-      params[versionKey] = loaderVersion
+      if (loader === 'fabric') params.fabric_version = loaderVersion
+      if (loader === 'forge') params.forge_version = loaderVersion
+      if (loader === 'neoforge') params.neoforge_version = loaderVersion
+      if (loader === 'quilt') params.quilt_version = loaderVersion
     }
     if (gamePath) {
       params.game_path = gamePath
@@ -630,33 +675,19 @@ async function startInstall() {
 }
 
 function getVersionTypeLabel(type: string): string {
-  const labels: Record<string, string> = {
-    'release': t('versions.download.release'),
-    'snapshot': t('versions.download.snapshot'),
-    'old_beta': t('versions.download.oldBeta'),
-    'old_alpha': t('versions.download.oldAlpha'),
-    'april_fools': t('versions.download.aprilFools'),
-  }
-  return labels[type] || type
+  return t(VERSION_LABEL_KEY_MAP[type] ?? type) || type
 }
 
 function getVersionBadgeClass(type: string): string {
-  const classes: Record<string, string> = {
-    'release': 'badge-success',
-    'snapshot': 'badge-warning',
-    'old_beta': 'badge-info',
-    'old_alpha': 'badge-info',
-    'april_fools': 'badge-april',
-  }
-  return classes[type] || 'badge-default'
+  return _getVersionBadgeClass(type)
 }
 
 function getVersionIcon(type: string): string {
-  const icons: Record<string, string> = {
-    'release': 'check', 'snapshot': 'lab',
-    'old_beta': 'archive', 'old_alpha': 'archive'
-  }
-  return icons[type] || 'cube'
+  return _getVersionIcon(type)
+}
+
+function getVersionImage(type: string): string {
+  return _getVersionImage(type)
 }
 
 function formatDate(dateStr: string): string {
@@ -710,4 +741,4 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped src="@/styles/VersionsTab.css"></style>
+<style scoped src="@/styles/views/versions/VersionsTab.css"></style>

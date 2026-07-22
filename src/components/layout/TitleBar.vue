@@ -27,6 +27,10 @@
           >
           <span class="titlebar-app-name">{{ topNavEnabled ? 'ECL' : 'EuoraCraft Launcher' }}</span>
         </div>
+        <div
+          id="plugin-slot-titlebar-left"
+          class="plugin-slot-container"
+        />
       </template>
     </div>
 
@@ -58,6 +62,10 @@
 
     <!-- 右侧窗口控制 -->
     <div class="titlebar-right">
+      <div
+        id="plugin-slot-titlebar-right"
+        class="plugin-slot-container"
+      />
       <button
         v-if="hasActiveTasks"
         class="titlebar-btn titlebar-btn-task"
@@ -118,6 +126,8 @@ import { useTheme } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
 import { MENU_ITEMS } from '@/constants/menu'
 
+defineOptions({ name: 'TitleBar' })
+
 interface TauriGlobal {
   __TAURI__?: {
     window?: {
@@ -159,5 +169,4 @@ const close = async () => {
 const handleClose = () => fullscreenModal.close()
 </script>
 
-<style scoped src="@/styles/TitleBar.css"></style>
-
+<style scoped src="@/styles/components/layout/TitleBar.css"></style>

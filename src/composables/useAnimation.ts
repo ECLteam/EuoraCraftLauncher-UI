@@ -64,7 +64,9 @@ export function useButtonFeedback() {
     animatedElements.add(btn)
 
     const tl = gsap.timeline({
-      onComplete: () => animatedElements.delete(btn),
+      onComplete: () => {
+        animatedElements.delete(btn)
+      },
     })
 
     tl.to(btn, {
@@ -79,25 +81,6 @@ export function useButtonFeedback() {
   }
 
   return { onClick }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// 2. 页面进入动画
-// ═══════════════════════════════════════════════════════════════════
-
-export function usePageEnter(target: string | HTMLElement | Ref<HTMLElement | null>) {
-  if (prefersReducedMotion()) return
-
-  const el = unref(target)
-
-  gsap.from(el, {
-    opacity: 0,
-    y: 14,
-    scale: 0.98,
-    duration: DURATION.slow,
-    ease: EASE.enter,
-    clearProps: 'transform',
-  })
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -287,52 +270,6 @@ export function useCountUp(
     onUpdate: () => {
       el.textContent = `${options?.prefix || ''}${Math.round(obj.value)}${options?.suffix || ''}`
     },
-  })
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// 7. 高亮闪烁 (新增/变更项提示)
-// ═══════════════════════════════════════════════════════════════════
-
-export function useHighlightFlash(target: HTMLElement | Ref<HTMLElement | null>) {
-  if (prefersReducedMotion()) return
-
-  const el = unref(target)
-  if (!el) return
-
-  gsap.fromTo(
-    el,
-    { backgroundColor: 'rgba(74, 127, 217, 0.15)' },
-    {
-      backgroundColor: 'transparent',
-      duration: DURATION.slower,
-      ease: EASE.smooth,
-      clearProps: 'backgroundColor',
-    },
-  )
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// 8. 滑动面板 (右滑/左滑)
-// ═══════════════════════════════════════════════════════════════════
-
-export function useSlidePanel(
-  panel: HTMLElement | Ref<HTMLElement | null>,
-  direction: 'left' | 'right' = 'right',
-) {
-  if (prefersReducedMotion()) return
-
-  const el = unref(panel)
-  if (!el) return
-
-  const xFrom = direction === 'right' ? '100%' : '-100%'
-
-  gsap.from(el, {
-    x: xFrom,
-    opacity: 0,
-    duration: DURATION.slow,
-    ease: EASE.enter,
-    clearProps: 'transform',
   })
 }
 

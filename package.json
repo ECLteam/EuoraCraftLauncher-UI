@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "typecheck": "vue-tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit",
+    "build": "pnpm typecheck && vite build",
     "preview": "vite preview",
-    "lint": "eslint . --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write ."
   },
   "devDependencies": {
@@ -39,8 +41,11 @@
     "@iconify-json/hugeicons": "^1.2.25",
     "@iconify/json": "^2.2.460",
     "@iconify/vue": "^5.0.0",
+    "@vueuse/core": "^13.0.0",
     "gsap": "^3.12.7",
     "naive-ui": "^2.41.0",
+    "sucrase": "^3.35.0",
+    "valibot": "^1.0.0",
     "vue": "^3.5.26",
     "vue-i18n": "^10.0.7",
     "vue-router": "^4.6.4"

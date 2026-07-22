@@ -1,15 +1,16 @@
 // plugin-sdk API 封装
 
 import backend from '@/api/client'
-import type { ApiResponse, JsonDict } from './types'
 import type {
   AccountListData,
+  ApiResponse,
   ConfigSection,
   FileContent,
   FsEntry,
   ImageDataUrl,
   ImageSelection,
   JavaInstallation,
+  JsonDict,
   MinecraftAccount,
   MinecraftVersion,
   PathInfo,
@@ -29,10 +30,8 @@ import type {
  * @returns 插件命令返回结果
  */
 export function callPluginCommand<T = unknown>(command: string, params?: JsonDict): Promise<ApiResponse<T>> {
-  return backend.command('plugin_call_command', { command, params })
+  return backend.command('plugin_call_command', { command, params }) as Promise<ApiResponse<T>>
 }
-
-export const callCommand = callPluginCommand
 
 // ── 插件设置 ──
 
@@ -44,19 +43,15 @@ export function getPluginSettings(pluginName: string): Promise<ApiResponse<Plugi
   return backend.command('plugin_get_settings', { plugin_name: pluginName })
 }
 
-export const getSettings = getPluginSettings
-
 /**
  * 更新插件设置项。
  * @param pluginName - 插件名称
  * @param key - 设置键
  * @param value - 设置值
  */
-export function updatePluginSetting(pluginName: string, key: string, value: unknown): Promise<ApiResponse<null>> {
+export function updatePluginSetting(pluginName: string, key: string, value: unknown): Promise<ApiResponse<void>> {
   return backend.command('plugin_update_setting', { plugin_name: pluginName, key, value })
 }
-
-export const updateSetting = updatePluginSetting
 
 // ── 插件路由 ──
 
@@ -68,8 +63,6 @@ export function getPluginRoutes(pluginId?: string): Promise<ApiResponse<PluginRo
   return backend.command('plugin_get_routes', { plugin_id: pluginId })
 }
 
-export const getRoutes = getPluginRoutes
-
 // ── 启动器配置 ──
 
 /**
@@ -80,18 +73,14 @@ export function getLauncherConfig<T = JsonDict>(section: ConfigSection): Promise
   return backend.config.get<T>(section)
 }
 
-export const getConfig = getLauncherConfig
-
 /**
  * 设置启动器配置节。
  * @param section - 配置节名称
  * @param data - 配置数据
  */
-export function setLauncherConfig(section: ConfigSection, data: JsonDict): Promise<ApiResponse<null>> {
+export function setLauncherConfig(section: ConfigSection, data: JsonDict): Promise<ApiResponse<void>> {
   return backend.config.set(section, data)
 }
-
-export const setConfig = setLauncherConfig
 
 // ── 游戏版本 ──
 
@@ -110,8 +99,6 @@ export function getMinecraftVersions(filterType?: string): Promise<ApiResponse<M
 export function scanGameVersions(path?: string | string[]): Promise<ApiResponse<ScannedVersion[]>> {
   return backend.command('scan_versions', { path })
 }
-
-export const scanVersions = scanGameVersions
 
 /**
  * 安装游戏版本。
@@ -135,8 +122,6 @@ export function installGameVersion(params: {
   return backend.command('install_version', params)
 }
 
-export const installVersion = installGameVersion
-
 // ── Java ──
 
 /**
@@ -146,16 +131,12 @@ export function scanJavaInstallations(): Promise<ApiResponse<JavaInstallation[]>
   return backend.command('java_scan')
 }
 
-export const scanJava = scanJavaInstallations
-
 /**
  * 获取已记录的 Java 安装列表。
  */
 export function getJavaInstallations(): Promise<ApiResponse<JavaInstallation[]>> {
   return backend.command('java_list')
 }
-
-export const getJavaList = getJavaInstallations
 
 // ── 账户 ──
 
@@ -165,8 +146,6 @@ export const getJavaList = getJavaInstallations
 export function getAccountList(): Promise<ApiResponse<AccountListData>> {
   return backend.command('accounts_list')
 }
-
-export const getAccounts = getAccountList
 
 /**
  * 获取当前选中的账户。
@@ -185,8 +164,6 @@ export function readDirectory(path: string): Promise<ApiResponse<FsEntry[]>> {
   return backend.fs.readDir(path)
 }
 
-export const readDir = readDirectory
-
 /**
  * 读取文件内容。
  * @param path - 文件路径
@@ -196,8 +173,6 @@ export function readFileContent(path: string, mode?: 'text' | 'base64'): Promise
   return backend.fs.readFile(path, mode)
 }
 
-export const readFile = readFileContent
-
 /**
  * 检查路径是否存在。
  * @param path - 路径
@@ -205,8 +180,6 @@ export const readFile = readFileContent
 export function checkPathExists(path: string): Promise<ApiResponse<PathInfo>> {
   return backend.fs.exists(path)
 }
-
-export const exists = checkPathExists
 
 // ── 文件选择器 ──
 
@@ -257,8 +230,6 @@ export function fetchImageDataUrl(url: string): Promise<ApiResponse<ImageDataUrl
 export function getPluginList(): Promise<ApiResponse<PluginInfo[]>> {
   return backend.command('plugin_list')
 }
-
-export const getPlugins = getPluginList
 
 /**
  * 获取单个插件信息。

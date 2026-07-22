@@ -122,74 +122,67 @@
         </div>
       </div>
 
-      <div
-        v-if="!localSettings.memory_auto"
-        class="memory-manual-section"
-      >
-        <div class="setting-item">
-          <div class="setting-info">
-            <div class="setting-label">
-              {{ t('settings.memorySize') }}
+      <Transition name="memory-panel">
+        <div
+          v-if="!localSettings.memory_auto"
+          class="memory-manual-section"
+          :style="{ '--memory-slider-progress': sliderValuePosition + '%' }"
+        >
+          <div class="memory-header">
+            <div class="memory-header-copy">
+              <div class="memory-header-label">
+                {{ t('settings.memorySize') }}
+              </div>
+              <div class="memory-header-desc">
+                {{ t('settings.memorySizeDesc') }}
+              </div>
             </div>
-            <div class="setting-desc">
-              {{ t('settings.memorySizeDesc') }}
-            </div>
-          </div>
-          <div class="setting-control">
-            <span class="memory-value">{{ formatMemory(localSettings.memory_size) }}</span>
-          </div>
-        </div>
-
-        <div class="memory-visualization">
-          <div class="memory-bar-container">
-            <div class="memory-bar">
-              <div
-                class="memory-segment memory-used"
-                :style="{ width: usedPercent + '%' }"
-              />
-              <div
-                class="memory-segment memory-game"
-                :style="{ width: gamePercent + '%' }"
-              />
-            </div>
-            <div class="memory-labels">
-              <span>0 MB</span>
-              <span>{{ formatMemory(systemMemory.totalMb / 2) }}</span>
-              <span>{{ formatMemory(systemMemory.totalMb) }}</span>
-            </div>
+            <output class="memory-current-value">{{ formatMemory(safeMemorySize) }}</output>
           </div>
 
-          <div class="slider-wrapper">
+          <div class="memory-slider-block">
             <input
-              v-model.number="localSettings.memory_size"
+              v-model.number="safeMemorySize"
               type="range"
               min="1024"
               :max="maxMemory"
               step="256"
-              class="slider-input"
-              @change="debouncedSaveConfig"
+              class="memory-slider-input"
+              :aria-label="t('settings.memorySize')"
+              :aria-valuetext="formatMemory(safeMemorySize)"
+              @input="debouncedSaveConfig()"
             >
+            <div class="memory-slider-scale">
+              <span>1 GB</span>
+              <span>{{ formatMemory(maxMemory) }}</span>
+            </div>
           </div>
 
           <div class="memory-stats">
-            <div class="memory-stat-item">
-              <span class="stat-dot memory-used-dot" />
-              <span class="stat-label">{{ t('settings.memoryUsed') }}:</span>
-              <span class="stat-value">{{ formatMemory(systemMemory.usedMb) }} ({{ systemMemory.percentUsed }}%)</span>
+            <div class="memory-stat">
+              <span class="memory-stat-label">
+                <i class="system-used" />
+                {{ t('settings.memoryUsed') }}
+              </span>
+              <strong>{{ formatMemory(systemMemory.usedMb) }}</strong>
             </div>
-            <div class="memory-stat-item">
-              <span class="stat-dot memory-game-dot" />
-              <span class="stat-label">{{ t('settings.memoryAllocated') }}:</span>
-              <span class="stat-value highlight">{{ formatMemory(localSettings.memory_size) }}</span>
+            <div class="memory-stat">
+              <span class="memory-stat-label">
+                <i class="game-allocated" />
+                {{ t('settings.memoryAllocated') }}
+              </span>
+              <strong class="is-primary">{{ formatMemory(safeMemorySize) }}</strong>
             </div>
-            <div class="memory-stat-item">
-              <span class="stat-dot memory-remaining-dot" />
-              <span class="stat-label">{{ t('settings.memoryRemaining') }}:</span>
-              <span class="stat-value">{{ formatMemory(remainingMemory) }}</span>
+            <div class="memory-stat">
+              <span class="memory-stat-label">
+                <i class="remaining" />
+                {{ t('settings.memoryRemaining') }}
+              </span>
+              <strong>{{ formatMemory(remainingMemory) }}</strong>
             </div>
           </div>
         </div>
-      </div>
+      </Transition>
     </div>
 
     <!-- 启动选项 -->
@@ -219,6 +212,11 @@
         </div>
       </div>
     </div>
+
+    <div
+      id="plugin-slot-settings-game-section-after"
+      class="plugin-slot-container"
+    />
   </div>
 </template>
 
@@ -230,6 +228,7 @@ import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useClickOutside } from '@/composables/useClickOutside'
 import { useGlassMessage } from '@/composables/useGlassMessage'
+import type { GameConfig } from '@/types/api'
 
 interface JavaInfo {
   path: string
@@ -308,16 +307,24 @@ const maxMemory = computed(() => {
   return Math.max(maxAlloc, 2048)
 })
 
-const usedPercent = computed(() => {
-  return (systemMemory.value.usedMb / systemMemory.value.totalMb) * 100
+const sliderValuePosition = computed(() => {
+  const min = 1024
+  const max = maxMemory.value
+  const range = max - min
+  if (range <= 0) return 0
+  const percent = ((safeMemorySize.value - min) / range) * 100
+  return Math.min(Math.max(percent, 0), 100)
 })
 
-const gamePercent = computed(() => {
-  return (localSettings.value.memory_size / systemMemory.value.totalMb) * 100
+const safeMemorySize = computed({
+  get: () => localSettings.value.memory_size ?? 1024,
+  set: (value: number) => {
+    localSettings.value.memory_size = value
+  }
 })
 
 const remainingMemory = computed(() => {
-  return systemMemory.value.totalMb - systemMemory.value.usedMb - localSettings.value.memory_size
+  return Math.max(0, systemMemory.value.totalMb - systemMemory.value.usedMb - safeMemorySize.value)
 })
 
 const selectedJavaLabel = computed(() => {
@@ -340,7 +347,7 @@ const loadJavaList = async () => {
 }
 
 const loadGameConfig = async () => {
-  const result = await run(async () => backend.config.get('game'))
+  const result = await run(async () => backend.config.get<GameConfig>('game'))
   if (!result?.success || !result.data) return
   const data = result.data
   localSettings.value = {
@@ -428,5 +435,5 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped src="@/styles/GameTab.css"></style>
+<style scoped src="@/styles/views/settings/GameTab.css"></style>
 

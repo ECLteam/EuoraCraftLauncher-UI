@@ -1,0 +1,377 @@
+/* ============================================================
+   VersionDetailModal — 版本详情弹窗样式
+   设计理念：与设置页（Settings）风格对齐
+   ============================================================ */
+
+.vdm-container {
+  display: flex;
+  height: 100%;
+  gap: var(--s-lg);
+}
+
+/* ── 左侧导航 ── */
+
+.vdm-nav {
+  width: 180px;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+.vdm-nav-header {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--s-lg);
+  height: 43px;
+  border-bottom: 1px solid var(--divider);
+  flex-shrink: 0;
+}
+
+.vdm-version-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--s-sm);
+  flex: 1;
+  min-width: 0;
+  color: var(--text-primary);
+}
+
+.vdm-version-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vdm-nav-list {
+  flex: 1;
+  padding: var(--s-sm) 0;
+  overflow-y: auto;
+}
+
+.vdm-nav-item {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 var(--s-lg);
+  gap: var(--s-sm);
+  position: relative;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 0;
+  transition: color var(--duration-fast) ease-out, background var(--duration-fast) ease-out;
+}
+
+.vdm-nav-item:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.vdm-nav-item.active {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+[data-theme="dark"] .vdm-nav-item.active {
+  color: var(--info);
+}
+
+.vdm-nav-item .nav-indicator {
+  position: absolute;
+  left: 0;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--primary);
+  opacity: 0;
+  transition: opacity var(--duration-fast) ease-out;
+}
+
+[data-theme="dark"] .vdm-nav-item .nav-indicator {
+  background: var(--info);
+}
+
+.vdm-nav-item.active .nav-indicator {
+  opacity: 1;
+}
+
+/* ── 右侧内容 ── */
+
+.vdm-content {
+  flex: 1;
+  min-width: 0;
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
+  padding: var(--s-xl);
+  overflow-y: auto;
+}
+
+.vdm-tab {
+  max-width: 780px;
+}
+
+/* ── 设置区段 ── */
+
+.vdm-tab .settings-section {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--s-2xl);
+}
+
+.vdm-tab .settings-section:last-child {
+  margin-bottom: 0;
+}
+
+.vdm-tab .section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--s-md);
+  padding-bottom: var(--s-sm);
+  border-bottom: 1px solid var(--divider);
+}
+
+.vdm-tab .setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-xl);
+  min-height: 48px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--divider);
+}
+
+.vdm-tab .setting-item:last-child {
+  border-bottom: none;
+}
+
+.vdm-tab .setting-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.vdm-tab .setting-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.vdm-tab .setting-desc {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  line-height: 1.5;
+}
+
+.vdm-tab .setting-control {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--s-sm);
+}
+
+/* ── 信息网格 ── */
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--s-md);
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--s-md) var(--s-md);
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
+}
+
+.info-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.info-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* ── 快速操作卡片 ── */
+
+.quick-actions {
+  display: flex;
+  gap: var(--s-md);
+}
+
+.btn-action-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-sm);
+  flex: 1;
+  height: 40px;
+  padding: 0 var(--s-lg);
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
+  border-left: none;
+  border-right: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--duration-fast) ease-out, color var(--duration-fast) ease-out;
+}
+
+.btn-action-card:hover {
+  background: var(--bg-hover);
+  color: var(--primary);
+}
+
+.btn-action-card:last-child:hover {
+  color: var(--error);
+  background: var(--error-alpha);
+}
+
+/* ── 徽章 ── */
+
+.vdm-tab .badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 10px;
+}
+
+.vdm-tab .badge-success {
+  background: var(--success-alpha);
+  color: var(--success);
+}
+
+.vdm-tab .badge-error {
+  background: var(--error-alpha);
+  color: var(--error);
+}
+
+/* ── 输入框 ── */
+
+.vdm-tab .text-input {
+  padding: 7px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: 12px;
+  outline: none;
+  transition: border-color var(--duration-fast) ease-out, box-shadow var(--duration-fast) ease-out;
+}
+
+.vdm-tab .text-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.memory-input {
+  width: 120px;
+  text-align: right;
+}
+
+.java-path-input {
+  width: 280px;
+}
+
+.args-textarea {
+  width: 100%;
+  min-height: 80px;
+  resize: vertical;
+  margin-top: var(--s-sm);
+}
+
+/* ── 按钮（幽灵风格） ── */
+
+.java-browse-btn {
+  padding: 7px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--duration-fast) ease-out, border-color var(--duration-fast) ease-out, background var(--duration-fast) ease-out;
+}
+
+.java-browse-btn:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: var(--primary-alpha);
+}
+
+/* ── 开关 ── */
+
+.toggle-switch {
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
+  border: none;
+  background: var(--bg-base-alt);
+  cursor: pointer;
+  position: relative;
+  transition: background var(--duration-fast) ease-out;
+  padding: 0;
+}
+
+.toggle-switch.active {
+  background: var(--primary);
+}
+
+.toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--duration-fast) var(--ease-spring);
+}
+
+.toggle-switch.active .toggle-knob {
+  transform: translateX(18px);
+}
+
+/* ── 占位文本 ── */
+
+.placeholder-text {
+  color: var(--text-tertiary);
+  font-size: 13px;
+  padding: var(--s-xl) 0;
+  text-align: center;
+}

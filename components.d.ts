@@ -7,8 +7,10 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AvatarRenderer: typeof import('./src/components/game/AvatarRenderer.vue')['default']
     Button: typeof import('./src/components/ui/Button.vue')['default']
     Card: typeof import('./src/components/ui/Card.vue')['default']
+    ErrorModal: typeof import('./src/components/modals/ErrorModal.vue')['default']
     FullscreenModal: typeof import('./src/components/modals/FullscreenModal.vue')['default']
     GlassMessage: typeof import('./src/components/ui/GlassMessage.vue')['default']
     Icon: typeof import('./src/components/ui/Icon.vue')['default']
@@ -18,8 +20,8 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     Select: typeof import('./src/components/ui/Select.vue')['default']
     SideBar: typeof import('./src/components/layout/SideBar.vue')['default']
-    SkinRenderer: typeof import('./src/components/SkinRenderer.vue')['default']
-    TaskQueuePanel: typeof import('./src/components/TaskQueuePanel.vue')['default']
+    Slider: typeof import('./src/components/ui/Slider.vue')['default']
+    TaskQueuePanel: typeof import('./src/components/panels/TaskQueuePanel.vue')['default']
     TitleBar: typeof import('./src/components/layout/TitleBar.vue')['default']
   }
 }

@@ -63,6 +63,8 @@ import { ref } from 'vue'
 import UiButton from '@/components/ui/Button.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 
+defineOptions({ name: 'GlassMessage' })
+
 export type MessageType = 'success' | 'error' | 'warning' | 'info' | 'loading'
 
 export interface MessageOptions {
@@ -128,8 +130,11 @@ const add = (options: MessageOptions) => {
 
 const startTimer = (msg: MessageItem) => {
   if (timerMap.value[msg.id]) {
-    clearTimeout(timerMap.value[msg.id].timeout)
-    clearInterval(timerMap.value[msg.id].interval)
+    const previousTimer = timerMap.value[msg.id]
+    if (previousTimer) {
+      clearTimeout(previousTimer.timeout)
+      clearInterval(previousTimer.interval)
+    }
   }
   
   const endTime = Date.now() + msg.remaining
@@ -177,7 +182,7 @@ const remove = (id: string) => {
   
   messages.value.splice(idx, 1)
   delete progressMap.value[id]
-  msg.onClose?.()
+  msg?.onClose?.()
 }
 
 defineExpose({
@@ -192,4 +197,4 @@ defineExpose({
 })
 </script>
 
-<style scoped src="@/styles/GlassMessage.css"></style>
+<style scoped src="@/styles/components/ui/GlassMessage.css"></style>

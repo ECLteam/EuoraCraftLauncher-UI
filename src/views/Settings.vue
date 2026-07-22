@@ -27,10 +27,20 @@
           <span class="nav-label">{{ item.label }}</span>
         </RouterLink>
       </div>
+      <!-- 插件：设置页导航底部插槽 -->
+      <div
+        id="plugin-slot-settings-nav-bottom"
+        class="plugin-slot-container"
+      />
     </div>
 
     <!-- 右侧内容区 -->
     <div class="settings-content">
+      <!-- 插件：设置页内容区顶部插槽 -->
+      <div
+        id="plugin-slot-settings-content-top"
+        class="plugin-slot-container"
+      />
       <RouterView v-slot="{ Component }">
         <Transition
           name="page"
@@ -43,6 +53,11 @@
           />
         </Transition>
       </RouterView>
+      <!-- 插件：设置页内容区底部插槽 -->
+      <div
+        id="plugin-slot-settings-content-bottom"
+        class="plugin-slot-container"
+      />
     </div>
   </div>
 </template>
@@ -129,4 +144,4 @@ watch([
 }, { immediate: true })
 </script>
 
-<style scoped src="@/styles/Settings.css"></style>
+<style scoped src="@/styles/views/Settings.css"></style>

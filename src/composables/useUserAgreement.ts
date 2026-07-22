@@ -1,7 +1,8 @@
 import { ref, computed } from 'vue'
 import backend from '@/api/client'
+import { URLS } from '@/config/urls'
 
-const USER_AGREEMENT_URL = 'https://euoracraft.zient.top/guide/user-agreement/'
+const USER_AGREEMENT_URL = URLS.userAgreement
 
 interface UserAgreementState {
   accepted: boolean

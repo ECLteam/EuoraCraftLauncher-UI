@@ -25,6 +25,12 @@
       </NButton>
     </div>
 
+    <!-- 插件：联机模组搜索栏下方插槽 -->
+    <div
+      id="plugin-slot-online-mods-search-after"
+      class="plugin-slot-container"
+    />
+
     <div
       v-if="loading"
       class="loading-state"
@@ -135,4 +141,4 @@ async function handleInstall(_mod: ModSearchItem) {
 }
 </script>
 
-<style scoped src="@/styles/OnlineMods.css"></style>
+<style scoped src="@/styles/views/OnlineMods.css"></style>

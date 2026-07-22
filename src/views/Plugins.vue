@@ -51,6 +51,12 @@
       </div>
     </div>
 
+    <!-- 插件：插件页工具栏下方插槽 -->
+    <div
+      id="plugin-slot-plugins-toolbar-after"
+      class="plugin-slot-container"
+    />
+
     <!-- 内容区 -->
     <div class="plugins-content">
       <!-- 空状态 -->
@@ -99,7 +105,7 @@
         <UiIcon
           name="loading"
           :size="24"
-          class="loading-icon"
+          class="loading-icon spin"
         />
         <span class="loading-text">{{ t('plugins.loading') }}</span>
       </div>
@@ -121,7 +127,7 @@
           <div class="col-name">
             <div class="list-item-icon">
               <UiIcon
-                :name="plugin.icon || 'lab'"
+                :name="plugin.icon || 'plugin'"
                 :size="18"
               />
             </div>
@@ -178,6 +184,11 @@
           </div>
         </div>
       </div>
+      <!-- 插件：插件页列表底部插槽 -->
+      <div
+        id="plugin-slot-plugins-list-bottom"
+        class="plugin-slot-container"
+      />
     </div>
   </div>
 </template>
@@ -289,9 +300,10 @@ async function unloadPlugin(plugin: Plugin) {
 async function installPlugin() {
   const result = await run(async () => backend.command('select_directory'))
   if (!result?.success || !result.data?.path) return
+  const pluginPath = result.data.path
 
   const installResult = await run(
-    async () => backend.command('plugin_install', { plugin_path: result.data.path }),
+    async () => backend.command('plugin_install', { plugin_path: pluginPath }),
     {
       showSuccess: true,
       successMessage: t('plugins.installSuccess'),
@@ -326,5 +338,5 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped src="@/styles/Plugins.css"></style>
+<style scoped src="@/styles/views/Plugins.css"></style>
 

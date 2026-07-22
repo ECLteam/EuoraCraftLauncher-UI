@@ -1,7 +1,8 @@
 {
   "app": {
     "title": "EuoraCraft Launcher",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "delete": "Delete"
   },
   "sidebar": {
     "toggle": "Toggle Sidebar",
@@ -445,8 +446,16 @@
     "mouseEffectOpacityDesc": "Adjust the opacity of particles",
     "mouseEffectSpeed": "Particle Speed",
     "mouseEffectSpeedDesc": "Adjust the speed of particles"
-  },
-  "common": {
+    },
+    "error": {
+        "defaultTitle": "Critical Error",
+        "detail": "Error Details",
+        "close": "Close",
+        "exportLogs": "Export Logs",
+        "exported": "Logs exported. Please contact the developer with the log file.",
+        "contactDeveloper": "Please send the exported log file to the developer for troubleshooting."
+    },
+    "common": {
     "confirm": "Confirm",
     "cancel": "Cancel",
     "save": "Save",

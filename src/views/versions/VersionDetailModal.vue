@@ -25,6 +25,7 @@
             :class="['vdm-nav-item', { active: activeTab === tab.id }]"
             @click="activeTab = tab.id"
           >
+            <span class="nav-indicator" />
             <UiIcon
               :name="tab.icon"
               :size="17"
@@ -32,6 +33,10 @@
             <span class="vdm-nav-label">{{ tab.label }}</span>
           </button>
         </div>
+        <div
+          id="plugin-slot-version-detail-tab"
+          class="plugin-slot-container"
+        />
       </div>
 
       <!-- 右侧内容 -->
@@ -187,8 +192,7 @@
                   type="number"
                   min="512"
                   step="256"
-                  class="text-input"
-                  style="width: 108px;"
+                  class="text-input memory-input"
                 >
               </div>
             </div>
@@ -229,14 +233,10 @@
                 <input
                   v-model="versionSettings.javaPath"
                   type="text"
-                  class="text-input"
-                  style="width: 270px;"
+                  class="text-input java-path-input"
                   placeholder="选择 Java 可执行文件..."
                 >
-                <button
-                  class="btn-ghost"
-                  style="margin-left: 7px;"
-                >
+                <button class="btn-ghost java-browse-btn">
                   浏览
                 </button>
               </div>
@@ -259,8 +259,7 @@
             </div>
             <textarea
               v-model="versionSettings.jvmArgs"
-              class="text-input"
-              style="width: 100%; height: 72px; resize: vertical;"
+              class="text-input args-textarea"
               placeholder="例如：-XX:+UseG1GC -XX:+ParallelRefProcEnabled"
             />
           </div>
@@ -281,8 +280,7 @@
             </div>
             <textarea
               v-model="versionSettings.gameArgs"
-              class="text-input"
-              style="width: 100%; height: 54px; resize: vertical;"
+              class="text-input args-textarea"
               placeholder="例如：--server 127.0.0.1 --port 25565"
             />
           </div>
@@ -304,6 +302,11 @@
         </div>
       </div>
     </div>
+
+    <div
+      id="plugin-slot-version-detail-footer"
+      class="plugin-slot-container"
+    />
   </FullscreenModal>
 </template>
 
@@ -314,20 +317,7 @@ import backend from '@/api/client'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { getLoaderIcon, getLoaderName } from '@/utils/loader'
-
-interface ScannedVersion {
-  versionId: string
-  id: string
-  primaryLoader: string
-  vanillaName?: string
-  isBroken: boolean
-  hasForge: boolean
-  hasNeoForge: boolean
-  hasFabric: boolean
-  hasQuilt: boolean
-  jsonPath: string
-  path?: string
-}
+import type { ScannedVersion } from '@/types/api'
 
 interface Props {
   visible: boolean
@@ -398,4 +388,4 @@ function handleDelete() {
 }
 </script>
 
-<style scoped src="@/styles/VersionDetailModal.css"></style>
+<style scoped src="@/styles/views/versions/VersionDetailModal.css"></style>

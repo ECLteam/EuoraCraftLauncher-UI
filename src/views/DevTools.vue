@@ -192,8 +192,8 @@ const showMsg = (type: 'info' | 'success' | 'warning' | 'error') => {
     warning: t('common.warning'),
     error: t('common.error')
   }
-  message[type](messages[type])
+  message[type](messages[type] ?? '')
 }
 </script>
 
-<style scoped src="@/styles/DevTools.css"></style>
+<style scoped src="@/styles/views/DevTools.css"></style>

@@ -1,0 +1,367 @@
+/* ============================================================
+ * 插件基础样式表
+ * 插件 SDK 激活时自动注入，提供与宿主一致的 UI 基础
+ * 插件开发者可直接使用这些 class 和 CSS 变量
+ * ============================================================ */
+
+/* ---- CSS 变量（继承宿主主题） ---- */
+
+.plugin-root {
+  --plugin-primary: var(--primary, #4A7FD9);
+  --plugin-primary-hover: var(--primary-hover, #3A6FC9);
+  --plugin-primary-light: var(--primary-light, rgba(74, 127, 217, 0.12));
+  --plugin-text: var(--text-primary, #1A1A1A);
+  --plugin-text-secondary: var(--text-secondary, #5C5C5C);
+  --plugin-bg: var(--card-bg, rgba(255, 255, 255, 0.92));
+  --plugin-bg-hover: var(--bg-elevated, rgba(255, 255, 255, 0.96));
+  --plugin-border: var(--border, rgba(0, 0, 0, 0.06));
+  --plugin-radius: 8px;
+  --plugin-radius-sm: 6px;
+  --plugin-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --plugin-font: 13px;
+  --plugin-font-sm: 11px;
+  --plugin-gap: 8px;
+  --plugin-gap-lg: 14px;
+  --plugin-transition: 150ms ease-out;
+  color: var(--plugin-text);
+  font-size: var(--plugin-font);
+  line-height: 1.5;
+}
+
+/* ---- 卡片 ---- */
+
+.plugin-card {
+  background: var(--plugin-bg);
+  border: 1px solid var(--plugin-border);
+  border-radius: var(--plugin-radius);
+  padding: 14px;
+  transition: border-color var(--plugin-transition);
+}
+
+.plugin-card:hover {
+  border-color: var(--plugin-primary);
+}
+
+.plugin-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--plugin-gap);
+  margin-bottom: 10px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.plugin-card-body {
+  color: var(--plugin-text-secondary);
+  font-size: var(--plugin-font);
+  line-height: 1.6;
+}
+
+.plugin-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--plugin-gap);
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--plugin-border);
+}
+
+/* ---- 按钮 ---- */
+
+.plugin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: var(--plugin-font);
+  font-weight: 500;
+  border: none;
+  border-radius: var(--plugin-radius-sm);
+  cursor: pointer;
+  transition: all var(--plugin-transition);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.plugin-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.plugin-btn-primary {
+  background: var(--plugin-primary);
+  color: #fff;
+}
+
+.plugin-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.plugin-btn-secondary {
+  background: var(--plugin-primary-light);
+  color: var(--plugin-primary);
+}
+
+.plugin-btn-secondary:hover:not(:disabled) {
+  background: var(--plugin-primary);
+  color: #fff;
+}
+
+.plugin-btn-ghost {
+  background: transparent;
+  color: var(--plugin-text-secondary);
+  border: 1px solid var(--plugin-border);
+}
+
+.plugin-btn-ghost:hover:not(:disabled) {
+  border-color: var(--plugin-primary);
+  color: var(--plugin-primary);
+}
+
+.plugin-btn-danger {
+  background: rgba(229, 92, 92, 0.12);
+  color: #E55C5C;
+}
+
+.plugin-btn-danger:hover:not(:disabled) {
+  background: #E55C5C;
+  color: #fff;
+}
+
+.plugin-btn-sm {
+  padding: 4px 10px;
+  font-size: var(--plugin-font-sm);
+}
+
+.plugin-btn-lg {
+  padding: 8px 20px;
+  font-size: 14px;
+}
+
+/* ---- 输入框 ---- */
+
+.plugin-input {
+  width: 100%;
+  padding: 7px 10px;
+  font-size: var(--plugin-font);
+  color: var(--plugin-text);
+  background: var(--plugin-bg);
+  border: 1px solid var(--plugin-border);
+  border-radius: var(--plugin-radius-sm);
+  outline: none;
+  transition: border-color var(--plugin-transition);
+  box-sizing: border-box;
+}
+
+.plugin-input:focus {
+  border-color: var(--plugin-primary);
+}
+
+.plugin-input::placeholder {
+  color: var(--plugin-text-secondary);
+  opacity: 0.5;
+}
+
+/* ---- 标签/徽章 ---- */
+
+.plugin-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: var(--plugin-font-sm);
+  font-weight: 500;
+  border-radius: 10px;
+  background: var(--plugin-primary-light);
+  color: var(--plugin-primary);
+}
+
+.plugin-badge-success {
+  background: rgba(82, 196, 26, 0.12);
+  color: #52c41a;
+}
+
+.plugin-badge-warning {
+  background: rgba(250, 173, 20, 0.12);
+  color: #faad14;
+}
+
+.plugin-badge-error {
+  background: rgba(229, 92, 92, 0.12);
+  color: #E55C5C;
+}
+
+/* ---- 列表项 ---- */
+
+.plugin-list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--plugin-gap);
+  padding: 8px 10px;
+  border-radius: var(--plugin-radius-sm);
+  transition: background var(--plugin-transition);
+  cursor: pointer;
+}
+
+.plugin-list-item:hover {
+  background: var(--plugin-bg-hover);
+}
+
+.plugin-list-item + .plugin-list-item {
+  margin-top: 4px;
+}
+
+/* ---- 分割线 ---- */
+
+.plugin-divider {
+  border: none;
+  border-top: 1px solid var(--plugin-border);
+  margin: 12px 0;
+}
+
+/* ---- 空状态 ---- */
+
+.plugin-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  color: var(--plugin-text-secondary);
+  font-size: var(--plugin-font);
+  text-align: center;
+}
+
+.plugin-empty-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+  opacity: 0.4;
+}
+
+/* ---- 开关 ---- */
+
+.plugin-toggle {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.plugin-toggle--disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.plugin-toggle-track {
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: var(--plugin-border);
+  transition: background var(--plugin-transition);
+  position: relative;
+}
+
+.plugin-toggle--checked .plugin-toggle-track {
+  background: var(--plugin-primary);
+}
+
+.plugin-toggle-knob {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: left var(--plugin-transition);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.plugin-toggle--checked .plugin-toggle-knob {
+  left: 18px;
+}
+
+/* ---- 进度条 ---- */
+
+.plugin-progress {
+  width: 100%;
+}
+
+.plugin-progress-track {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--plugin-border);
+  overflow: hidden;
+}
+
+.plugin-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--plugin-primary);
+  transition: width 300ms ease-out;
+}
+
+/* ---- 分组 ---- */
+
+.plugin-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  font-weight: 600;
+  font-size: 13px;
+  user-select: none;
+}
+
+.plugin-group-header-arrow {
+  transition: transform 150ms;
+  font-size: 10px;
+}
+
+/* ---- 弹性布局辅助 ---- */
+
+.plugin-flex { display: flex; }
+.plugin-flex-col { flex-direction: column; }
+.plugin-flex-center { align-items: center; justify-content: center; }
+.plugin-flex-between { align-items: center; justify-content: space-between; }
+.plugin-gap { gap: var(--plugin-gap); }
+.plugin-gap-lg { gap: var(--plugin-gap-lg); }
+.plugin-flex-1 { flex: 1; }
+.plugin-flex-wrap { flex-wrap: wrap; }
+
+/* ---- 间距辅助 ---- */
+
+.plugin-mt { margin-top: var(--plugin-gap); }
+.plugin-mt-lg { margin-top: var(--plugin-gap-lg); }
+.plugin-mb { margin-bottom: var(--plugin-gap); }
+.plugin-mb-lg { margin-bottom: var(--plugin-gap-lg); }
+.plugin-p { padding: var(--plugin-gap); }
+.plugin-p-lg { padding: var(--plugin-gap-lg); }
+
+/* ---- 文本辅助 ---- */
+
+.plugin-text-sm { font-size: var(--plugin-font-sm); }
+.plugin-text-secondary { color: var(--plugin-text-secondary); }
+.plugin-text-primary { color: var(--plugin-primary); }
+.plugin-text-center { text-align: center; }
+.plugin-text-ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plugin-font-mono { font-family: 'Consolas', 'Monaco', monospace; }
+
+/* ---- 滚动条 ---- */
+
+.plugin-scroll::-webkit-scrollbar { width: 4px; }
+.plugin-scroll::-webkit-scrollbar-track { background: transparent; }
+.plugin-scroll::-webkit-scrollbar-thumb { background: var(--plugin-border); border-radius: 2px; }
+.plugin-scroll::-webkit-scrollbar-thumb:hover { background: var(--plugin-text-secondary); }
+
+/* ---- 暗色主题适配 ---- */
+
+[data-theme="dark"] .plugin-root {
+  --plugin-text: #E8E9EB;
+  --plugin-text-secondary: #A0A3A8;
+  --plugin-bg: rgba(35, 38, 45, 0.92);
+  --plugin-bg-hover: rgba(45, 48, 55, 0.96);
+  --plugin-border: rgba(255, 255, 255, 0.08);
+  --plugin-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}

@@ -1,5 +1,21 @@
 
 
+/* ============================================================
+   插件插槽容器（全局）
+   ============================================================ */
+
+.plugin-slot-container {
+  width: 100%;
+}
+
+.plugin-slot-container:empty {
+  display: none;
+}
+
+/* ============================================================
+   选项卡面板
+   ============================================================ */
+
 .tab-pane {
   height: 100%;
   width: 100%;
@@ -145,9 +161,9 @@
   border-radius: 4px;
   flex-shrink: 0;
 }
-.version-icon.release   { background: #52c41a; }
-.version-icon.snapshot  { background: #faad14; }
-.version-icon.old_beta  { background: #1890ff; }
+.version-icon.release   { background: var(--success); }
+.version-icon.snapshot  { background: var(--warning); }
+.version-icon.old_beta  { background: var(--info); }
 .version-icon.old_alpha { background: #722ed1; }
 
 .loader-btn {
@@ -158,7 +174,7 @@
   color: var(--text-secondary);
   font-size: 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--duration-normal);
 }
 .loader-btn:hover {
   border-color: var(--primary);
@@ -167,7 +183,7 @@
 .loader-btn.active {
   background: var(--primary);
   border-color: var(--primary);
-  color: #fff;
+  color: var(--text-on-primary);
 }
 
 .progress-body {
@@ -229,58 +245,4 @@
   align-items: center;
   gap: 7px;
   flex-shrink: 0;
-}
-
-.select-dropdown-enter-active { transition: all 0.15s var(--ease-standard); }
-.select-dropdown-leave-active { transition: all 0.1s  var(--ease-standard); }
-.select-dropdown-enter-from   { opacity: 0; transform: translateY(-4px); }
-.select-dropdown-leave-to     { opacity: 0; transform: translateY(-4px); }
-
-.version-count {
-  font-size: 10px;
-  color: var(--text-secondary);
-  background: var(--bg-base);
-  padding: 2px 7px;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--border);
-}
-
-.slider-group {
-  display: flex;
-  align-items: center;
-  gap: var(--s-md);
-}
-
-.slider-input {
-  width: 144px;
-  height: 4px;
-  -webkit-appearance: none;
-  appearance: none;
-  background: var(--slider-track);
-  border-radius: 2px;
-  outline: none;
-  cursor: pointer;
-}
-
-.slider-input::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: var(--slider-thumb);
-  border: 2px solid var(--bg-elevated);
-  cursor: pointer;
-  transition: transform var(--duration-fast) ease-out;
-}
-
-.slider-input::-webkit-slider-thumb:hover {
-  transform: scale(1.1);
-}
-
-.slider-value {
-  font-size: 11px;
-  color: var(--text-secondary);
-  font-weight: 500;
-  min-width: 36px;
-  text-align: right;
 }

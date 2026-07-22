@@ -2,6 +2,7 @@ import { createI18n } from 'vue-i18n'
 import backend from '@/api/client'
 import enUS from './locales/en-US.json'
 import zhCN from './locales/zh-CN.json'
+import type { UiConfig } from '@/types/api'
 
 interface TauriGlobal {
   __TAURI__?: {
@@ -38,7 +39,7 @@ export const i18n = createI18n({
 export async function loadLocaleFromBackend(): Promise<LocaleCode> {
   try {
     if (typeof window !== 'undefined' && (window as unknown as TauriGlobal).__TAURI__?.pytauri) {
-      const result = await backend.config.get('ui')
+      const result = await backend.config.get<UiConfig>('ui')
       if (result.success && result.data?.locale) {
         const locale = result.data.locale as LocaleCode
         if (supportedLocales.some(l => l.code === locale)) {
@@ -64,7 +65,7 @@ export async function setLocale(locale: LocaleCode): Promise<void> {
 
   try {
     if (typeof window !== 'undefined' && (window as unknown as TauriGlobal).__TAURI__?.pytauri) {
-      const ui = (await backend.config.get('ui')).data || {}
+      const ui = (await backend.config.get<UiConfig>('ui')).data || {}
       await backend.config.set('ui', { ...ui, locale })
     }
   } catch (error) {

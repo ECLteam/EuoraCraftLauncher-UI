@@ -4,7 +4,7 @@
     :class="{
       collapsed: isCollapsed,
       expanded: isExpanded,
-      'modal-hidden': !agreementAccepted || topNavEnabled
+      'modal-hidden': !agreementAccepted || topNavEnabled || isFullscreenModalVisible
     }"
   >
     <!-- 折叠切换按钮 -->
@@ -24,6 +24,11 @@
       class="sidebar-nav"
       @mouseleave="handleMouseLeave"
     >
+      <!-- 插件：侧边栏顶部插槽 -->
+      <div
+        id="plugin-slot-sidebar-top"
+        class="plugin-slot-container"
+      />
       <div
         v-if="!isCollapsed"
         ref="activeBgRef"
@@ -167,15 +172,17 @@ import { ref, watch, nextTick, onMounted, computed, inject, type Ref } from 'vue
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import UiIcon from '@/components/ui/Icon.vue'
+import { useFullscreenModal } from '@/composables/useFullscreenModal'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { pluginRoutes } from '@/composables/usePluginBridge'
 import { useTheme } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
 import { MENU_ITEMS } from '@/constants/menu'
 
-defineOptions({ inheritAttrs: false })
+defineOptions({ name: 'SideBar', inheritAttrs: false })
 
 const { sidebarCollapsed, setSidebarCollapsed } = useTheme()
+const { isVisible: isFullscreenModalVisible } = useFullscreenModal()
 const isCollapsed = computed({
   get: () => sidebarCollapsed.value,
   set: (val) => setSidebarCollapsed(val),
@@ -210,10 +217,16 @@ const settingsSubItems = computed(() => [
 
 const versionsSubItems = computed(() => [
   { path: '/versions/manage', label: t('versions.manageTab'), iconName: 'settings' },
-  { path: '/versions/versions', label: t('versions.versions'), iconName: 'cube' },
+    { path: '/versions/versions', label: t('versions.versions'), iconName: 'download' },
 ])
 
-const subItemsMap = computed(() => ({
+interface SubMenuItem {
+  path: string
+  label: string
+  iconName: string
+}
+
+const subItemsMap = computed<Record<string, SubMenuItem[]>>(() => ({
   '/settings': settingsSubItems.value,
   '/versions': versionsSubItems.value,
 }))
@@ -306,7 +319,7 @@ const getActivePath = (): string => {
   const path = route.path
   // 先精确匹配子菜单项
   for (const parentPath of Object.keys(subItemsMap.value)) {
-    const sub = subItemsMap.value[parentPath].find(s => s.path === path)
+    const sub = subItemsMap.value[parentPath]?.find(s => s.path === path)
     if (sub) return sub.path
   }
   // 精确匹配父菜单项
@@ -324,7 +337,8 @@ const getActivePath = (): string => {
 
 const handleMouseEnter = (index: number) => {
   if (index < menuItems.value.length) {
-    updateIndicator(menuItems.value[index].path)
+    const item = menuItems.value[index]
+    if (item) updateIndicator(item.path)
   }
 }
 
@@ -380,5 +394,5 @@ onMounted(() => {
 })
 </script>
 
-<style scoped src="@/styles/SideBar.css"></style>
+<style scoped src="@/styles/components/layout/SideBar.css"></style>
 

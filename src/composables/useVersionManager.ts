@@ -1,6 +1,14 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import backend from '@/api/client'
+import {
+  LAUNCH_PROGRESS,
+  DOWNLOAD_BASE_PROGRESS,
+  DOWNLOAD_PROGRESS_SCALE,
+  LAUNCH_SUCCESS_HIDE_DELAY,
+  LAUNCH_ERROR_HIDE_DELAY,
+  STATUS_MESSAGE_AUTO_HIDE,
+} from '@/config/game'
 import { useGlassMessage } from './useGlassMessage'
 import { globalLaunchProgress } from './useLaunchProgress'
 import type { ScannedVersion, LaunchProgress, GameConfig } from '@/types/api'
@@ -8,6 +16,8 @@ import type { ScannedVersion, LaunchProgress, GameConfig } from '@/types/api'
 export interface VersionItem {
   id: string
   type: string
+  versionType: ScannedVersion['versionType']
+  gamePath: string
 }
 
 const globalVersions = ref<VersionItem[]>([])
@@ -51,25 +61,45 @@ export function useVersionManager(t: (key: string, ...args: unknown[]) => string
       .filter((v: ScannedVersion) => !v.isBroken)
       .filter((v: ScannedVersion) => {
         const id = v.versionId || v.id
-        if (seen.has(id)) return false
-        seen.add(id)
+        const gamePath = getVersionGamePath(v, stringPaths[0] ?? '')
+        const key = `${gamePath}\0${id}`
+        if (seen.has(key)) return false
+        seen.add(key)
         return true
       })
-      .map((v: ScannedVersion) => ({ id: v.versionId || v.id, type: v.primaryLoader || 'Vanilla' }))
+      .map((v: ScannedVersion) => ({
+        id: v.versionId || v.id,
+        type: v.primaryLoader || 'Vanilla',
+        versionType: v.versionType,
+        gamePath: getVersionGamePath(v, stringPaths[0] ?? ''),
+      }))
 
-    if (versions.value.length > 0 && !selectedVersion.value) {
-      selectedVersion.value = versions.value[0].id
-    }
-
-    if (stringPaths.length > 0) {
-      currentGamePath.value = stringPaths[0]
+    const selected = versions.value.find((version) =>
+      version.id === selectedVersion.value && version.gamePath === currentGamePath.value
+    ) ?? versions.value.find((version) => version.id === selectedVersion.value)
+      ?? versions.value[0]
+    if (selected) {
+      selectVersion(selected.id, selected.gamePath)
+    } else {
+      selectedVersion.value = ''
+      currentGamePath.value = ''
     }
 
     showStatus(t('game.status.foundVersions', { count: versions.value.length }), 'success')
   }
 
-  function selectVersion(id: string) {
+  function getVersionGamePath(version: ScannedVersion, fallback: string): string {
+    if (version.path) return version.path
+    const pathMatch = version.jsonPath?.match(/^(.*)[\\/]versions[\\/]/i)
+    return pathMatch?.[1] || fallback
+  }
+
+  function selectVersion(id: string, gamePath?: string) {
     selectedVersion.value = id
+    const selected = gamePath
+      ? versions.value.find((version) => version.id === id && version.gamePath === gamePath)
+      : versions.value.find((version) => version.id === id)
+    currentGamePath.value = selected?.gamePath || gamePath || currentGamePath.value
   }
 
   function setGamePath(path: string) {
@@ -112,30 +142,30 @@ export function useVersionManager(t: (key: string, ...args: unknown[]) => string
 
       if (phase === 'launched') {
         setLaunchProgress(100, 'success', msg)
-        setTimeout(hideLaunchProgress, 1500)
+        setTimeout(hideLaunchProgress, LAUNCH_SUCCESS_HIDE_DELAY)
         unlisten()
       } else if (phase === 'error') {
         setLaunchProgress(0, 'error', msg)
-        setTimeout(hideLaunchProgress, 2000)
+        setTimeout(hideLaunchProgress, LAUNCH_ERROR_HIDE_DELAY)
         unlisten()
       } else if (phase === 'preparing') {
-        setLaunchProgress(3, 'preparing', msg)
+        setLaunchProgress(LAUNCH_PROGRESS.preparing!, 'preparing', msg)
       } else if (phase === 'downloading' && typeof pct === 'number') {
-        setLaunchProgress(10 + pct * 0.38, 'downloading_assets', msg)
+        setLaunchProgress(DOWNLOAD_BASE_PROGRESS + pct * DOWNLOAD_PROGRESS_SCALE, 'downloading_assets', msg)
       } else if (phase === 'checking') {
-        setLaunchProgress(5, 'checking_files', msg)
+        setLaunchProgress(LAUNCH_PROGRESS.checking!, 'checking_files', msg)
       } else if (phase === 'files_checked') {
-        setLaunchProgress(50, 'files_checked', msg)
+        setLaunchProgress(LAUNCH_PROGRESS.files_checked!, 'files_checked', msg)
       } else if (phase === 'building_args') {
-        setLaunchProgress(typeof pct === 'number' ? pct : 65, 'building_params', msg)
+        setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.building_args!, 'building_params', msg)
       } else if (phase === 'args_built') {
-        setLaunchProgress(75, 'args_built', msg)
+        setLaunchProgress(LAUNCH_PROGRESS.args_built!, 'args_built', msg)
       } else if (phase === 'natives_done') {
-        setLaunchProgress(85, 'natives_done', msg)
+        setLaunchProgress(LAUNCH_PROGRESS.natives_done!, 'natives_done', msg)
       } else if (phase === 'about_to_launch') {
-        setLaunchProgress(92, 'about_to_launch', msg)
+        setLaunchProgress(LAUNCH_PROGRESS.about_to_launch!, 'about_to_launch', msg)
       } else if (phase === 'launching') {
-        setLaunchProgress(typeof pct === 'number' ? pct : 95, 'launching', msg)
+        setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.launching!, 'launching', msg)
       } else {
         setLaunchProgress(2, 'prepare', msg)
       }
@@ -179,7 +209,7 @@ export function useVersionManager(t: (key: string, ...args: unknown[]) => string
       if (statusId === id) {
         statusMsg.value = ''
       }
-    }, 5000)
+    }, STATUS_MESSAGE_AUTO_HIDE)
   }
 
   return reactive({

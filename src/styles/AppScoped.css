@@ -1,11 +1,3 @@
-.plugin-slot-container {
-  width: 100%;
-}
-
-.plugin-slot-container:empty {
-  display: none;
-}
-
 .plugin-sidebar-slot {
   position: fixed;
   left: 0;

@@ -1,7 +1,7 @@
 
 
 .page-container {
-  transition: opacity 150ms ease-out;
+  transition: opacity var(--duration-fast) ease-out;
 }
 
 .modal-page-slide-out {

@@ -1,7 +1,8 @@
 {
   "app": {
     "title": "EuoraCraft Launcher",
-    "loading": "加载中..."
+    "loading": "加载中...",
+    "delete": "删除"
   },
   "sidebar": {
     "toggle": "切换侧边栏",
@@ -445,8 +446,16 @@
     "mouseEffectOpacityDesc": "调整粒子的不透明度",
     "mouseEffectSpeed": "粒子速度",
     "mouseEffectSpeedDesc": "调整粒子移动的速度"
-  },
-  "common": {
+    },
+    "error": {
+        "defaultTitle": "发生严重错误",
+        "detail": "错误详情",
+        "close": "关闭",
+        "exportLogs": "导出日志",
+        "exported": "日志已导出，请携带日志联系开发者",
+        "contactDeveloper": "请将导出的日志文件发送给开发者以协助排查问题"
+    },
+    "common": {
     "confirm": "确认",
     "cancel": "取消",
     "save": "保存",

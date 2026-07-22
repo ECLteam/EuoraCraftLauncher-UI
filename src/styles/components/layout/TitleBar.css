@@ -1,0 +1,206 @@
+.titlebar {
+  height: var(--titlebar-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 7px;
+  background: var(--glass-bg-sidebar);
+  border-bottom: 1px solid var(--glass-border);
+  -webkit-app-region: drag;
+  user-select: none;
+  -webkit-user-select: none;
+  z-index: 1000;
+  position: relative;
+}
+
+.titlebar-left {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-left: 5px;
+  -webkit-app-region: no-drag;
+  min-width: 0;
+}
+
+.titlebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 4px;
+}
+
+.titlebar-logo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  border-radius: var(--r-xs);
+  flex-shrink: 0;
+}
+
+.titlebar-app-name {
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.titlebar-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 29px;
+  height: 29px;
+  border-radius: var(--r-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  -webkit-app-region: no-drag;
+  flex-shrink: 0;
+}
+
+.titlebar-back-btn:hover {
+  background: var(--glass-item-hover);
+  color: var(--text-primary);
+  border-color: var(--glass-border);
+}
+
+.titlebar-back-btn:active {
+  transform: scale(0.94);
+  transition-duration: var(--duration-instant);
+}
+
+.titlebar-modal-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.titlebar-center {
+  flex: 1;
+  height: 100%;
+  -webkit-app-region: drag;
+}
+
+.titlebar-nav {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  -webkit-app-region: no-drag;
+  padding: 0 4px;
+}
+
+.titlebar-nav-item {
+  display: flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 11px;
+  gap: 7px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  transition: color var(--duration-fast) ease-out,
+              border-color var(--duration-fast) ease-out;
+  -webkit-app-region: no-drag;
+  position: relative;
+  outline: none;
+}
+
+.titlebar-nav-item:hover {
+  color: var(--text-primary);
+}
+
+.titlebar-nav-item:active {
+  transform: scale(0.98);
+  transition-duration: var(--duration-instant);
+}
+
+.titlebar-nav-item.active {
+  color: var(--primary);
+  font-weight: 600;
+  border-bottom-color: var(--primary);
+}
+
+.titlebar-nav-item.active:hover {
+  color: var(--primary-hover);
+}
+
+.titlebar-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  -webkit-app-region: no-drag;
+  padding-right: 2px;
+}
+
+.titlebar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 29px;
+  height: 29px;
+  border-radius: var(--r-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  position: relative;
+}
+
+.titlebar-btn:hover {
+  background: var(--glass-item-hover);
+  color: var(--text-primary);
+}
+
+.titlebar-btn:active {
+  transform: scale(0.94);
+  transition-duration: var(--duration-instant);
+}
+
+.titlebar-btn-close:hover {
+  background: var(--close-btn-hover);
+  color: var(--error);
+  border-color: var(--close-btn-border);
+}
+
+.titlebar-btn-close:active {
+  background: rgba(229, 92, 92, 0.2);
+  border-color: rgba(229, 92, 92, 0.4);
+}
+
+.titlebar-btn-task {
+  position: relative;
+}
+
+.task-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 4px;
+  border-radius: 7px;
+  background: var(--primary);
+  color: var(--text-on-primary);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 14px;
+  text-align: center;
+  pointer-events: none;
+}

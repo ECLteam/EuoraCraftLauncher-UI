@@ -51,6 +51,8 @@
 import { ref } from 'vue'
 import { useButtonFeedback } from '@/composables/useAnimation'
 
+defineOptions({ name: 'UiButton' })
+
 const props = withDefaults(defineProps<{
   variant?: 'primary' | 'secondary' | 'outline' | 'text' | 'danger' | 'ghost'
   size?: 'sm' | 'md' | 'lg'
@@ -100,4 +102,4 @@ const handleClick = (event: MouseEvent) => {
 }
 </script>
 
-<style scoped src="@/styles/Button.css"></style>
+<style scoped src="@/styles/components/ui/Button.css"></style>

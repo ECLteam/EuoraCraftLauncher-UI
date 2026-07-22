@@ -27,6 +27,11 @@
           <span class="nav-label">{{ item.label }}</span>
         </RouterLink>
       </div>
+      <!-- 插件：版本页导航底部插槽 -->
+      <div
+        id="plugin-slot-versions-nav-bottom"
+        class="plugin-slot-container"
+      />
     </div>
 
     <!-- 右侧内容区 -->
@@ -34,6 +39,11 @@
       ref="contentRef"
       class="versions-content"
     >
+      <!-- 插件：版本页内容区顶部插槽 -->
+      <div
+        id="plugin-slot-versions-content-top"
+        class="plugin-slot-container"
+      />
       <RouterView v-slot="{ Component }">
         <Transition
           name="page"
@@ -80,5 +90,5 @@ onMounted(() => {
 })
 </script>
 
-<style scoped src="@/styles/Versions.css"></style>
+<style scoped src="@/styles/views/Versions.css"></style>
 

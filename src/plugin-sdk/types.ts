@@ -9,17 +9,22 @@ export interface PluginSdkContext {
   version: string
 }
 
-export interface ThemeState {
+export interface ThemeConfig {
   mode: 'light' | 'dark' | 'system'
-  isDark: boolean
   primaryColor: string
   backgroundImage: string
   backgroundOpacity: number
 }
 
+export interface ThemeState extends ThemeConfig {
+  isDark: boolean
+}
+
+export type LauncherVersionType = 'dev' | 'beta' | 'release'
+
 export interface LauncherState {
   version: string
-  versionType: string
+  versionType: LauncherVersionType
   devMode: boolean
 }
 
@@ -34,6 +39,7 @@ export type {
   MinecraftVersion,
   ScannedVersion,
   JavaInstallation,
+  JsonDict,
   MinecraftAccount,
   AccountListData,
   PluginInfo,

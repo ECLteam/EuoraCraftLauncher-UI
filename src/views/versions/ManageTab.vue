@@ -1,5 +1,9 @@
 <template>
   <div class="manage-page">
+    <div
+      id="plugin-slot-versions-manage-top"
+      class="plugin-slot-container"
+    />
     <!-- 统一容器：路径列表 + 版本列表 -->
     <div class="manage-container">
       <!-- 左侧路径列表 -->
@@ -239,9 +243,22 @@
                 @click="handleSelectVersion(version)"
               >
                 <div class="col-icon">
-                  <div class="version-icon">
+                  <div
+                    class="version-icon"
+                    :class="[
+                      getVersionTypeClass(version),
+                      { 'has-image': Boolean(getManageVersionImage(version)) },
+                    ]"
+                  >
+                    <img
+                      v-if="getManageVersionImage(version)"
+                      :src="getManageVersionImage(version)"
+                      alt=""
+                      class="version-icon-img"
+                    >
                     <UiIcon
-                      :name="getLoaderIcon(version.primaryLoader)"
+                      v-else
+                      :name="getManageVersionIcon(version.primaryLoader)"
                       :size="18"
                     />
                   </div>
@@ -380,9 +397,17 @@ import UiInput from '@/components/ui/Input.vue'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { globalLaunchProgress } from '@/composables/useLaunchProgress'
 import { useVersionManager } from '@/composables/useVersionManager'
-import { getLoaderIcon, getLoaderName, getLoaderClass } from '@/utils/loader'
+import {
+  LAUNCH_PROGRESS,
+  DOWNLOAD_BASE_PROGRESS,
+  DOWNLOAD_PROGRESS_SCALE,
+  LAUNCH_SUCCESS_HIDE_DELAY,
+  LAUNCH_ERROR_HIDE_DELAY,
+} from '@/config/game'
+import { getVersionImage } from '@/config/version'
+import { getLoaderIcon, getLoaderImage, getLoaderName, getLoaderClass } from '@/utils/loader'
 import VersionDetailModal from '@/views/versions/VersionDetailModal.vue'
-import type { LaunchProgress, MinecraftPathEntry, ScannedVersion } from '@/types/api'
+import type { GameConfig, LaunchProgress, MinecraftPathEntry, ScannedVersion } from '@/types/api'
 
 interface GamePath {
   name: string
@@ -464,7 +489,7 @@ onBeforeUnmount(() => {
 
 const fetchGamePaths = async () => {
   try {
-    const response = await backend.config.get('game')
+    const response = await backend.config.get<GameConfig>('game')
     if (response.success && response.data) {
       const paths = response.data.minecraft_paths || []
       gamePaths.value = paths.map((p: MinecraftPathEntry) => {
@@ -489,7 +514,7 @@ const getPathNameFromPath = (path: string): string => {
 }
 
 const handleSelectVersion = (version: ScannedVersion) => {
-  versionManager.selectVersion(version.versionId)
+  versionManager.selectVersion(version.versionId, currentPath.value?.path)
 }
 
 const scanCurrentPath = async () => {
@@ -530,9 +555,11 @@ const addNewPath = () => {
 }
 
 const editPath = (index: number) => {
+  const path = gamePaths.value[index]
+  if (!path) return
   isEditing.value = true
   editingIndex.value = index
-  pathForm.value = { ...gamePaths.value[index] }
+  pathForm.value = { ...path }
   showPathModal.value = true
 }
 
@@ -553,14 +580,14 @@ const browseForPath = async () => {
 const isDefaultPath = computed(() => {
   if (!isEditing.value || editingIndex.value < 0) return false
   const path = gamePaths.value[editingIndex.value]
-  return path.protected || path.path.includes('.minecraft')
+  return path?.protected || path?.path.includes('.minecraft') || false
 })
 
 const savePath = async () => {
   if (!pathForm.value.name || !pathForm.value.path) return
 
   try {
-    const configResponse = await backend.config.get('game')
+    const configResponse = await backend.config.get<GameConfig>('game')
     if (configResponse.success && configResponse.data) {
       const updatedPaths = [...gamePaths.value]
 
@@ -594,6 +621,7 @@ const savePath = async () => {
 
 const removePath = async (index: number) => {
   const path = gamePaths.value[index]
+  if (!path) return
   if (path.protected) {
     message.warning(t('versions.manage.protectedPath'))
     return
@@ -604,10 +632,11 @@ const removePath = async (index: number) => {
     t('versions.manage.confirmDeletePath', { name: path.name }),
     async () => {
       const removed = gamePaths.value[index]
+      if (!removed) return
       gamePaths.value.splice(index, 1)
 
       try {
-        const configResponse = await backend.config.get('game')
+        const configResponse = await backend.config.get<GameConfig>('game')
         if (configResponse.success && configResponse.data) {
           await backend.config.set('game', {
             ...configResponse.data,
@@ -655,28 +684,28 @@ const handleLaunch = async (version: ScannedVersion) => {
 
     if (phase === 'launched') {
       setLaunchProgress(100, 'success', msg)
-      setTimeout(hideLaunchProgress, 1500)
+      setTimeout(hideLaunchProgress, LAUNCH_SUCCESS_HIDE_DELAY)
       unlisten()
     } else if (phase === 'error') {
       setLaunchProgress(0, 'error', msg)
-      setTimeout(hideLaunchProgress, 2000)
+      setTimeout(hideLaunchProgress, LAUNCH_ERROR_HIDE_DELAY)
       unlisten()
     } else if (phase === 'downloading' && typeof pct === 'number') {
-      setLaunchProgress(10 + pct * 0.38, 'downloading_assets', msg)
+      setLaunchProgress(DOWNLOAD_BASE_PROGRESS + pct * DOWNLOAD_PROGRESS_SCALE, 'downloading_assets', msg)
     } else if (phase === 'checking') {
-      setLaunchProgress(5, 'checking_files', msg)
+      setLaunchProgress(LAUNCH_PROGRESS.checking!, 'checking_files', msg)
     } else if (phase === 'files_checked') {
-      setLaunchProgress(50, 'files_checked', msg)
+      setLaunchProgress(LAUNCH_PROGRESS.files_checked!, 'files_checked', msg)
     } else if (phase === 'building_args') {
-      setLaunchProgress(typeof pct === 'number' ? pct : 65, 'building_params', msg)
+      setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.building_args!, 'building_params', msg)
     } else if (phase === 'args_built') {
-      setLaunchProgress(75, 'args_built', msg)
+      setLaunchProgress(LAUNCH_PROGRESS.args_built!, 'args_built', msg)
     } else if (phase === 'natives_done') {
-      setLaunchProgress(85, 'natives_done', msg)
+      setLaunchProgress(LAUNCH_PROGRESS.natives_done!, 'natives_done', msg)
     } else if (phase === 'about_to_launch') {
-      setLaunchProgress(92, 'about_to_launch', msg)
+      setLaunchProgress(LAUNCH_PROGRESS.about_to_launch!, 'about_to_launch', msg)
     } else if (phase === 'launching') {
-      setLaunchProgress(typeof pct === 'number' ? pct : 95, 'launching', msg)
+      setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.launching!, 'launching', msg)
     } else {
       setLaunchProgress(2, 'prepare', msg)
     }
@@ -731,6 +760,7 @@ const handleDetailDelete = (version: ScannedVersion) => {
 
 const handleDelete = async (version: ScannedVersion) => {
   if (!currentPath.value) return
+  const gamePath = currentPath.value.path
 
   openConfirm(
     t('common.confirm'),
@@ -739,7 +769,7 @@ const handleDelete = async (version: ScannedVersion) => {
       try {
         const result = await backend.command('uninstall_version', {
           version_id: version.versionId,
-          game_path: currentPath.value.path
+          game_path: gamePath
         })
         if (result.success) {
           message.success(t('versions.manage.versionDeleted', { name: version.versionId }))
@@ -765,6 +795,24 @@ function getLoaderDisplayName(loaderType: string | null): string {
   return getLoaderName(loaderType)
 }
 
+/**
+ * 获取版本类型 CSS 类（匹配版本下载页）
+ */
+function getVersionTypeClass(version: ScannedVersion): string {
+  return version.versionType
+}
+
+/**
+ * 获取版本管理页的版本图标（匹配版本下载页风格）
+ */
+function getManageVersionIcon(loader: string | null | undefined): string {
+  return getLoaderIcon(loader)
+}
+
+function getManageVersionImage(version: ScannedVersion): string {
+  return getLoaderImage(version.primaryLoader) || getVersionImage(version.versionType)
+}
+
 // ── 版本安装 ──
 
 function navigateToInstall() {
@@ -772,4 +820,4 @@ function navigateToInstall() {
 }
 </script>
 
-<style scoped src="@/styles/ManageTab.css"></style>
+<style scoped src="@/styles/views/versions/ManageTab.css"></style>

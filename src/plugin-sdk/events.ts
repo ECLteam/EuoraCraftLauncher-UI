@@ -1,4 +1,6 @@
-// plugin-sdk 事件系统
+/**
+ * plugin-sdk 事件系统
+ */
 
 import backend from '@/api/client'
 
@@ -20,7 +22,7 @@ export function listen(event: string, handler: EventHandler, key?: string): () =
   const handlers = registry.get(event) ?? new Map()
   registry.set(event, handlers)
 
-  const cleanup = backend.on(event, handler)
+  const cleanup = backend.onAny(event, handler)
   handlers.set(id, { handler, cleanup })
 
   return () => {
@@ -80,7 +82,10 @@ export const Events = {
   SCRIPT_INJECTED: 'plugin:script_injected',
   TYPESCRIPT_INJECTED: 'plugin:typescript_injected',
   SLOTS_CLEARED: 'plugin:slots_cleared',
+  SLOT_REGISTERED: 'plugin:slot_registered',
+  SLOT_UNREGISTERED: 'plugin:slot_unregistered',
   PRE_UNLOAD: 'plugin:pre_unload',
   CLEANUP: 'plugin:cleanup',
   LAUNCHER_NOTIFY: 'launcher:notify',
+  STATE_CHANGED: 'plugin:state_changed',
 } as const

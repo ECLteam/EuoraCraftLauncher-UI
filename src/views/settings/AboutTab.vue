@@ -8,22 +8,24 @@
       <div class="card-body">
         <div class="card-grid">
           <div class="avatar-col">
-            <div class="avatar avatar-logo">
-              EC
-            </div>
+            <img
+              src="/favicon.ico"
+              alt="EuoraCraft"
+              class="avatar avatar-logo"
+            >
           </div>
           <div class="info-col">
             <div class="item-title">
               EuoraCraft Launcher
             </div>
             <div class="item-desc">
-              当前版本：v1.0.0
+              {{ versionText }}
             </div>
           </div>
           <div class="btn-col">
             <a
               class="about-btn"
-              href="https://github.com/ECLteam"
+              :href="URLS.githubOrg"
               target="_blank"
             >
               <UiIcon
@@ -115,7 +117,7 @@
           <div class="license-btns">
             <a
               class="about-btn"
-              href="https://github.com/WSH032/pytauri"
+              :href="URLS.pytauri.repo"
               target="_blank"
             >
               <UiIcon
@@ -126,7 +128,7 @@
             </a>
             <a
               class="about-btn"
-              href="https://github.com/WSH032/pytauri/blob/main/LICENSE"
+              :href="URLS.pytauri.license"
               target="_blank"
             >
               <UiIcon
@@ -147,7 +149,7 @@
           <div class="license-btns">
             <a
               class="about-btn"
-              href="https://github.com/vuejs/core"
+              :href="URLS.vue.repo"
               target="_blank"
             >
               <UiIcon
@@ -158,7 +160,7 @@
             </a>
             <a
               class="about-btn"
-              href="https://github.com/vuejs/core/blob/main/LICENSE"
+              :href="URLS.vue.license"
               target="_blank"
             >
               <UiIcon
@@ -179,7 +181,7 @@
           <div class="license-btns">
             <a
               class="about-btn"
-              href="https://github.com/vitejs/vite"
+              :href="URLS.vite.repo"
               target="_blank"
             >
               <UiIcon
@@ -190,7 +192,7 @@
             </a>
             <a
               class="about-btn"
-              href="https://github.com/vitejs/vite/blob/main/LICENSE"
+              :href="URLS.vite.license"
               target="_blank"
             >
               <UiIcon
@@ -211,7 +213,7 @@
           <div class="license-btns">
             <a
               class="about-btn"
-              href="https://github.com/tauri-apps/tauri"
+              :href="URLS.tauri.repo"
               target="_blank"
             >
               <UiIcon
@@ -222,7 +224,7 @@
             </a>
             <a
               class="about-btn"
-              href="https://github.com/tauri-apps/tauri/blob/dev/LICENSE_APACHE-2.0"
+              :href="URLS.tauri.license"
               target="_blank"
             >
               <UiIcon
@@ -243,7 +245,7 @@
           <div class="license-btns">
             <a
               class="about-btn"
-              href="https://github.com/tusen-ai/naive-ui"
+              :href="URLS.naiveUI.repo"
               target="_blank"
             >
               <UiIcon
@@ -254,7 +256,7 @@
             </a>
             <a
               class="about-btn"
-              href="https://github.com/tusen-ai/naive-ui/blob/main/LICENSE"
+              :href="URLS.naiveUI.license"
               target="_blank"
             >
               <UiIcon
@@ -275,7 +277,7 @@
           <div class="license-btns">
             <a
               class="about-btn"
-              href="https://github.com/yushijinhun/authlib-injector"
+              :href="URLS.authlibInjector.repo"
               target="_blank"
             >
               <UiIcon
@@ -286,7 +288,7 @@
             </a>
             <a
               class="about-btn"
-              href="https://github.com/yushijinhun/authlib-injector/blob/develop/LICENSE"
+              :href="URLS.authlibInjector.license"
               target="_blank"
             >
               <UiIcon
@@ -314,7 +316,7 @@
         <div class="legal-btns">
           <a
             class="about-btn highlight"
-            href="https://github.com/ECLteam"
+            :href="URLS.githubOrg"
             target="_blank"
           >
             <UiIcon
@@ -326,53 +328,79 @@
         </div>
       </div>
     </div>
+
+    <div
+      id="plugin-slot-settings-about-bottom"
+      class="plugin-slot-container"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed, inject, type Ref } from 'vue'
 import UiIcon from '@/components/ui/Icon.vue'
+import { URLS } from '@/config/urls'
 
-const thanks = [
+const launcherVersion = inject<Readonly<Ref<string>>>('launcherVersion')
+const launcherVersionType = inject<Readonly<Ref<'dev' | 'beta' | 'release'>>>('launcherVersionType')
+
+const versionText = computed(() => {
+  const v = launcherVersion?.value
+  const t = launcherVersionType?.value
+  if (!v) return '当前版本：v1.0.0'
+  if (t && t !== 'release') return `当前版本：v${v}-${t}`
+  return `当前版本：v${v}`
+})
+
+interface ThanksItem {
+  name: string
+  initial: string
+  desc: string
+  url?: string
+  btnText: string
+}
+
+const thanks: ThanksItem[] = [
   {
     name: 'PyTauri',
     initial: 'PT',
     desc: '提供了 Python 与 Tauri 的桥梁，让启动器能用 Python 写后端',
-    url: 'https://github.com/WSH032/pytauri',
+    url: URLS.pytauri.repo,
     btnText: 'GitHub',
   },
   {
     name: 'Vue 3',
     initial: 'V',
     desc: '渐进式 JavaScript 框架，构建了启动器的前端界面',
-    url: 'https://github.com/vuejs/core',
+    url: URLS.vue.repo,
     btnText: 'GitHub',
   },
   {
     name: 'Tauri',
     initial: 'T',
     desc: '轻量级桌面应用框架，提供了原生窗口和系统集成能力',
-    url: 'https://github.com/tauri-apps/tauri',
+    url: URLS.tauri.repo,
     btnText: 'GitHub',
   },
   {
     name: 'Authlib-Injector',
     initial: 'AI',
     desc: '提供了 Minecraft 外置登录（Yggdrasil）支持',
-    url: 'https://github.com/yushijinhun/authlib-injector',
+    url: URLS.authlibInjector.repo,
     btnText: 'GitHub',
   },
   {
     name: 'bangbang93',
     initial: 'BB',
     desc: '提供 BMCLAPI 镜像源，加速国内 Minecraft 下载',
-    url: 'https://bmclapi2.bangbang93.com',
+    url: URLS.bmclapi,
     btnText: '镜像站',
   },
   {
     name: 'LittleSkin',
     initial: 'LS',
     desc: '提供 Minecraft 外置登录（Yggdrasil）皮肤站服务',
-    url: 'https://littleskin.cn',
+    url: URLS.littleskin,
     btnText: '网站',
   },
 ]
@@ -386,5 +414,5 @@ const techStack = [
 ]
 </script>
 
-<style scoped src="@/styles/AboutTab.css"></style>
+<style scoped src="@/styles/views/settings/AboutTab.css"></style>
 

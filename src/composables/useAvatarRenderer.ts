@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import backend from '@/api/client'
+import { getAvatarUrl as buildAvatarUrl } from '@/config/urls'
 import type { AccountType } from '@/types/api'
 
 const CACHE_TTL = 30 * 60 * 1000
@@ -120,8 +121,7 @@ export async function loadAvatarImage(url: string): Promise<HTMLImageElement | n
 }
 
 export function getAvatarUrl(uuid: string, size: number): string {
-  const cleanUuid = uuid.replace(/-/g, '')
-  return `https://crafatar.com/avatars/${cleanUuid}?size=${size}&overlay=true&default=MHF_Steve`
+  return buildAvatarUrl(uuid, size)
 }
 
 export function useAvatarRenderer() {

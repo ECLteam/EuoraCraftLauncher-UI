@@ -70,39 +70,39 @@ const IPC_TIMEOUT_MS = 30000
 
 /**
  * 带超时的 IPC 调用。
- * @param method - 后端方法名
- * @param payloads - 传递给后端的参数列表
+ * @param command - 独立的后端命令名
+ * @param payload - 传递给命令的参数对象
  * @returns 后端返回的原始数据
  * @throws 当 Tauri 环境未就绪或调用超时时抛出错误
  */
-async function invokeWithTimeout(method: string, ...payloads: unknown[]): Promise<unknown> {
+async function invokeWithTimeout(command: string, payload: unknown = {}): Promise<unknown> {
   const tauri = getTauri()
   if (!tauri) throw new Error('Tauri 环境未就绪')
   const timeoutPromise = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error(`IPC 调用超时 (${IPC_TIMEOUT_MS / 1000}s): ${method}`)), IPC_TIMEOUT_MS)
+    setTimeout(() => reject(new Error(`IPC 调用超时 (${IPC_TIMEOUT_MS / 1000}s): ${command}`)), IPC_TIMEOUT_MS)
   )
-  return Promise.race([tauri.pytauri.pyInvoke('api_call', { method, args: payloads }), timeoutPromise])
+  return Promise.race([tauri.pytauri.pyInvoke(command, payload), timeoutPromise])
 }
 
 /**
  * 统一调用后端方法并包装为 ApiResponse。
- * @param method - 后端方法名
- * @param args - 方法参数列表
+ * @param command - 独立的后端命令名
+ * @param payload - 命令参数对象
  * @returns 包含 success/data/message 的标准响应
  */
-async function call<T = unknown>(method: string, ...args: unknown[]): Promise<ApiResponse<T>> {
+async function call<T = unknown>(command: string, payload: unknown = {}): Promise<ApiResponse<T>> {
   const start = performance.now()
   try {
     if (!checkEnv()) throw new Error('PyTauri 环境未就绪')
-    const raw = await invokeWithTimeout(method, ...args)
+    const raw = await invokeWithTimeout(command, payload)
     const dur = (performance.now() - start).toFixed(1)
     if (!raw || typeof raw !== 'object') {
       return { success: false, message: '后端返回了非对象响应', timestamp: Date.now() }
     }
-    Logger.log(`${(raw as ApiResponse).success ? 'OK' : 'ERR'} ${method} (${dur}ms)`)
+    Logger.log(`${(raw as ApiResponse).success ? 'OK' : 'ERR'} ${command} (${dur}ms)`)
     return raw as ApiResponse<T>
   } catch (e) {
-    Logger.error(`${method}:`, e)
+    Logger.error(`${command}:`, e)
     return { success: false, message: (e as Error)?.message || '未知错误', timestamp: Date.now() }
   }
 }
@@ -140,12 +140,50 @@ function offEvent(event: string, cb?: (payload: unknown) => void) {
     if (unlisten) {
       try { unlisten() } catch { /* 清理时忽略错误 */ }
       cleanups.delete(cb)
+      if (cleanups.size === 0) _eventCleanups.delete(event)
     }
   } else {
     for (const fn of cleanups.values()) {
       try { fn() } catch { /* 清理时忽略错误 */ }
     }
     cleanups.clear()
+    _eventCleanups.delete(event)
+  }
+}
+
+function subscribeEvent<T>(event: string, cb: (payload: T) => void): () => void {
+  let unlisten: (() => void) | null = null
+  let unlistened = false
+  const trackedCallback = cb as (payload: unknown) => void
+
+  onEvent<T>(event, cb).then(fn => {
+    if (unlistened) {
+      fn()
+      return
+    }
+
+    let disposed = false
+    unlisten = () => {
+      if (disposed) return
+      disposed = true
+      fn()
+      const cleanups = _eventCleanups.get(event)
+      cleanups?.delete(trackedCallback)
+      if (cleanups?.size === 0) _eventCleanups.delete(event)
+    }
+    const cleanups = _eventCleanups.get(event) ?? new Map()
+    cleanups.set(trackedCallback, unlisten)
+    _eventCleanups.set(event, cleanups)
+  }).catch(err => {
+    Logger.error(`[on] 注册事件 ${event} 失败:`, err)
+  })
+
+  return () => {
+    unlistened = true
+    if (unlisten) {
+      unlisten()
+      unlisten = null
+    }
   }
 }
 
@@ -157,7 +195,7 @@ function offEvent(event: string, cb?: (payload: unknown) => void) {
  * @returns 可访问的 URL，转换失败时返回 null
  */
 async function resolveFileUrl(path: string): Promise<string | null> {
-  const res = await call<{ path: string }>('exec_action', { name: 'file_resolve', params: { path } })
+  const res = await call<{ path: string }>('file_resolve', { path })
   if (!res.success || !res.data?.path) return null
 
   const core = getCore()
@@ -178,10 +216,10 @@ export const backend = {
   /** 配置存取 — 前端定义结构，后端只持久化 */
   config: {
     get<T = unknown>(section: ConfigSection) {
-      return call<T>('config_get', section)
+      return call<T>('config_get', { section })
     },
     set(section: ConfigSection, data: unknown) {
-      return call('config_set', section, data)
+      return call<void>('config_set', { section, data })
     },
     list() {
       return call<string[]>('config_list')
@@ -194,7 +232,7 @@ export const backend = {
 
     /** 一次拉取多个分区 */
     getMany(sections: ConfigSection[]) {
-      return call<Record<string, unknown>>('config_get_many', sections)
+      return call<Record<string, unknown>>('config_get_many', { sections })
     },
   },
 
@@ -208,7 +246,7 @@ export const backend = {
     name: K,
     params?: CommandPayloadMap[K],
   ): Promise<ApiResponse<CommandResponseMap[K]>> {
-    return call('exec_action', { name, params })
+    return call(String(name), params ?? {})
   },
 
   /**
@@ -221,48 +259,27 @@ export const backend = {
     event: E,
     cb: (payload: BackendEvents[E]) => void,
   ): () => void {
-    let unlisten: (() => void) | null = null
-    let unlistened = false
-
-    onEvent<BackendEvents[E]>(event, cb).then(fn => {
-      if (unlistened) {
-        fn()
-      } else {
-        unlisten = fn
-      }
-    }).catch(err => {
-      Logger.error(`[on] 注册事件 ${event} 失败:`, err)
-    })
-
-    return () => {
-      unlistened = true
-      if (unlisten) {
-        unlisten()
-        unlisten = null
-      }
-    }
+    return subscribeEvent(event, cb)
   },
 
-  off(event: string, cb?: (payload: unknown) => void) {
-    offEvent(event, cb)
+  onAny<T = unknown>(event: string, cb: (payload: T) => void): () => void {
+    return subscribeEvent(event, cb)
+  },
+
+  off<E extends BackendEventName>(event: E, cb?: (payload: BackendEvents[E]) => void) {
+    offEvent(event, cb as ((payload: unknown) => void) | undefined)
   },
 
   /** 文件系统 */
   fs: {
     readDir(path: string) {
-      return call<FsEntry[]>('exec_action', {
-        name: 'fs_read_dir', params: { path },
-      })
+      return call<FsEntry[]>('fs_read_dir', { path })
     },
     readFile(path: string, mode: 'text' | 'base64' = 'text') {
-      return call<FileContent>('exec_action', {
-        name: 'fs_read_file', params: { path, mode },
-      })
+      return call<FileContent>('fs_read_file', { path, mode })
     },
     exists(path: string) {
-      return call<PathInfo>('exec_action', {
-        name: 'fs_exists', params: { path },
-      })
+      return call<PathInfo>('fs_exists', { path })
     },
   },
 
@@ -275,9 +292,7 @@ export const backend = {
 
     /** 路径规整与存在性校验 */
     resolve(path: string) {
-      return call<{ path: string }>('exec_action', {
-        name: 'file_resolve', params: { path },
-      })
+      return call<{ path: string }>('file_resolve', { path })
     },
   },
 

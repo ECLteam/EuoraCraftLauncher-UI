@@ -83,7 +83,7 @@ class GlobalCache {
       return null
     }
 
-    return cacheItem.value
+    return cacheItem.value as T
   }
 
   /**
@@ -117,7 +117,7 @@ class GlobalCache {
     this.memoryCache.clear()
 
     try {
-      for (let i = 0; i < localStorage.length; i++) {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
         const key = localStorage.key(i)
         if (key && key.startsWith(this.PREFIX)) {
           localStorage.removeItem(key)
@@ -140,12 +140,13 @@ class GlobalCache {
     }
 
     try {
-      for (let i = 0; i < localStorage.length; i++) {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
         const key = localStorage.key(i)
         if (key && key.startsWith(this.PREFIX)) {
-          const storageKey = key.substring(this.PREFIX.length)
-          const item = this.memoryCache.get(storageKey)
-          if (item && item.group === group) {
+          const stored = localStorage.getItem(key)
+          if (!stored) continue
+          const item: CacheItem = JSON.parse(stored)
+          if (item.group === group) {
             localStorage.removeItem(key)
           }
         }
@@ -165,7 +166,7 @@ class GlobalCache {
     let totalSize = 0
 
     try {
-      for (let i = 0; i < localStorage.length; i++) {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
         const key = localStorage.key(i)
         if (key && key.startsWith(this.PREFIX)) {
           persistentCount++

@@ -31,7 +31,7 @@
   z-index: 0;
   opacity: var(--bg-opacity, 1);
   filter: blur(var(--bg-blur, 0px));
-  transition: background-image 0.5s ease, opacity 0.3s ease, filter 0.3s ease;
+  transition: background-image 0.5s ease, opacity var(--duration-normal) ease, filter var(--duration-normal) ease;
 }
 
 .app-background-overlay {
@@ -93,23 +93,6 @@
   position: relative;
 }
 
-.page-enter-active {
-  transition: opacity 0.2s ease-out;
-}
-
-.page-leave-active {
-  transition: opacity 0.15s ease-out;
-  position: absolute;
-  width: calc(100% - 29px);
-}
-
-.page-enter-from {
-  opacity: 0;
-}
-
-.page-leave-to {
-  opacity: 0;
-}
 
 .skip-link {
   position: absolute;
@@ -125,7 +108,7 @@
   text-decoration: none;
   font-size: 12px;
   font-weight: 500;
-  transition: top 0.15s ease;
+  transition: top var(--duration-fast) ease;
 }
 .skip-link:focus {
   top: 11px;
@@ -150,7 +133,7 @@
   align-items: center;
   text-align: center;
   gap: 14px;
-  animation: agreement-fade-in 0.25s ease;
+  animation: agreement-fade-in var(--duration-normal) ease;
 }
 
 .agreement-icon {
@@ -174,7 +157,7 @@
   font-size: 18px;
   font-weight: 700;
   color: var(--text-primary);
-  animation: agreement-slide-up 0.25s ease 0.1s both;
+  animation: agreement-slide-up var(--duration-normal) ease 0.1s both;
 }
 
 .agreement-desc {
@@ -183,7 +166,7 @@
   color: var(--text-secondary);
   line-height: 1.6;
   max-width: 342px;
-  animation: agreement-slide-up 0.25s ease 0.15s both;
+  animation: agreement-slide-up var(--duration-normal) ease 0.15s both;
 }
 
 .agreement-link-btn {
@@ -200,9 +183,9 @@
   border-radius: var(--r-sm);
   border: none;
   cursor: pointer;
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
-              box-shadow 0.25s ease;
-  animation: agreement-slide-up 0.25s ease 0.2s both;
+  transition: transform var(--duration-normal) cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow var(--duration-normal) ease;
+  animation: agreement-slide-up var(--duration-normal) ease 0.2s both;
 }
 
 .agreement-link-btn:hover {
@@ -215,18 +198,3 @@
   transition-duration: 0.06s;
 }
 
-@keyframes agreement-fade-in {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes agreement-icon-scale {
-  0% { opacity: 0; transform: scale(0.7); }
-  60% { transform: scale(1.08); }
-  100% { opacity: 1; transform: scale(1); }
-}
-
-@keyframes agreement-slide-up {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: translateY(0); }
-}

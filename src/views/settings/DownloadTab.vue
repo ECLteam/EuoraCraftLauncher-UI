@@ -71,21 +71,21 @@
           </div>
         </div>
         <div class="setting-control">
-          <div class="slider-group">
-            <input
-              type="range"
-              :value="localSettings.download_threads"
-              min="1"
-              max="16"
-              step="1"
-              class="slider-input"
-              @change="handleThreadsChange"
-            >
-            <span class="slider-value">{{ localSettings.download_threads }} {{ t('settings.threads') }}</span>
-          </div>
+          <UiSlider
+            v-model="localSettings.download_threads"
+            :min="1"
+            :max="16"
+            :suffix="' ' + t('settings.threads')"
+            @update:modelValue="handleThreadsChange"
+          />
         </div>
       </div>
     </div>
+
+    <div
+      id="plugin-slot-settings-download-section-after"
+      class="plugin-slot-container"
+    />
   </div>
 </template>
 
@@ -94,8 +94,10 @@ import { reactive, ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import backend from '@/api/client'
 import UiIcon from '@/components/ui/Icon.vue'
+import UiSlider from '@/components/ui/Slider.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useClickOutside } from '@/composables/useClickOutside'
+import { MIRROR_OPTIONS } from '@/config/version'
 
 interface DownloadSettings {
   mirror_source?: string
@@ -113,26 +115,29 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const { run } = useAsyncAction({ showSuccess: false, showError: true, errorMessage: t('common.error') })
 
-const localSettings = reactive<DownloadSettings>({
+const localSettings = reactive<Required<DownloadSettings>>({
   mirror_source: props.settings.mirror_source ?? '',
-  download_threads: props.settings.download_threads,
+  download_threads: props.settings.download_threads ?? 8,
 })
 
 // 监听外部 props 变化，同步到 localSettings
 watch(() => props.settings, (newSettings) => {
   if (newSettings) {
     localSettings.mirror_source = newSettings.mirror_source ?? ''
-    localSettings.download_threads = newSettings.download_threads
+    localSettings.download_threads = newSettings.download_threads ?? 8
   }
 }, { deep: true })
 
 const isOpen = ref(false)
 const selectRef = ref<HTMLElement | null>(null)
 
-const downloadOptions = computed(() => [
-  { value: 'official' as const, label: t('settings.sourceOfficial'), desc: 'Minecraft Official' },
-  { value: 'bmclapi' as const, label: 'BMCLAPI', desc: t('settings.sourceBmclapiDesc') },
-])
+const downloadOptions = computed(() =>
+  MIRROR_OPTIONS.map(opt => ({
+    value: opt.value as 'official' | 'bmclapi',
+    label: opt.label,
+    desc: opt.desc,
+  }))
+)
 
 const selectedDownloadSource = computed(() =>
   downloadOptions.value.find(o => o.value === localSettings.mirror_source)
@@ -156,8 +161,7 @@ const handleDownloadSourceChange = async (value: 'official' | 'bmclapi') => {
   }))
 }
 
-const handleThreadsChange = async (e: Event) => {
-  const val = parseInt((e.target as HTMLInputElement).value)
+const handleThreadsChange = async (val: number) => {
   localSettings.download_threads = val
   updateField('download_threads', val)
   await run(async () => backend.config.set('download', {
@@ -169,5 +173,5 @@ const handleThreadsChange = async (e: Event) => {
 useClickOutside(selectRef, () => { isOpen.value = false })
 </script>
 
-<style scoped src="@/styles/DownloadTab.css"></style>
+<style scoped src="@/styles/views/settings/DownloadTab.css"></style>
 

@@ -1,14 +1,20 @@
 import { ref } from 'vue'
 import backend from '@/api/client'
 import * as api from '@/plugin-sdk/api'
+import * as component from '@/plugin-sdk/component'
+import '@/plugin-sdk/styles/plugin-base.css'
 import { setActiveContext } from '@/plugin-sdk/context'
+import * as dom from '@/plugin-sdk/dom'
 import { listen, unlisten, cleanup as cleanupEvents, once, Events } from '@/plugin-sdk/events'
 import { createHooks, runPluginCleanup } from '@/plugin-sdk/hooks'
+import * as router from '@/plugin-sdk/router'
 import {
   initPluginState,
   getThemeState,
   getLauncherState,
   getAccountState,
+  refreshTheme,
+  refreshLauncher,
   refreshAccounts,
   watchTheme,
   watchLauncher,
@@ -17,6 +23,7 @@ import {
 import { getToken, watchToken, getMode, watchMode } from '@/plugin-sdk/theme'
 import { transpileTS } from '@/plugin-sdk/transpile'
 import * as ui from '@/plugin-sdk/ui'
+import * as widgets from '@/plugin-sdk/widgets'
 import type { PluginSdkContext } from '@/plugin-sdk/types'
 import type { PluginRoute, PluginSlotItem } from '@/types/api'
 import type { useRouter } from 'vue-router'
@@ -29,6 +36,10 @@ interface PluginSdkInstance {
   plugin: PluginSdkContext
   api: typeof api
   ui: typeof ui
+  widgets: typeof widgets
+  dom: typeof dom
+  component: typeof component
+  router: typeof router
   events: {
     listen: typeof listen
     unlisten: typeof unlisten
@@ -43,6 +54,8 @@ interface PluginSdkInstance {
     watchTheme: typeof watchTheme
     watchLauncher: typeof watchLauncher
     watchAccount: typeof watchAccount
+    refreshTheme: typeof refreshTheme
+    refreshLauncher: typeof refreshLauncher
     refreshAccounts: typeof refreshAccounts
   }
   theme: {
@@ -69,6 +82,10 @@ function createPluginSdk(pluginName: string, version = ''): PluginSdkInstance {
     plugin: ctx,
     api,
     ui,
+    widgets,
+    dom,
+    component,
+    router,
     events: { listen, unlisten, once, cleanup: cleanupEvents, Events },
     state: {
       theme: getThemeState(),
@@ -77,6 +94,8 @@ function createPluginSdk(pluginName: string, version = ''): PluginSdkInstance {
       watchTheme,
       watchLauncher,
       watchAccount,
+      refreshTheme,
+      refreshLauncher,
       refreshAccounts,
     },
     theme: { getToken, watchToken, getMode, watchMode },
@@ -100,7 +119,24 @@ function getPluginSdk(pluginName: string): PluginSdkInstance {
 
 const pluginRoutes = ref<PluginRoute[]>([])
 const pluginSlots = ref<Record<string, PluginSlotItem[]>>({})
-const pluginCommands = ref<unknown[]>([])
+
+// ── SlotRegistry ──
+
+interface SlotEntry {
+  plugin: string
+  html: string
+  priority: number
+}
+
+interface DynamicSlot {
+  id: string
+  plugin: string
+  target: string
+  position: 'before' | 'after' | 'prepend' | 'append'
+  container: HTMLElement | null
+}
+
+const dynamicSlots = new Map<string, DynamicSlot>()
 
 function sanitizeHtml(html: string): string {
   let result = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
@@ -118,7 +154,11 @@ function renderSlot(slot: string) {
   const el = document.getElementById(`plugin-slot-${slot}`)
   if (!el) return
   el.innerHTML = ''
-  const entries = pluginSlots.value[slot] || []
+  const entries = (pluginSlots.value[slot] || []).slice().sort((a, b) => {
+    const aPriority = (a as unknown as SlotEntry).priority ?? 0
+    const bPriority = (b as unknown as SlotEntry).priority ?? 0
+    return bPriority - aPriority
+  })
   for (const entry of entries) {
     const wrapper = document.createElement('div')
     wrapper.className = 'plugin-slot-item'
@@ -128,19 +168,74 @@ function renderSlot(slot: string) {
   }
 }
 
+function createDynamicSlot(slotId: string, plugin: string, targetSelector: string, position: 'before' | 'after' | 'prepend' | 'append'): boolean {
+  const target = document.querySelector(targetSelector)
+  if (!target) return false
+
+  const container = document.createElement('div')
+  container.id = `plugin-slot-${slotId}`
+  container.className = 'plugin-slot-container plugin-dynamic-slot'
+  container.setAttribute('data-plugin', plugin)
+
+  switch (position) {
+    case 'before':
+      target.parentElement?.insertBefore(container, target)
+      break
+    case 'after':
+      target.parentElement?.insertBefore(container, target.nextSibling)
+      break
+    case 'prepend':
+      target.insertBefore(container, target.firstChild)
+      break
+    case 'append':
+    default:
+      target.appendChild(container)
+      break
+  }
+
+  dynamicSlots.set(slotId, {
+    id: slotId,
+    plugin,
+    target: targetSelector,
+    position,
+    container,
+  })
+
+  return true
+}
+
+function removeDynamicSlot(slotId: string) {
+  const slot = dynamicSlots.get(slotId)
+  if (!slot) return
+  if (slot.container) {
+    slot.container.remove()
+  }
+  dynamicSlots.delete(slotId)
+}
+
 function clearSlotElements() {
   document.querySelectorAll('[id^="plugin-slot-"]').forEach(el => {
-    el.innerHTML = ''
+    const id = el.id.replace('plugin-slot-', '')
+    if (!dynamicSlots.has(id)) {
+      el.innerHTML = ''
+    }
   })
 }
 
 function clearPluginSlots(pluginName: string) {
   for (const slot of Object.keys(pluginSlots.value)) {
-    pluginSlots.value[slot] = pluginSlots.value[slot].filter(e => e.plugin !== pluginName)
-    if (pluginSlots.value[slot].length === 0) {
+    const entries = pluginSlots.value[slot] ?? []
+    pluginSlots.value[slot] = entries.filter(e => e.plugin !== pluginName)
+    if (pluginSlots.value[slot]?.length === 0) {
       delete pluginSlots.value[slot]
     }
     renderSlot(slot)
+  }
+
+  for (const [slotId, slot] of dynamicSlots) {
+    if (slot.plugin === pluginName) {
+      removeDynamicSlot(slotId)
+    }
   }
 }
 
@@ -216,6 +311,13 @@ function cleanupPlugin(pluginName: string) {
   const styleEl = document.getElementById(`plugin-css-${pluginName}`)
   if (styleEl) styleEl.remove()
 
+  document.querySelectorAll(`style[data-plugin="${pluginName}"]`).forEach(el => el.remove())
+  document.querySelectorAll(`[data-plugin="${pluginName}"]`).forEach(el => {
+    if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return
+    if (el.id && el.id.startsWith('plugin-slot-')) return
+    el.remove()
+  })
+
   runPluginCleanup(pluginName)
 }
 
@@ -241,10 +343,23 @@ export function initPluginBridge(router: ReturnType<typeof useRouter>) {
 
   unlistenFns.push(backend.on('plugin:html_injected', (payload) => {
     const slot = payload.slot
+    const priority = payload.priority ?? 0
     const entries = pluginSlots.value[slot] || []
-    entries.push({ plugin: payload.plugin, html: payload.html })
+    entries.push({ plugin: payload.plugin, html: payload.html, priority } as unknown as PluginSlotItem)
     pluginSlots.value[slot] = entries
     renderSlot(slot)
+  }))
+
+  unlistenFns.push(backend.on('plugin:slot_registered', (payload) => {
+    const { slot, plugin, target, position } = payload
+    const ok = createDynamicSlot(slot, plugin, target, position || 'append')
+    if (!ok) {
+      console.warn(`[PluginBridge] 动态 slot 创建失败 [${slot}]: 目标 "${target}" 不存在`)
+    }
+  }))
+
+  unlistenFns.push(backend.on('plugin:slot_unregistered', (payload) => {
+    removeDynamicSlot(payload.slot)
   }))
 
   unlistenFns.push(backend.on('plugin:route_registered', () => refreshRoutes(router)))
@@ -300,6 +415,10 @@ export function destroyPluginBridge() {
   unlistenFns.length = 0
   cleanupScripts()
   clearSlotElements()
+  for (const [slotId] of dynamicSlots) {
+    removeDynamicSlot(slotId)
+  }
+  dynamicSlots.clear()
   for (const plugin of sdkCache.keys()) {
     runPluginCleanup(plugin)
   }
@@ -312,4 +431,4 @@ export function callPluginCommand(command: string, params?: Record<string, unkno
   return backend.command('plugin_call_command', { command, params })
 }
 
-export { pluginRoutes, pluginSlots, pluginCommands, renderSlot, cleanupScripts, clearSlotElements, clearPluginSlots }
+export { pluginRoutes, pluginSlots, renderSlot, cleanupScripts, clearSlotElements, clearPluginSlots, createDynamicSlot, removeDynamicSlot, dynamicSlots }

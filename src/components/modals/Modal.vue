@@ -71,6 +71,10 @@
             v-if="showFooter"
             class="modal-footer"
           >
+            <div
+              id="plugin-slot-modal-footer-extra"
+              class="plugin-slot-container"
+            />
             <slot name="footer">
               <template v-if="type === 'agreement'">
                 <UiButton
@@ -122,6 +126,8 @@
 import { ref, computed, watch, nextTick, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiButton from '@/components/ui/Button.vue'
+
+defineOptions({ name: 'Modal' })
 
 const { t } = useI18n()
 
@@ -266,4 +272,4 @@ watch(() => props.visible, (val) => {
 defineExpose({ close, open })
 </script>
 
-<style scoped src="@/styles/Modal.css"></style>
+<style scoped src="@/styles/components/modals/Modal.css"></style>

@@ -15,6 +15,8 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 
+defineOptions({ name: 'UiIcon' })
+
 interface Props {
   name: string
   size?: number | string
@@ -46,6 +48,7 @@ const iconMap: Record<string, string> = {
   'spinner': 'mdi:loading',
   'loading': 'mdi:loading',
   'add': 'mdi:plus',
+  'delete': 'mdi:delete-outline',
   'trash': 'mdi:trash-can-outline',
   'search': 'mdi:magnify',
   'download': 'mdi:download',
@@ -104,8 +107,8 @@ const iconMap: Record<string, string> = {
 }
 
 const getIconName = (iconName: string) => {
-  return iconMap[iconName] || 'mdi:help-circle-outline'
+  return iconMap[iconName] || 'mdi:alert-box-outline'
 }
 </script>
 
-<style scoped src="@/styles/Icon.css"></style>
+<style scoped src="@/styles/components/ui/Icon.css"></style>

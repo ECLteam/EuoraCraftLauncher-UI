@@ -45,6 +45,11 @@
                   :class="{ 'content-disabled': !isAgreementAccepted && !agreementLoading }"
                   tabindex="-1"
                 >
+                  <!-- 插件：内容区顶部插槽 -->
+                  <div
+                    id="plugin-slot-content-top"
+                    class="plugin-slot-container"
+                  />
                   <div
                     v-if="isAgreementAccepted"
                     class="page-container"
@@ -75,7 +80,13 @@
                   
                   <!-- 全局消息组件 -->
                   <GlassMessage ref="messageRef" />
-                  
+
+                  <!-- 插件：内容区底部插槽 -->
+                  <div
+                    id="plugin-slot-content-bottom"
+                    class="plugin-slot-container"
+                  />
+
                   <!-- 任务队列全屏面板 -->
                   <TaskQueuePanel />
 
@@ -87,6 +98,15 @@
                     :content="t('agreement.quitConfirm')"
                     danger
                     @confirm="handleQuitConfirm"
+                  />
+
+                  <!-- 全局错误弹窗 -->
+                  <ErrorModal
+                    v-model:visible="showErrorModal"
+                    :title="errorTitle"
+                    :message="errorMessage"
+                    :detail="errorDetail"
+                    :errorId="errorId"
                   />
 
                   <!-- 用户协议弹窗 -->
@@ -140,14 +160,15 @@ import {
   enUS,
   dateEnUS
 } from 'naive-ui'
-import { ref, onMounted, onUnmounted, computed, provide, readonly, type Ref } from 'vue'
+import { ref, onMounted, onUnmounted, computed, provide, readonly, nextTick, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import backend from '@/api/client'
 import SideBar from '@/components/layout/SideBar.vue'
 import TitleBar from '@/components/layout/TitleBar.vue'
+import ErrorModal from '@/components/modals/ErrorModal.vue'
 import Modal from '@/components/modals/Modal.vue'
-import TaskQueuePanel from '@/components/TaskQueuePanel.vue'
+import TaskQueuePanel from '@/components/panels/TaskQueuePanel.vue'
 import GlassMessage from '@/components/ui/GlassMessage.vue'
 import { useFullscreenModal } from '@/composables/useFullscreenModal'
 import { setMessageRef, useGlassMessage } from '@/composables/useGlassMessage'
@@ -170,10 +191,20 @@ const messageRef = ref<InstanceType<typeof GlassMessage> | null>(null)
 const showAgreementModal = ref(false)
 const showQuitConfirmModal = ref(false)
 
+const showErrorModal = ref(false)
+const errorTitle = ref('')
+const errorMessage = ref('')
+const errorDetail = ref('')
+const errorId = ref('')
+
 const isDevMode = ref(false)
+const launcherVersion = ref('')
+const launcherVersionType = ref<'dev' | 'beta' | 'release'>('release')
 const globalGameConfig = ref<GameConfig | null>(null)
 const globalDownloadConfig = ref<DownloadConfig | null>(null)
 provide('devMode', readonly(isDevMode))
+provide('launcherVersion', readonly(launcherVersion))
+provide('launcherVersionType', readonly(launcherVersionType))
 provide('gameConfig', readonly(globalGameConfig) as Readonly<Ref<GameConfig | null>>)
 provide('downloadConfig', readonly(globalDownloadConfig) as Readonly<Ref<DownloadConfig | null>>)
 
@@ -227,10 +258,19 @@ const unlistenAgreement = backend.on('launcher:agreement_required', () => {
   markNotAccepted()
   showAgreementModal.value = true
 })
+const unlistenError = backend.on('launcher:error', (payload) => {
+  errorTitle.value = payload.title || ''
+  errorMessage.value = payload.message || ''
+  errorDetail.value = payload.detail || ''
+  errorId.value = payload.error_id || ''
+  showErrorModal.value = true
+})
 function applyConfigPayload(payload: BackendEvents['config:init']) {
   const launcher = payload.launcher
   if (launcher) {
     isDevMode.value = launcher.is_dev === true
+    launcherVersion.value = launcher.version || ''
+    launcherVersionType.value = launcher.version_type || 'release'
   }
 
   const game = payload.game
@@ -246,8 +286,8 @@ function applyConfigPayload(payload: BackendEvents['config:init']) {
   const ui = payload.ui
   if (ui) {
     if (ui.locale) {
-      const loc = ui.locale
-      if (supportedLocales.some(l => l.code === loc)) {
+      const loc = supportedLocales.find(({ code }) => code === ui.locale)?.code
+      if (loc) {
         i18n.global.locale.value = loc
         document.documentElement.setAttribute('lang', loc)
       }
@@ -256,7 +296,7 @@ function applyConfigPayload(payload: BackendEvents['config:init']) {
   }
 }
 
-// 后端推送完整配置，前端仅做渲染
+// 后端推送完整配置
 const unlistenConfigInit = backend.on('config:init', (payload) => {
   if (!payload) return
   applyConfigPayload(payload)
@@ -376,6 +416,17 @@ function setupContextMenuListeners() {
   }
 }
 
+async function notifyFrontendReady(): Promise<void> {
+  await router.isReady()
+  await nextTick()
+  await document.fonts.ready
+
+  const result = await backend.command('frontend_ready')
+  if (!result.success) {
+    console.error('[App] 通知后端前端已就绪失败:', result.message)
+  }
+}
+
 onMounted(async () => {
   if (messageRef.value) setMessageRef(messageRef.value)
 
@@ -384,14 +435,14 @@ onMounted(async () => {
   if ((window as unknown as TauriGlobal).__TAURI__?.pytauri) {
     fullscreenModal.reset()
 
-    // 通知后端就绪，后端推送 config:init / agreement 等事件
-    backend.command('frontend_ready').catch(() => { /* 忽略就绪通知错误 */ })
-
-    // 主动拉取初始配置，前端不再自己生成默认配置
-    loadInitialConfig()
-
     // 初始化插件桥接（监听路由注册、HTML注入、脚本注入）
     initPluginBridge(router)
+
+    // 首屏路由、DOM 和字体完成后通知后端显示窗口
+    await notifyFrontendReady()
+
+    // 就绪握手完成后主动拉取初始配置，前端不再自己生成默认配置
+    await loadInitialConfig()
   } else {
     console.warn('[App] PyTauri API 不可用，配置无法从后端加载')
   }
@@ -404,7 +455,7 @@ async function loadInitialConfig() {
       applyConfigPayload(result.data as BackendEvents['config:init'])
     }
   } catch (error) {
-    console.warn('[App] 主动拉取初始配置失败:', error)
+    console.warn('[App] 获取初始配置失败:', error)
   }
 }
 
@@ -412,6 +463,7 @@ onUnmounted(() => {
   cleanupContextMenuListeners?.()
   unlistenNotify()
   unlistenAgreement()
+  unlistenError()
   unlistenConfigInit()
   unlistenCssInject()
   unlistenInstallProgress()

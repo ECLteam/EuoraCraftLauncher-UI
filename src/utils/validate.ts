@@ -1,5 +1,6 @@
-// 轻量校验工具，接口风格参考 zod，后续可无缝替换为 zod
-// 当前仅覆盖项目最常用场景：非空字符串、最小/最大长度
+// 轻量校验工具，基于 valibot 封装，接口风格参考 zod
+
+import { type BaseIssue, type GenericSchema, maxLength, minLength, object, pipe, safeParse, string } from 'valibot'
 
 export interface ValidationError {
   path: string
@@ -12,63 +13,83 @@ export interface ValidationResult<T> {
   errors: ValidationError[]
 }
 
+function toValidationError(issue: BaseIssue<unknown>): ValidationError {
+  const path = issue.path?.map((p) => String(p.key)).join('.') ?? ''
+  return { path, message: issue.message }
+}
+
 class StringSchema {
   private minLen = 0
   private maxLen = Infinity
-  private msg = ''
+  private minMsg: string | undefined
+  private maxMsg: string | undefined
+  private hasMin = false
+  private hasMax = false
 
   min(length: number, message?: string): this {
     this.minLen = length
-    this.msg = message || this.msg
+    this.minMsg = message
+    this.hasMin = true
     return this
   }
 
   max(length: number, message?: string): this {
     this.maxLen = length
-    this.msg = message || this.msg
+    this.maxMsg = message
+    this.hasMax = true
     return this
   }
 
+  toSchema(): GenericSchema {
+    if (this.hasMin && this.hasMax) {
+      return pipe(
+        string(),
+        this.minMsg ? minLength(this.minLen, this.minMsg) : minLength(this.minLen),
+        this.maxMsg ? maxLength(this.maxLen, this.maxMsg) : maxLength(this.maxLen),
+      )
+    }
+    if (this.hasMin) {
+      return pipe(string(), this.minMsg ? minLength(this.minLen, this.minMsg) : minLength(this.minLen))
+    }
+    if (this.hasMax) {
+      return pipe(string(), this.maxMsg ? maxLength(this.maxLen, this.maxMsg) : maxLength(this.maxLen))
+    }
+    return string()
+  }
+
   safeParse(value: unknown): ValidationResult<string> {
-    if (typeof value !== 'string') {
-      return { success: false, errors: [{ path: '', message: '必须是字符串' }] }
+    const result = safeParse(this.toSchema(), value)
+    if (result.success) {
+      return { success: true, data: result.output as string, errors: [] }
     }
-    if (value.length < this.minLen) {
-      return { success: false, errors: [{ path: '', message: this.msg || `至少 ${this.minLen} 个字符` }] }
-    }
-    if (value.length > this.maxLen) {
-      return { success: false, errors: [{ path: '', message: this.msg || `最多 ${this.maxLen} 个字符` }] }
-    }
-    return { success: true, data: value, errors: [] }
+    return { success: false, errors: result.issues.map(toValidationError) }
   }
 }
 
-class ObjectSchema<T extends Record<string, Schema<unknown>>> {
-  constructor(private shape: T) {}
+class ObjectSchema<T extends Record<string, Schema>> {
+  private shape: T
 
-  safeParse(value: unknown): ValidationResult<{ [K in keyof T]: Infer<T[K]> }> {
-    const errors: ValidationError[] = []
-    const data = {} as { [K in keyof T]: Infer<T[K]> }
+  constructor(shape: T) {
+    this.shape = shape
+  }
 
-    if (!value || typeof value !== 'object') {
-      return { success: false, errors: [{ path: '', message: '必须是对象' }] }
-    }
-
+  toSchema(): GenericSchema {
+    const vShape: Record<string, GenericSchema> = {}
     for (const key of Object.keys(this.shape)) {
-      const schema = this.shape[key]
-      const fieldValue = (value as Record<string, unknown>)[key]
-      const result = schema.safeParse(fieldValue)
-      if (!result.success) {
-        errors.push(...result.errors.map(e => ({ path: e.path ? `${key}.${e.path}` : key, message: e.message })))
-      } else {
-        data[key as keyof T] = result.data as Infer<T[keyof T]>
+      const field = this.shape[key]
+      if (field) {
+        vShape[key] = field.toSchema()
       }
     }
+    return object(vShape)
+  }
 
-    if (errors.length > 0) {
-      return { success: false, errors }
+  safeParse(value: unknown): ValidationResult<{ [K in keyof T]: Infer<T[K]> }> {
+    const result = safeParse(this.toSchema(), value)
+    if (result.success) {
+      return { success: true, data: result.output as { [K in keyof T]: Infer<T[K]> }, errors: [] }
     }
-    return { success: true, data, errors: [] }
+    return { success: false, errors: result.issues.map(toValidationError) }
   }
 }
 
@@ -80,26 +101,11 @@ type Infer<S> = S extends StringSchema
     ? { [K in keyof T]: Infer<T[K]> }
     : never
 
-/**
- * 验证对象构建器。
- */
 export const v = {
-  /**
-   * 创建字符串字段验证器。
-   */
   string: () => new StringSchema(),
-  /**
-   * 创建对象结构验证器。
-   * @param shape - 对象字段的验证规则
-   */
   object: <T extends Record<string, Schema>>(shape: T) => new ObjectSchema(shape),
 }
 
-/**
- * 将验证错误列表格式化为可读的字符串。
- * @param errors - 验证错误数组
- * @returns 错误信息字符串
- */
 export function formatErrors(errors: ValidationError[]): string {
-  return errors.map(e => e.message).join('；')
+  return errors.map((e) => e.message).join('；')
 }

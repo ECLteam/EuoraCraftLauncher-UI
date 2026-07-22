@@ -17,6 +17,8 @@ export interface ApiResponse<T = unknown> {
   timestamp?: number
 }
 
+export type JsonDict = Record<string, unknown>
+
 // ═══════════════════════════════════════════════════════════════════
 //  应用配置
 // ═══════════════════════════════════════════════════════════════════
@@ -25,10 +27,11 @@ export interface LauncherConfig {
   version: string
   version_type: 'dev' | 'beta' | 'release'
   debug: boolean
+  is_dev?: boolean
 }
 
 export interface BackgroundConfig {
-  type: 'default' | 'local' | 'url' | 'gradient'
+  type: 'default' | 'none' | 'custom' | 'local' | 'url' | 'gradient'
   path: string
   opacity: number
   blur: number
@@ -46,6 +49,8 @@ export interface GameConfig {
   game_width?: number
   game_height?: number
   jvm_args?: string[]
+  fullscreen?: boolean
+  last_install_path?: string
 }
 
 export interface ThemeConfig {
@@ -63,6 +68,12 @@ export interface DownloadConfig {
 
 export interface LocaleConfig {
   locale: string
+}
+
+export interface UiConfig {
+  locale?: string
+  theme?: Partial<ThemeConfig> & { background_opacity?: number }
+  background?: Partial<BackgroundConfig>
 }
 
 export type ConfigSection =
@@ -121,6 +132,9 @@ export type LoaderType = 'Vanilla' | 'Forge' | 'NeoForge' | 'Fabric' | 'Quilt' |
 export interface ScannedVersion {
   id: string
   versionId: string
+  /** 后端解析得到的原版版本类型，前端不再根据版本名称猜测 */
+  versionType: Exclude<MinecraftVersionType, 'all'>
+  path?: string
   displayName: string
   primaryLoader: string
   vanillaName: string
@@ -258,7 +272,8 @@ export interface ImageSelection {
 }
 
 export interface ImageDataUrl {
-  dataUrl: string
+  dataUrl?: string
+  base64?: string
 }
 
 export interface AvatarOptions {
@@ -395,6 +410,7 @@ export interface PluginRoute {
 export interface PluginSlotItem {
   plugin: string
   html: string
+  priority?: number
 }
 
 export interface PluginSettingsSchema {
@@ -416,6 +432,8 @@ export interface InstallProgress {
   message: string
   subtask?: string
 }
+
+export type DownloadProgress = InstallProgress
 
 export type LaunchPhase =
   | 'preparing'
@@ -458,16 +476,30 @@ export interface BackendEvents {
     message: string
   }
   'launcher:agreement_required': Record<string, never>
+  'launcher:error': {
+    error_id: string
+    title: string
+    message: string
+    detail?: string
+  }
   'game:install_progress': InstallProgress
   'game:launch_progress': LaunchProgress
+  'accounts_changed': AccountListData
   'plugin:status_changed': { name: string; action: string; result: string }
   'plugin:installed': { name: string }
   'plugin:css_injected': { plugin: string; css: string }
   'plugin:script_injected': { plugin: string; script: string }
   'plugin:typescript_injected': { plugin: string; script: string }
-  'plugin:html_injected': { plugin: string; slot: string; html: string }
+  'plugin:html_injected': { plugin: string; slot: string; html: string; priority?: number }
   'plugin:route_registered': { plugin: string; path: string; title: string; icon?: string }
   'plugin:route_unregistered': { plugin: string; path: string }
+  'plugin:slot_registered': {
+    slot: string
+    plugin: string
+    target: string
+    position: 'before' | 'after' | 'prepend' | 'append'
+  }
+  'plugin:slot_unregistered': { slot: string; plugin: string }
   'plugin:disabled': { plugin: string }
   'plugin:pre_unload': { name: string }
   'plugin:cleanup': { name: string }
@@ -483,6 +515,11 @@ export type BackendEventName = keyof BackendEvents
 
 export interface CommandPayloadMap {
   ping: undefined
+
+  // 配置
+  config_get: { section: ConfigSection }
+  config_set: { section: ConfigSection; data: unknown }
+  config_list: undefined
 
   // Java
   java_scan: undefined
@@ -565,6 +602,8 @@ export interface CommandPayloadMap {
   }
   cancel_launch: undefined
   instance_stop: { instance_id: string }
+
+  export_logs: { output_path?: string }
 
   // 插件
   plugin_list: undefined
@@ -660,6 +699,10 @@ export type CommandName = keyof CommandPayloadMap
 export interface CommandResponseMap {
   ping: { status: string; message: string }
 
+  config_get: unknown
+  config_set: void
+  config_list: string[]
+
   java_scan: JavaInstallation[]
   java_list: JavaInstallation[]
 
@@ -704,6 +747,7 @@ export interface CommandResponseMap {
   instances_list: GameInstance[]
   launch_instance: void
   cancel_launch: void
+  export_logs: { path: string }
   instance_stop: void
 
   plugin_list: PluginInfo[]

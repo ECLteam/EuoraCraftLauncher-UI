@@ -1,8 +1,7 @@
-// src/router/index.ts
 import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-router'
 
 const routes: RouteRecordRaw[] = [
-  { path: '/',        name: 'game',    component: () => import('@/views/Game.vue') },
+  { path: '/', name: 'game', component: () => import('@/views/Game.vue') },
   {
     path: '/versions',
     component: () => import('@/views/Versions.vue'),

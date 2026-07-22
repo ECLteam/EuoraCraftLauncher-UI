@@ -39,6 +39,8 @@
 import { ref, computed, watch, nextTick, useId, onUnmounted } from 'vue'
 import { useFullscreenModal } from '@/composables/useFullscreenModal'
 
+defineOptions({ name: 'FullscreenModal' })
+
 interface Props {
   visible: boolean
   title?: string
@@ -151,4 +153,4 @@ onUnmounted(() => {
 defineExpose({ close, open })
 </script>
 
-<style scoped src="@/styles/FullscreenModal.css"></style>
+<style scoped src="@/styles/components/modals/FullscreenModal.css"></style>

@@ -1,4 +1,5 @@
 // 提供响应式缓存管理，方便Vue组件使用
+// 简单持久化单值场景推荐使用 VueUse 的 useLocalStorage，本模块保留用于 TTL/分组/批量场景
 
 import { ref, onScopeDispose, type Ref } from 'vue'
 import { globalCache, type CacheOptions, CACHE_KEYS, CACHE_GROUPS } from '@/cache'

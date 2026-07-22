@@ -1,15 +1,15 @@
 @font-face {
-  font-family: "MiSans VF";
-  src: url("/fonts/MiSansVF.ttf") format("truetype-variations");
-  font-weight: 100 900;
+  font-family: "HarmonyOS Sans SC";
+  src: url("/fonts/HarmonyOS_Sans_SC_Regular.ttf") format("truetype");
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 :root {
   
-  --font-body: "MiSans VF", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-display: "MiSans VF", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body: "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", "SF Mono", "Fira Mono", "Droid Sans Mono", monospace;
 
   
@@ -36,6 +36,7 @@
 
   
   --bg-base: #F0F1F3;
+  --bg-base-rgb: 240, 241, 243;
   --bg-base-alt: #E8E9EB;
   --bg-elevated: #FFFFFF;
   --bg-surface: rgba(255, 255, 255, 0.92);
@@ -63,7 +64,7 @@
   --divider: #E0E0E0;
 
   
-  --card-bg: rgba(255, 255, 255, 0.92);
+  --card-bg: rgba(255, 255, 255, 0.75);
   --card-border-top: 1px solid rgba(255, 255, 255, 0.6);
   --card-border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   --card-shadow: none;
@@ -178,6 +179,7 @@
 
 [data-theme="dark"] {
   --bg-base: #1A1C23;
+  --bg-base-rgb: 26, 28, 35;
   --bg-base-alt: #21242B;
   --bg-elevated: #21242B;
   --bg-surface: rgba(35, 38, 45, 0.92);
@@ -205,7 +207,7 @@
   --border-focus: rgba(74, 127, 217, 0.55);
   --divider: rgba(255, 255, 255, 0.08);
 
-  --card-bg: rgba(35, 38, 45, 0.92);
+  --card-bg: rgba(35, 38, 45, 0.75);
   --card-border-top: 1px solid rgba(255, 255, 255, 0.08);
   --card-border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 
@@ -326,10 +328,6 @@ img {
   transition: var(--transition-fast);
 }
 
-@keyframes skeleton-pulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.5; }
-}
 .skeleton {
   background: rgba(74, 127, 217, 0.08);
   border-radius: var(--r-sm);

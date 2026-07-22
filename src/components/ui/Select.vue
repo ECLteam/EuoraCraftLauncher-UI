@@ -89,6 +89,8 @@ import { ref, computed, watch, type DirectiveBinding } from 'vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import UiInput from '@/components/ui/Input.vue'
 
+defineOptions({ name: 'UiSelect' })
+
 export interface SelectOption {
   label?: string
   value: string
@@ -176,4 +178,4 @@ const vClickOutside = {
 }
 </script>
 
-<style scoped src="@/styles/Select.css"></style>
+<style scoped src="@/styles/components/ui/Select.css"></style>
