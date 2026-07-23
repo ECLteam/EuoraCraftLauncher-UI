@@ -3,9 +3,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 7px;
+  padding: 0 10px;
   background: var(--glass-bg-sidebar);
   border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 1px 2px rgba(21, 31, 52, 0.04);
   -webkit-app-region: drag;
   user-select: none;
   -webkit-user-select: none;
@@ -30,15 +31,15 @@
 }
 
 .titlebar-logo {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   object-fit: contain;
   border-radius: var(--r-xs);
   flex-shrink: 0;
 }
 
 .titlebar-app-name {
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 650;
   color: var(--text-primary);
   letter-spacing: -0.01em;
@@ -164,8 +165,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 29px;
-  height: 29px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--r-sm);
   border: 1px solid transparent;
   background: transparent;

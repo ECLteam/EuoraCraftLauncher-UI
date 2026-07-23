@@ -8,6 +8,8 @@
     "toggle": "Toggle Sidebar",
     "collapse": "Collapse Sidebar",
     "expand": "Expand Sidebar",
+    "mainNavigation": "Game & Content",
+    "systemNavigation": "System",
     "game": "Game",
     "versions": "Download",
     "instances": "Instances",

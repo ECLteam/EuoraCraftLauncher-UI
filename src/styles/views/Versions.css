@@ -5,8 +5,8 @@
 }
 
 .versions-nav {
-  width: 150px;
-  min-width: 150px;
+  width: 168px;
+  min-width: 168px;
   background: var(--card-bg);
   border-top: var(--card-border-top);
   border-bottom: var(--card-border-bottom);
@@ -14,14 +14,15 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  margin-right: var(--s-md);
+  margin-right: 16px;
+  box-shadow: var(--card-shadow);
 }
 
 .versions-nav .nav-header {
   display: flex;
   align-items: center;
   padding: 0 11px;
-  height: 36px;
+  height: 44px;
   flex-shrink: 0;
 }
 
@@ -29,7 +30,7 @@
   display: flex;
   align-items: center;
   gap: var(--s-sm);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
@@ -44,13 +45,13 @@
 .versions-nav .nav-item {
   display: flex;
   align-items: center;
-  height: 34px;
+  height: 40px;
   padding: 0 11px;
   gap: var(--s-sm);
   position: relative;
   color: var(--text-secondary);
   text-decoration: none;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   border-radius: var(--r-sm);
@@ -67,7 +68,7 @@
 
 .versions-nav .nav-item.active {
   color: var(--primary);
-  background: transparent;
+  background: var(--primary-alpha);
   font-weight: 600;
 }
 

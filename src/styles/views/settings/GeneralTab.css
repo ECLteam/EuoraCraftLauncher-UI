@@ -1,5 +1,7 @@
 .tab-pane {
-  max-width: 540px;
+  width: 100%;
+  max-width: var(--content-readable-w);
+  margin: 0 auto;
 }
 
 .settings-section {

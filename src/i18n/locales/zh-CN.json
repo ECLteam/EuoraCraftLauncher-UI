@@ -8,6 +8,8 @@
     "toggle": "切换侧边栏",
     "collapse": "收起侧边栏",
     "expand": "展开侧边栏",
+    "mainNavigation": "游戏与内容",
+    "systemNavigation": "系统",
     "game": "游戏",
     "versions": "版本",
     "instances": "实例管理",

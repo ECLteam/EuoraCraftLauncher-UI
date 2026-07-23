@@ -36,9 +36,9 @@
   --info: #4a7fd9;
   --info-alpha: rgba(74, 127, 217, 0.12);
 
-  --bg-base: #f0f1f3;
-  --bg-base-rgb: 240, 241, 243;
-  --bg-base-alt: #e8e9eb;
+  --bg-base: #f3f4f6;
+  --bg-base-rgb: 243, 244, 246;
+  --bg-base-alt: #e9ebef;
   --bg-elevated: #ffffff;
   --bg-surface: rgba(255, 255, 255, 0.92);
   --bg-surface-solid: #ffffff;
@@ -62,17 +62,17 @@
   --border-focus: rgba(74, 127, 217, 0.5);
   --divider: #e0e0e0;
 
-  --card-bg: rgba(255, 255, 255, 0.75);
-  --card-border-top: 1px solid rgba(255, 255, 255, 0.6);
-  --card-border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  --card-shadow: none;
+  --card-bg: rgba(255, 255, 255, 0.88);
+  --card-border-top: 1px solid rgba(255, 255, 255, 0.9);
+  --card-border-bottom: 1px solid rgba(21, 31, 52, 0.08);
+  --card-shadow: 0 1px 2px rgba(21, 31, 52, 0.05);
 
-  --shadow-xs: none;
-  --shadow-sm: none;
-  --shadow-md: none;
-  --shadow-lg: none;
-  --shadow-xl: none;
-  --shadow-hover: none;
+  --shadow-xs: 0 1px 2px rgba(21, 31, 52, 0.05);
+  --shadow-sm: 0 2px 6px rgba(21, 31, 52, 0.07);
+  --shadow-md: 0 8px 24px rgba(21, 31, 52, 0.09);
+  --shadow-lg: 0 14px 40px rgba(21, 31, 52, 0.12);
+  --shadow-xl: 0 20px 60px rgba(21, 31, 52, 0.15);
+  --shadow-hover: 0 8px 22px rgba(21, 31, 52, 0.1);
 
   --r-xs: 4px;
   --r-sm: 6px;
@@ -92,12 +92,14 @@
   --s-2xl: 29px;
   --s-3xl: 43px;
 
-  --row-h: 40px;
-  --row-h-sm: 32px;
+  --row-h: 42px;
+  --row-h-sm: 34px;
   --row-h-xs: 25px;
-  --sidebar-w-collapsed: 50px;
-  --sidebar-w-expanded: 180px;
-  --titlebar-h: 43px;
+  --sidebar-w-collapsed: 56px;
+  --sidebar-w-expanded: 196px;
+  --titlebar-h: 48px;
+  --page-gutter: 20px;
+  --content-readable-w: 720px;
 
   --duration-instant: 0.06s;
   --duration-fast: 0.15s;
@@ -147,7 +149,7 @@
   --glow-focus-error: 0 0 0 2px rgba(229, 92, 92, 0.25);
 
   --glass-bg: rgba(255, 255, 255, 0.92);
-  --glass-bg-sidebar: #ffffff;
+  --glass-bg-sidebar: rgba(251, 251, 252, 0.96);
   --glass-border: #e0e0e0;
   --glass-divider: #e0e0e0;
   --glass-item-hover: #f0f1f3;
@@ -158,7 +160,7 @@
   --close-btn-hover: rgba(229, 92, 92, 0.1);
   --close-btn-border: rgba(229, 92, 92, 0.2);
   --overlay-bg: rgba(0, 0, 0, 0.25);
-  --bg-overlay-tint: rgba(240, 241, 243, 0.15);
+  --bg-overlay-tint: rgba(243, 244, 246, 0.12);
 
   --bg-image: none;
   --bg-opacity: 0.2;
@@ -195,7 +197,7 @@
   --border-focus: rgba(74, 127, 217, 0.55);
   --divider: rgba(255, 255, 255, 0.08);
 
-  --card-bg: rgba(35, 38, 45, 0.75);
+  --card-bg: rgba(35, 38, 45, 0.88);
   --card-border-top: 1px solid rgba(255, 255, 255, 0.08);
   --card-border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 
@@ -204,7 +206,7 @@
   --glow-focus-error: 0 0 0 2px rgba(229, 92, 92, 0.35);
 
   --glass-bg: rgba(35, 38, 45, 0.92);
-  --glass-bg-sidebar: #21242b;
+  --glass-bg-sidebar: rgba(31, 34, 41, 0.96);
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-divider: rgba(255, 255, 255, 0.08);
   --glass-item-hover: rgba(255, 255, 255, 0.1);
