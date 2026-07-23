@@ -13,189 +13,46 @@
       <Transition name="slide-out" mode="out-in">
         <!-- 账户卡片 + 你知道吗 -->
         <div v-if="!launchProgress.visible" key="cards" class="game-right-cards">
-          <!-- 账户卡片 -->
-          <div class="account-card">
-            <div class="account-info">
-              <AvatarRenderer
-                v-if="account.currentAccount"
-                class="account-avatar"
-                :uuid="account.currentAccount?.uuid"
-                :username="account.currentAccount?.alias"
-                :typeName="account.currentAccount?.type"
-                :skinUrl="account.currentAccount?.skinUrl"
-                :size="40"
-              />
-              <div v-else class="account-avatar-placeholder">
-                <UiIcon name="user" :size="20" />
-              </div>
-              <div class="account-details">
-                <div class="account-name">
-                  {{ account.currentAccount?.alias || t('game.noAccount') }}
-                </div>
-                <div class="account-type">
-                  {{ account.currentAccount ? account.accountTypeLabel : t('game.clickManageToAdd') }}
-                </div>
-              </div>
-              <button class="account-manage-btn" @click="account.openAccountModal">
-                {{ t('game.manage') }}
-              </button>
-            </div>
-          </div>
-
-          <!-- 信息卡片 / 公告栏 -->
-          <div class="info-card">
-            <!-- 右上角切换按钮 -->
-            <button
-              v-if="canToggleInfoCard"
-              class="info-toggle-btn"
-              :title="infoCardMode === 'tip' ? '查看公告' : '查看小贴士'"
-              @click="toggleInfoCard"
-            >
-              <UiIcon :name="infoCardMode === 'tip' ? 'bell' : 'lightbulb'" :size="14" />
-            </button>
-
-            <!-- 你知道吗 / 欢迎 -->
-            <Transition name="info-fade" mode="out-in">
-              <div v-if="infoCardMode === 'tip'" key="tip" class="info-tip">
-                <div class="info-header">
-                  <UiIcon name="lightbulb" :size="16" />
-                  <span class="info-title">{{
-                    isWelcome ? welcomeInfo?.title || t('game.welcomeTitle') : t('game.didYouKnow')
-                  }}</span>
-                </div>
-                <p class="info-content">
-                  {{ isWelcome ? welcomeInfo?.content || t('game.welcomeContent') : currentTip }}
-                </p>
-              </div>
-
-              <!-- 公告栏 -->
-              <div v-else key="announce" class="info-announce">
-                <div class="info-header">
-                  <UiIcon name="bell" :size="16" />
-                  <span class="info-title">{{ t('game.announcement') }}</span>
-                </div>
-                <div class="announce-list">
-                  <div v-if="!hasAnnouncements" class="announce-empty">
-                    {{ t('game.noAnnouncements') }}
-                  </div>
-                  <template v-else-if="infoCardData.mode === 'rotate'">
-                    <div v-if="currentAnnouncement" class="announce-item">
-                      <div class="announce-item-header">
-                        <span class="announce-item-title">{{ currentAnnouncement.title }}</span>
-                        <span class="announce-item-date">{{ currentAnnouncement.date }}</span>
-                      </div>
-                      <p class="announce-item-desc">
-                        {{ currentAnnouncement.content }}
-                      </p>
-                    </div>
-                  </template>
-                  <template v-else>
-                    <div v-for="(item, idx) in infoCardData.announcements" :key="idx" class="announce-item">
-                      <div class="announce-item-header">
-                        <span class="announce-item-title">{{ item.title }}</span>
-                        <span class="announce-item-date">{{ item.date }}</span>
-                      </div>
-                      <p class="announce-item-desc">
-                        {{ item.content }}
-                      </p>
-                    </div>
-                  </template>
-                </div>
-              </div>
-            </Transition>
-          </div>
+          <GameAccountCard
+            :account="account.currentAccount"
+            :accountTypeLabel="account.accountTypeLabel"
+            @manage="account.openAccountModal"
+          />
+          <GameInfoCard
+            :data="infoCardData"
+            :view="infoCardMode"
+            :isWelcome="isWelcome"
+            :currentTip="currentTip"
+            :currentAnnouncement="currentAnnouncement"
+            :hasAnnouncements="hasAnnouncements"
+            :canToggle="canToggleInfoCard"
+            @toggle="toggleInfoCard"
+          />
         </div>
 
-        <!-- 启动进度（内嵌，替代弹窗） -->
-        <div v-else key="progress" class="launch-progress-card">
-          <div class="lp-header">
-            <div class="lp-icon-wrap" :class="{ 'has-item-image': launchVersionVisual.image }">
-              <img
-                v-if="launchVersionVisual.image"
-                :src="launchVersionVisual.image"
-                alt=""
-                class="lp-version-icon-img"
-              />
-              <UiIcon v-else :name="launchVersionVisual.icon" :size="22" />
-            </div>
-            <div class="lp-title-area">
-              <h3 class="lp-title">
-                {{ lpState.title }}
-              </h3>
-              <p class="lp-version">
-                {{ lpState.versionName }}
-              </p>
-            </div>
-          </div>
-
-          <!-- 进度条 -->
-          <div class="lp-bar-wrapper">
-            <div class="lp-bar-track">
-              <div
-                class="lp-bar-fill"
-                :class="{ indeterminate: lpState.displayPercent < 0 }"
-                :style="{ width: lpState.displayPercent >= 0 ? lpState.displayPercent + '%' : undefined }"
-              />
-            </div>
-            <span class="lp-bar-percent">{{
-              lpState.displayPercent >= 0 ? Math.round(lpState.displayPercent) + '%' : '...'
-            }}</span>
-          </div>
-
-          <!-- 信息面板 -->
-          <div class="lp-info">
-            <div class="lp-info-row">
-              <span class="lp-info-label">当前步骤</span>
-              <span class="lp-info-value">{{ launchProgress.stage }}</span>
-            </div>
-            <div v-if="launchProgress.message" class="lp-info-row">
-              <span class="lp-info-label">详细信息</span>
-              <span class="lp-info-value lp-info-detail">{{ launchProgress.message }}</span>
-            </div>
-          </div>
-
-          <!-- 取消按钮 -->
-          <button class="lp-cancel-btn" @click="handleLaunchProgressCancel">
-            <UiIcon name="close" :size="14" />
-            {{ t('common.cancel') }}
-          </button>
-        </div>
+        <LaunchProgressCard
+          v-else
+          key="progress"
+          :title="lpState.title"
+          :versionName="lpState.versionName"
+          :displayPercent="lpState.displayPercent"
+          :stage="launchProgress.stage"
+          :message="launchProgress.message"
+          :visual="launchVersionVisual"
+          @cancel="handleLaunchProgressCancel"
+        />
       </Transition>
 
-      <!-- 启动 / 版本设置按钮组 -->
-      <div
+      <GameLaunchBar
         v-if="!launchProgress.visible && hasGamePath"
-        class="fab-launch-bar"
-        :class="{ 'no-version-bar': version.versions.length === 0 }"
-      >
-        <!-- 插件：游戏页启动栏上方插槽 -->
-        <div id="plugin-slot-game-launch-before" class="plugin-slot-container" />
-        <!-- 第一行：启动按钮 + 版本管理按钮 -->
-        <div class="fab-row-top">
-          <button
-            v-if="version.versions.length > 0"
-            class="fab-launch-btn"
-            :disabled="version.launching || !version.selectedVersion || !account.currentAccount"
-            @click="version.launchGame(account.currentAccount)"
-          >
-            <UiIcon name="play" :size="16" />
-            <span class="fab-launch-label">{{ version.launching ? t('game.launching') : t('game.launch') }}</span>
-            <span class="fab-launch-version">{{ version.selectedVersion }}</span>
-          </button>
-          <button v-else class="fab-launch-btn no-version" @click="goToInstallVersion">
-            <UiIcon name="download" :size="16" />
-            <span class="fab-launch-label">{{ t('game.noVersionInstall') }}</span>
-          </button>
-          <button class="fab-manage-btn" title="版本管理" @click="goToInstallVersion">
-            <UiIcon name="grid" :size="16" />
-          </button>
-        </div>
-        <!-- 第二行：版本设置按钮（与第一行等宽） -->
-        <button v-if="version.versions.length > 0" class="fab-settings-btn" title="版本设置" @click="openGameSettings">
-          <UiIcon name="settings" :size="16" />
-          <span class="fab-settings-label">版本设置</span>
-        </button>
-      </div>
+        :versionsCount="version.versions.length"
+        :launching="version.launching"
+        :selectedVersion="version.selectedVersion"
+        :hasAccount="Boolean(account.currentAccount)"
+        @launch="version.launchGame(account.currentAccount)"
+        @manageVersions="goToInstallVersion"
+        @settings="openGameSettings"
+      />
     </div>
 
     <!-- 账户管理弹窗 -->
@@ -540,6 +397,10 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import AvatarRenderer from '@/components/game/AvatarRenderer.vue'
+import GameAccountCard from '@/components/game/GameAccountCard.vue'
+import GameInfoCard from '@/components/game/GameInfoCard.vue'
+import GameLaunchBar from '@/components/game/GameLaunchBar.vue'
+import LaunchProgressCard from '@/components/game/LaunchProgressCard.vue'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import Modal from '@/components/modals/Modal.vue'
 import UiButton from '@/components/ui/Button.vue'
@@ -570,7 +431,6 @@ const {
   hasAnnouncements,
   currentTip,
   currentAnnouncement,
-  welcomeInfo,
   canToggleInfoCard,
   start: startInfoCard,
   stop: stopInfoCard,

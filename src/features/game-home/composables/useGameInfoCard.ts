@@ -19,11 +19,13 @@ export function useGameInfoCard() {
   const hasTips = computed(() => infoCardData.value.tips.length > 0)
   const currentTip = computed(() => {
     const tips = infoCardData.value.tips
-    return tips.length === 0 ? '' : tips[currentTipIndex.value % tips.length]
+    return tips.length === 0 ? '' : (tips[currentTipIndex.value % tips.length] ?? '')
   })
   const currentAnnouncement = computed(() => {
     const announcements = infoCardData.value.announcements
-    return announcements.length === 0 ? null : announcements[currentAnnounceIndex.value % announcements.length]
+    return announcements.length === 0
+      ? null
+      : (announcements[currentAnnounceIndex.value % announcements.length] ?? null)
   })
   const welcomeInfo = computed(() => infoCardData.value.welcome)
   const canToggleInfoCard = computed(() => ['auto', 'rotate', 'announcement_first'].includes(infoCardData.value.mode))
