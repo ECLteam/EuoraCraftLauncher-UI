@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { normalizeLoaderVersions } from '@/features/versions/model/loaderVersions'
 import type { ApiResponse } from '@/types/api'
 import { createShowcaseTransport } from '.'
 
@@ -23,5 +24,15 @@ describe('ShowcaseTransport', () => {
     const secondAccounts = (await second.invoke('accounts_list', {})) as ApiResponse<{ accounts: unknown[] }>
 
     expect(firstAccounts.data?.accounts).toHaveLength((secondAccounts.data?.accounts.length ?? 0) + 1)
+  })
+
+  it.each(['fabric', 'forge', 'neoforge', 'quilt'])('为 %s 安装流程提供可用加载器版本', async (loader) => {
+    const transport = createShowcaseTransport()
+    const result = (await transport.invoke(`${loader}_versions`, {
+      game_version: '1.21.8',
+    })) as ApiResponse<unknown>
+
+    expect(result.success).toBe(true)
+    expect(normalizeLoaderVersions(result.data).length).toBeGreaterThan(0)
   })
 })

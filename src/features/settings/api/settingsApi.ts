@@ -10,6 +10,7 @@ function assertSuccess<T>(result: { success: boolean; data?: T; message?: string
 
 export const settingsApi = {
   isAvailable: backend.runtime.isAvailable,
+  isShowcase: backend.runtime.isShowcase,
 
   async load() {
     const result = await backend.config.getMany(['ui', 'game', 'download'])

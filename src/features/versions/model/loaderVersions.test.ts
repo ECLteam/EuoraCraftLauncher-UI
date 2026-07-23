@@ -11,6 +11,18 @@ describe('normalizeLoaderVersions', () => {
     expect(normalizeLoaderVersions({ all: [{ version: '4.0' }] })).toEqual(['4.0'])
   })
 
+  it('兼容后端返回的单项版本目录数组', () => {
+    expect(
+      normalizeLoaderVersions([
+        {
+          all: ['0.16.14', '0.16.13'],
+          stable: ['0.16.14'],
+          unstable: ['0.16.13'],
+        },
+      ])
+    ).toEqual(['0.16.14', '0.16.13'])
+  })
+
   it('忽略缺少版本号的对象', () => {
     expect(normalizeLoaderVersions([{}, null])).toEqual([])
   })

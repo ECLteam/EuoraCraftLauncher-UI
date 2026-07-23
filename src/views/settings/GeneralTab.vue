@@ -84,6 +84,14 @@
             <button class="btn-ghost" @click="selectLocalImage">
               {{ t('common.browse') }}
             </button>
+            <input
+              ref="showcaseImageInputRef"
+              class="visually-hidden-file-input"
+              type="file"
+              accept="image/*"
+              tabindex="-1"
+              @change="handleShowcaseImageSelected"
+            />
           </div>
         </div>
       </div>
@@ -201,6 +209,7 @@ import { useGlassMessage } from '@/composables/useGlassMessage'
 import { useTheme, type ThemeMode, presetColors } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
 import { THEME_MODE_OPTIONS } from '@/config/theme'
+import { settingsApi } from '@/features/settings/api/settingsApi'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import { supportedLocales, setLocale, type LocaleCode } from '@/i18n'
 
@@ -243,6 +252,7 @@ const themeOptions = computed(() =>
 
 const isLangOpen = ref(false)
 const langSelectRef = ref<HTMLElement | null>(null)
+const showcaseImageInputRef = ref<HTMLInputElement | null>(null)
 
 const selectedLanguage = computed(() => supportedLocales.find((l) => l.code === currentLocale.value))
 
@@ -294,11 +304,50 @@ const handleBrightnessChange = async (val: number) => {
 }
 
 const selectLocalImage = async () => {
+  if (settingsApi.isShowcase) {
+    showcaseImageInputRef.value?.click()
+    return
+  }
+
   const result = await run(async () => settingsStore.chooseBackgroundImage())
   if (!result) return
   if (result.imageUrl) {
     setBackgroundImage(result.imageUrl, result.path, false)
   }
+  message.success(t('common.success'))
+}
+
+function readImageFile(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result)
+      } else {
+        reject(new Error('读取背景图片失败'))
+      }
+    }
+    reader.onerror = () => reject(reader.error ?? new Error('读取背景图片失败'))
+    reader.readAsDataURL(file)
+  })
+}
+
+const handleShowcaseImageSelected = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  const result = await run(async () => {
+    if (!file.type.startsWith('image/')) throw new Error('请选择图片文件')
+    const imageUrl = await readImageFile(file)
+    const path = `Showcase/${file.name}`
+    await settingsStore.patchUiBackground({ type: 'custom', path })
+    return { imageUrl, path }
+  })
+
+  input.value = ''
+  if (!result) return
+  setBackgroundImage(result.imageUrl, result.path, false)
   message.success(t('common.success'))
 }
 
@@ -313,6 +362,17 @@ const handleBgImageInput = (e: Event) => {
       return
     }
     if (!val.startsWith('http')) return
+
+    if (settingsApi.isShowcase) {
+      const saved = await run(async () => {
+        await settingsStore.patchUiBackground({ type: 'custom', path: val })
+        return true
+      })
+      if (!saved) return
+      setBackgroundImage(val, val, false)
+      message.success(t('common.success'))
+      return
+    }
 
     message.loading('Loading...')
     const result = await run(async () => settingsStore.saveRemoteBackground(val))

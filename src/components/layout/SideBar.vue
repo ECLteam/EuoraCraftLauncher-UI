@@ -111,12 +111,19 @@
         </span>
         <span class="sidebar-item-text">{{ t('sidebar.debug') }}</span>
       </button>
-      <button class="sidebar-item" :title="isCollapsed ? t('sidebar.help') : undefined" @click.prevent="openHelp">
+      <a
+        class="sidebar-item"
+        :href="URLS.docs"
+        target="_blank"
+        rel="noopener noreferrer"
+        :title="isCollapsed ? t('sidebar.help') : undefined"
+        @click="handleHelpClick"
+      >
         <span class="sidebar-item-icon">
           <UiIcon name="help" :size="20" />
         </span>
         <span class="sidebar-item-text">{{ t('sidebar.help') }}</span>
-      </button>
+      </a>
     </div>
   </aside>
 
@@ -134,6 +141,7 @@ import { useGlassMessage } from '@/composables/useGlassMessage'
 import { pluginRoutes } from '@/composables/usePluginBridge'
 import { useTheme } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
+import { URLS } from '@/config/urls'
 import { MENU_ITEMS } from '@/constants/menu'
 
 defineOptions({ name: 'SideBar', inheritAttrs: false })
@@ -255,9 +263,8 @@ const handleSubItemClick = (path: string) => {
   router.push(path)
 }
 
-const openHelp = () => {
-  if (!canNavigate()) return
-  message.info(t('sidebar.helpMessage'))
+const handleHelpClick = (event: MouseEvent) => {
+  if (!canNavigate()) event.preventDefault()
 }
 
 /** 通过实际 DOM 测量获取目标菜单项位置并更新指示器 */
