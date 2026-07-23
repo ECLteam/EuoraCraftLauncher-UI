@@ -217,9 +217,9 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import backend from '@/api/client'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
+import { versionInstallApi } from '@/features/versions/api/versionInstallApi'
 import type { ScannedVersion } from '@/types/api'
 import { getLoaderIcon, getLoaderName } from '@/utils/loader'
 
@@ -283,7 +283,7 @@ function handleLaunch() {
 
 function handleOpenFolder() {
   if (props.version?.jsonPath) {
-    backend.command('open_folder', { path: props.version.jsonPath })
+    void versionInstallApi.openFolder(props.version.jsonPath)
   }
 }
 

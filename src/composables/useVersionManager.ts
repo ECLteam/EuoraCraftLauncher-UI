@@ -9,7 +9,9 @@ import {
   LAUNCH_ERROR_HIDE_DELAY,
   STATUS_MESSAGE_AUTO_HIDE,
 } from '@/config/game'
-import type { ScannedVersion, LaunchProgress, GameConfig } from '@/types/api'
+import { useSettingsStore } from '@/features/settings/stores/settingsStore'
+import { versionInstallApi } from '@/features/versions/api/versionInstallApi'
+import type { ScannedVersion, LaunchProgress } from '@/types/api'
 import { useGlassMessage } from './useGlassMessage'
 import { globalLaunchProgress } from './useLaunchProgress'
 
@@ -27,6 +29,7 @@ const currentGamePath = ref<string>('')
 export function useVersionManager(t: (key: string, ...args: unknown[]) => string) {
   const message = useGlassMessage()
   const router = useRouter()
+  const settingsStore = useSettingsStore()
   const { show: showLaunchProgress, hide: hideLaunchProgress, setProgress: setLaunchProgress } = globalLaunchProgress
 
   const versions = globalVersions
@@ -38,8 +41,14 @@ export function useVersionManager(t: (key: string, ...args: unknown[]) => string
 
   async function loadVersions() {
     loading.value = true
-    const configRes = await backend.config.get<GameConfig>('game')
-    const minecraftPaths = configRes.data?.minecraft_paths ?? []
+    try {
+      await settingsStore.load()
+    } catch {
+      loading.value = false
+      showStatus(t('game.status.scanFailed'), 'error')
+      return
+    }
+    const minecraftPaths = settingsStore.game.minecraft_paths ?? []
     if (!minecraftPaths.length) {
       loading.value = false
       showStatus(t('game.status.noGameDir'), 'error')
@@ -47,15 +56,18 @@ export function useVersionManager(t: (key: string, ...args: unknown[]) => string
     }
 
     const stringPaths = [...new Set(minecraftPaths.map((path) => (typeof path === 'string' ? path : path.path)))]
-    const scanRes = await backend.command('scan_versions', { path: stringPaths })
-    loading.value = false
-    if (!scanRes.success || !scanRes.data) {
+    let scannedVersions: ScannedVersion[]
+    try {
+      scannedVersions = await versionInstallApi.scan(stringPaths)
+    } catch {
+      loading.value = false
       showStatus(t('game.status.scanFailed'), 'error')
       return
     }
+    loading.value = false
 
     const seen = new Set<string>()
-    versions.value = scanRes.data
+    versions.value = scannedVersions
       .filter((v: ScannedVersion) => !v.isBroken)
       .filter((v: ScannedVersion) => {
         const id = v.versionId || v.id

@@ -269,7 +269,9 @@ import {
   LAUNCH_ERROR_HIDE_DELAY,
 } from '@/config/game'
 import { getVersionImage } from '@/config/version'
-import type { GameConfig, LaunchProgress, MinecraftPathEntry, ScannedVersion } from '@/types/api'
+import { useSettingsStore } from '@/features/settings/stores/settingsStore'
+import { versionInstallApi } from '@/features/versions/api/versionInstallApi'
+import type { LaunchProgress, MinecraftPathEntry, ScannedVersion } from '@/types/api'
 import { getLoaderIcon, getLoaderImage, getLoaderName, getLoaderClass } from '@/utils/loader'
 import VersionDetailModal from '@/views/versions/VersionDetailModal.vue'
 
@@ -283,6 +285,7 @@ const { t } = useI18n()
 const router = useRouter()
 const message = useGlassMessage()
 const versionManager = useVersionManager(t)
+const settingsStore = useSettingsStore()
 
 const gamePaths = ref<GamePath[]>([])
 const selectedPathIndex = ref<number>(-1)
@@ -348,19 +351,17 @@ onBeforeUnmount(() => {
 
 const fetchGamePaths = async () => {
   try {
-    const response = await backend.config.get<GameConfig>('game')
-    if (response.success && response.data) {
-      const paths = response.data.minecraft_paths || []
-      gamePaths.value = paths.map((p: MinecraftPathEntry) => {
-        if (typeof p === 'string') {
-          return { name: getPathNameFromPath(p), path: p }
-        }
-        return p
-      })
-      if (gamePaths.value.length > 0 && selectedPathIndex.value === -1) {
-        selectedPathIndex.value = 0
-        await scanCurrentPath()
+    await settingsStore.load()
+    const paths = settingsStore.game.minecraft_paths || []
+    gamePaths.value = paths.map((p: MinecraftPathEntry) => {
+      if (typeof p === 'string') {
+        return { name: getPathNameFromPath(p), path: p }
       }
+      return p
+    })
+    if (gamePaths.value.length > 0 && selectedPathIndex.value === -1) {
+      selectedPathIndex.value = 0
+      await scanCurrentPath()
     }
   } catch (error) {
     console.error(t('versions.manage.fetchConfigFailed'), error)
@@ -381,13 +382,11 @@ const scanCurrentPath = async () => {
 
   loading.value = true
   try {
-    const response = await backend.command('scan_versions', { path: [currentPath.value.path] })
-    if (response.success) {
-      scannedVersions.value = (response.data || []).map((v: ScannedVersion) => ({
-        ...v,
-        path: currentPath.value!.path,
-      }))
-    }
+    const versions = await versionInstallApi.scan([currentPath.value.path])
+    scannedVersions.value = versions.map((version) => ({
+      ...version,
+      path: currentPath.value!.path,
+    }))
   } catch (error) {
     console.error(t('versions.manage.scanFailed'), error)
   } finally {
@@ -424,11 +423,11 @@ const editPath = (index: number) => {
 
 const browseForPath = async () => {
   try {
-    const response = await backend.command('select_directory')
-    if (response.success && response.data?.path) {
-      pathForm.value.path = response.data.path
+    const result = await versionInstallApi.selectDirectory()
+    if (result?.path) {
+      pathForm.value.path = result.path
       if (!pathForm.value.name) {
-        pathForm.value.name = getPathNameFromPath(response.data.path)
+        pathForm.value.name = getPathNameFromPath(result.path)
       }
     }
   } catch (error) {
@@ -446,29 +445,18 @@ const savePath = async () => {
   if (!pathForm.value.name || !pathForm.value.path) return
 
   try {
-    const configResponse = await backend.config.get<GameConfig>('game')
-    if (configResponse.success && configResponse.data) {
-      const updatedPaths = [...gamePaths.value]
-
-      if (isEditing.value && editingIndex.value >= 0) {
-        updatedPaths[editingIndex.value] = { ...pathForm.value }
-      } else {
-        updatedPaths.push({ ...pathForm.value })
-      }
-
-      gamePaths.value = updatedPaths
-
-      await backend.config.set('game', {
-        ...configResponse.data,
-        minecraft_paths: updatedPaths,
-      })
-
-      message.success(isEditing.value ? t('versions.manage.pathUpdated') : t('versions.manage.pathAdded'), 2000)
-
-      if (!isEditing.value) {
-        selectedPathIndex.value = updatedPaths.length - 1
-        await scanCurrentPath()
-      }
+    const updatedPaths = [...gamePaths.value]
+    if (isEditing.value && editingIndex.value >= 0) {
+      updatedPaths[editingIndex.value] = { ...pathForm.value }
+    } else {
+      updatedPaths.push({ ...pathForm.value })
+    }
+    await settingsStore.patchGame({ minecraft_paths: updatedPaths })
+    gamePaths.value = updatedPaths
+    message.success(isEditing.value ? t('versions.manage.pathUpdated') : t('versions.manage.pathAdded'), 2000)
+    if (!isEditing.value) {
+      selectedPathIndex.value = updatedPaths.length - 1
+      await scanCurrentPath()
     }
   } catch (error) {
     console.error(t('versions.manage.saveFailed'), error)
@@ -492,13 +480,7 @@ const removePath = async (index: number) => {
     gamePaths.value.splice(index, 1)
 
     try {
-      const configResponse = await backend.config.get<GameConfig>('game')
-      if (configResponse.success && configResponse.data) {
-        await backend.config.set('game', {
-          ...configResponse.data,
-          minecraft_paths: gamePaths.value,
-        })
-      }
+      await settingsStore.patchGame({ minecraft_paths: [...gamePaths.value] })
     } catch {
       gamePaths.value.splice(index, 0, removed)
       return
@@ -619,16 +601,9 @@ const handleDelete = async (version: ScannedVersion) => {
 
   openConfirm(t('common.confirm'), t('versions.manage.confirmDeleteVersion', { name: version.versionId }), async () => {
     try {
-      const result = await backend.command('uninstall_version', {
-        version_id: version.versionId,
-        game_path: gamePath,
-      })
-      if (result.success) {
-        message.success(t('versions.manage.versionDeleted', { name: version.versionId }))
-        await scanCurrentPath()
-      } else {
-        message.error(result.message || t('versions.manage.deleteFailed'))
-      }
+      await versionInstallApi.uninstall(version.versionId, gamePath)
+      message.success(t('versions.manage.versionDeleted', { name: version.versionId }))
+      await scanCurrentPath()
     } catch (e) {
       console.error('删除失败:', e)
       message.error(t('versions.manage.deleteFailed'))

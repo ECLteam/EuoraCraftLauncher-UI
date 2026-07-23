@@ -170,9 +170,9 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia'
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
-import backend from '@/api/client'
 import { useAutoRefreshCache, CACHE_KEYS, CACHE_GROUPS } from '@/cache/composable'
 import Modal from '@/components/modals/Modal.vue'
 import UiButton from '@/components/ui/Button.vue'
@@ -185,15 +185,16 @@ import { globalTaskQueue } from '@/composables/useTaskQueue'
 import {
   VERSION_FILTERS,
   INSTALLABLE_LOADERS,
-  LOADER_COMMAND_MAP,
   getVersionIcon as _getVersionIcon,
   getVersionImage as _getVersionImage,
   getVersionBadgeClass as _getVersionBadgeClass,
   VERSION_LABEL_KEY_MAP,
 } from '@/config/version'
+import { useSettingsStore } from '@/features/settings/stores/settingsStore'
+import { versionInstallApi, type InstallableLoader } from '@/features/versions/api/versionInstallApi'
+import { useVersionInstallStore } from '@/features/versions/stores/versionInstallStore'
 import type {
   CommandPayloadMap,
-  GameConfig,
   MinecraftPathEntry,
   MinecraftVersionCatalog,
   MinecraftVersionItem,
@@ -203,8 +204,15 @@ import type {
 const { t } = useI18n()
 const glassMessage = useGlassMessage()
 const { run } = useAsyncAction({ showSuccess: false, showError: false })
+const installStore = useVersionInstallStore()
+const settingsStore = useSettingsStore()
+const {
+  loaderVersions,
+  loaderVersionsLoading,
+  installingVersionId: downloading,
+  isInstalling,
+} = storeToRefs(installStore)
 
-const downloading = ref<string | null>(null)
 const searchQuery = ref('')
 const selectedCategory = ref('all')
 
@@ -213,99 +221,26 @@ const {
   loading,
   error: versionsError,
   fetchData: fetchVersionsData,
-} = useAutoRefreshCache<MinecraftVersionCatalog>(
-  CACHE_KEYS.VERSIONS,
-  async () => {
-    const res = await backend.command('minecraft_versions_classified')
-    if (res.success && res.data) return res.data
-    throw new Error('获取版本列表失败')
-  },
-  {
-    ttl: 10 * 60 * 1000,
-    group: CACHE_GROUPS.VERSION,
-    persistent: true,
-  }
-)
-
-const fabricVersions = ref<string[]>([])
-const forgeVersions = ref<string[]>([])
-const neoforgeVersions = ref<string[]>([])
-const quiltVersions = ref<string[]>([])
-const loaderVersionsLoading = ref(false)
-
-/** 请求 ID，用于防止加载器版本请求的竞态条件 */
-let loaderRequestId = 0
-
-/** 设置指定加载器的版本列表 */
-function setLoaderVersions(loaderType: string, versions: string[]) {
-  switch (loaderType) {
-    case 'fabric':
-      fabricVersions.value = versions
-      break
-    case 'forge':
-      forgeVersions.value = versions
-      break
-    case 'neoforge':
-      neoforgeVersions.value = versions
-      break
-    case 'quilt':
-      quiltVersions.value = versions
-      break
-  }
-}
+} = useAutoRefreshCache<MinecraftVersionCatalog>(CACHE_KEYS.VERSIONS, () => versionInstallApi.getCatalog(), {
+  ttl: 10 * 60 * 1000,
+  group: CACHE_GROUPS.VERSION,
+  persistent: true,
+})
 
 /**
  * 通用加载器版本加载函数
- * 使用请求 ID 防止竞态条件：当新请求发起时，旧请求的响应将被忽略
+ * Store 内部使用请求 ID 防止旧响应覆盖新选择。
  */
 async function loadLoaderVersions(loaderType: string, gameVersion: string) {
-  if (!gameVersion) {
-    setLoaderVersions(loaderType, [])
-    return
-  }
-
-  const command = LOADER_COMMAND_MAP[loaderType]
-  if (!command) return
-
-  const requestId = ++loaderRequestId
-  loaderVersionsLoading.value = true
+  if (!['fabric', 'forge', 'neoforge', 'quilt'].includes(loaderType)) return
   try {
-    const res = await backend.command(command, { game_version: gameVersion })
-    // 如果请求 ID 不匹配，说明有更新的请求已发起，忽略此响应
-    if (requestId !== loaderRequestId) return
-
-    if (res.success && res.data) {
-      const loaderData: unknown = res.data
-      const list = Array.isArray(loaderData)
-        ? loaderData
-        : loaderData && typeof loaderData === 'object' && 'all' in loaderData && Array.isArray(loaderData.all)
-          ? loaderData.all
-          : []
-      const mapped = list
-        .map((v: unknown) => {
-          if (v && typeof v === 'object') {
-            const item = v as Record<string, unknown>
-            return (item.LoaderVersion || item.version || String(v)) as string
-          }
-          return String(v)
-        })
-        .filter(Boolean)
-      setLoaderVersions(loaderType, mapped.slice(0, 20))
-      if (mapped.length === 0) {
-        const loaderName = loaderType.charAt(0).toUpperCase() + loaderType.slice(1)
-        glassMessage.warning(t('versions.download.noLoaderVersions', { loader: loaderName }))
-      }
-    } else {
-      setLoaderVersions(loaderType, [])
+    const versions = await installStore.loadLoaderVersions(loaderType as InstallableLoader, gameVersion)
+    if (versions.length === 0) {
+      const loaderName = loaderType.charAt(0).toUpperCase() + loaderType.slice(1)
+      glassMessage.warning(t('versions.download.noLoaderVersions', { loader: loaderName }))
     }
   } catch (e: unknown) {
-    if (requestId !== loaderRequestId) return
     console.error(`获取 ${loaderType} 版本失败:`, e)
-    setLoaderVersions(loaderType, [])
-  } finally {
-    if (requestId === loaderRequestId) {
-      loaderVersionsLoading.value = false
-    }
   }
 }
 
@@ -331,7 +266,6 @@ const itemHeight = 56
 const bufferSize = 5
 
 const showInstallDialog = ref(false)
-const isInstalling = ref(false)
 
 const installForm = ref({
   mcVersion: '',
@@ -451,27 +385,20 @@ async function fetchLoaderVersions() {
 }
 
 function getLoaderVersionOptions(loader: string) {
-  switch (loader) {
-    case 'fabric':
-      return (fabricVersions.value || []).map((v) => ({ label: v, value: v }))
-    case 'forge':
-      return (forgeVersions.value || []).map((v) => ({ label: v, value: v }))
-    case 'neoforge':
-      return (neoforgeVersions.value || []).map((v) => ({ label: v, value: v }))
-    case 'quilt':
-      return (quiltVersions.value || []).map((v) => ({ label: v, value: v }))
-    default:
-      return []
-  }
+  if (!['fabric', 'forge', 'neoforge', 'quilt'].includes(loader)) return []
+  return loaderVersions.value[loader as InstallableLoader].map((version) => ({
+    label: version,
+    value: version,
+  }))
 }
 
 const defaultGamePath = ref('')
 const gamePaths = ref<{ value: string; label: string }[]>([])
 
 async function loadDefaultGamePath() {
-  const res = await run(async () => backend.config.get<GameConfig>('game'))
-  if (!res?.success || !res.data) return
-  const data = res.data
+  const loaded = await run(async () => settingsStore.load())
+  if (loaded === undefined && settingsStore.status !== 'ready') return
+  const data = settingsStore.game
   const paths = data.minecraft_paths || []
   gamePaths.value = paths.map((p: MinecraftPathEntry) => {
     const pathStr = typeof p === 'string' ? p : p.path || ''
@@ -491,9 +418,7 @@ async function loadDefaultGamePath() {
 
 async function saveLastInstallPath(path: string) {
   if (!path) return
-  const res = await run(async () => backend.config.get<GameConfig>('game'))
-  const gameCfg = res?.success && res.data ? res.data : {}
-  await run(async () => backend.config.set('game', { ...gameCfg, last_install_path: path }))
+  await run(async () => settingsStore.patchGame({ last_install_path: path }))
 }
 
 function openInstallWithVersion(versionId: string) {
@@ -517,10 +442,7 @@ const defaultVersionName = computed(() => {
 function selectLoader(loader: string) {
   installForm.value.loader = loader
   installForm.value.loaderVersion = ''
-  fabricVersions.value = []
-  forgeVersions.value = []
-  neoforgeVersions.value = []
-  quiltVersions.value = []
+  installStore.clearLoaderVersions()
   if (loader !== 'vanilla') {
     fetchLoaderVersions()
   }
@@ -549,9 +471,7 @@ async function doInstall() {
   // 校验版本文件夹冲突
   try {
     const versionDirName = versionName
-    const checkPath = `${gamePath}/versions/${versionDirName}`
-    const existsRes = await backend.command('fs_exists', { path: checkPath })
-    if (existsRes?.data?.exists) {
+    if (await installStore.hasVersionConflict(gamePath, versionDirName)) {
       glassMessage.error(t('versions.download.versionConflict', { version: versionDirName }))
       return
     }
@@ -560,7 +480,6 @@ async function doInstall() {
   }
 
   showInstallDialog.value = false
-  downloading.value = versionId
 
   // 添加到任务队列
   const taskId = globalTaskQueue.addTask({
@@ -590,26 +509,15 @@ async function doInstall() {
       params.game_path = gamePath
     }
 
-    const result = await backend.command('install_version', params)
-
-    if (!result.success) {
-      globalTaskQueue.updateTask(taskId, {
-        status: 'error',
-        message: result.message || t('versions.download.installFailed'),
-      })
-      glassMessage.error(result.message || t('versions.download.installFailed'))
-    } else {
-      glassMessage.success(t('versions.download.installSuccess', { version: versionId }))
-      saveLastInstallPath(gamePath)
-    }
+    await installStore.install(versionId, params)
+    glassMessage.success(t('versions.download.installSuccess', { version: versionId }))
+    saveLastInstallPath(gamePath)
   } catch (e: unknown) {
     globalTaskQueue.updateTask(taskId, {
       status: 'error',
       message: (e instanceof Error ? e.message : String(e)) || t('versions.download.installFailed'),
     })
     glassMessage.error((e instanceof Error ? e.message : String(e)) || t('versions.download.installFailed'))
-  } finally {
-    downloading.value = null
   }
 }
 
