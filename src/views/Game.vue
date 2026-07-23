@@ -49,7 +49,7 @@
               v-if="canToggleInfoCard"
               class="info-toggle-btn"
               :title="infoCardMode === 'tip' ? '查看公告' : '查看小贴士'"
-              @click="infoCardMode = infoCardMode === 'tip' ? 'announce' : 'tip'"
+              @click="toggleInfoCard"
             >
               <UiIcon :name="infoCardMode === 'tip' ? 'bell' : 'lightbulb'" :size="14" />
             </button>
@@ -535,10 +535,10 @@
 
 <script setup lang="ts">
 import gsap from 'gsap'
+import { storeToRefs } from 'pinia'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import backend from '@/api/client'
 import AvatarRenderer from '@/components/game/AvatarRenderer.vue'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import Modal from '@/components/modals/Modal.vue'
@@ -547,11 +547,11 @@ import UiIcon from '@/components/ui/Icon.vue'
 import UiInput from '@/components/ui/Input.vue'
 import UiSelect from '@/components/ui/Select.vue'
 import { useAccountManager } from '@/composables/useAccountManager'
-import { useIntervalFn } from '@/composables/useIntervalFn'
 import { globalLaunchProgress } from '@/composables/useLaunchProgress'
 import { useVersionManager } from '@/composables/useVersionManager'
 import { getVersionImage } from '@/config/version'
-import type { GameConfig, InfoCardData, InfoCardMode } from '@/types/api'
+import { useGameInfoCard } from '@/features/game-home/composables/useGameInfoCard'
+import { useGameHomeStore } from '@/features/game-home/stores/gameHomeStore'
 import { getLoaderIcon, getLoaderImage } from '@/utils/loader'
 
 const { t } = useI18n()
@@ -561,6 +561,21 @@ const gamePageRef = ref<HTMLElement | null>(null)
 const account = useAccountManager(t)
 const version = useVersionManager(t)
 const { progress: launchProgress, smoothPercent } = globalLaunchProgress
+const gameHomeStore = useGameHomeStore()
+const { hasGamePath } = storeToRefs(gameHomeStore)
+const {
+  infoCardData,
+  infoCardMode,
+  isWelcome,
+  hasAnnouncements,
+  currentTip,
+  currentAnnouncement,
+  welcomeInfo,
+  canToggleInfoCard,
+  start: startInfoCard,
+  stop: stopInfoCard,
+  toggle: toggleInfoCard,
+} = useGameInfoCard()
 
 type AccountType = 'microsoft' | 'offline' | 'authlib'
 
@@ -603,38 +618,6 @@ function handleAccountTypeChange(value: string) {
   }
 }
 
-// 信息卡数据（由后端推送）
-const infoCardData = ref<InfoCardData>({
-  mode: 'auto',
-  tips: [],
-  announcements: [],
-  welcome: null,
-  interval: 8000,
-})
-const infoCardMode = ref<'tip' | 'announce'>('tip')
-const isWelcome = ref(true)
-const currentTipIndex = ref(0)
-const currentAnnounceIndex = ref(0)
-
-const hasAnnouncements = computed(() => infoCardData.value.announcements.length > 0)
-const hasTips = computed(() => infoCardData.value.tips.length > 0)
-const currentTip = computed(() => {
-  const tips = infoCardData.value.tips
-  if (tips.length === 0) return ''
-  return tips[currentTipIndex.value % tips.length]
-})
-const currentAnnouncement = computed(() => {
-  const list = infoCardData.value.announcements
-  if (list.length === 0) return null
-  return list[currentAnnounceIndex.value % list.length]
-})
-const welcomeInfo = computed(() => infoCardData.value.welcome)
-
-const canToggleInfoCard = computed(() => {
-  const mode = infoCardData.value.mode
-  return mode === 'auto' || mode === 'rotate' || mode === 'announcement_first'
-})
-
 const lpState = computed(() => {
   const stage = launchProgress.value.stage
   let title = '正在启动游戏'
@@ -662,86 +645,8 @@ const launchVersionVisual = computed(() => {
   return { image: '', icon: getLoaderIcon(selected?.type) }
 })
 
-// 根据后端 mode 初始化信息卡显示模式
-const resolveInitialMode = (mode: InfoCardMode): 'tip' | 'announce' => {
-  switch (mode) {
-    case 'announcement_only':
-    case 'announcement_first':
-      return hasAnnouncements.value ? 'announce' : hasTips.value ? 'tip' : 'tip'
-    case 'tip_only':
-      return 'tip'
-    case 'auto':
-    case 'rotate':
-    default:
-      return hasAnnouncements.value ? 'announce' : 'tip'
-  }
-}
-
-const loadInfoCard = async () => {
-  try {
-    const result = await backend.command('info_card_get')
-    if (result.success && result.data) {
-      infoCardData.value = {
-        mode: result.data.mode ?? 'auto',
-        tips: result.data.tips ?? [],
-        announcements: result.data.announcements ?? [],
-        welcome: result.data.welcome ?? null,
-        interval: result.data.interval ?? 8000,
-      }
-      infoCardMode.value = resolveInitialMode(infoCardData.value.mode)
-    }
-  } catch (e) {
-    console.warn('[InfoCard] 加载信息卡数据失败:', e)
-  }
-}
-
-// 信息卡自动切换
-const { pause: pauseInfoCard, resume: resumeInfoCard } = useIntervalFn(
-  () => {
-    const mode = infoCardData.value.mode
-    if (mode === 'tip_only' || mode === 'announcement_only') return
-
-    if (mode === 'announcement_first') {
-      // 公告优先：无公告时固定显示 tips，不切换
-      if (!hasAnnouncements.value) return
-      infoCardMode.value = infoCardMode.value === 'announce' ? 'tip' : 'announce'
-      return
-    }
-
-    if (mode === 'rotate') {
-      // 轮番：切换模式并推进当前索引
-      if (infoCardMode.value === 'tip') {
-        if (hasAnnouncements.value) {
-          infoCardMode.value = 'announce'
-        } else {
-          currentTipIndex.value = (currentTipIndex.value + 1) % Math.max(infoCardData.value.tips.length, 1)
-        }
-      } else {
-        if (hasTips.value) {
-          infoCardMode.value = 'tip'
-          currentTipIndex.value = (currentTipIndex.value + 1) % Math.max(infoCardData.value.tips.length, 1)
-        }
-        currentAnnounceIndex.value =
-          (currentAnnounceIndex.value + 1) % Math.max(infoCardData.value.announcements.length, 1)
-      }
-      return
-    }
-
-    // auto：在 tip / announce 之间切换
-    if (infoCardMode.value === 'tip' && hasAnnouncements.value) {
-      infoCardMode.value = 'announce'
-    } else if (infoCardMode.value === 'announce' && hasTips.value) {
-      infoCardMode.value = 'tip'
-    }
-  },
-  () => infoCardData.value.interval ?? 8000
-)
-
-const hasGamePath = ref(false)
-
 // 定时器清理
 const launchCancelTimer = ref<ReturnType<typeof setTimeout> | null>(null)
-const welcomeTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
 const playEnterAnimation = () => {
   if (gamePageRef.value) {
@@ -756,10 +661,7 @@ const playEnterAnimation = () => {
 const handleLaunchProgressCancel = async () => {
   globalLaunchProgress.cancel()
   try {
-    const res = await backend.command('cancel_launch')
-    if (!res?.success) {
-      console.warn('[LaunchCancel] 后端取消请求失败:', res?.message)
-    }
+    await gameHomeStore.cancelLaunch()
   } catch (e) {
     console.warn('[LaunchCancel] 取消请求异常:', e)
   }
@@ -785,49 +687,19 @@ onMounted(() => {
   version.loadVersions()
   account.loadCurrentAccount()
 
-  // 检测是否设置了游戏目录
-  backend.config.get<GameConfig>('game').then((res) => {
-    if (res.success && res.data) {
-      const paths = res.data.minecraft_paths
-      hasGamePath.value = paths && paths.length > 0
-    }
+  startInfoCard().catch((error) => {
+    console.warn('[GameHome] 加载首页数据失败:', error)
   })
-
-  // 加载信息卡数据并启动自动切换
-  loadInfoCard().then(() => {
-    if (infoCardData.value.mode !== 'tip_only' && infoCardData.value.mode !== 'announcement_only') {
-      resumeInfoCard()
-    }
-  })
-
-  // 欢迎状态：首次打开显示欢迎，之后切页面不再显示
-  const welcomeShown = localStorage.getItem('euora-welcome-shown')
-  if (welcomeShown === 'true') {
-    isWelcome.value = false
-  } else {
-    isWelcome.value = true
-    welcomeTimer.value = setTimeout(() => {
-      isWelcome.value = false
-      localStorage.setItem('euora-welcome-shown', 'true')
-      welcomeTimer.value = null
-      // 欢迎结束后默认回到“你知道吗”
-      if (hasTips.value) infoCardMode.value = 'tip'
-    }, 5000)
-  }
 
   playEnterAnimation()
 })
 
 onBeforeUnmount(() => {
   account.reset()
-  pauseInfoCard()
+  stopInfoCard()
   if (launchCancelTimer.value) {
     clearTimeout(launchCancelTimer.value)
     launchCancelTimer.value = null
-  }
-  if (welcomeTimer.value) {
-    clearTimeout(welcomeTimer.value)
-    welcomeTimer.value = null
   }
 })
 </script>
