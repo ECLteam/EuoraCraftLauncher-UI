@@ -124,27 +124,18 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import backend from '@/api/client'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
-
-interface Plugin {
-  name: string
-  title?: string
-  version: string
-  author?: string
-  description?: string
-  icon?: string
-  status: 'enabled' | 'disabled' | 'error' | string
-}
+import { usePluginStore } from '@/features/plugins/stores/pluginStore'
+import type { PluginInfo } from '@/types/api'
 
 const { t } = useI18n()
-const { loading, run } = useAsyncAction({ showSuccess: false, showError: false })
-
-const plugins = ref<Plugin[]>([])
-const reloadingPlugins = ref<string[]>([])
+const { run } = useAsyncAction({ showSuccess: false, showError: false })
+const pluginStore = usePluginStore()
+const { plugins, loading, reloadingPlugins } = storeToRefs(pluginStore)
 const searchQuery = ref('')
 const activeFilter = ref('all')
 
@@ -174,86 +165,50 @@ const filteredPlugins = computed(() => {
   return result
 })
 
-async function loadPlugins() {
-  const result = await run(async () => backend.command('plugin_list'))
-  if (result?.success && result.data) {
-    plugins.value = result.data
-  } else {
-    plugins.value = []
-  }
-}
-
-async function togglePlugin(plugin: Plugin) {
+async function togglePlugin(plugin: PluginInfo) {
   const action = plugin.status === 'enabled' ? 'disable' : 'enable'
-  const command = action === 'enable' ? 'plugin_enable' : 'plugin_disable'
-  const result = await run(async () => backend.command(command, { plugin_name: plugin.name }), {
+  await run(async () => pluginStore.toggle(plugin), {
     showSuccess: true,
     successMessage: t(`plugins.${action}Success`, { name: plugin.title || plugin.name }),
     showError: true,
     errorMessage: t(`plugins.${action}Failed`),
   })
-  if (!result?.success) return
-  await loadPlugins()
 }
 
-async function reloadPlugin(plugin: Plugin) {
+async function reloadPlugin(plugin: PluginInfo) {
   if (reloadingPlugins.value.includes(plugin.name)) return
-  reloadingPlugins.value = [...reloadingPlugins.value, plugin.name]
-  const result = await run(async () => backend.command('plugin_reload', { plugin_name: plugin.name }), {
+  await run(async () => pluginStore.reload(plugin.name), {
     showSuccess: true,
     successMessage: t('plugins.reloadSuccess', { name: plugin.title || plugin.name }),
     showError: true,
     errorMessage: t('plugins.reloadFailed'),
   })
-  reloadingPlugins.value = reloadingPlugins.value.filter((n) => n !== plugin.name)
-  if (result?.success) await loadPlugins()
 }
 
-async function unloadPlugin(plugin: Plugin) {
-  const result = await run(async () => backend.command('plugin_unload', { plugin_name: plugin.name }), {
+async function unloadPlugin(plugin: PluginInfo) {
+  await run(async () => pluginStore.unload(plugin.name), {
     showSuccess: true,
     successMessage: t('plugins.unloadSuccess', { name: plugin.title || plugin.name }),
     showError: true,
     errorMessage: t('plugins.unloadFailed'),
   })
-  if (result?.success) await loadPlugins()
 }
 
 async function installPlugin() {
-  const result = await run(async () => backend.command('select_directory'))
-  if (!result?.success || !result.data?.path) return
-  const pluginPath = result.data.path
-
-  const installResult = await run(async () => backend.command('plugin_install', { plugin_path: pluginPath }), {
+  await run(async () => pluginStore.install(), {
     showSuccess: true,
     successMessage: t('plugins.installSuccess'),
     showError: true,
     errorMessage: t('plugins.installFailed'),
   })
-  if (installResult?.success) await loadPlugins()
-}
-
-let unlistenPluginStatus: (() => void) | null = null
-let loadDebounceTimer: ReturnType<typeof setTimeout> | null = null
-
-function debouncedLoadPlugins() {
-  if (loadDebounceTimer) clearTimeout(loadDebounceTimer)
-  loadDebounceTimer = setTimeout(() => {
-    loadPlugins()
-  }, 150)
 }
 
 onMounted(() => {
-  loadPlugins()
-  unlistenPluginStatus = backend.on('plugin:status_changed', debouncedLoadPlugins)
+  void pluginStore.start().catch(() => {})
 })
 
 onUnmounted(() => {
-  if (loadDebounceTimer) clearTimeout(loadDebounceTimer)
-  if (unlistenPluginStatus) {
-    unlistenPluginStatus()
-    unlistenPluginStatus = null
-  }
+  pluginStore.stop()
 })
 </script>
 

@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import backend from '@/api/client'
+import { pluginHostApi } from '@/features/plugins/api/pluginHostApi'
 import * as api from '@/plugin-sdk/api'
 import * as component from '@/plugin-sdk/component'
 import '@/plugin-sdk/styles/plugin-base.css'
@@ -333,10 +333,11 @@ function fullCleanupPlugin(pluginName: string) {
 }
 
 async function refreshRoutes(router: ReturnType<typeof useRouter>) {
-  const res = await backend.command('plugin_get_routes')
-  if (res?.success) {
-    pluginRoutes.value = res.data || []
+  try {
+    pluginRoutes.value = await pluginHostApi.getRoutes()
     setupRoutes(router)
+  } catch {
+    pluginRoutes.value = []
   }
 }
 
@@ -347,7 +348,7 @@ export function initPluginBridge(router: ReturnType<typeof useRouter>) {
   cleanupState = initPluginState()
 
   unlistenFns.push(
-    backend.on('plugin:html_injected', (payload) => {
+    pluginHostApi.subscribe('plugin:html_injected', (payload) => {
       const slot = payload.slot
       const priority = payload.priority ?? 0
       const entries = pluginSlots.value[slot] || []
@@ -358,7 +359,7 @@ export function initPluginBridge(router: ReturnType<typeof useRouter>) {
   )
 
   unlistenFns.push(
-    backend.on('plugin:slot_registered', (payload) => {
+    pluginHostApi.subscribe('plugin:slot_registered', (payload) => {
       const { slot, plugin, target, position } = payload
       const ok = createDynamicSlot(slot, plugin, target, position || 'append')
       if (!ok) {
@@ -368,22 +369,22 @@ export function initPluginBridge(router: ReturnType<typeof useRouter>) {
   )
 
   unlistenFns.push(
-    backend.on('plugin:slot_unregistered', (payload) => {
+    pluginHostApi.subscribe('plugin:slot_unregistered', (payload) => {
       removeDynamicSlot(payload.slot)
     })
   )
 
-  unlistenFns.push(backend.on('plugin:route_registered', () => refreshRoutes(router)))
-  unlistenFns.push(backend.on('plugin:route_unregistered', () => refreshRoutes(router)))
+  unlistenFns.push(pluginHostApi.subscribe('plugin:route_registered', () => refreshRoutes(router)))
+  unlistenFns.push(pluginHostApi.subscribe('plugin:route_unregistered', () => refreshRoutes(router)))
 
   unlistenFns.push(
-    backend.on('plugin:script_injected', (payload) => {
+    pluginHostApi.subscribe('plugin:script_injected', (payload) => {
       executeScript(payload.plugin, payload.script)
     })
   )
 
   unlistenFns.push(
-    backend.on('plugin:typescript_injected', (payload) => {
+    pluginHostApi.subscribe('plugin:typescript_injected', (payload) => {
       try {
         const js = transpileTS(payload.script || '')
         executeScript(payload.plugin, js)
@@ -394,44 +395,40 @@ export function initPluginBridge(router: ReturnType<typeof useRouter>) {
   )
 
   unlistenFns.push(
-    backend.on('plugin:disabled', (payload) => {
+    pluginHostApi.subscribe('plugin:disabled', (payload) => {
       if (payload.plugin) fullCleanupPlugin(payload.plugin)
     })
   )
   unlistenFns.push(
-    backend.on('plugin:pre_unload', (payload) => {
+    pluginHostApi.subscribe('plugin:pre_unload', (payload) => {
       if (payload.name) fullCleanupPlugin(payload.name)
     })
   )
   unlistenFns.push(
-    backend.on('plugin:cleanup', (payload) => {
+    pluginHostApi.subscribe('plugin:cleanup', (payload) => {
       if (payload.name) fullCleanupPlugin(payload.name)
     })
   )
   unlistenFns.push(
-    backend.on('plugin:slots_cleared', (payload) => {
+    pluginHostApi.subscribe('plugin:slots_cleared', (payload) => {
       if (payload.plugin) clearPluginSlots(payload.plugin)
     })
   )
 
-  backend
-    .command('plugin_get_routes')
-    .then((res) => {
-      if (res?.success) {
-        pluginRoutes.value = res.data || []
-        setupRoutes(router)
-      }
+  pluginHostApi
+    .getRoutes()
+    .then((routes) => {
+      pluginRoutes.value = routes
+      setupRoutes(router)
     })
     .catch(() => {})
 
-  backend
-    .command('plugin_get_slots')
-    .then((res) => {
-      if (res?.success && res.data) {
-        pluginSlots.value = res.data
-        for (const slot of Object.keys(res.data)) {
-          renderSlot(slot)
-        }
+  pluginHostApi
+    .getSlots()
+    .then((slots) => {
+      pluginSlots.value = slots
+      for (const slot of Object.keys(slots)) {
+        renderSlot(slot)
       }
     })
     .catch(() => {})
@@ -461,7 +458,7 @@ export function destroyPluginBridge() {
 }
 
 export function callPluginCommand(command: string, params?: Record<string, unknown>) {
-  return backend.command('plugin_call_command', { command, params })
+  return pluginHostApi.callCommand(command, params)
 }
 
 export {
