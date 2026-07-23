@@ -64,9 +64,8 @@
                   <TaskQueuePanel />
 
                   <!-- 退出确认弹窗 -->
-                  <Modal
+                  <ConfirmDialog
                     v-model:visible="showQuitConfirmModal"
-                    type="confirm"
                     :title="t('common.confirm')"
                     :content="t('agreement.quitConfirm')"
                     danger
@@ -136,6 +135,7 @@ import { desktopWindow } from '@/app/runtime/desktopWindow'
 import { useAppRuntime } from '@/app/runtime/useAppRuntime'
 import SideBar from '@/components/layout/SideBar.vue'
 import TitleBar from '@/components/layout/TitleBar.vue'
+import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import ErrorModal from '@/components/modals/ErrorModal.vue'
 import Modal from '@/components/modals/Modal.vue'
 import TaskQueuePanel from '@/components/panels/TaskQueuePanel.vue'

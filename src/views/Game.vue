@@ -375,18 +375,16 @@
     </Modal>
 
     <!-- 删除确认弹窗 -->
-    <Modal v-model:visible="account.showDeleteConfirmModal" type="confirm" :title="t('common.confirm')">
-      <p>{{ account.deleteConfirmMessage }}</p>
-
-      <template #footer>
-        <UiButton variant="secondary" @click="account.showDeleteConfirmModal = false">
-          {{ t('common.cancel') }}
-        </UiButton>
-        <UiButton variant="danger" :loading="account.deletingAccount" @click="account.confirmRemoveAccount">
-          {{ t('common.delete') }}
-        </UiButton>
-      </template>
-    </Modal>
+    <ConfirmDialog
+      v-model:visible="account.showDeleteConfirmModal"
+      :title="t('common.confirm')"
+      :content="account.deleteConfirmMessage"
+      :confirmText="t('common.delete')"
+      :loading="account.deletingAccount"
+      :closeOnConfirm="false"
+      danger
+      @confirm="account.confirmRemoveAccount"
+    />
   </div>
 </template>
 
@@ -401,6 +399,7 @@ import GameAccountCard from '@/components/game/GameAccountCard.vue'
 import GameInfoCard from '@/components/game/GameInfoCard.vue'
 import GameLaunchBar from '@/components/game/GameLaunchBar.vue'
 import LaunchProgressCard from '@/components/game/LaunchProgressCard.vue'
+import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import Modal from '@/components/modals/Modal.vue'
 import UiButton from '@/components/ui/Button.vue'

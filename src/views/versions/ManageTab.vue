@@ -3,204 +3,46 @@
     <div id="plugin-slot-versions-manage-top" class="plugin-slot-container" />
     <!-- 统一容器：路径列表 + 版本列表 -->
     <div class="manage-container">
-      <!-- 左侧路径列表 -->
-      <div class="path-panel">
-        <div class="panel-header">
-          <h3 class="panel-title">
-            <UiIcon name="folder" :size="16" />
-            {{ t('versions.manage.gamePath') }}
-          </h3>
-          <button class="btn-add" :title="t('common.add')" @click="addNewPath">
-            <UiIcon name="add" :size="16" />
-          </button>
-        </div>
-
-        <div class="path-list">
-          <div
-            v-for="(item, index) in gamePaths"
-            :key="index"
-            :class="['path-item', { active: selectedPathIndex === index }]"
-            @click="selectPath(index)"
-          >
-            <div class="path-indicator" />
-            <UiIcon name="folder" :size="16" class="path-icon" />
-            <div class="path-info">
-              <div class="path-name-row">
-                <span class="path-name">{{ item.name || t('versions.manage.unnamedPath') }}</span>
-                <span :class="['path-version-count', { 'is-empty': getPathVersionCount(item.path) === 0 }]">
-                  {{ t('versions.manage.versionCount', { count: getPathVersionCount(item.path) }) }}
-                </span>
-              </div>
-              <span class="path-location" :title="item.path">{{ item.path }}</span>
-            </div>
-            <div v-if="!item.protected" class="path-actions">
-              <button class="path-action-btn" :title="t('common.edit')" @click.stop="editPath(index)">
-                <UiIcon name="settings" :size="14" />
-              </button>
-              <button
-                class="path-action-btn path-action-delete"
-                :title="t('common.delete')"
-                @click.stop="removePath(index)"
-              >
-                <UiIcon name="trash" :size="14" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="panel-footer">
-          <span class="footer-text">{{ t('versions.manage.pathCount', { count: gamePaths.length }) }}</span>
-        </div>
-      </div>
+      <VersionPathSidebar
+        :paths="gamePaths"
+        :selectedIndex="selectedPathIndex"
+        :versionCounts="pathVersionCounts"
+        @add="addNewPath"
+        @select="selectPath"
+        @edit="editPath"
+        @remove="removePath"
+      />
 
       <!-- 分隔线 -->
       <div class="path-divider" />
 
-      <!-- 右侧版本列表 -->
-      <div class="version-panel">
-        <div class="panel-header">
-          <div class="header-left">
-            <h3 class="panel-title">
-              <UiIcon name="cube" :size="16" />
-              {{ currentPathName }}
-            </h3>
-            <span v-if="currentPathVersions.length > 0" class="version-count-badge">
-              {{ t('versions.manage.versionCount', { count: currentPathVersions.length }) }}
-            </span>
-          </div>
-          <div class="header-right">
-            <button class="btn-refresh" :disabled="refreshLoading" @click="handleRefresh">
-              <UiIcon name="refresh" :size="14" />
-              {{ t('common.refresh') }}
-            </button>
-            <button class="btn-install-version" @click="navigateToInstall">
-              <UiIcon name="download" :size="14" />
-              {{ t('versions.download.installNew') }}
-            </button>
-            <div class="search-box">
-              <UiIcon name="search" :size="16" class="search-icon" />
-              <input
-                v-model="searchQuery"
-                type="text"
-                :placeholder="t('versions.manage.searchVersion')"
-                class="search-input"
-              />
-              <button v-if="searchQuery" class="search-clear" type="button" @click="searchQuery = ''">
-                <UiIcon name="close" :size="14" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="version-content">
-          <!-- 未选择路径 -->
-          <div v-if="selectedPathIndex === -1" class="empty-state">
-            <UiIcon name="folder" :size="48" class="empty-icon" />
-            <p class="empty-text">
-              {{ t('versions.manage.selectPathHint') }}
-            </p>
-            <p v-if="gamePaths.length === 0" class="empty-hint">
-              {{ t('versions.manage.addPathToStart') }}
-            </p>
-            <button v-if="gamePaths.length === 0" class="btn-primary" @click="addNewPath">
-              <UiIcon name="add" :size="16" />
-              {{ t('common.add') }}
-            </button>
-          </div>
-
-          <!-- 加载中 -->
-          <div v-else-if="loading" class="loading-state">
-            <UiIcon name="spinner" class="spin" :size="24" />
-            <p>{{ t('versions.manage.scanning') }}</p>
-          </div>
-
-          <!-- 空状态 -->
-          <div v-else-if="currentPathVersions.length === 0" class="empty-state">
-            <UiIcon name="cube" :size="48" class="empty-icon" />
-            <p class="empty-text">
-              {{ t('versions.manage.noVersionsFound') }}
-            </p>
-            <p class="empty-hint">{{ t('versions.manage.currentPath') }}: {{ currentPath?.path }}</p>
-          </div>
-
-          <!-- 版本列表 -->
-          <div v-else class="version-table">
-            <div class="table-header">
-              <span class="col-icon" />
-              <span class="col-name">{{ t('versions.manage.versionName') }}</span>
-              <span class="col-type">{{ t('versions.manage.loaderType') }}</span>
-              <span class="col-status">{{ t('versions.manage.status') }}</span>
-              <span class="col-actions" />
-            </div>
-
-            <div class="table-body">
-              <div
-                v-for="version in filteredVersions"
-                :key="version.versionId"
-                :class="['table-row', { selected: versionManager.selectedVersion === version.versionId }]"
-                @click="handleSelectVersion(version)"
-              >
-                <div class="col-icon">
-                  <div
-                    class="version-icon"
-                    :class="[getVersionTypeClass(version), { 'has-image': Boolean(getManageVersionImage(version)) }]"
-                  >
-                    <img
-                      v-if="getManageVersionImage(version)"
-                      :src="getManageVersionImage(version)"
-                      alt=""
-                      class="version-icon-img"
-                    />
-                    <UiIcon v-else :name="getManageVersionIcon(version.primaryLoader)" :size="18" />
-                  </div>
-                </div>
-                <div class="col-name">
-                  <span class="version-name">{{ version.versionId }}</span>
-                  <span class="version-mcver">{{ version.vanillaName || t('versions.manage.unknownVersion') }}</span>
-                </div>
-                <div class="col-type">
-                  <span :class="['badge', 'badge-' + getLoaderClass(version.primaryLoader)]">
-                    {{ getLoaderDisplayName(version.primaryLoader) }}
-                  </span>
-                </div>
-                <div class="col-status">
-                  <span :class="['badge', version.isBroken ? 'badge-error' : 'badge-success']">
-                    {{ version.isBroken ? t('versions.manage.statusBroken') : t('versions.manage.statusAvailable') }}
-                  </span>
-                </div>
-                <div class="col-actions">
-                  <button
-                    class="btn-action btn-settings"
-                    :title="t('settings.title')"
-                    @click.stop="handleOpenDetail(version)"
-                  >
-                    <UiIcon name="settings" :size="14" />
-                  </button>
-                  <button
-                    v-if="!version.isBroken"
-                    class="btn-action btn-play"
-                    :title="t('common.launch')"
-                    @click.stop="handleLaunch(version)"
-                  >
-                    <UiIcon name="play" :size="14" />
-                  </button>
-                  <button class="btn-action btn-delete" :title="t('common.delete')" @click.stop="handleDelete(version)">
-                    <UiIcon name="trash" :size="14" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <InstalledVersionList
+        v-model:searchQuery="searchQuery"
+        :versions="currentPathVersions"
+        :selectedPathIndex="selectedPathIndex"
+        :pathCount="gamePaths.length"
+        :pathName="currentPathName"
+        :pathLocation="currentPath?.path"
+        :loading="loading"
+        :refreshLoading="refreshLoading"
+        :selectedVersion="versionManager.selectedVersion"
+        @refresh="handleRefresh"
+        @install="navigateToInstall"
+        @addPath="addNewPath"
+        @selectVersion="handleSelectVersion"
+        @detail="handleOpenDetail"
+        @launch="handleLaunch"
+        @remove="handleDelete"
+      />
     </div>
 
     <!-- 确认弹窗 -->
-    <Modal
+    <ConfirmDialog
       v-model:visible="showConfirmModal"
-      type="confirm"
       :title="confirmTitle"
       :content="confirmContent"
+      :loading="confirmLoading"
+      :closeOnConfirm="false"
       danger
       @confirm="handleConfirmAction"
     />
@@ -213,7 +55,11 @@
       <div class="path-form">
         <div class="form-group">
           <label>{{ t('versions.manage.pathName') }}</label>
-          <UiInput v-model="pathForm.name" :placeholder="t('versions.manage.pathNamePlaceholder')" />
+          <UiInput
+            v-model="pathForm.name"
+            :placeholder="t('versions.manage.pathNamePlaceholder')"
+            :disabled="pathSaving"
+          />
         </div>
         <div class="form-group">
           <label>{{ t('versions.manage.pathLocation') }}</label>
@@ -222,19 +68,26 @@
               v-model="pathForm.path"
               :placeholder="t('versions.manage.pathLocationPlaceholder')"
               :readonly="isDefaultPath"
+              :disabled="pathSaving"
             />
-            <UiButton variant="secondary" :disabled="isDefaultPath" @click="browseForPath">
+            <UiButton variant="secondary" :disabled="isDefaultPath || pathSaving" @click="browseForPath">
               {{ t('common.browse') }}
             </UiButton>
           </div>
         </div>
+        <p v-if="pathFormError" class="form-feedback" role="alert">{{ pathFormError }}</p>
       </div>
 
       <template #footer>
-        <UiButton variant="secondary" @click="showPathModal = false">
+        <UiButton variant="secondary" :disabled="pathSaving" @click="showPathModal = false">
           {{ t('common.cancel') }}
         </UiButton>
-        <UiButton variant="primary" :disabled="!pathForm.name || !pathForm.path" @click="savePath">
+        <UiButton
+          variant="primary"
+          :disabled="!pathForm.name || !pathForm.path"
+          :loading="pathSaving"
+          @click="savePath"
+        >
           {{ isEditing ? t('common.save') : t('common.add') }}
         </UiButton>
       </template>
@@ -255,9 +108,12 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import backend from '@/api/client'
+import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import Modal from '@/components/modals/Modal.vue'
 import UiButton from '@/components/ui/Button.vue'
 import UiInput from '@/components/ui/Input.vue'
+import InstalledVersionList from '@/components/versions/InstalledVersionList.vue'
+import VersionPathSidebar from '@/components/versions/VersionPathSidebar.vue'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { globalLaunchProgress } from '@/composables/useLaunchProgress'
 import { useVersionManager } from '@/composables/useVersionManager'
@@ -268,18 +124,11 @@ import {
   LAUNCH_SUCCESS_HIDE_DELAY,
   LAUNCH_ERROR_HIDE_DELAY,
 } from '@/config/game'
-import { getVersionImage } from '@/config/version'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import { versionInstallApi } from '@/features/versions/api/versionInstallApi'
+import type { GamePath } from '@/features/versions/model/gamePath'
 import type { LaunchProgress, MinecraftPathEntry, ScannedVersion } from '@/types/api'
-import { getLoaderIcon, getLoaderImage, getLoaderName, getLoaderClass } from '@/utils/loader'
 import VersionDetailModal from '@/views/versions/VersionDetailModal.vue'
-
-interface GamePath {
-  name: string
-  path: string
-  protected?: boolean
-}
 
 const { t } = useI18n()
 const router = useRouter()
@@ -301,22 +150,33 @@ const searchQuery = ref('')
 const scannedVersions = ref<ScannedVersion[]>([])
 
 const showConfirmModal = ref(false)
+const confirmLoading = ref(false)
 const showDetailModal = ref(false)
 const detailVersion = ref<ScannedVersion | null>(null)
 const confirmTitle = ref('')
 const confirmContent = ref('')
-const confirmAction = ref<(() => void) | null>(null)
+const confirmAction = ref<(() => void | Promise<void>) | null>(null)
+const pathSaving = ref(false)
+const pathFormError = ref('')
 
-const openConfirm = (title: string, content: string, action: () => void) => {
+const openConfirm = (title: string, content: string, action: () => void | Promise<void>) => {
   confirmTitle.value = title
   confirmContent.value = content
   confirmAction.value = action
+  confirmLoading.value = false
   showConfirmModal.value = true
 }
 
-const handleConfirmAction = () => {
-  confirmAction.value?.()
-  confirmAction.value = null
+const handleConfirmAction = async () => {
+  if (!confirmAction.value || confirmLoading.value) return
+  confirmLoading.value = true
+  try {
+    await confirmAction.value()
+    showConfirmModal.value = false
+    confirmAction.value = null
+  } finally {
+    confirmLoading.value = false
+  }
 }
 
 const currentPath = computed(() => (selectedPathIndex.value >= 0 ? gamePaths.value[selectedPathIndex.value] : null))
@@ -328,18 +188,14 @@ const currentPathVersions = computed(() => {
   return scannedVersions.value.filter((v) => v.path === currentPath.value?.path)
 })
 
-const filteredVersions = computed(() => {
-  const versions = currentPathVersions.value
-  if (!searchQuery.value.trim()) return versions
-  const query = searchQuery.value.toLowerCase()
-  return versions.filter(
-    (v) => v.versionId.toLowerCase().includes(query) || (v.displayName && v.displayName.toLowerCase().includes(query))
-  )
-})
-
-function getPathVersionCount(path: string): number {
-  return scannedVersions.value.filter((v) => v.path === path).length
-}
+const pathVersionCounts = computed(() =>
+  scannedVersions.value.reduce<Record<string, number>>((counts, version) => {
+    if (version.path) {
+      counts[version.path] = (counts[version.path] ?? 0) + 1
+    }
+    return counts
+  }, {})
+)
 
 onMounted(async () => {
   await fetchGamePaths()
@@ -409,6 +265,7 @@ const addNewPath = () => {
   isEditing.value = false
   editingIndex.value = -1
   pathForm.value = { name: '', path: '' }
+  pathFormError.value = ''
   showPathModal.value = true
 }
 
@@ -418,6 +275,7 @@ const editPath = (index: number) => {
   isEditing.value = true
   editingIndex.value = index
   pathForm.value = { ...path }
+  pathFormError.value = ''
   showPathModal.value = true
 }
 
@@ -442,8 +300,10 @@ const isDefaultPath = computed(() => {
 })
 
 const savePath = async () => {
-  if (!pathForm.value.name || !pathForm.value.path) return
+  if (!pathForm.value.name || !pathForm.value.path || pathSaving.value) return
 
+  pathSaving.value = true
+  pathFormError.value = ''
   try {
     const updatedPaths = [...gamePaths.value]
     if (isEditing.value && editingIndex.value >= 0) {
@@ -458,12 +318,14 @@ const savePath = async () => {
       selectedPathIndex.value = updatedPaths.length - 1
       await scanCurrentPath()
     }
+    showPathModal.value = false
   } catch (error) {
     console.error(t('versions.manage.saveFailed'), error)
+    pathFormError.value = t('versions.manage.saveFailed')
     message.error(t('versions.manage.saveFailed'), 3000)
+  } finally {
+    pathSaving.value = false
   }
-
-  showPathModal.value = false
 }
 
 const removePath = async (index: number) => {
@@ -609,40 +471,6 @@ const handleDelete = async (version: ScannedVersion) => {
       message.error(t('versions.manage.deleteFailed'))
     }
   })
-}
-
-/**
- * 获取加载器显示名称（含原版 i18n 处理）
- */
-function getLoaderDisplayName(loaderType: string | null): string {
-  if (
-    !loaderType ||
-    loaderType === 'Unknown' ||
-    loaderType === 'release' ||
-    loaderType === 'snapshot' ||
-    loaderType === 'Vanilla'
-  ) {
-    return t('versions.manage.vanilla')
-  }
-  return getLoaderName(loaderType)
-}
-
-/**
- * 获取版本类型 CSS 类（匹配版本下载页）
- */
-function getVersionTypeClass(version: ScannedVersion): string {
-  return version.versionType
-}
-
-/**
- * 获取版本管理页的版本图标（匹配版本下载页风格）
- */
-function getManageVersionIcon(loader: string | null | undefined): string {
-  return getLoaderIcon(loader)
-}
-
-function getManageVersionImage(version: ScannedVersion): string {
-  return getLoaderImage(version.primaryLoader) || getVersionImage(version.versionType)
 }
 
 // ── 版本安装 ──

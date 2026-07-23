@@ -10,6 +10,7 @@ declare module 'vue' {
     AvatarRenderer: typeof import('./src/components/game/AvatarRenderer.vue')['default']
     Button: typeof import('./src/components/ui/Button.vue')['default']
     Card: typeof import('./src/components/ui/Card.vue')['default']
+    ConfirmDialog: typeof import('./src/components/modals/ConfirmDialog.vue')['default']
     ErrorModal: typeof import('./src/components/modals/ErrorModal.vue')['default']
     FullscreenModal: typeof import('./src/components/modals/FullscreenModal.vue')['default']
     GameAccountCard: typeof import('./src/components/game/GameAccountCard.vue')['default']
@@ -18,6 +19,7 @@ declare module 'vue' {
     GlassMessage: typeof import('./src/components/ui/GlassMessage.vue')['default']
     Icon: typeof import('./src/components/ui/Icon.vue')['default']
     Input: typeof import('./src/components/ui/Input.vue')['default']
+    InstalledVersionList: typeof import('./src/components/versions/InstalledVersionList.vue')['default']
     LaunchProgressCard: typeof import('./src/components/game/LaunchProgressCard.vue')['default']
     Modal: typeof import('./src/components/modals/Modal.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
@@ -27,5 +29,6 @@ declare module 'vue' {
     Slider: typeof import('./src/components/ui/Slider.vue')['default']
     TaskQueuePanel: typeof import('./src/components/panels/TaskQueuePanel.vue')['default']
     TitleBar: typeof import('./src/components/layout/TitleBar.vue')['default']
+    VersionPathSidebar: typeof import('./src/components/versions/VersionPathSidebar.vue')['default']
   }
 }
