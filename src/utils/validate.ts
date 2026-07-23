@@ -45,7 +45,7 @@ class StringSchema {
       return pipe(
         string(),
         this.minMsg ? minLength(this.minLen, this.minMsg) : minLength(this.minLen),
-        this.maxMsg ? maxLength(this.maxLen, this.maxMsg) : maxLength(this.maxLen),
+        this.maxMsg ? maxLength(this.maxLen, this.maxMsg) : maxLength(this.maxLen)
       )
     }
     if (this.hasMin) {

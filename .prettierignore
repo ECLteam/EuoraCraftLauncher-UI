@@ -1,0 +1,8 @@
+dist/
+node_modules/
+*.tsbuildinfo
+vite.config.d.ts
+components.d.ts
+pnpm-lock.yaml
+public/fonts/
+public/img/

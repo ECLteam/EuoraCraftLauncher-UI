@@ -9,9 +9,9 @@ import {
   LAUNCH_ERROR_HIDE_DELAY,
   STATUS_MESSAGE_AUTO_HIDE,
 } from '@/config/game'
+import type { ScannedVersion, LaunchProgress, GameConfig } from '@/types/api'
 import { useGlassMessage } from './useGlassMessage'
 import { globalLaunchProgress } from './useLaunchProgress'
-import type { ScannedVersion, LaunchProgress, GameConfig } from '@/types/api'
 
 export interface VersionItem {
   id: string
@@ -46,9 +46,7 @@ export function useVersionManager(t: (key: string, ...args: unknown[]) => string
       return
     }
 
-    const stringPaths = [...new Set(minecraftPaths.map((path) =>
-      typeof path === 'string' ? path : path.path
-    ))]
+    const stringPaths = [...new Set(minecraftPaths.map((path) => (typeof path === 'string' ? path : path.path)))]
     const scanRes = await backend.command('scan_versions', { path: stringPaths })
     loading.value = false
     if (!scanRes.success || !scanRes.data) {
@@ -74,10 +72,12 @@ export function useVersionManager(t: (key: string, ...args: unknown[]) => string
         gamePath: getVersionGamePath(v, stringPaths[0] ?? ''),
       }))
 
-    const selected = versions.value.find((version) =>
-      version.id === selectedVersion.value && version.gamePath === currentGamePath.value
-    ) ?? versions.value.find((version) => version.id === selectedVersion.value)
-      ?? versions.value[0]
+    const selected =
+      versions.value.find(
+        (version) => version.id === selectedVersion.value && version.gamePath === currentGamePath.value
+      ) ??
+      versions.value.find((version) => version.id === selectedVersion.value) ??
+      versions.value[0]
     if (selected) {
       selectVersion(selected.id, selected.gamePath)
     } else {

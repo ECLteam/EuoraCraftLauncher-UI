@@ -31,11 +31,13 @@ function generateTaskId(): string {
   return `task_${Date.now()}_${_taskIdCounter}`
 }
 
-const activeCount = computed(() => tasks.value.filter(t => t.status === 'running' || t.status === 'pending').length)
+const activeCount = computed(() => tasks.value.filter((t) => t.status === 'running' || t.status === 'pending').length)
 const hasActiveTasks = computed(() => activeCount.value > 0)
 
 export function useTaskQueue() {
-  function addTask(task: Omit<TaskItem, 'id' | 'timestamp' | 'subtasks' | 'expanded' | 'progress' | 'message' | 'status'>): string {
+  function addTask(
+    task: Omit<TaskItem, 'id' | 'timestamp' | 'subtasks' | 'expanded' | 'progress' | 'message' | 'status'>
+  ): string {
     const id = generateTaskId()
     const item: TaskItem = {
       ...task,
@@ -51,8 +53,11 @@ export function useTaskQueue() {
     return id
   }
 
-  function updateTask(taskId: string, updates: Partial<Pick<TaskItem, 'status' | 'progress' | 'message' | 'subtasks'>>) {
-    const task = tasks.value.find(t => t.id === taskId)
+  function updateTask(
+    taskId: string,
+    updates: Partial<Pick<TaskItem, 'status' | 'progress' | 'message' | 'subtasks'>>
+  ) {
+    const task = tasks.value.find((t) => t.id === taskId)
     if (!task) return
     if (updates.status !== undefined) task.status = updates.status
     if (updates.progress !== undefined) task.progress = Math.min(100, Math.max(0, updates.progress))
@@ -61,9 +66,9 @@ export function useTaskQueue() {
   }
 
   function addSubtask(taskId: string, subtask: Subtask) {
-    const task = tasks.value.find(t => t.id === taskId)
+    const task = tasks.value.find((t) => t.id === taskId)
     if (!task) return
-    const existing = task.subtasks.find(s => s.id === subtask.id)
+    const existing = task.subtasks.find((s) => s.id === subtask.id)
     if (existing) {
       existing.status = subtask.status
       existing.message = subtask.message
@@ -73,12 +78,12 @@ export function useTaskQueue() {
   }
 
   function removeTask(taskId: string) {
-    const idx = tasks.value.findIndex(t => t.id === taskId)
+    const idx = tasks.value.findIndex((t) => t.id === taskId)
     if (idx !== -1) tasks.value.splice(idx, 1)
   }
 
   function clearCompleted() {
-    tasks.value = tasks.value.filter(t => t.status === 'running' || t.status === 'pending')
+    tasks.value = tasks.value.filter((t) => t.status === 'running' || t.status === 'pending')
   }
 
   function togglePanel() {

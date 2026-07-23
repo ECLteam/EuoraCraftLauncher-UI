@@ -10,13 +10,13 @@ import { onScopeDispose, unref, type Ref } from 'vue'
 
 // ---- 全局缓动预设 ----
 export const EASE = {
-  enter: 'power2.out',           // 进入：加速减速
-  exit: 'power1.in',             // 退出：先快后慢
-  spring: 'back.out(1.7)',       // 弹性过冲
-  bounce: 'bounce.out',          // 弹跳
-  gentle: 'power3.out',          // 平滑进入
+  enter: 'power2.out', // 进入：加速减速
+  exit: 'power1.in', // 退出：先快后慢
+  spring: 'back.out(1.7)', // 弹性过冲
+  bounce: 'bounce.out', // 弹跳
+  gentle: 'power3.out', // 平滑进入
   elastic: 'elastic.out(1, 0.4)', // 橡皮筋效果
-  smooth: 'none',                // 线性
+  smooth: 'none', // 线性
 } as const
 
 // ---- 持续时间预设 (秒) ----
@@ -108,7 +108,7 @@ export interface StaggerOptions {
 
 export function useStaggerEntry(
   items: (string | HTMLElement)[] | Ref<HTMLElement[] | null>,
-  options: StaggerOptions = {},
+  options: StaggerOptions = {}
 ) {
   if (prefersReducedMotion()) return
 
@@ -136,12 +136,23 @@ export function useStaggerEntry(
   }
 
   switch (direction) {
-    case 'up':    vars.y = distance; break
-    case 'down':  vars.y = -distance; break
-    case 'left':  vars.x = distance; break
-    case 'right': vars.x = -distance; break
-    case 'scale': vars.scale = 0.9; break
-    case 'fade':  break
+    case 'up':
+      vars.y = distance
+      break
+    case 'down':
+      vars.y = -distance
+      break
+    case 'left':
+      vars.x = distance
+      break
+    case 'right':
+      vars.x = -distance
+      break
+    case 'scale':
+      vars.scale = 0.9
+      break
+    case 'fade':
+      break
   }
 
   gsap.from(targets, vars)
@@ -153,7 +164,7 @@ export function useStaggerEntry(
 
 export function useExpandCollapse(
   container: HTMLElement | Ref<HTMLElement | null>,
-  isExpanded: boolean | Ref<boolean>,
+  isExpanded: boolean | Ref<boolean>
 ) {
   if (prefersReducedMotion()) return
 
@@ -199,9 +210,7 @@ export function useExpandCollapse(
 // 5. 排序队列动画 (拖拽列表 & 排序)
 // ═══════════════════════════════════════════════════════════════════
 
-export function useSortAnimation(
-  container: HTMLElement | Ref<HTMLElement | null>,
-) {
+export function useSortAnimation(container: HTMLElement | Ref<HTMLElement | null>) {
   if (prefersReducedMotion()) return null
 
   const el = unref(container)
@@ -252,7 +261,7 @@ export function useCountUp(
   target: HTMLElement | Ref<HTMLElement | null>,
   startValue: number,
   endValue: number,
-  options?: { duration?: number; ease?: string; prefix?: string; suffix?: string },
+  options?: { duration?: number; ease?: string; prefix?: string; suffix?: string }
 ) {
   if (prefersReducedMotion()) return
 
@@ -287,10 +296,7 @@ export interface SequenceStep {
   offset?: number
 }
 
-export function useSequence(
-  steps: SequenceStep[],
-  options?: { delay?: number; onComplete?: () => void },
-) {
+export function useSequence(steps: SequenceStep[], options?: { delay?: number; onComplete?: () => void }) {
   if (prefersReducedMotion()) return
 
   const tl = gsap.timeline({

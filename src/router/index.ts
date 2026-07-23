@@ -9,7 +9,7 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: 'manage', name: 'versions-manage', component: () => import('@/views/versions/ManageTab.vue') },
       { path: 'versions', name: 'versions-versions', component: () => import('@/views/versions/VersionsTab.vue') },
-    ]
+    ],
   },
   { path: '/plugins', name: 'plugins', component: () => import('@/views/Plugins.vue') },
   { path: '/online-mods', name: 'online-mods', component: () => import('@/views/OnlineMods.vue') },
@@ -22,7 +22,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'download', name: 'settings-download', component: () => import('@/views/settings/DownloadTab.vue') },
       { path: 'game', name: 'settings-game', component: () => import('@/views/settings/GameTab.vue') },
       { path: 'about', name: 'settings-about', component: () => import('@/views/settings/AboutTab.vue') },
-    ]
+    ],
   },
   { path: '/dev', name: 'dev', component: () => import('@/views/DevTools.vue'), meta: { devOnly: true } },
   {

@@ -1,12 +1,7 @@
 import { darkTheme, type GlobalTheme, type GlobalThemeOverrides } from 'naive-ui'
 import { ref, computed, readonly } from 'vue'
 import backend from '@/api/client'
-import {
-  PRESET_COLORS,
-  DEFAULT_PRIMARY_COLOR,
-  LIGHT_THEME_COLORS,
-  DARK_THEME_COLORS,
-} from '@/config/theme'
+import { PRESET_COLORS, DEFAULT_PRIMARY_COLOR, LIGHT_THEME_COLORS, DARK_THEME_COLORS } from '@/config/theme'
 import type { BackgroundConfig, ThemeConfig, UiConfig } from '@/types/api'
 
 interface ThemeInitPayload {
@@ -21,7 +16,10 @@ function clamp(value: number, min: number, max: number): number {
 function normalizeHex(hex: string): string {
   hex = hex.replace(/^#/, '')
   if (hex.length === 3) {
-    hex = hex.split('').map(c => c + c).join('')
+    hex = hex
+      .split('')
+      .map((c) => c + c)
+      .join('')
   }
   return `#${hex}`
 }
@@ -34,7 +32,7 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
   return {
     r: parseInt(result[1]!, 16),
     g: parseInt(result[2]!, 16),
-    b: parseInt(result[3]!, 16)
+    b: parseInt(result[3]!, 16),
   }
 }
 
@@ -81,7 +79,7 @@ function createPrimaryScale(baseColor: string): {
     primaryHover: mix(color, isDark.value ? '#ffffff' : '#000000', 0.15),
     primaryPressed: mix(color, isDark.value ? '#ffffff' : '#000000', 0.3),
     primaryLight: rgba(color, 0.15),
-    primaryRgb: `${rgb.r}, ${rgb.g}, ${rgb.b}`
+    primaryRgb: `${rgb.r}, ${rgb.g}, ${rgb.b}`,
   }
 }
 
@@ -208,7 +206,7 @@ const colors = computed(() => {
 
   return {
     ...baseColors,
-    ...primaryScale
+    ...primaryScale,
   }
 })
 
@@ -242,7 +240,10 @@ function updateTheme() {
   document.documentElement.style.setProperty('--primary-hover', primaryScale.primaryHover)
   document.documentElement.style.setProperty('--primary-active', primaryScale.primaryPressed)
   document.documentElement.style.setProperty('--primary-alpha', primaryScale.primaryLight)
-  document.documentElement.style.setProperty('--bg-image', backgroundImage.value ? `url("${backgroundImage.value}")` : 'none')
+  document.documentElement.style.setProperty(
+    '--bg-image',
+    backgroundImage.value ? `url("${backgroundImage.value}")` : 'none'
+  )
   document.documentElement.style.setProperty('--bg-opacity', String(backgroundOpacity.value))
   document.documentElement.style.setProperty('--bg-blur', `${blurAmount.value}px`)
 

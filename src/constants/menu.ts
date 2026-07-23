@@ -4,7 +4,7 @@
  */
 export interface MenuItem {
   path: string
-  labelKey: string  // i18n key
+  labelKey: string // i18n key
   iconName: string
 }
 

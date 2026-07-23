@@ -90,7 +90,7 @@
   background: transparent;
 }
 
-[data-theme="dark"] .theme-option.active {
+[data-theme='dark'] .theme-option.active {
   border-color: rgba(255, 255, 255, 0.3);
 }
 
@@ -220,7 +220,7 @@
   height: 18px;
   border-radius: 14px;
   border: none;
-  background: #D0D0D0;
+  background: #d0d0d0;
   cursor: pointer;
   position: relative;
   transition: background var(--duration-fast) ease-out;
@@ -228,8 +228,8 @@
   flex-shrink: 0;
 }
 
-[data-theme="dark"] .toggle-switch {
-  background: #4A4D55;
+[data-theme='dark'] .toggle-switch {
+  background: #4a4d55;
 }
 
 .toggle-switch.active {
@@ -248,7 +248,7 @@
   transition: transform var(--duration-fast) ease-out;
 }
 
-[data-theme="dark"] .toggle-switch:not(.active) .toggle-knob {
+[data-theme='dark'] .toggle-switch:not(.active) .toggle-knob {
   background: rgba(255, 255, 255, 0.3);
 }
 

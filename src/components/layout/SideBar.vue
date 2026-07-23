@@ -4,7 +4,7 @@
     :class="{
       collapsed: isCollapsed,
       expanded: isExpanded,
-      'modal-hidden': !agreementAccepted || topNavEnabled || isFullscreenModalVisible
+      'modal-hidden': !agreementAccepted || topNavEnabled || isFullscreenModalVisible,
     }"
   >
     <!-- 折叠切换按钮 -->
@@ -13,53 +13,29 @@
       :title="isCollapsed ? t('sidebar.expand') : t('sidebar.collapse')"
       @click="toggleCollapse"
     >
-      <UiIcon
-        :name="isCollapsed ? 'chevron-down' : 'menu'"
-        :size="18"
-      />
+      <UiIcon :name="isCollapsed ? 'chevron-down' : 'menu'" :size="18" />
     </button>
 
     <!-- 导航区域 -->
-    <nav
-      class="sidebar-nav"
-      @mouseleave="handleMouseLeave"
-    >
+    <nav class="sidebar-nav" @mouseleave="handleMouseLeave">
       <!-- 插件：侧边栏顶部插槽 -->
-      <div
-        id="plugin-slot-sidebar-top"
-        class="plugin-slot-container"
-      />
-      <div
-        v-if="!isCollapsed"
-        ref="activeBgRef"
-        class="sidebar-active-bg"
-      />
-      <div
-        v-if="!isCollapsed"
-        ref="indicatorRef"
-        class="sidebar-active-indicator"
-      />
+      <div id="plugin-slot-sidebar-top" class="plugin-slot-container" />
+      <div v-if="!isCollapsed" ref="activeBgRef" class="sidebar-active-bg" />
+      <div v-if="!isCollapsed" ref="indicatorRef" class="sidebar-active-indicator" />
 
-      <template
-        v-for="(item, index) in menuItems"
-        :key="item.path"
-      >
+      <template v-for="(item, index) in menuItems" :key="item.path">
         <button
           class="sidebar-item"
           :data-path="item.path"
           :class="{
-            active: route.path === item.path
-              || (item.path !== '/' && route.path.startsWith(item.path))
+            active: route.path === item.path || (item.path !== '/' && route.path.startsWith(item.path)),
           }"
           :title="isCollapsed ? item.label : undefined"
           @mouseenter="!isCollapsed && handleMouseEnter(index)"
           @click.prevent="handleItemClick(item)"
         >
           <span class="sidebar-item-icon">
-            <UiIcon
-              :name="item.iconName"
-              :size="20"
-            />
+            <UiIcon :name="item.iconName" :size="20" />
           </span>
           <span class="sidebar-item-text">{{ item.label }}</span>
           <span
@@ -68,10 +44,7 @@
             :class="{ expanded: isMenuExpanded(item.path) }"
             @click.stop="toggleMenu(item.path)"
           >
-            <UiIcon
-              name="chevron-down"
-              :size="14"
-            />
+            <UiIcon name="chevron-down" :size="14" />
           </span>
         </button>
 
@@ -91,10 +64,7 @@
             @click.prevent="handleSubItemClick(sub.path)"
           >
             <span class="sidebar-item-icon">
-              <UiIcon
-                :name="sub.iconName"
-                :size="16"
-              />
+              <UiIcon :name="sub.iconName" :size="16" />
             </span>
             <span class="sidebar-item-text">{{ sub.label }}</span>
           </button>
@@ -103,11 +73,7 @@
 
       <!-- 插件注册的导航项 -->
       <template v-if="!isCollapsed">
-        <div
-          v-for="pRoute in pluginRoutesList"
-          :key="pRoute.path"
-          class="sidebar-plugin-divider"
-        />
+        <div v-for="pRoute in pluginRoutesList" :key="pRoute.path" class="sidebar-plugin-divider" />
         <button
           v-for="pRoute in pluginRoutesList"
           :key="'btn-' + pRoute.path"
@@ -117,10 +83,7 @@
           @click.prevent="handleSubItemClick(`/plugin/${pRoute.plugin}${pRoute.path}`)"
         >
           <span class="sidebar-item-icon">
-            <UiIcon
-              :name="pRoute.icon || 'plugin'"
-              :size="16"
-            />
+            <UiIcon :name="pRoute.icon || 'plugin'" :size="16" />
           </span>
           <span class="sidebar-item-text">{{ pRoute.title }}</span>
         </button>
@@ -137,23 +100,13 @@
         @click.prevent="handleItemClick({ path: '/dev' })"
       >
         <span class="sidebar-item-icon">
-          <UiIcon
-            name="bug"
-            :size="20"
-          />
+          <UiIcon name="bug" :size="20" />
         </span>
         <span class="sidebar-item-text">{{ t('sidebar.debug') }}</span>
       </button>
-      <button
-        class="sidebar-item"
-        :title="isCollapsed ? t('sidebar.help') : undefined"
-        @click.prevent="openHelp"
-      >
+      <button class="sidebar-item" :title="isCollapsed ? t('sidebar.help') : undefined" @click.prevent="openHelp">
         <span class="sidebar-item-icon">
-          <UiIcon
-            name="help"
-            :size="20"
-          />
+          <UiIcon name="help" :size="20" />
         </span>
         <span class="sidebar-item-text">{{ t('sidebar.help') }}</span>
       </button>
@@ -161,10 +114,7 @@
   </aside>
 
   <!-- 移动端遮罩 -->
-  <div
-    class="sidebar-overlay"
-    @click="isExpanded = false"
-  />
+  <div class="sidebar-overlay" @click="isExpanded = false" />
 </template>
 
 <script setup lang="ts">
@@ -198,15 +148,20 @@ const { topNavEnabled } = useTopNav()
 const indicatorRef = ref<HTMLElement | null>(null)
 const activeBgRef = ref<HTMLElement | null>(null)
 
-const agreementAccepted = inject('agreementAccepted', computed(() => true))
+const agreementAccepted = inject(
+  'agreementAccepted',
+  computed(() => true)
+)
 const injectedDevMode = inject<Readonly<Ref<boolean>>>('devMode')
 const isDevMode = computed(() => injectedDevMode?.value ?? false)
 
-const menuItems = computed(() => MENU_ITEMS.map(item => ({
-  path: item.path,
-  label: t(item.labelKey),
-  iconName: item.iconName,
-})))
+const menuItems = computed(() =>
+  MENU_ITEMS.map((item) => ({
+    path: item.path,
+    label: t(item.labelKey),
+    iconName: item.iconName,
+  }))
+)
 
 // 子菜单定义
 const settingsSubItems = computed(() => [
@@ -217,7 +172,7 @@ const settingsSubItems = computed(() => [
 
 const versionsSubItems = computed(() => [
   { path: '/versions/manage', label: t('versions.manageTab'), iconName: 'settings' },
-    { path: '/versions/versions', label: t('versions.versions'), iconName: 'download' },
+  { path: '/versions/versions', label: t('versions.versions'), iconName: 'download' },
 ])
 
 interface SubMenuItem {
@@ -268,13 +223,17 @@ const toggleCollapse = () => {
   isCollapsed.value = !isCollapsed.value
 }
 
-watch(isExpanded, (val) => {
-  if (val) {
-    document.body.classList.add('sidebar-expanded')
-  } else {
-    document.body.classList.remove('sidebar-expanded')
-  }
-}, { immediate: true })
+watch(
+  isExpanded,
+  (val) => {
+    if (val) {
+      document.body.classList.add('sidebar-expanded')
+    } else {
+      document.body.classList.remove('sidebar-expanded')
+    }
+  },
+  { immediate: true }
+)
 
 const canNavigate = () => {
   if (!agreementAccepted.value) {
@@ -319,17 +278,15 @@ const getActivePath = (): string => {
   const path = route.path
   // 先精确匹配子菜单项
   for (const parentPath of Object.keys(subItemsMap.value)) {
-    const sub = subItemsMap.value[parentPath]?.find(s => s.path === path)
+    const sub = subItemsMap.value[parentPath]?.find((s) => s.path === path)
     if (sub) return sub.path
   }
   // 精确匹配父菜单项
-  const exact = menuItems.value.find(item => item.path === path)
+  const exact = menuItems.value.find((item) => item.path === path)
   if (exact) return exact.path
   // 前缀匹配父菜单项
   if (path !== '/') {
-    const prefix = menuItems.value.find(
-      item => item.path !== '/' && path.startsWith(item.path)
-    )
+    const prefix = menuItems.value.find((item) => item.path !== '/' && path.startsWith(item.path))
     if (prefix) return prefix.path
   }
   return ''
@@ -395,4 +352,3 @@ onMounted(() => {
 </script>
 
 <style scoped src="@/styles/components/layout/SideBar.css"></style>
-

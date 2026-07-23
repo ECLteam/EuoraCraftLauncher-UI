@@ -71,14 +71,14 @@ export function renderOfflineAvatar(username: string, size: number): string {
       skin: '#8B4513',
       shirt: '#3F51B5',
       pants: '#4CAF50',
-      hair: '#000000'
+      hair: '#000000',
     },
     alex: {
       skin: '#D2B48C',
       shirt: '#E91E63',
       pants: '#9C27B0',
-      hair: '#FF5722'
-    }
+      hair: '#FF5722',
+    },
   }
 
   const colors = skinColors[skinType]
@@ -148,8 +148,13 @@ export function useAvatarRenderer() {
           const useDefaultSkin = !id || accountType.toLowerCase() === 'offline'
           const serverType = useDefaultSkin ? 'Mojang' : accountType
           const uuidToUse = id || '00000000-0000-0000-0000-000000000000'
-          
-          const result = await backend.command('avatar_data_url', { uuid: uuidToUse, type_name: serverType, size, use_default_skin: useDefaultSkin })
+
+          const result = await backend.command('avatar_data_url', {
+            uuid: uuidToUse,
+            type_name: serverType,
+            size,
+            use_default_skin: useDefaultSkin,
+          })
           if (result?.success && result.data?.dataUrl) {
             const url = result.data.dataUrl
             // 缓存成功获取的头像
@@ -196,6 +201,6 @@ export function useAvatarRenderer() {
   return {
     loading,
     error,
-    renderAvatar
+    renderAvatar,
   }
 }

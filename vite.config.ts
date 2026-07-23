@@ -6,21 +6,18 @@ import Components from 'unplugin-vue-components/vite'
 
 export default defineConfig({
   base: './',
-  plugins: [
-    vue(),
-    Components()
-  ],
+  plugins: [vue(), Components()],
   publicDir: 'public',
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
-      'vue': 'vue/dist/vue.esm-bundler.js',
-    }
+      vue: 'vue/dist/vue.esm-bundler.js',
+    },
   },
   server: {
     port: 5173,
     strictPort: true,
-    host: false
+    host: false,
   },
   envPrefix: ['VITE_', 'TAURI_'],
   build: {
@@ -31,12 +28,12 @@ export default defineConfig({
       output: {
         manualChunks: {
           'naive-ui': ['naive-ui'],
-          'gsap': ['gsap'],
+          gsap: ['gsap'],
           'vue-vendor': ['vue', 'vue-router'],
-          'i18n': ['vue-i18n'],
-          'icons': ['@iconify/vue']
-        }
-      }
-    }
-  }
+          i18n: ['vue-i18n'],
+          icons: ['@iconify/vue'],
+        },
+      },
+    },
+  },
 })

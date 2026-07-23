@@ -376,11 +376,21 @@
   text-align: center;
 }
 
-.text-success { color: var(--success); }
-.text-error { color: var(--error); }
-.text-warning { color: var(--warning); }
-.text-secondary { color: var(--text-secondary); }
-.text-info { color: var(--info); }
+.text-success {
+  color: var(--success);
+}
+.text-error {
+  color: var(--error);
+}
+.text-warning {
+  color: var(--warning);
+}
+.text-secondary {
+  color: var(--text-secondary);
+}
+.text-info {
+  color: var(--info);
+}
 
 .flex-center {
   display: flex;
@@ -461,7 +471,9 @@
   height: 48px;
   border-radius: var(--r-sm);
   border: 1px solid transparent;
-  transition: background var(--duration-fast) ease-out, border-color var(--duration-fast) ease-out;
+  transition:
+    background var(--duration-fast) ease-out,
+    border-color var(--duration-fast) ease-out;
 }
 
 .account-list-item:hover {
@@ -583,7 +595,9 @@
   background: transparent;
   color: var(--text-tertiary);
   cursor: pointer;
-  transition: color var(--duration-fast) ease-out, background var(--duration-fast) ease-out;
+  transition:
+    color var(--duration-fast) ease-out,
+    background var(--duration-fast) ease-out;
 }
 
 .al-delete-btn:hover {
@@ -607,96 +621,121 @@
   flex: 1;
   overflow-y: auto;
   padding: var(--s-lg);
-}
-
-.add-account-cards {
   display: flex;
   flex-direction: column;
-  gap: var(--s-md);
+  gap: var(--s-lg);
 }
 
-.add-account-card {
+.account-type-picker {
+  flex-shrink: 0;
+}
+
+.account-type-select {
+  width: 100%;
+}
+
+.account-type-intro {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
+  gap: 11px;
+  padding: 12px;
   border-radius: var(--r-sm);
   border: 1px solid var(--border);
-  background: var(--bg-elevated);
-  cursor: pointer;
-  transition: all var(--duration-fast) ease-out;
+  background: var(--bg-base-alt);
 }
 
-.add-account-card:hover {
+.account-type-intro.microsoft {
+  border-color: var(--info);
+}
+
+.account-type-intro.offline {
   border-color: var(--primary);
-  background: var(--primary-light);
 }
 
-.add-account-card-icon {
+.account-type-intro.authlib {
+  border-color: #ce93d8;
+}
+
+.account-type-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--r-sm);
   background: var(--primary-alpha);
   color: var(--primary);
   flex-shrink: 0;
 }
 
-.add-account-card-info {
-  flex: 1;
+.account-type-intro.microsoft .account-type-icon {
+  background: var(--info-alpha);
+  color: var(--info);
+}
+
+.account-type-intro.authlib .account-type-icon {
+  background: rgba(156, 39, 176, 0.15);
+  color: #ce93d8;
+}
+
+.account-type-copy {
   min-width: 0;
 }
 
-.add-account-card-title {
+.account-type-copy strong {
+  display: block;
+  margin-bottom: 2px;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.add-account-card-desc {
-  font-size: 11px;
+.account-type-copy p {
+  margin: 0;
   color: var(--text-tertiary);
-  margin-top: 2px;
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .add-account-form {
-  padding: var(--s-lg);
-  border-bottom: 1px solid var(--divider);
-}
-
-.add-form-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
+  flex-direction: column;
+  min-height: 0;
+  animation: account-form-enter var(--duration-normal) var(--ease-standard);
 }
 
-.add-form-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
+.microsoft-account-form {
+  gap: var(--s-md);
 }
 
-.add-form-close {
+.microsoft-login-notice {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: none;
-  border-radius: var(--r-xs);
-  background: transparent;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  font-size: 14px;
-  transition: color var(--duration-fast), background var(--duration-fast);
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 11px;
+  border-radius: var(--r-sm);
+  background: var(--info-alpha);
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.5;
 }
 
-.add-form-close:hover {
-  color: var(--text-primary);
-  background: var(--bg-hover);
+.microsoft-login-notice > .icon {
+  margin-top: 1px;
+  color: var(--info);
+  flex-shrink: 0;
+}
+
+@keyframes account-form-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .add-form-field {
@@ -711,6 +750,13 @@
   margin-bottom: 5px;
 }
 
+.add-form-help {
+  margin: 6px 1px 0;
+  color: var(--text-tertiary);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
 .add-form-row {
   display: flex;
   gap: 8px;
@@ -722,37 +768,21 @@
 
 .add-form-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  padding-top: 4px;
+  padding-top: var(--s-xs);
 }
 
-.server-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+.account-submit-button {
+  width: 100%;
 }
 
-.server-chip {
-  padding: 3px 9px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--bg-base-alt);
-  color: var(--text-secondary);
+.preset-servers-loading {
+  padding: 8px 0 14px;
+  color: var(--text-tertiary);
   font-size: 11px;
-  cursor: pointer;
-  transition: all var(--duration-fast) ease-out;
 }
 
-.server-chip:hover {
-  border-color: var(--border-hover);
-  color: var(--text-primary);
-}
-
-.server-chip.active {
-  border-color: var(--primary);
-  background: var(--primary-alpha);
-  color: var(--primary);
+.saved-server-select {
+  width: 100%;
 }
 
 .account-list-loading {
@@ -1018,8 +1048,6 @@
   line-height: 1.5;
 }
 
-
-
 .client-id-content {
   min-width: 324px;
 }
@@ -1137,8 +1165,6 @@
   width: 30% !important;
   animation: indeterminate-bar 1.6s var(--ease-smooth) infinite;
 }
-
-
 
 .lp-bar-percent {
   font-size: 13px;

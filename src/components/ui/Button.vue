@@ -5,7 +5,7 @@
       `btn-${variant}`,
       `btn-${size}`,
       `btn-${shape}`,
-      { 'is-loading': loading, 'is-disabled': disabled, 'is-icon-only': icon && !$slots.default }
+      { 'is-loading': loading, 'is-disabled': disabled, 'is-icon-only': icon && !$slots.default },
     ]"
     :disabled="disabled || loading"
     :title="title"
@@ -19,29 +19,13 @@
       class="ripple"
       :style="{ left: ripple.x + 'px', top: ripple.y + 'px' }"
     />
-    <span
-      v-if="loading"
-      class="loading-spinner"
-    > 
-      <UiIcon
-        name="spinner"
-        :size="16"
-        class="spin"
-      /> 
-    </span> 
-    <span
-      v-else-if="icon"
-      class="btn-icon"
-    > 
-      <UiIcon
-        :name="icon.replace('icon-', '')"
-        :size="16"
-      /> 
+    <span v-if="loading" class="loading-spinner">
+      <UiIcon name="spinner" :size="16" class="spin" />
     </span>
-    <span
-      v-if="$slots.default"
-      class="btn-content"
-    >
+    <span v-else-if="icon" class="btn-icon">
+      <UiIcon :name="icon.replace('icon-', '')" :size="16" />
+    </span>
+    <span v-if="$slots.default" class="btn-content">
       <slot />
     </span>
   </button>
@@ -53,23 +37,26 @@ import { useButtonFeedback } from '@/composables/useAnimation'
 
 defineOptions({ name: 'UiButton' })
 
-const props = withDefaults(defineProps<{
-  variant?: 'primary' | 'secondary' | 'outline' | 'text' | 'danger' | 'ghost'
-  size?: 'sm' | 'md' | 'lg'
-  shape?: 'default' | 'circle' | 'square'
-  icon?: string
-  loading?: boolean
-  disabled?: boolean
-  title?: string
-}>(), {
-  variant: 'primary',
-  size: 'md',
-  shape: 'default',
-  icon: '',
-  loading: false,
-  disabled: false,
-  title: ''
-})
+const props = withDefaults(
+  defineProps<{
+    variant?: 'primary' | 'secondary' | 'outline' | 'text' | 'danger' | 'ghost'
+    size?: 'sm' | 'md' | 'lg'
+    shape?: 'default' | 'circle' | 'square'
+    icon?: string
+    loading?: boolean
+    disabled?: boolean
+    title?: string
+  }>(),
+  {
+    variant: 'primary',
+    size: 'md',
+    shape: 'default',
+    icon: '',
+    loading: false,
+    disabled: false,
+    title: '',
+  }
+)
 
 const emit = defineEmits<{
   (e: 'click', event: MouseEvent): void
@@ -82,21 +69,21 @@ const ripples = ref<{ x: number; y: number; id: number }[]>([])
 
 const handleClick = (event: MouseEvent) => {
   if (props.disabled || props.loading) return
-  
+
   // 创建涟漪效果
   const button = event.currentTarget as HTMLElement
   const rect = button.getBoundingClientRect()
   const x = event.clientX - rect.left
   const y = event.clientY - rect.top
   const id = Date.now()
-  
+
   ripples.value.push({ x, y, id })
-  
+
   // 动画结束后移除涟漪
   setTimeout(() => {
-    ripples.value = ripples.value.filter(r => r.id !== id)
+    ripples.value = ripples.value.filter((r) => r.id !== id)
   }, 600)
-  
+
   onClick(event)
   emit('click', event)
 }

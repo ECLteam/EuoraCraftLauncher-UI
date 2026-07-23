@@ -28,17 +28,13 @@ class GlobalCache {
    * @param options - 缓存选项，包括过期时间、是否持久化、分组
    */
   set<T>(key: string, value: T, options: CacheOptions = {}): void {
-    const {
-      ttl = this.DEFAULT_TTL,
-      persistent = false,
-      group = 'default'
-    } = options
+    const { ttl = this.DEFAULT_TTL, persistent = false, group = 'default' } = options
 
     const cacheItem: CacheItem<T> = {
       value,
       timestamp: Date.now(),
       ttl,
-      group
+      group,
     }
 
     this.memoryCache.set(key, cacheItem)
@@ -183,7 +179,7 @@ class GlobalCache {
     return {
       memoryCount,
       persistentCount,
-      totalSize: this.formatBytes(totalSize)
+      totalSize: this.formatBytes(totalSize),
     }
   }
 
@@ -258,11 +254,11 @@ class GlobalCache {
    */
   private formatBytes(bytes: number): string {
     if (bytes === 0) return '0 B'
-    
+
     const k = 1024
     const sizes = ['B', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-    
+
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 }
@@ -272,7 +268,6 @@ export const globalCache = new GlobalCache()
 globalCache.startCleanup()
 
 export type { CacheOptions, CacheItem }
-
 
 /**
  * 缓存键常量，用于统一管理缓存键名。
@@ -295,7 +290,7 @@ export const CACHE_KEYS = {
   INSTANCES: 'instances',
   GAME_PATHS: 'game-paths',
 
-  API_RESPONSES: 'api-responses'
+  API_RESPONSES: 'api-responses',
 } as const
 
 /**
@@ -307,5 +302,5 @@ export const CACHE_GROUPS = {
   SKIN: 'skin',
   SETTING: 'setting',
   INSTANCE: 'instance',
-  API: 'api'
+  API: 'api',
 } as const

@@ -55,8 +55,9 @@
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   overflow: hidden;
-  transition: border-color var(--duration-fast) var(--ease-standard),
-              box-shadow var(--duration-fast) var(--ease-standard);
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
 }
 
 .tq-task--running {
@@ -162,7 +163,6 @@
   animation: indeterminate-bar 1.5s var(--ease-smooth) infinite;
 }
 
-
 .tq-progress-text {
   font-size: 10px;
   color: var(--text-tertiary);
@@ -182,9 +182,10 @@
   color: var(--text-tertiary);
   cursor: pointer;
   opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease-standard),
-              background var(--duration-fast) var(--ease-standard),
-              color var(--duration-fast) var(--ease-standard);
+  transition:
+    opacity var(--duration-fast) var(--ease-standard),
+    background var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
 }
 
 .tq-task:hover .tq-remove-btn {
@@ -243,9 +244,15 @@
   text-overflow: ellipsis;
 }
 
-.tq-icon-success { color: #4caf50; }
-.tq-icon-error { color: #f44336; }
-.tq-icon-muted { color: var(--text-tertiary); }
+.tq-icon-success {
+  color: #4caf50;
+}
+.tq-icon-error {
+  color: #f44336;
+}
+.tq-icon-muted {
+  color: var(--text-tertiary);
+}
 
 .tq-expand-enter-active,
 .tq-expand-leave-active {

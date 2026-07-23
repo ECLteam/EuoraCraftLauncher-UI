@@ -37,9 +37,7 @@ export interface ComponentInstance<S extends Record<string, unknown>> {
 
 // ── 组件创建 ──
 
-export function defineComponent<S extends Record<string, unknown>>(
-  options: ComponentOptions<S>
-): ComponentInstance<S> {
+export function defineComponent<S extends Record<string, unknown>>(options: ComponentOptions<S>): ComponentInstance<S> {
   let el: HTMLElement | null = null
   let mounted = false
   let cleanupFns: (() => void)[] = []
@@ -61,7 +59,9 @@ export function defineComponent<S extends Record<string, unknown>>(
 
   const ctx: ComponentContext<S> = {
     state: { ...initial },
-    get el() { return el },
+    get el() {
+      return el
+    },
     setState(partial: Partial<S>) {
       const prev = { ...ctx.state }
       Object.assign(ctx.state, partial)
@@ -85,7 +85,9 @@ export function defineComponent<S extends Record<string, unknown>>(
         }
       }
       if (el) el.addEventListener(event, listener)
-      const cleanup = () => { if (el) el.removeEventListener(event, listener) }
+      const cleanup = () => {
+        if (el) el.removeEventListener(event, listener)
+      }
       cleanupFns.push(cleanup)
       return cleanup
     },
@@ -109,7 +111,11 @@ export function defineComponent<S extends Record<string, unknown>>(
     mounted = false
     options.onUnmounted?.(ctx)
     for (const fn of cleanupFns) {
-      try { fn() } catch { /* ignore */ }
+      try {
+        fn()
+      } catch {
+        /* ignore */
+      }
     }
     cleanupFns = []
     if (el) {
@@ -136,17 +142,18 @@ export interface ListComponentOptions<T> {
   style?: string
 }
 
-export function defineListComponent<T>(
-  options: ListComponentOptions<T>
-): ComponentInstance<{ items: T[] }> {
+export function defineListComponent<T>(options: ListComponentOptions<T>): ComponentInstance<{ items: T[] }> {
   return defineComponent<{ items: T[] }>({
     state: { items: [] },
     template(state, ctx) {
       const containerHtml = options.container(ctx)
       const placeholder = '<!-- list-items -->'
-      const itemsHtml = state.items.length > 0
-        ? state.items.map((item, i) => options.item(item, i, ctx)).join('')
-        : (options.empty ? options.empty(ctx) : '')
+      const itemsHtml =
+        state.items.length > 0
+          ? state.items.map((item, i) => options.item(item, i, ctx)).join('')
+          : options.empty
+            ? options.empty(ctx)
+            : ''
 
       return containerHtml.replace(placeholder, itemsHtml)
     },
@@ -170,11 +177,7 @@ export function defineListComponent<T>(
 
 // ── 响应式绑定 ──
 
-export function bindInput(
-  ctx: ComponentContext<Record<string, unknown>>,
-  key: string,
-  selector: string
-): () => void {
+export function bindInput(ctx: ComponentContext<Record<string, unknown>>, key: string, selector: string): () => void {
   const el = ctx.query(selector)
   if (!el || !(el instanceof HTMLInputElement)) return () => {}
 

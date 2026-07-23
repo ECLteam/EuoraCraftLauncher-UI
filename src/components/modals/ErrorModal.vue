@@ -1,34 +1,13 @@
 <template>
   <Teleport to="body">
-    <Transition
-      name="modal"
-      @afterEnter="onAfterEnter"
-      @afterLeave="onAfterLeave"
-    >
-      <div
-        v-show="visible"
-        class="modal-overlay"
-        role="dialog"
-        :aria-modal="true"
-        :aria-labelledby="titleId"
-      >
-        <div
-          ref="modalRef"
-          class="modal-container error-modal-container"
-          @click.stop
-        >
+    <Transition name="modal" @afterEnter="onAfterEnter" @afterLeave="onAfterLeave">
+      <div v-show="visible" class="modal-overlay" role="dialog" :aria-modal="true" :aria-labelledby="titleId">
+        <div ref="modalRef" class="modal-container error-modal-container" @click.stop>
           <header class="modal-header error-modal-header">
             <div class="header-content">
               <div class="header-title">
-                <UiIcon
-                  name="alert-triangle"
-                  :size="20"
-                  class="error-icon"
-                />
-                <h3
-                  :id="titleId"
-                  class="modal-title"
-                >
+                <UiIcon name="alert-triangle" :size="20" class="error-icon" />
+                <h3 :id="titleId" class="modal-title">
                   {{ title || t('error.defaultTitle') }}
                 </h3>
               </div>
@@ -39,10 +18,7 @@
             <p class="error-message">
               {{ message }}
             </p>
-            <div
-              v-if="detail"
-              class="error-detail-box"
-            >
+            <div v-if="detail" class="error-detail-box">
               <div class="error-detail-header">
                 <span class="error-detail-label">{{ t('error.detail') }}</span>
               </div>
@@ -51,21 +27,11 @@
           </main>
 
           <footer class="modal-footer error-modal-footer">
-            <UiButton
-              variant="secondary"
-              @click="handleClose"
-            >
+            <UiButton variant="secondary" @click="handleClose">
               {{ t('error.close') }}
             </UiButton>
-            <UiButton
-              variant="primary"
-              :loading="exporting"
-              @click="handleExportLogs"
-            >
-              <UiIcon
-                name="download"
-                :size="14"
-              />
+            <UiButton variant="primary" :loading="exporting" @click="handleExportLogs">
+              <UiIcon name="download" :size="14" />
               {{ t('error.exportLogs') }}
             </UiButton>
           </footer>
@@ -84,6 +50,16 @@ import UiIcon from '@/components/ui/Icon.vue'
 
 defineOptions({ name: 'ErrorModal' })
 
+const props = withDefaults(defineProps<Props>(), {
+  visible: false,
+  title: '',
+  message: '',
+  detail: '',
+  errorId: '',
+})
+
+const emit = defineEmits<Emits>()
+
 const { t } = useI18n()
 
 interface Props {
@@ -94,14 +70,6 @@ interface Props {
   errorId?: string
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  visible: false,
-  title: '',
-  message: '',
-  detail: '',
-  errorId: '',
-})
-
 interface Emits {
   (e: 'update:visible', value: boolean): void
   (e: 'close'): void
@@ -110,8 +78,6 @@ interface Emits {
   (e: 'closed'): void
   (e: 'exported'): void
 }
-
-const emit = defineEmits<Emits>()
 
 const modalRef = ref<HTMLElement | null>(null)
 const exporting = ref(false)
@@ -151,24 +117,28 @@ const handleExportLogs = async () => {
   }
 }
 
-watch(() => props.visible, (val) => {
-  if (val) {
-    nextTick(() => {
-      modalRef.value?.focus()
-    })
-    document.addEventListener('keydown', keydownHandler)
-    const mainContent = document.querySelector('.main-content') as HTMLElement | null
-    if (mainContent) {
-      mainContent.style.overflow = 'hidden'
+watch(
+  () => props.visible,
+  (val) => {
+    if (val) {
+      nextTick(() => {
+        modalRef.value?.focus()
+      })
+      document.addEventListener('keydown', keydownHandler)
+      const mainContent = document.querySelector('.main-content') as HTMLElement | null
+      if (mainContent) {
+        mainContent.style.overflow = 'hidden'
+      }
+    } else {
+      document.removeEventListener('keydown', keydownHandler)
+      const mainContent = document.querySelector('.main-content') as HTMLElement | null
+      if (mainContent) {
+        mainContent.style.overflow = ''
+      }
     }
-  } else {
-    document.removeEventListener('keydown', keydownHandler)
-    const mainContent = document.querySelector('.main-content') as HTMLElement | null
-    if (mainContent) {
-      mainContent.style.overflow = ''
-    }
-  }
-}, { immediate: true })
+  },
+  { immediate: true }
+)
 
 defineExpose({ close: handleClose })
 </script>

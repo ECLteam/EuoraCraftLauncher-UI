@@ -15,147 +15,320 @@
 
 /* --- 透明度 --- */
 @keyframes fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 @keyframes fade-out {
-  from { opacity: 1; }
-  to   { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 /* --- 缩放 --- */
 @keyframes scale-in {
-  from { opacity: 0; transform: scale(0.93); }
-  to   { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.93);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 @keyframes scale-in-spring {
-  0%   { opacity: 0; transform: scale(0.75); }
-  50%  { transform: scale(1.07); }
-  75%  { transform: scale(0.97); }
-  100% { opacity: 1; transform: scale(1); }
+  0% {
+    opacity: 0;
+    transform: scale(0.75);
+  }
+  50% {
+    transform: scale(1.07);
+  }
+  75% {
+    transform: scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 @keyframes scale-in-bounce {
-  0%   { opacity: 0; transform: scale(0.85); }
-  60%  { transform: scale(1.05); }
-  80%  { transform: scale(0.96); }
-  100% { opacity: 1; transform: scale(1); }
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  60% {
+    transform: scale(1.05);
+  }
+  80% {
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* --- 滑动 --- */
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes slide-down {
-  from { opacity: 0; transform: translateY(-14px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes slide-left {
-  from { opacity: 0; transform: translateX(14px); }
-  to   { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 @keyframes slide-right {
-  from { opacity: 0; transform: translateX(-14px); }
-  to   { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 @keyframes slide-up-spring {
-  0%   { opacity: 0; transform: translateY(29px) scale(0.96); }
-  50%  { transform: translateY(-4px) scale(1.01); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+  0% {
+    opacity: 0;
+    transform: translateY(29px) scale(0.96);
+  }
+  50% {
+    transform: translateY(-4px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 @keyframes slide-up-bounce {
-  0%   { opacity: 0; transform: translateY(22px); }
-  60%  { transform: translateY(-3px); }
-  80%  { transform: translateY(2px); }
-  100% { opacity: 1; transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  60% {
+    transform: translateY(-3px);
+  }
+  80% {
+    transform: translateY(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* --- 展开/折叠（高度动画） --- */
 @keyframes expand-in {
-  from { opacity: 0; max-height: 0; }
-  to   { opacity: 1; max-height: 500px; }
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
 }
 @keyframes collapse-out {
-  from { opacity: 1; max-height: 500px; }
-  to   { opacity: 0; max-height: 0; }
+  from {
+    opacity: 1;
+    max-height: 500px;
+  }
+  to {
+    opacity: 0;
+    max-height: 0;
+  }
 }
 
 /* --- 旋转（单点定义，复用全局） --- */
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 @keyframes spin-reverse {
-  from { transform: rotate(360deg); }
-  to   { transform: rotate(0deg); }
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
 }
 
 /* --- 呼吸/脉冲 --- */
 @keyframes pulse-opacity {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 @keyframes breathe {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.05); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(74, 127, 217, 0.3); }
-  50%      { box-shadow: 0 0 0 6px rgba(74, 127, 217, 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(74, 127, 217, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(74, 127, 217, 0);
+  }
 }
 
 /* --- 反馈类 --- */
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20%      { transform: translateX(-5px); }
-  40%      { transform: translateX(5px); }
-  60%      { transform: translateX(-4px); }
-  80%      { transform: translateX(4px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
 }
 @keyframes ripple-effect {
-  0%   { transform: scale(0); opacity: 0.45; }
-  100% { transform: scale(4); opacity: 0; }
+  0% {
+    transform: scale(0);
+    opacity: 0.45;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
 }
 @keyframes shimmer {
-  from { transform: translateX(-100%); }
-  to   { transform: translateX(100%); }
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
 }
 @keyframes glow-in {
-  from { box-shadow: 0 0 0 0 var(--primary-alpha); }
-  to   { box-shadow: 0 0 14px 4px var(--primary-alpha); }
+  from {
+    box-shadow: 0 0 0 0 var(--primary-alpha);
+  }
+  to {
+    box-shadow: 0 0 14px 4px var(--primary-alpha);
+  }
 }
 
 /* --- 进度/骨架屏 --- */
 @keyframes skeleton-pulse {
-  0%, 100% { opacity: 0.25; }
-  50%      { opacity: 0.55; }
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.55;
+  }
 }
 @keyframes indeterminate-bar {
-  0%   { transform: translateX(-100%); }
-  100% { transform: translateX(400%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
 }
 @keyframes progress-ring-fill {
-  from { stroke-dashoffset: 283; }
-  to   { stroke-dashoffset: 0; }
+  from {
+    stroke-dashoffset: 283;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 @keyframes progress-bar-stripes {
-  from { background-position: 0 0; }
-  to   { background-position: 18px 0; }
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 18px 0;
+  }
 }
 
 /* --- 用户协议专用（scope 在 app.css） --- */
 @keyframes agreement-fade-in {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes agreement-icon-scale {
-  0%   { opacity: 0; transform: scale(0.7); }
-  60%  { transform: scale(1.08); }
-  100% { opacity: 1; transform: scale(1); }
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 @keyframes agreement-slide-up {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ─────────────────────────────────────────
@@ -417,27 +590,59 @@
    3. CSS 工具类动画（可直接 class 复用）
    ───────────────────────────────────────── */
 
-.fade-in          { animation: fade-in          var(--duration-normal) var(--ease-smooth) forwards; }
-.fade-out         { animation: fade-out         var(--duration-fast)   var(--ease-exit)   forwards; }
-.scale-in         { animation: scale-in         var(--duration-normal) var(--ease-enter)  forwards; }
-.scale-in-bounce  { animation: scale-in-bounce  var(--duration-slow)   var(--ease-bounce)  forwards; }
-.scale-in-spring  { animation: scale-in-spring  var(--duration-slower)  var(--ease-spring) forwards; }
-.slide-up         { animation: slide-up         var(--duration-normal) var(--ease-enter)  forwards; }
-.slide-up-bounce  { animation: slide-up-bounce  var(--duration-slow)   var(--ease-bounce)  forwards; }
-.slide-up-spring  { animation: slide-up-spring  var(--duration-slower)  var(--ease-spring) forwards; }
-.slide-left       { animation: slide-left       var(--duration-normal) var(--ease-enter)  forwards; }
-.slide-right      { animation: slide-right      var(--duration-normal) var(--ease-enter)  forwards; }
-.spin             { animation: spin             1s var(--ease-smooth) infinite; }
-.spin-reverse     { animation: spin-reverse     1s var(--ease-smooth) infinite; }
-.shake            { animation: shake            0.4s var(--ease-exit); }
-.breathe          { animation: breathe          3s var(--ease-smooth) infinite; }
-.skeleton-pulse   { animation: skeleton-pulse   1.8s var(--ease-smooth) infinite; }
+.fade-in {
+  animation: fade-in var(--duration-normal) var(--ease-smooth) forwards;
+}
+.fade-out {
+  animation: fade-out var(--duration-fast) var(--ease-exit) forwards;
+}
+.scale-in {
+  animation: scale-in var(--duration-normal) var(--ease-enter) forwards;
+}
+.scale-in-bounce {
+  animation: scale-in-bounce var(--duration-slow) var(--ease-bounce) forwards;
+}
+.scale-in-spring {
+  animation: scale-in-spring var(--duration-slower) var(--ease-spring) forwards;
+}
+.slide-up {
+  animation: slide-up var(--duration-normal) var(--ease-enter) forwards;
+}
+.slide-up-bounce {
+  animation: slide-up-bounce var(--duration-slow) var(--ease-bounce) forwards;
+}
+.slide-up-spring {
+  animation: slide-up-spring var(--duration-slower) var(--ease-spring) forwards;
+}
+.slide-left {
+  animation: slide-left var(--duration-normal) var(--ease-enter) forwards;
+}
+.slide-right {
+  animation: slide-right var(--duration-normal) var(--ease-enter) forwards;
+}
+.spin {
+  animation: spin 1s var(--ease-smooth) infinite;
+}
+.spin-reverse {
+  animation: spin-reverse 1s var(--ease-smooth) infinite;
+}
+.shake {
+  animation: shake 0.4s var(--ease-exit);
+}
+.breathe {
+  animation: breathe 3s var(--ease-smooth) infinite;
+}
+.skeleton-pulse {
+  animation: skeleton-pulse 1.8s var(--ease-smooth) infinite;
+}
 
 /* ─────────────────────────────────────────
    4. prefers-reduced-motion
    ───────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

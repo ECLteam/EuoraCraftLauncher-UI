@@ -4,10 +4,7 @@
     <div class="versions-nav">
       <div class="nav-header">
         <h2 class="nav-title">
-          <UiIcon
-            name="cube"
-            :size="18"
-          />
+          <UiIcon name="cube" :size="18" />
           {{ t('sidebar.versions') }}
         </h2>
       </div>
@@ -19,36 +16,20 @@
           :class="['nav-item', { active: isActive(item.path) }]"
         >
           <span class="nav-indicator" />
-          <UiIcon
-            :name="item.icon"
-            :size="18"
-            class="nav-icon"
-          />
+          <UiIcon :name="item.icon" :size="18" class="nav-icon" />
           <span class="nav-label">{{ item.label }}</span>
         </RouterLink>
       </div>
       <!-- 插件：版本页导航底部插槽 -->
-      <div
-        id="plugin-slot-versions-nav-bottom"
-        class="plugin-slot-container"
-      />
+      <div id="plugin-slot-versions-nav-bottom" class="plugin-slot-container" />
     </div>
 
     <!-- 右侧内容区 -->
-    <div
-      ref="contentRef"
-      class="versions-content"
-    >
+    <div ref="contentRef" class="versions-content">
       <!-- 插件：版本页内容区顶部插槽 -->
-      <div
-        id="plugin-slot-versions-content-top"
-        class="plugin-slot-container"
-      />
+      <div id="plugin-slot-versions-content-top" class="plugin-slot-container" />
       <RouterView v-slot="{ Component }">
-        <Transition
-          name="page"
-          mode="out-in"
-        >
+        <Transition name="page" mode="out-in">
           <component :is="Component" />
         </Transition>
       </RouterView>
@@ -78,7 +59,8 @@ const contentRef = ref<HTMLElement | null>(null)
 // 页面加载动画
 const playEnterAnimation = () => {
   if (contentRef.value) {
-    gsap.fromTo(contentRef.value,
+    gsap.fromTo(
+      contentRef.value,
       { opacity: 0, y: 20, scale: 0.98 },
       { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: 'power3.out' }
     )
@@ -91,4 +73,3 @@ onMounted(() => {
 </script>
 
 <style scoped src="@/styles/views/Versions.css"></style>
-

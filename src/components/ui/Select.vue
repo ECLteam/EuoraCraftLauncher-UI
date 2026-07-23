@@ -1,49 +1,21 @@
 <template>
-  <div
-    ref="selectRef"
-    v-click-outside="close"
-    class="ui-select"
-    :class="{ open: isOpen }"
-  >
-    <div
-      class="select-trigger"
-      @click="toggle"
-    >
+  <div ref="selectRef" v-click-outside="close" class="ui-select" :class="{ open: isOpen }">
+    <div class="select-trigger" @click="toggle">
       <span class="selected-text">
-        <slot
-          name="trigger"
-          :selected="selectedOption"
-        >
+        <slot name="trigger" :selected="selectedOption">
           <template v-if="selectedOption">
             {{ selectedOption.label || selectedOption.value }}
           </template>
-          <span
-            v-else
-            class="placeholder"
-          >{{ placeholder }}</span>
+          <span v-else class="placeholder">{{ placeholder }}</span>
         </slot>
       </span>
-      <UiIcon
-        name="arrow-right"
-        class="select-arrow"
-        :class="{ rotated: isOpen }"
-      />
+      <UiIcon name="arrow-right" class="select-arrow" :class="{ rotated: isOpen }" />
     </div>
 
     <Transition name="select-dropdown">
-      <div
-        v-show="isOpen"
-        class="select-dropdown"
-      >
-        <div
-          v-if="searchable"
-          class="select-search"
-        >
-          <UiInput
-            v-model="searchQuery"
-            :placeholder="searchPlaceholder"
-            size="sm"
-          />
+      <div v-show="isOpen" class="select-dropdown">
+        <div v-if="searchable" class="select-search">
+          <UiInput v-model="searchQuery" :placeholder="searchPlaceholder" size="sm" />
         </div>
         <div class="select-options">
           <div
@@ -54,28 +26,14 @@
             @click="select(option.value)"
           >
             <div class="option-content">
-              <slot
-                name="option"
-                :option="option"
-                :active="modelValue === option.value"
-              >
+              <slot name="option" :option="option" :active="modelValue === option.value">
                 <span class="option-label">{{ option.label || option.value }}</span>
-                <span
-                  v-if="option.desc"
-                  class="option-desc"
-                >{{ option.desc }}</span>
+                <span v-if="option.desc" class="option-desc">{{ option.desc }}</span>
               </slot>
             </div>
-            <UiIcon
-              v-if="modelValue === option.value"
-              name="check"
-              class="check-icon"
-            />
+            <UiIcon v-if="modelValue === option.value" name="check" class="check-icon" />
           </div>
-          <div
-            v-if="filteredOptions.length === 0"
-            class="select-empty"
-          >
+          <div v-if="filteredOptions.length === 0" class="select-empty">
             {{ emptyText }}
           </div>
         </div>
@@ -91,6 +49,28 @@ import UiInput from '@/components/ui/Input.vue'
 
 defineOptions({ name: 'UiSelect' })
 
+const props = withDefaults(
+  defineProps<{
+    modelValue: string
+    options: SelectOption[]
+    placeholder?: string
+    searchable?: boolean
+    searchPlaceholder?: string
+    emptyText?: string
+  }>(),
+  {
+    placeholder: '请选择',
+    searchable: false,
+    searchPlaceholder: '搜索...',
+    emptyText: '暂无选项',
+  }
+)
+
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: string): void
+  (e: 'change', value: string): void
+}>()
+
 export interface SelectOption {
   label?: string
   value: string
@@ -98,41 +78,19 @@ export interface SelectOption {
   [key: string]: unknown
 }
 
-const props = withDefaults(defineProps<{
-  modelValue: string
-  options: SelectOption[]
-  placeholder?: string
-  searchable?: boolean
-  searchPlaceholder?: string
-  emptyText?: string
-}>(), {
-  placeholder: '请选择',
-  searchable: false,
-  searchPlaceholder: '搜索...',
-  emptyText: '暂无选项'
-})
-
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void
-  (e: 'change', value: string): void
-}>()
-
 const isOpen = ref(false)
 const selectRef = ref<HTMLElement | null>(null)
 const searchQuery = ref('')
 
-const selectedOption = computed(() =>
-  props.options.find(o => o.value === props.modelValue)
-)
+const selectedOption = computed(() => props.options.find((o) => o.value === props.modelValue))
 
 const filteredOptions = computed(() => {
   if (!props.searchable || !searchQuery.value.trim()) {
     return props.options
   }
   const query = searchQuery.value.toLowerCase()
-  return props.options.filter(o =>
-    (o.label || o.value).toLowerCase().includes(query) ||
-    (o.desc?.toLowerCase().includes(query) ?? false)
+  return props.options.filter(
+    (o) => (o.label || o.value).toLowerCase().includes(query) || (o.desc?.toLowerCase().includes(query) ?? false)
   )
 })
 
@@ -151,9 +109,12 @@ function select(value: string) {
   searchQuery.value = ''
 }
 
-watch(() => props.modelValue, () => {
-  searchQuery.value = ''
-})
+watch(
+  () => props.modelValue,
+  () => {
+    searchQuery.value = ''
+  }
+)
 
 interface ClickOutsideElement extends HTMLElement {
   __clickOutsideHandler?: (e: MouseEvent) => void
@@ -174,7 +135,7 @@ const vClickOutside = {
     if (handler) {
       document.removeEventListener('click', handler)
     }
-  }
+  },
 }
 </script>
 

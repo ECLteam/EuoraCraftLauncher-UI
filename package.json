@@ -8,9 +8,11 @@
     "typecheck": "vue-tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit",
     "build": "pnpm typecheck && vite build",
     "preview": "vite preview",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write ."
+    "lint": "eslint src eslint.config.js",
+    "lint:fix": "eslint src eslint.config.js --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.0",

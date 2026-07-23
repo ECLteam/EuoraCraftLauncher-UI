@@ -1,14 +1,7 @@
 <!-- src/components/ui/Icon.vue -->
 <template>
-  <span
-    :class="['icon', `icon-${name}`, className]"
-    :style="style"
-  >
-    <Icon
-      :icon="getIconName(name)"
-      :width="size"
-      :height="size"
-    />
+  <span :class="['icon', `icon-${name}`, className]" :style="style">
+    <Icon :icon="getIconName(name)" :width="size" :height="size" />
   </span>
 </template>
 
@@ -17,6 +10,12 @@ import { Icon } from '@iconify/vue'
 
 defineOptions({ name: 'UiIcon' })
 
+withDefaults(defineProps<Props>(), {
+  size: 16,
+  className: '',
+  style: () => ({}),
+})
+
 interface Props {
   name: string
   size?: number | string
@@ -24,38 +23,32 @@ interface Props {
   style?: Record<string, string>
 }
 
-withDefaults(defineProps<Props>(), {
-  size: 16,
-  className: '',
-  style: () => ({}),
-})
-
 // 图标名称映射（模块级常量，避免每次调用重新创建）
 const iconMap: Record<string, string> = {
   // 导航
-  'game': 'hugeicons:game',
-  'cube': 'mdi:cube-outline',
-  'folder': 'mdi:folder-outline',
-  'settings': 'mdi:cog-outline',
-  'puzzle': 'mdi:puzzle-outline',
-  'plugin': 'mdi:puzzle-outline',
-  'bug': 'mdi:bug-outline',
-  'menu': 'mdi:menu',
-  'help': 'mdi:help-circle-outline',
+  game: 'hugeicons:game',
+  cube: 'mdi:cube-outline',
+  folder: 'mdi:folder-outline',
+  settings: 'mdi:cog-outline',
+  puzzle: 'mdi:puzzle-outline',
+  plugin: 'mdi:puzzle-outline',
+  bug: 'mdi:bug-outline',
+  menu: 'mdi:menu',
+  help: 'mdi:help-circle-outline',
 
   // 操作
-  'close': 'mdi:close',
-  'spinner': 'mdi:loading',
-  'loading': 'mdi:loading',
-  'add': 'mdi:plus',
-  'delete': 'mdi:delete-outline',
-  'trash': 'mdi:trash-can-outline',
-  'search': 'mdi:magnify',
-  'download': 'mdi:download',
-  'play': 'mdi:play',
-  'refresh': 'mdi:refresh',
-  'check': 'mdi:check',
-  'brush': 'mdi:brush',
+  close: 'mdi:close',
+  spinner: 'mdi:loading',
+  loading: 'mdi:loading',
+  add: 'mdi:plus',
+  delete: 'mdi:delete-outline',
+  trash: 'mdi:trash-can-outline',
+  search: 'mdi:magnify',
+  download: 'mdi:download',
+  play: 'mdi:play',
+  refresh: 'mdi:refresh',
+  check: 'mdi:check',
+  brush: 'mdi:brush',
 
   // 方向
   'chevron-down': 'mdi:chevron-down',
@@ -66,44 +59,44 @@ const iconMap: Record<string, string> = {
   // 文件
   'file-text': 'mdi:file-document-outline',
   'external-link': 'mdi:open-in-new',
-  'globe': 'mdi:earth',
-  'archive': 'mdi:archive-outline',
-  'calendar': 'mdi:calendar-outline',
+  globe: 'mdi:earth',
+  archive: 'mdi:archive-outline',
+  calendar: 'mdi:calendar-outline',
 
   // 通知/状态
-  'info': 'mdi:information-outline',
-  'bell': 'mdi:bell-outline',
-  'lightbulb': 'mdi:lightbulb-outline',
+  info: 'mdi:information-outline',
+  bell: 'mdi:bell-outline',
+  lightbulb: 'mdi:lightbulb-outline',
 
   // 消息类型
-  'success': 'mdi:check-circle-outline',
-  'error': 'mdi:close-circle-outline',
-  'warning': 'mdi:alert-circle-outline',
+  success: 'mdi:check-circle-outline',
+  error: 'mdi:close-circle-outline',
+  warning: 'mdi:alert-circle-outline',
 
   // 窗口
-  'minimize': 'mdi:window-minimize',
-  'moon': 'mdi:weather-night',
-  'sun': 'mdi:weather-sunny',
+  minimize: 'mdi:window-minimize',
+  moon: 'mdi:weather-night',
+  sun: 'mdi:weather-sunny',
 
   // 加载器
-  'lab': 'mdi:flask-outline',
-  'fire': 'mdi:fire',
-  'grid': 'mdi:grid',
-  'eye': 'mdi:eye-outline',
-  'happy': 'mdi:emoticon-happy-outline',
+  lab: 'mdi:flask-outline',
+  fire: 'mdi:fire',
+  grid: 'mdi:grid',
+  eye: 'mdi:eye-outline',
+  happy: 'mdi:emoticon-happy-outline',
   'cloud-download': 'mdi:cloud-download-outline',
 
   // 账户
-  'microsoft': 'mdi:microsoft',
-  'user': 'mdi:account-outline',
+  microsoft: 'mdi:microsoft',
+  user: 'mdi:account-outline',
   'user-x': 'mdi:account-remove-outline',
   'game-controller': 'mdi:gamepad-variant-outline',
-  'shield': 'mdi:shield-outline',
+  shield: 'mdi:shield-outline',
 
   // 任务
   'x-mark': 'mdi:close',
-  'circle': 'mdi:circle-small',
-  'package': 'mdi:package-variant-closed',
+  circle: 'mdi:circle-small',
+  package: 'mdi:package-variant-closed',
 }
 
 const getIconName = (iconName: string) => {

@@ -27,7 +27,6 @@ export interface LauncherConfig {
   version: string
   version_type: 'dev' | 'beta' | 'release'
   debug: boolean
-  is_dev?: boolean
 }
 
 export interface BackgroundConfig {
@@ -76,14 +75,7 @@ export interface UiConfig {
   background?: Partial<BackgroundConfig>
 }
 
-export type ConfigSection =
-  | 'launcher'
-  | 'game'
-  | 'download'
-  | 'ui'
-  | 'locale'
-  | 'background'
-  | string
+export type ConfigSection = 'launcher' | 'game' | 'download' | 'ui' | 'locale' | 'background' | string
 
 // ═══════════════════════════════════════════════════════════════════
 //  Java
@@ -231,6 +223,7 @@ export interface UserAgreement {
 export interface LauncherInfo {
   version: string
   version_type: string
+  debug: boolean
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -484,7 +477,7 @@ export interface BackendEvents {
   }
   'game:install_progress': InstallProgress
   'game:launch_progress': LaunchProgress
-  'accounts_changed': AccountListData
+  accounts_changed: AccountListData
   'plugin:status_changed': { name: string; action: string; result: string }
   'plugin:installed': { name: string }
   'plugin:css_injected': { plugin: string; css: string }

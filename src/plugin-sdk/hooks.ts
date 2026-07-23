@@ -5,13 +5,8 @@
 
 import { ref, type Ref } from 'vue'
 import backend from '@/api/client'
+import type { BackendEventName, BackendEvents, CommandName, CommandPayloadMap } from '@/types/api'
 import type { CleanupFn } from './types'
-import type {
-  BackendEventName,
-  BackendEvents,
-  CommandName,
-  CommandPayloadMap,
-} from '@/types/api'
 
 const cleanupRegistry = new Map<string, CleanupFn[]>()
 
@@ -30,7 +25,11 @@ export function runPluginCleanup(plugin: string): void {
   const list = cleanupRegistry.get(plugin)
   if (!list) return
   for (const fn of [...list].reverse()) {
-    try { fn() } catch { /* 清理时忽略错误 */ }
+    try {
+      fn()
+    } catch {
+      /* 清理时忽略错误 */
+    }
   }
   cleanupRegistry.delete(plugin)
 }
@@ -38,20 +37,18 @@ export function runPluginCleanup(plugin: string): void {
 export const runCleanup = runPluginCleanup
 
 export interface PluginHooks {
-  useCommand: <K extends CommandName>(
-    name: K,
-    params?: CommandPayloadMap[K],
-  ) => ReturnType<typeof backend.command<K>>
-  useEvent: <E extends BackendEventName>(
-    event: E,
-    handler: (payload: BackendEvents[E]) => void,
-  ) => () => void
+  useCommand: <K extends CommandName>(name: K, params?: CommandPayloadMap[K]) => ReturnType<typeof backend.command<K>>
+  useEvent: <E extends BackendEventName>(event: E, handler: (payload: BackendEvents[E]) => void) => () => void
   useCleanup: (fn: CleanupFn) => void
   useSlot: (slot: string, renderer?: (container: HTMLElement) => void) => HTMLElement | null
   useInterval: (fn: () => void, ms: number) => () => void
   useTimeout: (fn: () => void, ms: number) => () => void
   useResizeObserver: (target: Element | string, callback: (entries: ResizeObserverEntry[]) => void) => () => void
-  useIntersectionObserver: (target: Element | string, callback: (entries: IntersectionObserverEntry[]) => void, options?: IntersectionObserverInit) => () => void
+  useIntersectionObserver: (
+    target: Element | string,
+    callback: (entries: IntersectionObserverEntry[]) => void,
+    options?: IntersectionObserverInit
+  ) => () => void
   useAnimationFrame: (fn: (time: number) => void) => () => void
   useIdleCallback: (fn: () => void, timeout?: number) => () => void
   useBeforeUnload: (fn: () => void) => () => void
@@ -62,15 +59,12 @@ export interface PluginHooks {
 export function createHooks(plugin: string): PluginHooks {
   function useCommand<K extends CommandName>(
     name: K,
-    params?: CommandPayloadMap[K],
+    params?: CommandPayloadMap[K]
   ): ReturnType<typeof backend.command<K>> {
     return backend.command(name, params)
   }
 
-  function useEvent<E extends BackendEventName>(
-    event: E,
-    handler: (payload: BackendEvents[E]) => void,
-  ): () => void {
+  function useEvent<E extends BackendEventName>(event: E, handler: (payload: BackendEvents[E]) => void): () => void {
     const unlisten = backend.on(event, handler)
     registerPluginCleanup(plugin, unlisten)
     return unlisten
@@ -86,7 +80,7 @@ export function createHooks(plugin: string): PluginHooks {
     if (renderer) {
       renderer(el)
       registerPluginCleanup(plugin, () => {
-        el.querySelectorAll(`[data-plugin="${plugin}"]`).forEach(child => child.remove())
+        el.querySelectorAll(`[data-plugin="${plugin}"]`).forEach((child) => child.remove())
       })
     }
     return el
@@ -104,15 +98,15 @@ export function createHooks(plugin: string): PluginHooks {
     const id = setTimeout(() => {
       if (!cleared) fn()
     }, ms)
-    const cleanup = () => { cleared = true; clearTimeout(id) }
+    const cleanup = () => {
+      cleared = true
+      clearTimeout(id)
+    }
     registerPluginCleanup(plugin, cleanup)
     return cleanup
   }
 
-  function useResizeObserver(
-    target: Element | string,
-    callback: (entries: ResizeObserverEntry[]) => void
-  ): () => void {
+  function useResizeObserver(target: Element | string, callback: (entries: ResizeObserverEntry[]) => void): () => void {
     const el = typeof target === 'string' ? document.querySelector(target) : target
     if (!el) return () => {}
 
@@ -170,7 +164,9 @@ export function createHooks(plugin: string): PluginHooks {
     return cleanup
   }
 
-  function useVisibilityChange(options?: { onVisible?: () => void; onHidden?: () => void }): { visibility: Ref<string> } {
+  function useVisibilityChange(options?: { onVisible?: () => void; onHidden?: () => void }): {
+    visibility: Ref<string>
+  } {
     const visibility = ref(document.visibilityState)
 
     const handler = () => {
@@ -190,8 +186,12 @@ export function createHooks(plugin: string): PluginHooks {
   function useOnlineStatus(): { isOnline: Ref<boolean> } {
     const isOnline = ref(navigator.onLine)
 
-    const onlineHandler = () => { isOnline.value = true }
-    const offlineHandler = () => { isOnline.value = false }
+    const onlineHandler = () => {
+      isOnline.value = true
+    }
+    const offlineHandler = () => {
+      isOnline.value = false
+    }
     window.addEventListener('online', onlineHandler)
     window.addEventListener('offline', offlineHandler)
 

@@ -22,9 +22,9 @@ import {
 } from '@/plugin-sdk/state'
 import { getToken, watchToken, getMode, watchMode } from '@/plugin-sdk/theme'
 import { transpileTS } from '@/plugin-sdk/transpile'
+import type { PluginSdkContext } from '@/plugin-sdk/types'
 import * as ui from '@/plugin-sdk/ui'
 import * as widgets from '@/plugin-sdk/widgets'
-import type { PluginSdkContext } from '@/plugin-sdk/types'
 import type { PluginRoute, PluginSlotItem } from '@/types/api'
 import type { useRouter } from 'vue-router'
 
@@ -168,7 +168,12 @@ function renderSlot(slot: string) {
   }
 }
 
-function createDynamicSlot(slotId: string, plugin: string, targetSelector: string, position: 'before' | 'after' | 'prepend' | 'append'): boolean {
+function createDynamicSlot(
+  slotId: string,
+  plugin: string,
+  targetSelector: string,
+  position: 'before' | 'after' | 'prepend' | 'append'
+): boolean {
   const target = document.querySelector(targetSelector)
   if (!target) return false
 
@@ -214,7 +219,7 @@ function removeDynamicSlot(slotId: string) {
 }
 
 function clearSlotElements() {
-  document.querySelectorAll('[id^="plugin-slot-"]').forEach(el => {
+  document.querySelectorAll('[id^="plugin-slot-"]').forEach((el) => {
     const id = el.id.replace('plugin-slot-', '')
     if (!dynamicSlots.has(id)) {
       el.innerHTML = ''
@@ -225,7 +230,7 @@ function clearSlotElements() {
 function clearPluginSlots(pluginName: string) {
   for (const slot of Object.keys(pluginSlots.value)) {
     const entries = pluginSlots.value[slot] ?? []
-    pluginSlots.value[slot] = entries.filter(e => e.plugin !== pluginName)
+    pluginSlots.value[slot] = entries.filter((e) => e.plugin !== pluginName)
     if (pluginSlots.value[slot]?.length === 0) {
       delete pluginSlots.value[slot]
     }
@@ -275,12 +280,12 @@ function executeScript(plugin: string, script: string) {
 }
 
 function cleanupScripts() {
-  document.querySelectorAll('script[data-plugin]').forEach(el => el.remove())
+  document.querySelectorAll('script[data-plugin]').forEach((el) => el.remove())
   _injectedScripts.clear()
 }
 
 function setupRoutes(router: ReturnType<typeof useRouter>) {
-  const existing = router.getRoutes().filter(r => r.meta?.pluginRoute)
+  const existing = router.getRoutes().filter((r) => r.meta?.pluginRoute)
   for (const route of existing) {
     router.removeRoute(route.name!)
   }
@@ -311,8 +316,8 @@ function cleanupPlugin(pluginName: string) {
   const styleEl = document.getElementById(`plugin-css-${pluginName}`)
   if (styleEl) styleEl.remove()
 
-  document.querySelectorAll(`style[data-plugin="${pluginName}"]`).forEach(el => el.remove())
-  document.querySelectorAll(`[data-plugin="${pluginName}"]`).forEach(el => {
+  document.querySelectorAll(`style[data-plugin="${pluginName}"]`).forEach((el) => el.remove())
+  document.querySelectorAll(`[data-plugin="${pluginName}"]`).forEach((el) => {
     if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return
     if (el.id && el.id.startsWith('plugin-slot-')) return
     el.remove()
@@ -341,76 +346,104 @@ let cleanupState: (() => void) | null = null
 export function initPluginBridge(router: ReturnType<typeof useRouter>) {
   cleanupState = initPluginState()
 
-  unlistenFns.push(backend.on('plugin:html_injected', (payload) => {
-    const slot = payload.slot
-    const priority = payload.priority ?? 0
-    const entries = pluginSlots.value[slot] || []
-    entries.push({ plugin: payload.plugin, html: payload.html, priority } as unknown as PluginSlotItem)
-    pluginSlots.value[slot] = entries
-    renderSlot(slot)
-  }))
+  unlistenFns.push(
+    backend.on('plugin:html_injected', (payload) => {
+      const slot = payload.slot
+      const priority = payload.priority ?? 0
+      const entries = pluginSlots.value[slot] || []
+      entries.push({ plugin: payload.plugin, html: payload.html, priority } as unknown as PluginSlotItem)
+      pluginSlots.value[slot] = entries
+      renderSlot(slot)
+    })
+  )
 
-  unlistenFns.push(backend.on('plugin:slot_registered', (payload) => {
-    const { slot, plugin, target, position } = payload
-    const ok = createDynamicSlot(slot, plugin, target, position || 'append')
-    if (!ok) {
-      console.warn(`[PluginBridge] 动态 slot 创建失败 [${slot}]: 目标 "${target}" 不存在`)
-    }
-  }))
+  unlistenFns.push(
+    backend.on('plugin:slot_registered', (payload) => {
+      const { slot, plugin, target, position } = payload
+      const ok = createDynamicSlot(slot, plugin, target, position || 'append')
+      if (!ok) {
+        console.warn(`[PluginBridge] 动态 slot 创建失败 [${slot}]: 目标 "${target}" 不存在`)
+      }
+    })
+  )
 
-  unlistenFns.push(backend.on('plugin:slot_unregistered', (payload) => {
-    removeDynamicSlot(payload.slot)
-  }))
+  unlistenFns.push(
+    backend.on('plugin:slot_unregistered', (payload) => {
+      removeDynamicSlot(payload.slot)
+    })
+  )
 
   unlistenFns.push(backend.on('plugin:route_registered', () => refreshRoutes(router)))
   unlistenFns.push(backend.on('plugin:route_unregistered', () => refreshRoutes(router)))
 
-  unlistenFns.push(backend.on('plugin:script_injected', (payload) => {
-    executeScript(payload.plugin, payload.script)
-  }))
+  unlistenFns.push(
+    backend.on('plugin:script_injected', (payload) => {
+      executeScript(payload.plugin, payload.script)
+    })
+  )
 
-  unlistenFns.push(backend.on('plugin:typescript_injected', (payload) => {
-    try {
-      const js = transpileTS(payload.script || '')
-      executeScript(payload.plugin, js)
-    } catch (e) {
-      console.error(`[PluginBridge] TS 转译失败 [${payload.plugin}]:`, e)
-    }
-  }))
-
-  unlistenFns.push(backend.on('plugin:disabled', (payload) => {
-    if (payload.plugin) fullCleanupPlugin(payload.plugin)
-  }))
-  unlistenFns.push(backend.on('plugin:pre_unload', (payload) => {
-    if (payload.name) fullCleanupPlugin(payload.name)
-  }))
-  unlistenFns.push(backend.on('plugin:cleanup', (payload) => {
-    if (payload.name) fullCleanupPlugin(payload.name)
-  }))
-  unlistenFns.push(backend.on('plugin:slots_cleared', (payload) => {
-    if (payload.plugin) clearPluginSlots(payload.plugin)
-  }))
-
-  backend.command('plugin_get_routes').then(res => {
-    if (res?.success) {
-      pluginRoutes.value = res.data || []
-      setupRoutes(router)
-    }
-  }).catch(() => {})
-
-  backend.command('plugin_get_slots').then(res => {
-    if (res?.success && res.data) {
-      pluginSlots.value = res.data
-      for (const slot of Object.keys(res.data)) {
-        renderSlot(slot)
+  unlistenFns.push(
+    backend.on('plugin:typescript_injected', (payload) => {
+      try {
+        const js = transpileTS(payload.script || '')
+        executeScript(payload.plugin, js)
+      } catch (e) {
+        console.error(`[PluginBridge] TS 转译失败 [${payload.plugin}]:`, e)
       }
-    }
-  }).catch(() => {})
+    })
+  )
+
+  unlistenFns.push(
+    backend.on('plugin:disabled', (payload) => {
+      if (payload.plugin) fullCleanupPlugin(payload.plugin)
+    })
+  )
+  unlistenFns.push(
+    backend.on('plugin:pre_unload', (payload) => {
+      if (payload.name) fullCleanupPlugin(payload.name)
+    })
+  )
+  unlistenFns.push(
+    backend.on('plugin:cleanup', (payload) => {
+      if (payload.name) fullCleanupPlugin(payload.name)
+    })
+  )
+  unlistenFns.push(
+    backend.on('plugin:slots_cleared', (payload) => {
+      if (payload.plugin) clearPluginSlots(payload.plugin)
+    })
+  )
+
+  backend
+    .command('plugin_get_routes')
+    .then((res) => {
+      if (res?.success) {
+        pluginRoutes.value = res.data || []
+        setupRoutes(router)
+      }
+    })
+    .catch(() => {})
+
+  backend
+    .command('plugin_get_slots')
+    .then((res) => {
+      if (res?.success && res.data) {
+        pluginSlots.value = res.data
+        for (const slot of Object.keys(res.data)) {
+          renderSlot(slot)
+        }
+      }
+    })
+    .catch(() => {})
 }
 
 export function destroyPluginBridge() {
   for (const fn of unlistenFns) {
-    try { fn() } catch { /* 清理时忽略错误 */ }
+    try {
+      fn()
+    } catch {
+      /* 清理时忽略错误 */
+    }
   }
   unlistenFns.length = 0
   cleanupScripts()
@@ -431,4 +464,14 @@ export function callPluginCommand(command: string, params?: Record<string, unkno
   return backend.command('plugin_call_command', { command, params })
 }
 
-export { pluginRoutes, pluginSlots, renderSlot, cleanupScripts, clearSlotElements, clearPluginSlots, createDynamicSlot, removeDynamicSlot, dynamicSlots }
+export {
+  pluginRoutes,
+  pluginSlots,
+  renderSlot,
+  cleanupScripts,
+  clearSlotElements,
+  clearPluginSlots,
+  createDynamicSlot,
+  removeDynamicSlot,
+  dynamicSlots,
+}

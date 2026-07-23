@@ -2,7 +2,12 @@
   "semi": false,
   "singleQuote": true,
   "tabWidth": 2,
+  "useTabs": false,
   "trailingComma": "es5",
   "printWidth": 120,
-  "endOfLine": "auto"
+  "arrowParens": "always",
+  "bracketSameLine": false,
+  "htmlWhitespaceSensitivity": "css",
+  "proseWrap": "preserve",
+  "endOfLine": "lf"
 }

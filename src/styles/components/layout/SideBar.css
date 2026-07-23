@@ -6,8 +6,9 @@
   height: 100%;
   background: var(--glass-bg-sidebar);
   border-right: 1px solid var(--glass-border);
-  transition: width var(--duration-fast) ease-out,
-              min-width var(--duration-fast) ease-out;
+  transition:
+    width var(--duration-fast) ease-out,
+    min-width var(--duration-fast) ease-out;
   z-index: 100;
   position: relative;
   min-height: 0;
@@ -84,9 +85,10 @@
   width: 3px;
   border-radius: 0 2px 2px 0;
   background: var(--primary);
-  transition: top var(--duration-fast) ease-out,
-              height var(--duration-fast) ease-out,
-              opacity var(--duration-fast) ease-out;
+  transition:
+    top var(--duration-fast) ease-out,
+    height var(--duration-fast) ease-out,
+    opacity var(--duration-fast) ease-out;
   opacity: 0;
   pointer-events: none;
   z-index: 10;
@@ -98,9 +100,10 @@
   right: 7px;
   border-radius: var(--r-sm);
   background: var(--glass-item-active-bg);
-  transition: top var(--duration-fast) ease-out,
-              height var(--duration-fast) ease-out,
-              opacity var(--duration-fast) ease-out;
+  transition:
+    top var(--duration-fast) ease-out,
+    height var(--duration-fast) ease-out,
+    opacity var(--duration-fast) ease-out;
   opacity: 0;
   pointer-events: none;
   z-index: 0;
@@ -125,8 +128,9 @@
   white-space: nowrap;
   position: relative;
   z-index: 1;
-  transition: color var(--duration-fast) ease-out,
-              background var(--duration-fast) ease-out;
+  transition:
+    color var(--duration-fast) ease-out,
+    background var(--duration-fast) ease-out;
   outline: none;
 }
 
@@ -172,7 +176,9 @@
   margin-left: auto;
   border-radius: var(--r-xs);
   opacity: 0.5;
-  transition: opacity var(--duration-normal) var(--ease-exit), transform var(--duration-fast) ease-out;
+  transition:
+    opacity var(--duration-normal) var(--ease-exit),
+    transform var(--duration-fast) ease-out;
   flex-shrink: 0;
 }
 

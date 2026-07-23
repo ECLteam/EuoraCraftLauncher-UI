@@ -1,6 +1,6 @@
 <template>
-  <NConfigProvider 
-    :theme="naiveTheme" 
+  <NConfigProvider
+    :theme="naiveTheme"
     :themeOverrides="themeOverrides"
     :locale="naiveLocale"
     :dateLocale="naiveDateLocale"
@@ -12,80 +12,53 @@
             <!-- 背景层 -->
             <div class="app-background" />
             <div class="app-background-overlay" />
-            
+
             <!-- 主布局 -->
-            <a
-              href="#main-content"
-              class="skip-link"
-            >跳到主要内容</a>
+            <a href="#main-content" class="skip-link">跳到主要内容</a>
             <div class="app-layout">
               <!-- 顶部栏 - 始终可交互 -->
-              <TitleBar 
-                class="app-titlebar" 
+              <TitleBar
+                class="app-titlebar"
                 :class="{ 'titlebar-disabled': !isAgreementAccepted && !agreementLoading }"
               />
-              
+
               <!-- 主体区域：侧边栏 + 内容区 -->
-              <div 
-                class="app-body"
-                :class="{ 'app-body-disabled': !isAgreementAccepted && !agreementLoading }"
-              >
+              <div class="app-body" :class="{ 'app-body-disabled': !isAgreementAccepted && !agreementLoading }">
                 <SideBar />
 
                 <!-- 插件：侧栏扩展插槽 -->
-                <div
-                  id="plugin-slot-sidebar-extra"
-                  class="plugin-slot-container plugin-sidebar-slot"
-                />
-                
+                <div id="plugin-slot-sidebar-extra" class="plugin-slot-container plugin-sidebar-slot" />
+
                 <!-- 内容区 - 全屏弹窗仅覆盖此区域 -->
-                <main 
+                <main
                   id="main-content"
                   class="main-content"
                   :class="{ 'content-disabled': !isAgreementAccepted && !agreementLoading }"
                   tabindex="-1"
                 >
                   <!-- 插件：内容区顶部插槽 -->
-                  <div
-                    id="plugin-slot-content-top"
-                    class="plugin-slot-container"
-                  />
-                  <div
-                    v-if="isAgreementAccepted"
-                    class="page-container"
-                  >
+                  <div id="plugin-slot-content-top" class="plugin-slot-container" />
+                  <div v-if="isAgreementAccepted" class="page-container">
                     <RouterView v-slot="{ Component, route: currentRoute }">
-                      <Transition
-                        name="page"
-                        mode="out-in"
-                      >
-                        <component
-                          :is="Component"
-                          :key="currentRoute.matched[0]?.path || currentRoute.path"
-                        />
+                      <Transition name="page" mode="out-in">
+                        <component :is="Component" :key="currentRoute.matched[0]?.path || currentRoute.path" />
                       </Transition>
                     </RouterView>
                     <!-- 插件：页面底部插槽 -->
-                    <div
-                      id="plugin-slot-page-bottom"
-                      class="plugin-slot-container"
-                    />
+                    <div id="plugin-slot-page-bottom" class="plugin-slot-container" />
                   </div>
-                  
+
                   <!-- 未同意协议时的占位提示 
                   <div v-else class="agreement-placeholder">
                     <UiIcon name="info" />
                     <p>{{ t('agreement.pleaseAccept') }}</p>
                   </div-->
-                  
+
                   <!-- 全局消息组件 -->
                   <GlassMessage ref="messageRef" />
 
                   <!-- 插件：内容区底部插槽 -->
-                  <div
-                    id="plugin-slot-content-bottom"
-                    class="plugin-slot-container"
-                  />
+                  <div id="plugin-slot-content-bottom" class="plugin-slot-container" />
 
                   <!-- 任务队列全屏面板 -->
                   <TaskQueuePanel />
@@ -129,11 +102,7 @@
                       <p class="agreement-desc">
                         {{ t('agreement.description') }}
                       </p>
-                      <a
-                        :href="agreementUrl"
-                        target="_blank"
-                        class="agreement-link-btn"
-                      >
+                      <a :href="agreementUrl" target="_blank" class="agreement-link-btn">
                         <UiIcon name="external-link" />
                         {{ t('agreement.viewFull') }}
                       </a>
@@ -158,7 +127,7 @@ import {
   zhCN,
   dateZhCN,
   enUS,
-  dateEnUS
+  dateEnUS,
 } from 'naive-ui'
 import { ref, onMounted, onUnmounted, computed, provide, readonly, nextTick, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -183,7 +152,13 @@ const router = useRouter()
 const { naiveTheme, themeOverrides } = useTheme()
 
 const { locale, t } = useI18n()
-const { isAccepted: isAgreementAccepted, isLoading: agreementLoading, agreementUrl, markNotAccepted, acceptUserAgreement } = useUserAgreement()
+const {
+  isAccepted: isAgreementAccepted,
+  isLoading: agreementLoading,
+  agreementUrl,
+  markNotAccepted,
+  acceptUserAgreement,
+} = useUserAgreement()
 const fullscreenModal = useFullscreenModal()
 const message = useGlassMessage()
 
@@ -268,7 +243,7 @@ const unlistenError = backend.on('launcher:error', (payload) => {
 function applyConfigPayload(payload: BackendEvents['config:init']) {
   const launcher = payload.launcher
   if (launcher) {
-    isDevMode.value = launcher.is_dev === true
+    isDevMode.value = launcher.debug === true
     launcherVersion.value = launcher.version || ''
     launcherVersionType.value = launcher.version_type || 'release'
   }
@@ -335,7 +310,12 @@ const unlistenInstallProgress = backend.on('game:install_progress', (payload: In
       message: msg || '安装完成',
     })
     if (subtask) {
-      globalTaskQueue.addSubtask(taskId, { id: subtask, name: getSubtaskLabel(subtask), status: 'completed', message: msg })
+      globalTaskQueue.addSubtask(taskId, {
+        id: subtask,
+        name: getSubtaskLabel(subtask),
+        status: 'completed',
+        message: msg,
+      })
     }
   } else if (phase === 'error') {
     globalTaskQueue.updateTask(taskId, {
@@ -353,7 +333,12 @@ const unlistenInstallProgress = backend.on('game:install_progress', (payload: In
       message: msg,
     })
     if (subtask) {
-      globalTaskQueue.addSubtask(taskId, { id: subtask, name: getSubtaskLabel(subtask), status: 'running', message: msg })
+      globalTaskQueue.addSubtask(taskId, {
+        id: subtask,
+        name: getSubtaskLabel(subtask),
+        status: 'running',
+        message: msg,
+      })
     }
   } else if (phase === 'install') {
     globalTaskQueue.updateTask(taskId, {
@@ -362,7 +347,12 @@ const unlistenInstallProgress = backend.on('game:install_progress', (payload: In
       message: msg,
     })
     if (subtask) {
-      globalTaskQueue.addSubtask(taskId, { id: subtask, name: getSubtaskLabel(subtask), status: 'running', message: msg })
+      globalTaskQueue.addSubtask(taskId, {
+        id: subtask,
+        name: getSubtaskLabel(subtask),
+        status: 'running',
+        message: msg,
+      })
     }
   }
 })

@@ -1,10 +1,6 @@
 <template>
   <Teleport to="body">
-    <Transition
-      name="modal"
-      @afterEnter="onAfterEnter"
-      @afterLeave="onAfterLeave"
-    >
+    <Transition name="modal" @afterEnter="onAfterEnter" @afterLeave="onAfterLeave">
       <div
         v-show="visible"
         class="modal-overlay"
@@ -20,21 +16,12 @@
           :style="props.width ? { width: props.width, maxWidth: props.width } : undefined"
           @click.stop
         >
-          <header
-            v-if="showHeader"
-            class="modal-header"
-          >
+          <header v-if="showHeader" class="modal-header">
             <div class="header-content">
               <slot name="header">
                 <div class="header-title">
-                  <i
-                    v-if="iconType"
-                    :class="['icon', iconType]"
-                  />
-                  <h3
-                    :id="titleId"
-                    class="modal-title"
-                  >
+                  <i v-if="iconType" :class="['icon', iconType]" />
+                  <h3 :id="titleId" class="modal-title">
                     {{ title }}
                   </h3>
                 </div>
@@ -52,65 +39,38 @@
             />
           </header>
 
-          <main
-            class="modal-body"
-            :class="bodyClass"
-          >
+          <main class="modal-body" :class="bodyClass">
             <slot />
             <slot name="content">
-              <p
-                v-if="content"
-                class="modal-content-text"
-              >
+              <p v-if="content" class="modal-content-text">
                 {{ content }}
               </p>
             </slot>
           </main>
 
-          <footer
-            v-if="showFooter"
-            class="modal-footer"
-          >
-            <div
-              id="plugin-slot-modal-footer-extra"
-              class="plugin-slot-container"
-            />
+          <footer v-if="showFooter" class="modal-footer">
+            <div id="plugin-slot-modal-footer-extra" class="plugin-slot-container" />
             <slot name="footer">
               <template v-if="type === 'agreement'">
-                <UiButton
-                  variant="secondary"
-                  @click="handleCancel"
-                >
+                <UiButton variant="secondary" @click="handleCancel">
                   {{ cancelText || t('modal.disagree') }}
                 </UiButton>
-                <UiButton
-                  variant="primary"
-                  @click="handleConfirm"
-                >
+                <UiButton variant="primary" @click="handleConfirm">
                   {{ confirmText || t('modal.agree') }}
                 </UiButton>
               </template>
 
               <template v-else-if="type === 'confirm'">
-                <UiButton
-                  variant="secondary"
-                  @click="handleCancel"
-                >
+                <UiButton variant="secondary" @click="handleCancel">
                   {{ cancelText || t('modal.cancel') }}
                 </UiButton>
-                <UiButton
-                  :variant="danger ? 'danger' : 'primary'"
-                  @click="handleConfirm"
-                >
+                <UiButton :variant="danger ? 'danger' : 'primary'" @click="handleConfirm">
                   {{ confirmText || t('modal.confirm') }}
                 </UiButton>
               </template>
 
               <template v-else-if="type === 'alert' || type === 'warning'">
-                <UiButton
-                  :variant="type === 'warning' ? 'danger' : 'primary'"
-                  @click="handleConfirm"
-                >
+                <UiButton :variant="type === 'warning' ? 'danger' : 'primary'" @click="handleConfirm">
                   {{ confirmText || t('modal.ok') }}
                 </UiButton>
               </template>
@@ -128,6 +88,32 @@ import { useI18n } from 'vue-i18n'
 import UiButton from '@/components/ui/Button.vue'
 
 defineOptions({ name: 'Modal' })
+
+const props = withDefaults(defineProps<Props>(), {
+  type: 'content',
+  title: '',
+  content: '',
+  confirmText: '',
+  cancelText: '',
+  closable: true,
+  showCloseBtn: true,
+  showFooter: true,
+  maskClosable: false,
+  bodyClass: '',
+  wrapperClass: '',
+  lockScroll: true,
+  danger: false,
+  width: '',
+})
+
+const emit = defineEmits<Emits>()
+
+const slots = defineSlots<{
+  default?: () => unknown
+  header?: () => unknown
+  footer?: () => unknown
+  content?: () => unknown
+}>()
 
 const { t } = useI18n()
 
@@ -151,23 +137,6 @@ interface Props {
   width?: string
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  type: 'content',
-  title: '',
-  content: '',
-  confirmText: '',
-  cancelText: '',
-  closable: true,
-  showCloseBtn: true,
-  showFooter: true,
-  maskClosable: false,
-  bodyClass: '',
-  wrapperClass: '',
-  lockScroll: true,
-  danger: false,
-  width: '',
-})
-
 interface Emits {
   (e: 'update:visible', value: boolean): void
   (e: 'close'): void
@@ -178,27 +147,23 @@ interface Emits {
   (e: 'cancel'): void
 }
 
-const emit = defineEmits<Emits>()
-
 const iconType = computed(() => {
   switch (props.type) {
-    case 'confirm': return 'icon-help-circle'
-    case 'alert': return 'icon-info'
-    case 'warning': return 'icon-alert-triangle'
-    case 'agreement': return 'icon-file-text'
-    default: return ''
+    case 'confirm':
+      return 'icon-help-circle'
+    case 'alert':
+      return 'icon-info'
+    case 'warning':
+      return 'icon-alert-triangle'
+    case 'agreement':
+      return 'icon-file-text'
+    default:
+      return ''
   }
 })
 
 const modalRef = ref<HTMLElement | null>(null)
 const titleId = computed(() => `modal-title-${useId()}`)
-
-const slots = defineSlots<{
-  default?: () => unknown
-  header?: () => unknown
-  footer?: () => unknown
-  content?: () => unknown
-}>()
 
 const showHeader = computed(() => props.title || props.closable || slots.header)
 
@@ -246,28 +211,32 @@ const onAfterLeave = () => {
   emit('closed')
 }
 
-watch(() => props.visible, (val) => {
-  if (val) {
-    nextTick(() => {
-      modalRef.value?.focus()
-    })
-    document.addEventListener('keydown', keydownHandler)
-    if (props.lockScroll) {
-      const mainContent = document.querySelector('.main-content') as HTMLElement | null
-      if (mainContent) {
-        mainContent.style.overflow = 'hidden'
+watch(
+  () => props.visible,
+  (val) => {
+    if (val) {
+      nextTick(() => {
+        modalRef.value?.focus()
+      })
+      document.addEventListener('keydown', keydownHandler)
+      if (props.lockScroll) {
+        const mainContent = document.querySelector('.main-content') as HTMLElement | null
+        if (mainContent) {
+          mainContent.style.overflow = 'hidden'
+        }
+      }
+    } else {
+      document.removeEventListener('keydown', keydownHandler)
+      if (props.lockScroll) {
+        const mainContent = document.querySelector('.main-content') as HTMLElement | null
+        if (mainContent) {
+          mainContent.style.overflow = ''
+        }
       }
     }
-  } else {
-    document.removeEventListener('keydown', keydownHandler)
-    if (props.lockScroll) {
-      const mainContent = document.querySelector('.main-content') as HTMLElement | null
-      if (mainContent) {
-        mainContent.style.overflow = ''
-      }
-    }
-  }
-}, { immediate: true })
+  },
+  { immediate: true }
+)
 
 defineExpose({ close, open })
 </script>

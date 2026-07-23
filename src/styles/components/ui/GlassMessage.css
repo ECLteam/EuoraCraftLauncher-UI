@@ -1,148 +1,214 @@
-.glass-message-container {
+.notification-center {
   position: fixed;
-  bottom: var(--s-xl);
-  left: var(--s-xl);
+  bottom: var(--s-lg);
+  left: calc(var(--sidebar-w-collapsed) + var(--s-lg));
   z-index: 99999;
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-md);
+  width: min(360px, calc(100vw - var(--s-xl) * 2));
+  max-height: calc(100vh - var(--titlebar-h) - var(--s-xl));
   pointer-events: none;
-  width: 288px;
   transition: left var(--duration-normal) var(--ease-standard);
 }
 
-[data-sidebar-collapsed="0"] .glass-message-container {
-  left: calc(var(--sidebar-w-expanded) + var(--s-xl));
+[data-sidebar-collapsed='0'] .notification-center:not(.is-flush-left) {
+  left: calc(var(--sidebar-w-expanded) + var(--s-lg));
 }
 
-[data-sidebar-collapsed="1"] .glass-message-container {
-  left: calc(var(--sidebar-w-collapsed) + var(--s-xl));
+[data-sidebar-collapsed='1'] .notification-center:not(.is-flush-left) {
+  left: calc(var(--sidebar-w-collapsed) + var(--s-lg));
 }
 
-.glass-message {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--s-md);
-  padding: var(--s-lg);
-  background: var(--card-bg);
-  border-top: var(--card-border-top);
-  border-bottom: var(--card-border-bottom);
-  border-radius: var(--r-sm);
-  pointer-events: all;
+.notification-center.is-flush-left {
+  left: 0;
+}
+
+.notification-list {
   position: relative;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 9px;
+}
+
+.notification {
+  --notification-accent: var(--info);
+  --notification-tint: var(--info-alpha);
+
+  position: relative;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 26px;
+  align-items: start;
+  gap: 11px;
+  min-height: 68px;
+  padding: 13px 11px 13px 13px;
   overflow: hidden;
-  transition: all var(--duration-normal) var(--ease-spring);
-}
-
-.glass-message.success { border-left: 3px solid var(--success); }
-.glass-message.error   { border-left: 3px solid var(--error); }
-.glass-message.warning { border-left: 3px solid var(--warning); }
-.glass-message.info    { border-left: 3px solid var(--info); }
-.glass-message.loading { border-left: 3px solid var(--info); }
-
-.message-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.glass-message.success .message-icon { color: var(--success); }
-.glass-message.error   .message-icon { color: var(--error); }
-.glass-message.warning .message-icon { color: var(--warning); }
-.glass-message.info    .message-icon { color: var(--info); }
-.glass-message.loading .message-icon { color: var(--info); }
-
-.message-content {
-  flex: 1;
-  min-width: 0;
-  padding-right: var(--s-sm);
-}
-
-.message-title {
-  font-size: 13px;
-  font-weight: 600;
+  pointer-events: auto;
   color: var(--text-primary);
-  margin-bottom: var(--s-xs);
-  line-height: 1.4;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 0.14);
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
 }
 
-.message-body {
-  font-size: 12px;
-  color: var(--text-secondary);
-  line-height: 1.5;
-  word-break: break-word;
-}
-
-.close-btn {
+.notification::before {
   position: absolute;
-  top: var(--s-sm);
-  right: var(--s-sm);
-  width: 18px;
-  height: 18px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--text-disabled);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--r-sm);
-  opacity: 0;
-  transition: all var(--duration-fast) var(--ease-standard);
-  padding: 0;
+  inset: 0 auto 0 0;
+  width: 3px;
+  content: '';
+  background: var(--notification-accent);
 }
 
-.glass-message:hover .close-btn {
-  opacity: 1;
-}
-
-.close-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+.notification:hover,
+.notification:focus-within {
   border-color: var(--border-hover);
+  box-shadow: 0 14px 34px rgb(0 0 0 / 0.18);
   transform: translateY(-1px);
 }
 
-.message-progress {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--bg-active);
+.notification-success {
+  --notification-accent: var(--success);
+  --notification-tint: var(--success-alpha);
+}
+
+.notification-error {
+  --notification-accent: var(--error);
+  --notification-tint: var(--error-alpha);
+}
+
+.notification-warning {
+  --notification-accent: var(--warning);
+  --notification-tint: var(--warning-alpha);
+}
+
+.notification-loading {
+  --notification-accent: var(--info);
+  --notification-tint: var(--info-alpha);
+}
+
+.notification-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  color: var(--notification-accent);
+  background: var(--notification-tint);
+  border-radius: var(--r-sm);
+}
+
+.notification-content {
+  min-width: 0;
+  padding-top: 1px;
+}
+
+.notification-heading {
+  margin-bottom: 3px;
   overflow: hidden;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.progress-bar {
+.notification-message {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.notification-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-xs);
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    background var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+
+.notification-close:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+  border-color: var(--border);
+}
+
+.notification-progress {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 3px;
+  height: 2px;
+  overflow: hidden;
+  background: var(--bg-active);
+}
+
+.notification-progress > span {
+  display: block;
   height: 100%;
-  transition: width 0.1s linear;
+  background: var(--notification-accent);
+  transition: width 50ms linear;
 }
 
-.glass-message.success .progress-bar { background: var(--success); }
-.glass-message.error   .progress-bar { background: var(--error); }
-.glass-message.warning .progress-bar { background: var(--warning); }
-.glass-message.info    .progress-bar { background: var(--info); }
-.glass-message.loading .progress-bar { background: var(--info); }
-
-.message-list-enter-active,
-.message-list-leave-active {
-  transition: all var(--duration-slow) var(--ease-spring);
+.notification.is-paused .notification-progress > span {
+  opacity: 0.72;
 }
 
-.message-list-enter-from {
+.notification-list-enter-active,
+.notification-list-leave-active {
+  transition:
+    opacity var(--duration-normal) var(--ease-standard),
+    transform var(--duration-normal) var(--ease-spring);
+}
+
+.notification-list-enter-from,
+.notification-list-leave-to {
   opacity: 0;
-  transform: translateX(-27px) scale(0.9);
+  transform: translateX(-24px) scale(0.96);
 }
 
-.message-list-leave-to {
-  opacity: 0;
-  transform: translateX(27px) scale(0.9);
+.notification-list-leave-active {
+  position: absolute;
+  width: 100%;
 }
 
-.message-list-move {
+.notification-list-move {
   transition: transform var(--duration-normal) var(--ease-standard);
+}
+
+@media (max-width: 640px) {
+  .notification-center {
+    bottom: var(--s-sm);
+    width: min(360px, calc(100vw - var(--s-sm) * 2));
+  }
+
+  .notification-center:not(.is-flush-left) {
+    left: var(--s-sm);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notification,
+  .notification-list-enter-active,
+  .notification-list-leave-active,
+  .notification-list-move,
+  .notification-progress > span {
+    transition: none;
+  }
 }

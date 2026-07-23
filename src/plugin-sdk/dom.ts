@@ -209,7 +209,7 @@ export function removeStyle(styleEl: HTMLStyleElement): void {
 }
 
 export function removeAllPluginStyles(pluginName: string): void {
-  document.querySelectorAll(`style[data-plugin="${pluginName}"]`).forEach(el => el.remove())
+  document.querySelectorAll(`style[data-plugin="${pluginName}"]`).forEach((el) => el.remove())
 }
 
 // ── DOM 监听 ──
@@ -232,11 +232,7 @@ export function createMutationObserver(
   }
 }
 
-export function onElementAppear(
-  selector: string,
-  callback: (el: Element) => void,
-  timeout = 10000
-): () => void {
+export function onElementAppear(selector: string, callback: (el: Element) => void, timeout = 10000): () => void {
   const existing = querySelector(selector)
   if (existing) {
     callback(existing)
@@ -263,10 +259,7 @@ export function onElementAppear(
   return () => observer.disconnect()
 }
 
-export function onElementRemoved(
-  element: Element,
-  callback: () => void
-): () => void {
+export function onElementRemoved(element: Element, callback: () => void): () => void {
   const parent = element.parentElement
   if (!parent) return () => {}
 

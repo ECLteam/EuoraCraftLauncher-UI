@@ -4,10 +4,7 @@
     <div class="settings-nav">
       <div class="nav-header">
         <h2 class="nav-title">
-          <UiIcon
-            name="settings"
-            :size="18"
-          />
+          <UiIcon name="settings" :size="18" />
           {{ t('settings.title') }}
         </h2>
       </div>
@@ -19,45 +16,25 @@
           :class="['nav-item', { active: isActive(item.path) }]"
         >
           <span class="nav-indicator" />
-          <UiIcon
-            :name="item.icon"
-            :size="18"
-            class="nav-icon"
-          />
+          <UiIcon :name="item.icon" :size="18" class="nav-icon" />
           <span class="nav-label">{{ item.label }}</span>
         </RouterLink>
       </div>
       <!-- 插件：设置页导航底部插槽 -->
-      <div
-        id="plugin-slot-settings-nav-bottom"
-        class="plugin-slot-container"
-      />
+      <div id="plugin-slot-settings-nav-bottom" class="plugin-slot-container" />
     </div>
 
     <!-- 右侧内容区 -->
     <div class="settings-content">
       <!-- 插件：设置页内容区顶部插槽 -->
-      <div
-        id="plugin-slot-settings-content-top"
-        class="plugin-slot-container"
-      />
+      <div id="plugin-slot-settings-content-top" class="plugin-slot-container" />
       <RouterView v-slot="{ Component }">
-        <Transition
-          name="page"
-          mode="out-in"
-        >
-          <component
-            :is="Component"
-            :settings="settings"
-            @update:settings="handleUpdateSettings"
-          />
+        <Transition name="page" mode="out-in">
+          <component :is="Component" :settings="settings" @update:settings="handleUpdateSettings" />
         </Transition>
       </RouterView>
       <!-- 插件：设置页内容区底部插槽 -->
-      <div
-        id="plugin-slot-settings-content-bottom"
-        class="plugin-slot-container"
-      />
+      <div id="plugin-slot-settings-content-bottom" class="plugin-slot-container" />
     </div>
   </div>
 </template>
@@ -90,7 +67,7 @@ const getInitialGamePath = () => {
   const paths = injectedGameConfig?.value?.minecraft_paths
   if (!paths?.length) return ''
   const first = paths[0]
-  return typeof first === 'string' ? first : first?.path ?? ''
+  return typeof first === 'string' ? first : (first?.path ?? '')
 }
 
 const settings = reactive({
@@ -122,26 +99,27 @@ watch([themeMode, primaryColor, blurAmount, backgroundImagePath], ([mode, color,
 })
 
 // 后端配置到达后同步到 settings
-watch([
-  () => injectedGameConfig?.value,
-  () => injectedDownloadConfig?.value,
-], ([game, download]) => {
-  if (game) {
-    Object.assign(settings, {
-      java_auto: game.java_auto,
-      java_path: game.java_path ?? '',
-      memory_size: game.memory_size,
-      fullscreen: game.fullscreen,
-      game_path: getInitialGamePath(),
-    })
-  }
-  if (download) {
-    Object.assign(settings, {
-      mirror_source: download.mirror_source ?? '',
-      download_threads: download.download_threads,
-    })
-  }
-}, { immediate: true })
+watch(
+  [() => injectedGameConfig?.value, () => injectedDownloadConfig?.value],
+  ([game, download]) => {
+    if (game) {
+      Object.assign(settings, {
+        java_auto: game.java_auto,
+        java_path: game.java_path ?? '',
+        memory_size: game.memory_size,
+        fullscreen: game.fullscreen,
+        game_path: getInitialGamePath(),
+      })
+    }
+    if (download) {
+      Object.assign(settings, {
+        mirror_source: download.mirror_source ?? '',
+        download_threads: download.download_threads,
+      })
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped src="@/styles/views/Settings.css"></style>

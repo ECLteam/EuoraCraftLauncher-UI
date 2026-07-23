@@ -1,13 +1,9 @@
 import { ref, computed, reactive } from 'vue'
 import backend from '@/api/client'
+import type { AuthlibServer, MinecraftAccount, MicrosoftLoginData } from '@/types/api'
 import { useClipboard } from './useClipboard'
 import { useGlassMessage } from './useGlassMessage'
 import { useIntervalFn } from './useIntervalFn'
-import type {
-  AuthlibServer,
-  MinecraftAccount,
-  MicrosoftLoginData,
-} from '@/types/api'
 
 export type Account = MinecraftAccount
 
@@ -31,6 +27,13 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
   const addingAuthlib = ref(false)
   const authlibServers = ref<AuthlibServer[]>([])
   const authlibServersLoading = ref(false)
+  const authlibServerOptions = computed(() =>
+    authlibServers.value.map((server) => ({
+      value: server.url,
+      label: server.name || server.url,
+      desc: server.description || server.url,
+    }))
+  )
 
   const showMicrosoftLoginModal = ref(false)
   const startingMicrosoftLogin = ref(false)
@@ -55,7 +58,11 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
   const pollInterval = ref(5000)
   let isPolling = false
 
-  const { resume: startPolling, pause: stopPolling, runOnce } = useIntervalFn(
+  const {
+    resume: startPolling,
+    pause: stopPolling,
+    runOnce,
+  } = useIntervalFn(
     async () => {
       if (!showMicrosoftLoginModal.value || microsoftLoginStatus.value !== 'pending') {
         stopPolling()
@@ -110,6 +117,7 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     authlibEmail.value = ''
     authlibPassword.value = ''
     loadAccounts()
+    loadAuthlibServers()
   }
 
   async function addOfflineAccount() {
@@ -165,11 +173,14 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
   // ── Authlib ──
 
   async function loadAuthlibServers() {
+    if (authlibServersLoading.value) return
     authlibServersLoading.value = true
     const res = await backend.command('authlib_servers')
     authlibServersLoading.value = false
     if (res.success && res.data) {
       authlibServers.value = res.data
+    } else {
+      authlibServers.value = []
     }
   }
 
@@ -178,10 +189,6 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     if (showAuthlibForm.value && authlibServers.value.length === 0) {
       loadAuthlibServers()
     }
-  }
-
-  function selectAuthlibServer(server: AuthlibServer) {
-    authlibServerUrl.value = server.url
   }
 
   async function addAuthlibAccount() {
@@ -215,7 +222,7 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
       authlibEmail.value = ''
       authlibPassword.value = ''
       showAuthlibForm.value = false
-      await loadAccounts()
+      await Promise.all([loadAccounts(), loadAuthlibServers()])
     } else {
       message.error(res.message || t('game.status.accountAddFailed'))
     }
@@ -241,7 +248,7 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     if (res.data?.status === 'pending' || (res.data?.verificationUri && res.data?.userCode)) {
       microsoftLoginData.value = {
         userCode: res.data.userCode || '',
-        verificationUri: res.data.verificationUri || ''
+        verificationUri: res.data.verificationUri || '',
       }
       microsoftLoginStatus.value = 'pending'
       showMicrosoftLoginModal.value = true
@@ -309,10 +316,10 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     authlibPassword,
     addingAuthlib,
     authlibServers,
+    authlibServerOptions,
     authlibServersLoading,
     loadAuthlibServers,
     toggleAuthlibForm,
-    selectAuthlibServer,
     addAuthlibAccount,
     // Microsoft
     showMicrosoftLoginModal,
@@ -338,6 +345,6 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     copyUserCode,
     showClientIdModal,
     cancelClientId,
-    reset
+    reset,
   })
 }

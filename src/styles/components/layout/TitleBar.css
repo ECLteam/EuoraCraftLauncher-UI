@@ -114,8 +114,9 @@
   font-family: inherit;
   letter-spacing: 0.01em;
   white-space: nowrap;
-  transition: color var(--duration-fast) ease-out,
-              border-color var(--duration-fast) ease-out;
+  transition:
+    color var(--duration-fast) ease-out,
+    border-color var(--duration-fast) ease-out;
   -webkit-app-region: no-drag;
   position: relative;
   outline: none;

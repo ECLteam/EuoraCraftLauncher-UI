@@ -2,8 +2,8 @@
 
 import { ref, readonly, watch, type DeepReadonly, type Ref } from 'vue'
 import backend from '@/api/client'
-import type { AccountState, LauncherState, ThemeState } from './types'
 import type { AccountListData, LauncherConfig } from '@/types/api'
+import type { AccountState, LauncherState, ThemeState } from './types'
 
 // ---- 工厂：统一 ref + readonly + watch + refresh 模板 ----
 
@@ -14,10 +14,7 @@ interface StateSlice<T> {
   refresh: () => Promise<void>
 }
 
-function createStateSlice<T>(
-  initial: T,
-  refreshFn?: (state: Ref<T>) => Promise<void>,
-): StateSlice<T> {
+function createStateSlice<T>(initial: T, refreshFn?: (state: Ref<T>) => Promise<void>): StateSlice<T> {
   const state = ref(initial) as unknown as Ref<T>
   return {
     state,
@@ -56,36 +53,54 @@ function syncAccounts(state: Ref<AccountState>, data: AccountListData): void {
 
 // ---- Slices ----
 
-const themeSlice = createStateSlice<ThemeState>({
-  mode: 'system',
-  isDark: false,
-  primaryColor: '',
-  backgroundImage: '',
-  backgroundOpacity: 0,
-}, (state) => {
-  return backend.config.get<ThemeConfigPayload>('ui').then(res => {
-    if (res.success && res.data) syncTheme(state, res.data)
-  }).catch(() => {})
-})
+const themeSlice = createStateSlice<ThemeState>(
+  {
+    mode: 'system',
+    isDark: false,
+    primaryColor: '',
+    backgroundImage: '',
+    backgroundOpacity: 0,
+  },
+  (state) => {
+    return backend.config
+      .get<ThemeConfigPayload>('ui')
+      .then((res) => {
+        if (res.success && res.data) syncTheme(state, res.data)
+      })
+      .catch(() => {})
+  }
+)
 
-const launcherSlice = createStateSlice<LauncherState>({
-  version: '',
-  versionType: 'dev',
-  devMode: false,
-}, (state) => {
-  return backend.config.get<LauncherConfig>('launcher').then(res => {
-    if (res.success && res.data) syncLauncher(state, res.data)
-  }).catch(() => {})
-})
+const launcherSlice = createStateSlice<LauncherState>(
+  {
+    version: '',
+    versionType: 'dev',
+    devMode: false,
+  },
+  (state) => {
+    return backend.config
+      .get<LauncherConfig>('launcher')
+      .then((res) => {
+        if (res.success && res.data) syncLauncher(state, res.data)
+      })
+      .catch(() => {})
+  }
+)
 
-const accountSlice = createStateSlice<AccountState>({
-  current: null,
-  list: [],
-}, (state) => {
-  return backend.command('accounts_list').then(res => {
-    if (res.success && res.data) syncAccounts(state, res.data as AccountListData)
-  }).catch(() => {})
-})
+const accountSlice = createStateSlice<AccountState>(
+  {
+    current: null,
+    list: [],
+  },
+  (state) => {
+    return backend
+      .command('accounts_list')
+      .then((res) => {
+        if (res.success && res.data) syncAccounts(state, res.data as AccountListData)
+      })
+      .catch(() => {})
+  }
+)
 
 // ---- 初始化 ----
 

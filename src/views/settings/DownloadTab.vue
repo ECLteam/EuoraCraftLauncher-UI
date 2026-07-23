@@ -15,28 +15,13 @@
           </div>
         </div>
         <div class="setting-control">
-          <div
-            ref="selectRef"
-            class="custom-select"
-            :class="{ open: isOpen }"
-          >
-            <div
-              class="select-trigger"
-              @click="toggleOpen"
-            >
+          <div ref="selectRef" class="custom-select" :class="{ open: isOpen }">
+            <div class="select-trigger" @click="toggleOpen">
               <span class="selected-text">{{ selectedDownloadSource?.label || t('common.select') }}</span>
-              <UiIcon
-                name="chevron-down"
-                class="select-arrow"
-                :class="{ rotated: isOpen }"
-                :size="14"
-              />
+              <UiIcon name="chevron-down" class="select-arrow" :class="{ rotated: isOpen }" :size="14" />
             </div>
             <Transition name="select-dropdown">
-              <div
-                v-show="isOpen"
-                class="select-dropdown"
-              >
+              <div v-show="isOpen" class="select-dropdown">
                 <div
                   v-for="option in downloadOptions"
                   :key="option.value"
@@ -82,10 +67,7 @@
       </div>
     </div>
 
-    <div
-      id="plugin-slot-settings-download-section-after"
-      class="plugin-slot-container"
-    />
+    <div id="plugin-slot-settings-download-section-after" class="plugin-slot-container" />
   </div>
 </template>
 
@@ -121,18 +103,22 @@ const localSettings = reactive<Required<DownloadSettings>>({
 })
 
 // 监听外部 props 变化，同步到 localSettings
-watch(() => props.settings, (newSettings) => {
-  if (newSettings) {
-    localSettings.mirror_source = newSettings.mirror_source ?? ''
-    localSettings.download_threads = newSettings.download_threads ?? 8
-  }
-}, { deep: true })
+watch(
+  () => props.settings,
+  (newSettings) => {
+    if (newSettings) {
+      localSettings.mirror_source = newSettings.mirror_source ?? ''
+      localSettings.download_threads = newSettings.download_threads ?? 8
+    }
+  },
+  { deep: true }
+)
 
 const isOpen = ref(false)
 const selectRef = ref<HTMLElement | null>(null)
 
 const downloadOptions = computed(() =>
-  MIRROR_OPTIONS.map(opt => ({
+  MIRROR_OPTIONS.map((opt) => ({
     value: opt.value as 'official' | 'bmclapi',
     label: opt.label,
     desc: opt.desc,
@@ -140,7 +126,7 @@ const downloadOptions = computed(() =>
 )
 
 const selectedDownloadSource = computed(() =>
-  downloadOptions.value.find(o => o.value === localSettings.mirror_source)
+  downloadOptions.value.find((o) => o.value === localSettings.mirror_source)
 )
 
 const updateField = (field: keyof DownloadSettings, value: string | number) => {
@@ -155,23 +141,28 @@ const handleDownloadSourceChange = async (value: 'official' | 'bmclapi') => {
   localSettings.mirror_source = value
   updateField('mirror_source', value)
   isOpen.value = false
-  await run(async () => backend.config.set('download', {
-    mirror_source: value,
-    download_threads: localSettings.download_threads
-  }))
+  await run(async () =>
+    backend.config.set('download', {
+      mirror_source: value,
+      download_threads: localSettings.download_threads,
+    })
+  )
 }
 
 const handleThreadsChange = async (val: number) => {
   localSettings.download_threads = val
   updateField('download_threads', val)
-  await run(async () => backend.config.set('download', {
-    mirror_source: localSettings.mirror_source,
-    download_threads: val
-  }))
+  await run(async () =>
+    backend.config.set('download', {
+      mirror_source: localSettings.mirror_source,
+      download_threads: val,
+    })
+  )
 }
 
-useClickOutside(selectRef, () => { isOpen.value = false })
+useClickOutside(selectRef, () => {
+  isOpen.value = false
+})
 </script>
 
 <style scoped src="@/styles/views/settings/DownloadTab.css"></style>
-

@@ -55,7 +55,9 @@
   cursor: pointer;
   border-radius: var(--r-sm);
   margin: 0 5px;
-  transition: color var(--duration-fast) ease-out, background var(--duration-fast) ease-out;
+  transition:
+    color var(--duration-fast) ease-out,
+    background var(--duration-fast) ease-out;
 }
 
 .versions-nav .nav-item:hover {
@@ -69,7 +71,7 @@
   font-weight: 600;
 }
 
-[data-theme="dark"] .versions-nav .nav-item.active {
+[data-theme='dark'] .versions-nav .nav-item.active {
   color: var(--info);
 }
 
@@ -85,7 +87,7 @@
   transition: opacity var(--duration-fast) ease-out;
 }
 
-[data-theme="dark"] .versions-nav .nav-indicator {
+[data-theme='dark'] .versions-nav .nav-indicator {
   background: var(--info);
 }
 
@@ -109,13 +111,15 @@
 }
 
 .tab-fade-enter-active {
-  transition: opacity var(--duration-normal) ease,
-              transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition:
+    opacity var(--duration-normal) ease,
+    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .tab-fade-leave-active {
-  transition: opacity 0.12s ease,
-              transform 0.12s ease;
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
   position: absolute;
   width: 100%;
 }
@@ -164,12 +168,12 @@
   font-weight: 600;
 }
 
-[data-theme="dark"] .path-item.active {
+[data-theme='dark'] .path-item.active {
   background: rgba(74, 127, 217, 0.12);
 }
 
 .path-item.active::before {
-  content: "";
+  content: '';
   position: absolute;
   left: 0;
   top: 11px;
@@ -226,11 +230,11 @@
 }
 
 .path-location:empty::before {
-  content: "空";
+  content: '空';
   color: var(--text-tertiary);
 }
 
-[data-theme="dark"] .path-location:empty::before {
+[data-theme='dark'] .path-location:empty::before {
   color: var(--text-secondary);
 }
 

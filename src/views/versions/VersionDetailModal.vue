@@ -11,10 +11,7 @@
       <div class="vdm-nav">
         <div class="vdm-nav-header">
           <div class="vdm-version-badge">
-            <UiIcon
-              :name="getLoaderIcon(version?.primaryLoader || 'vanilla')"
-              :size="20"
-            />
+            <UiIcon :name="getLoaderIcon(version?.primaryLoader || 'vanilla')" :size="20" />
             <span class="vdm-version-name">{{ version?.versionId || '...' }}</span>
           </div>
         </div>
@@ -26,30 +23,19 @@
             @click="activeTab = tab.id"
           >
             <span class="nav-indicator" />
-            <UiIcon
-              :name="tab.icon"
-              :size="17"
-            />
+            <UiIcon :name="tab.icon" :size="17" />
             <span class="vdm-nav-label">{{ tab.label }}</span>
           </button>
         </div>
-        <div
-          id="plugin-slot-version-detail-tab"
-          class="plugin-slot-container"
-        />
+        <div id="plugin-slot-version-detail-tab" class="plugin-slot-container" />
       </div>
 
       <!-- 右侧内容 -->
       <div class="vdm-content">
         <!-- 总览 -->
-        <div
-          v-if="activeTab === 'overview'"
-          class="vdm-tab"
-        >
+        <div v-if="activeTab === 'overview'" class="vdm-tab">
           <div class="settings-section">
-            <div class="section-label">
-              版本信息
-            </div>
+            <div class="section-label">版本信息</div>
             <div class="info-grid">
               <div class="info-item">
                 <span class="info-label">版本 ID</span>
@@ -73,38 +59,18 @@
           </div>
 
           <div class="settings-section">
-            <div class="section-label">
-              快速操作
-            </div>
+            <div class="section-label">快速操作</div>
             <div class="quick-actions">
-              <button
-                class="btn-action-card"
-                @click="handleLaunch"
-              >
-                <UiIcon
-                  name="play"
-                  :size="20"
-                />
+              <button class="btn-action-card" @click="handleLaunch">
+                <UiIcon name="play" :size="20" />
                 <span>启动游戏</span>
               </button>
-              <button
-                class="btn-action-card"
-                @click="handleOpenFolder"
-              >
-                <UiIcon
-                  name="folder"
-                  :size="20"
-                />
+              <button class="btn-action-card" @click="handleOpenFolder">
+                <UiIcon name="folder" :size="20" />
                 <span>打开文件夹</span>
               </button>
-              <button
-                class="btn-action-card"
-                @click="handleDelete"
-              >
-                <UiIcon
-                  name="trash"
-                  :size="20"
-                />
+              <button class="btn-action-card" @click="handleDelete">
+                <UiIcon name="trash" :size="20" />
                 <span>删除版本</span>
               </button>
             </div>
@@ -112,37 +78,21 @@
         </div>
 
         <!-- Mod 管理 -->
-        <div
-          v-if="activeTab === 'mods'"
-          class="vdm-tab"
-        >
+        <div v-if="activeTab === 'mods'" class="vdm-tab">
           <div class="settings-section">
-            <div class="section-label">
-              Mod 管理
-            </div>
-            <p class="placeholder-text">
-              Mod 管理功能即将推出
-            </p>
+            <div class="section-label">Mod 管理</div>
+            <p class="placeholder-text">Mod 管理功能即将推出</p>
           </div>
         </div>
 
         <!-- 版本设置 -->
-        <div
-          v-if="activeTab === 'settings'"
-          class="vdm-tab"
-        >
+        <div v-if="activeTab === 'settings'" class="vdm-tab">
           <div class="settings-section">
-            <div class="section-label">
-              启动选项
-            </div>
+            <div class="section-label">启动选项</div>
             <div class="setting-item">
               <div class="setting-info">
-                <div class="setting-label">
-                  版本隔离
-                </div>
-                <div class="setting-desc">
-                  为此版本使用独立的游戏目录
-                </div>
+                <div class="setting-label">版本隔离</div>
+                <div class="setting-desc">为此版本使用独立的游戏目录</div>
               </div>
               <div class="setting-control">
                 <button
@@ -156,17 +106,11 @@
           </div>
 
           <div class="settings-section">
-            <div class="section-label">
-              内存分配
-            </div>
+            <div class="section-label">内存分配</div>
             <div class="setting-item">
               <div class="setting-info">
-                <div class="setting-label">
-                  自定义内存
-                </div>
-                <div class="setting-desc">
-                  为此版本单独设置内存大小
-                </div>
+                <div class="setting-label">自定义内存</div>
+                <div class="setting-desc">为此版本单独设置内存大小</div>
               </div>
               <div class="setting-control">
                 <button
@@ -177,14 +121,9 @@
                 </button>
               </div>
             </div>
-            <div
-              v-if="versionSettings.customMemory"
-              class="setting-item"
-            >
+            <div v-if="versionSettings.customMemory" class="setting-item">
               <div class="setting-info">
-                <div class="setting-label">
-                  内存大小 (MB)
-                </div>
+                <div class="setting-label">内存大小 (MB)</div>
               </div>
               <div class="setting-control">
                 <input
@@ -193,23 +132,17 @@
                   min="512"
                   step="256"
                   class="text-input memory-input"
-                >
+                />
               </div>
             </div>
           </div>
 
           <div class="settings-section">
-            <div class="section-label">
-              Java 运行时
-            </div>
+            <div class="section-label">Java 运行时</div>
             <div class="setting-item">
               <div class="setting-info">
-                <div class="setting-label">
-                  自定义 Java
-                </div>
-                <div class="setting-desc">
-                  为此版本单独指定 Java 路径
-                </div>
+                <div class="setting-label">自定义 Java</div>
+                <div class="setting-desc">为此版本单独指定 Java 路径</div>
               </div>
               <div class="setting-control">
                 <button
@@ -220,14 +153,9 @@
                 </button>
               </div>
             </div>
-            <div
-              v-if="versionSettings.customJava"
-              class="setting-item"
-            >
+            <div v-if="versionSettings.customJava" class="setting-item">
               <div class="setting-info">
-                <div class="setting-label">
-                  Java 路径
-                </div>
+                <div class="setting-label">Java 路径</div>
               </div>
               <div class="setting-control">
                 <input
@@ -235,26 +163,18 @@
                   type="text"
                   class="text-input java-path-input"
                   placeholder="选择 Java 可执行文件..."
-                >
-                <button class="btn-ghost java-browse-btn">
-                  浏览
-                </button>
+                />
+                <button class="btn-ghost java-browse-btn">浏览</button>
               </div>
             </div>
           </div>
 
           <div class="settings-section">
-            <div class="section-label">
-              JVM 参数
-            </div>
+            <div class="section-label">JVM 参数</div>
             <div class="setting-item">
               <div class="setting-info">
-                <div class="setting-label">
-                  自定义 JVM 参数
-                </div>
-                <div class="setting-desc">
-                  追加到启动命令的 JVM 参数
-                </div>
+                <div class="setting-label">自定义 JVM 参数</div>
+                <div class="setting-desc">追加到启动命令的 JVM 参数</div>
               </div>
             </div>
             <textarea
@@ -265,17 +185,11 @@
           </div>
 
           <div class="settings-section">
-            <div class="section-label">
-              游戏参数
-            </div>
+            <div class="section-label">游戏参数</div>
             <div class="setting-item">
               <div class="setting-info">
-                <div class="setting-label">
-                  自定义游戏参数
-                </div>
-                <div class="setting-desc">
-                  追加到游戏进程的启动参数
-                </div>
+                <div class="setting-label">自定义游戏参数</div>
+                <div class="setting-desc">追加到游戏进程的启动参数</div>
               </div>
             </div>
             <textarea
@@ -287,26 +201,16 @@
         </div>
 
         <!-- 存档管理 -->
-        <div
-          v-if="activeTab === 'saves'"
-          class="vdm-tab"
-        >
+        <div v-if="activeTab === 'saves'" class="vdm-tab">
           <div class="settings-section">
-            <div class="section-label">
-              存档管理
-            </div>
-            <p class="placeholder-text">
-              存档管理功能即将推出
-            </p>
+            <div class="section-label">存档管理</div>
+            <p class="placeholder-text">存档管理功能即将推出</p>
           </div>
         </div>
       </div>
     </div>
 
-    <div
-      id="plugin-slot-version-detail-footer"
-      class="plugin-slot-container"
-    />
+    <div id="plugin-slot-version-detail-footer" class="plugin-slot-container" />
   </FullscreenModal>
 </template>
 
@@ -316,8 +220,8 @@ import { useI18n } from 'vue-i18n'
 import backend from '@/api/client'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
-import { getLoaderIcon, getLoaderName } from '@/utils/loader'
 import type { ScannedVersion } from '@/types/api'
+import { getLoaderIcon, getLoaderName } from '@/utils/loader'
 
 interface Props {
   visible: boolean
@@ -335,7 +239,7 @@ const { t } = useI18n()
 
 const visible = computed({
   get: () => props.visible,
-  set: (val) => emit('update:visible', val)
+  set: (val) => emit('update:visible', val),
 })
 
 const title = computed(() => props.version?.versionId || '版本设置')
@@ -360,12 +264,15 @@ const versionSettings = reactive({
 })
 
 // 重置 activeTab 当弹窗打开时
-watch(() => props.visible, (val) => {
-  if (val) {
-    activeTab.value = 'overview'
-    // TODO: 加载版本独立设置
+watch(
+  () => props.visible,
+  (val) => {
+    if (val) {
+      activeTab.value = 'overview'
+      // TODO: 加载版本独立设置
+    }
   }
-})
+)
 
 function handleLaunch() {
   if (props.version) {

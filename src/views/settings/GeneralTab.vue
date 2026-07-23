@@ -23,17 +23,9 @@
               :class="['theme-option', { active: currentSettings.mode === opt.value }]"
               @click="handleThemeChange(opt.value as ThemeMode)"
             >
-              <UiIcon
-                :name="opt.icon"
-                :size="18"
-              />
+              <UiIcon :name="opt.icon" :size="18" />
               <span class="theme-option-label">{{ opt.label }}</span>
-              <UiIcon
-                v-if="currentSettings.mode === opt.value"
-                name="check"
-                :size="14"
-                class="theme-check"
-              />
+              <UiIcon v-if="currentSettings.mode === opt.value" name="check" :size="14" class="theme-check" />
             </div>
           </div>
         </div>
@@ -64,7 +56,7 @@
                 :value="currentSettings.primary_color"
                 class="color-input-native"
                 @input="handleColorInput"
-              >
+              />
               <span class="custom-color-label">+</span>
             </div>
           </div>
@@ -88,11 +80,8 @@
               :placeholder="t('settings.backgroundPlaceholder')"
               class="text-input"
               @input="handleBgImageInput"
-            >
-            <button
-              class="btn-ghost"
-              @click="selectLocalImage"
-            >
+            />
+            <button class="btn-ghost" @click="selectLocalImage">
               {{ t('common.browse') }}
             </button>
           </div>
@@ -109,13 +98,7 @@
           </div>
         </div>
         <div class="setting-control">
-          <UiSlider
-            v-model="bgBrightness"
-            :min="0"
-            :max="100"
-            suffix="%"
-            @update:modelValue="handleBrightnessChange"
-          />
+          <UiSlider v-model="bgBrightness" :min="0" :max="100" suffix="%" @update:modelValue="handleBrightnessChange" />
         </div>
       </div>
 
@@ -129,13 +112,7 @@
           </div>
         </div>
         <div class="setting-control">
-          <UiSlider
-            v-model="blurAmount"
-            :min="0"
-            :max="20"
-            suffix="px"
-            @update:modelValue="handleBlurChange"
-          />
+          <UiSlider v-model="blurAmount" :min="0" :max="20" suffix="px" @update:modelValue="handleBlurChange" />
         </div>
       </div>
     </div>
@@ -156,33 +133,18 @@
           </div>
         </div>
         <div class="setting-control">
-          <div
-            ref="langSelectRef"
-            class="custom-select"
-            :class="{ open: isLangOpen }"
-          >
-            <div
-              class="select-trigger"
-              @click="toggleLangOpen"
-            >
+          <div ref="langSelectRef" class="custom-select" :class="{ open: isLangOpen }">
+            <div class="select-trigger" @click="toggleLangOpen">
               <span class="selected-text">
                 <span class="lang-option">
                   <span class="lang-flag">{{ selectedLanguage?.flag }}</span>
                   <span class="lang-name">{{ selectedLanguage?.name }}</span>
                 </span>
               </span>
-              <UiIcon
-                name="chevron-down"
-                class="select-arrow"
-                :class="{ rotated: isLangOpen }"
-                :size="14"
-              />
+              <UiIcon name="chevron-down" class="select-arrow" :class="{ rotated: isLangOpen }" :size="14" />
             </div>
             <Transition name="select-dropdown">
-              <div
-                v-show="isLangOpen"
-                class="select-dropdown"
-              >
+              <div v-show="isLangOpen" class="select-dropdown">
                 <div
                   v-for="lang in supportedLocales"
                   :key="lang.code"
@@ -194,12 +156,7 @@
                     <span class="lang-flag">{{ lang.flag }}</span>
                     <span class="lang-name">{{ lang.name }}</span>
                   </div>
-                  <UiIcon
-                    v-if="currentLocale === lang.code"
-                    name="check"
-                    :size="14"
-                    class="check-icon"
-                  />
+                  <UiIcon v-if="currentLocale === lang.code" name="check" :size="14" class="check-icon" />
                 </div>
               </div>
             </Transition>
@@ -229,10 +186,7 @@
       </div>
     </div>
 
-    <div
-      id="plugin-slot-settings-general-section-after"
-      class="plugin-slot-container"
-    />
+    <div id="plugin-slot-settings-general-section-after" class="plugin-slot-container" />
   </div>
 </template>
 
@@ -293,7 +247,7 @@ const currentSettings = computed(() => ({
 const bgBrightness = ref(Math.round(backgroundOpacity.value * 100))
 
 const themeOptions = computed(() =>
-  THEME_MODE_OPTIONS.map(opt => ({
+  THEME_MODE_OPTIONS.map((opt) => ({
     value: opt.value,
     icon: opt.icon,
     label: t(`settings.theme${opt.value.charAt(0).toUpperCase() + opt.value.slice(1)}`),
@@ -303,9 +257,7 @@ const themeOptions = computed(() =>
 const isLangOpen = ref(false)
 const langSelectRef = ref<HTMLElement | null>(null)
 
-const selectedLanguage = computed(() =>
-  supportedLocales.find(l => l.code === currentLocale.value)
-)
+const selectedLanguage = computed(() => supportedLocales.find((l) => l.code === currentLocale.value))
 
 const updateField = (field: keyof GeneralSettings, value: string | number | boolean) => {
   emit('update:settings', { ...props.settings, [field]: value })
@@ -315,24 +267,28 @@ const updateField = (field: keyof GeneralSettings, value: string | number | bool
  * 通用 UI 配置更新函数
  * 统一处理 theme 配置的读取、合并与保存
  */
-async function updateUiConfig(partialTheme: Partial<{
-  mode: string
-  primary_color: string
-  blur_amount: number
-}>) {
+async function updateUiConfig(
+  partialTheme: Partial<{
+    mode: string
+    primary_color: string
+    blur_amount: number
+  }>
+) {
   const uiRes = await backend.config.get<UiConfig>('ui')
   if (!uiRes.success) return
   const uiCfg = uiRes.data || {}
-  await run(async () => backend.config.set('ui', {
-    ...uiCfg,
-    theme: {
-      ...uiCfg.theme,
-      mode: currentSettings.value.mode,
-      primary_color: currentSettings.value.primary_color,
-      blur_amount: currentSettings.value.blur_amount,
-      ...partialTheme,
-    }
-  }))
+  await run(async () =>
+    backend.config.set('ui', {
+      ...uiCfg,
+      theme: {
+        ...uiCfg.theme,
+        mode: currentSettings.value.mode,
+        primary_color: currentSettings.value.primary_color,
+        blur_amount: currentSettings.value.blur_amount,
+        ...partialTheme,
+      },
+    })
+  )
 }
 
 const toggleLangOpen = () => {
@@ -368,10 +324,12 @@ const handleBrightnessChange = async (val: number) => {
   const uiRes = await backend.config.get<UiConfig>('ui')
   if (!uiRes.success) return
   const uiCfg = uiRes.data || {}
-  await run(async () => backend.config.set('ui', {
-    ...uiCfg,
-    background: { ...(uiCfg.background || {}), opacity }
-  }))
+  await run(async () =>
+    backend.config.set('ui', {
+      ...uiCfg,
+      background: { ...(uiCfg.background || {}), opacity },
+    })
+  )
 }
 
 const selectLocalImage = async () => {
@@ -380,7 +338,10 @@ const selectLocalImage = async () => {
 
   updateField('background_image', result.data.path)
   const uiCfg = (await backend.config.get<UiConfig>('ui')).data || {}
-  await backend.config.set('ui', { ...uiCfg, background: { ...(uiCfg.background || {}), type: 'custom', path: result.data.path } })
+  await backend.config.set('ui', {
+    ...uiCfg,
+    background: { ...(uiCfg.background || {}), type: 'custom', path: result.data.path },
+  })
   const imgData = await backend.command('image_read_file', { path: result.data.path })
   const imageUrl = imgData.data?.base64 || imgData.data?.dataUrl
   if (imgData.success && imageUrl) {
@@ -431,7 +392,9 @@ const handleLanguageChange = async (langCode: LocaleCode) => {
   await run(async () => backend.config.set('ui', { ...uiCfg, locale: langCode }))
 }
 
-useClickOutside(langSelectRef, () => { isLangOpen.value = false })
+useClickOutside(langSelectRef, () => {
+  isLangOpen.value = false
+})
 
 onUnmounted(() => {
   if (bgTimer) clearTimeout(bgTimer)
@@ -439,4 +402,3 @@ onUnmounted(() => {
 </script>
 
 <style scoped src="@/styles/views/settings/GeneralTab.css"></style>
-

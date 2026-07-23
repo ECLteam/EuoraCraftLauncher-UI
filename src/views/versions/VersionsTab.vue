@@ -2,57 +2,29 @@
   <div class="install-page">
     <!-- 顶部栏：类型筛选 + 搜索 -->
     <div class="panel-header">
-      <UiSelect
-        v-model="selectedCategory"
-        :options="categoryOptions"
-        class="category-select"
-      />
+      <UiSelect v-model="selectedCategory" :options="categoryOptions" class="category-select" />
 
       <div class="header-right">
-        <span
-          v-if="filteredVersions.length > 0"
-          class="version-count-badge"
-        >
+        <span v-if="filteredVersions.length > 0" class="version-count-badge">
           {{ t('versions.download.versionCount', { count: filteredVersions.length }) }}
         </span>
-        <button
-          class="btn-refresh"
-          @click="fetchVersions"
-        >
-          <UiIcon
-            name="refresh"
-            :size="14"
-          />
+        <button class="btn-refresh" @click="fetchVersions">
+          <UiIcon name="refresh" :size="14" />
           {{ t('versions.download.refreshList') }}
         </button>
         <div class="search-box">
-          <UiIcon
-            name="search"
-            :size="16"
-            class="search-icon"
-          />
+          <UiIcon name="search" :size="16" class="search-icon" />
           <input
             v-model="searchQuery"
             type="text"
             :placeholder="t('versions.download.searchVersion')"
             class="search-input"
-          >
-          <button
-            v-if="searchQuery"
-            class="search-clear"
-            type="button"
-            @click="searchQuery = ''"
-          >
-            <UiIcon
-              name="close"
-              :size="14"
-            />
+          />
+          <button v-if="searchQuery" class="search-clear" type="button" @click="searchQuery = ''">
+            <UiIcon name="close" :size="14" />
           </button>
         </div>
-        <div
-          id="plugin-slot-versions-list-toolbar"
-          class="plugin-slot-container"
-        />
+        <div id="plugin-slot-versions-list-toolbar" class="plugin-slot-container" />
       </div>
     </div>
 
@@ -60,61 +32,30 @@
     <div class="version-panel">
       <div class="version-content">
         <!-- 加载中 -->
-        <div
-          v-if="loading"
-          class="loading-state"
-        >
-          <UiIcon
-            name="spinner"
-            class="spin"
-            :size="24"
-          />
+        <div v-if="loading" class="loading-state">
+          <UiIcon name="spinner" class="spin" :size="24" />
           <p>{{ t('versions.download.fetchingList') }}</p>
         </div>
 
         <!-- 空状态 -->
-        <div
-          v-else-if="filteredVersions.length === 0"
-          class="empty-state"
-        >
-          <UiIcon
-            name="cube"
-            :size="48"
-            class="empty-icon"
-          />
+        <div v-else-if="filteredVersions.length === 0" class="empty-state">
+          <UiIcon name="cube" :size="48" class="empty-icon" />
           <p class="empty-text">
             {{ t('versions.download.noVersions') }}
           </p>
           <p class="empty-hint">
             {{ t('versions.download.checkNetwork') }}
           </p>
-          <button
-            class="btn-primary"
-            @click="fetchVersions"
-          >
-            <UiIcon
-              name="refresh"
-              :size="16"
-            />
+          <button class="btn-primary" @click="fetchVersions">
+            <UiIcon name="refresh" :size="16" />
             {{ t('versions.download.refreshList') }}
           </button>
         </div>
 
         <!-- 版本列表 -->
-        <div
-          v-else
-          ref="scrollContainerRef"
-          class="version-list-scroll"
-          @scroll="handleScroll"
-        >
-          <div
-            class="virtual-scroll-container"
-            :style="{ height: `${totalHeight}px` }"
-          >
-            <div
-              class="virtual-scroll-content"
-              :style="{ transform: `translateY(${topOffset}px)` }"
-            >
+        <div v-else ref="scrollContainerRef" class="version-list-scroll" @scroll="handleScroll">
+          <div class="virtual-scroll-container" :style="{ height: `${totalHeight}px` }">
+            <div class="virtual-scroll-content" :style="{ transform: `translateY(${topOffset}px)` }">
               <div
                 v-for="version in visibleVersions"
                 :key="version.id"
@@ -123,22 +64,15 @@
               >
                 <div
                   class="version-icon"
-                  :class="[
-                    version.type,
-                    { 'has-image': Boolean(getVersionImage(version.type)) },
-                  ]"
+                  :class="[version.type, { 'has-image': Boolean(getVersionImage(version.type)) }]"
                 >
                   <img
                     v-if="getVersionImage(version.type)"
                     :src="getVersionImage(version.type)"
                     alt=""
                     class="version-icon-img"
-                  >
-                  <UiIcon
-                    v-else
-                    :name="getVersionIcon(version.type)"
-                    :size="18"
                   />
+                  <UiIcon v-else :name="getVersionIcon(version.type)" :size="18" />
                 </div>
 
                 <div class="version-info">
@@ -149,10 +83,7 @@
                     </span>
                   </div>
                   <span class="version-date">
-                    <UiIcon
-                      name="calendar"
-                      :size="12"
-                    />
+                    <UiIcon name="calendar" :size="12" />
                     {{ formatDate(version.releaseTime) }}
                   </span>
                 </div>
@@ -164,10 +95,7 @@
                     :disabled="downloading === version.id"
                     @click="openInstallWithVersion(version.id)"
                   >
-                    <UiIcon
-                      name="download"
-                      :size="16"
-                    />
+                    <UiIcon name="download" :size="16" />
                     <span class="btn-install-text">{{ t('versions.download.install') }}</span>
                   </button>
                 </div>
@@ -179,10 +107,7 @@
     </div>
 
     <!-- 安装弹窗 -->
-    <Modal
-      v-model:visible="showInstallDialog"
-      :title="t('versions.download.installTitle')"
-    >
+    <Modal v-model:visible="showInstallDialog" :title="t('versions.download.installTitle')">
       <div class="form-group">
         <label>{{ t('versions.download.mcVersion') }} <span class="required">*</span></label>
         <div class="version-display">
@@ -192,10 +117,7 @@
 
       <div class="form-group">
         <label>{{ t('versions.download.versionName') }}</label>
-        <UiInput
-          v-model="installForm.versionName"
-          :placeholder="defaultVersionName"
-        />
+        <UiInput v-model="installForm.versionName" :placeholder="defaultVersionName" />
         <p class="form-hint">
           {{ t('versions.download.versionNameHint') }}
         </p>
@@ -217,10 +139,7 @@
         </div>
       </div>
 
-      <div
-        v-if="installForm.loader && installForm.loader !== 'vanilla'"
-        class="form-group"
-      >
+      <div v-if="installForm.loader && installForm.loader !== 'vanilla'" class="form-group">
         <label>{{ t('versions.download.loaderVersion') }}</label>
         <UiSelect
           v-model="installForm.loaderVersion"
@@ -239,17 +158,10 @@
       </div>
 
       <template #footer>
-        <UiButton
-          variant="ghost"
-          @click="showInstallDialog = false"
-        >
+        <UiButton variant="ghost" @click="showInstallDialog = false">
           {{ t('versions.download.cancel') }}
         </UiButton>
-        <UiButton
-          variant="primary"
-          :loading="isInstalling"
-          @click="startInstall"
-        >
+        <UiButton variant="primary" :loading="isInstalling" @click="startInstall">
           {{ isInstalling ? t('versions.download.installing') : t('versions.download.startInstall') }}
         </UiButton>
       </template>
@@ -300,7 +212,7 @@ const {
   data: versionCatalog,
   loading,
   error: versionsError,
-  fetchData: fetchVersionsData
+  fetchData: fetchVersionsData,
 } = useAutoRefreshCache<MinecraftVersionCatalog>(
   CACHE_KEYS.VERSIONS,
   async () => {
@@ -311,7 +223,7 @@ const {
   {
     ttl: 10 * 60 * 1000,
     group: CACHE_GROUPS.VERSION,
-    persistent: true
+    persistent: true,
   }
 )
 
@@ -327,10 +239,18 @@ let loaderRequestId = 0
 /** 设置指定加载器的版本列表 */
 function setLoaderVersions(loaderType: string, versions: string[]) {
   switch (loaderType) {
-    case 'fabric': fabricVersions.value = versions; break
-    case 'forge': forgeVersions.value = versions; break
-    case 'neoforge': neoforgeVersions.value = versions; break
-    case 'quilt': quiltVersions.value = versions; break
+    case 'fabric':
+      fabricVersions.value = versions
+      break
+    case 'forge':
+      forgeVersions.value = versions
+      break
+    case 'neoforge':
+      neoforgeVersions.value = versions
+      break
+    case 'quilt':
+      quiltVersions.value = versions
+      break
   }
 }
 
@@ -358,16 +278,18 @@ async function loadLoaderVersions(loaderType: string, gameVersion: string) {
       const loaderData: unknown = res.data
       const list = Array.isArray(loaderData)
         ? loaderData
-        : (loaderData && typeof loaderData === 'object' && 'all' in loaderData && Array.isArray(loaderData.all)
-            ? loaderData.all
-            : [])
-      const mapped = list.map((v: unknown) => {
-        if (v && typeof v === 'object') {
-          const item = v as Record<string, unknown>
-          return (item.LoaderVersion || item.version || String(v)) as string
-        }
-        return String(v)
-      }).filter(Boolean)
+        : loaderData && typeof loaderData === 'object' && 'all' in loaderData && Array.isArray(loaderData.all)
+          ? loaderData.all
+          : []
+      const mapped = list
+        .map((v: unknown) => {
+          if (v && typeof v === 'object') {
+            const item = v as Record<string, unknown>
+            return (item.LoaderVersion || item.version || String(v)) as string
+          }
+          return String(v)
+        })
+        .filter(Boolean)
       setLoaderVersions(loaderType, mapped.slice(0, 20))
       if (mapped.length === 0) {
         const loaderName = loaderType.charAt(0).toUpperCase() + loaderType.slice(1)
@@ -416,11 +338,11 @@ const installForm = ref({
   versionName: '',
   loader: 'vanilla',
   loaderVersion: '',
-  gamePath: ''
+  gamePath: '',
 })
 
 const categories = computed(() =>
-  VERSION_FILTERS.map(c => ({
+  VERSION_FILTERS.map((c) => ({
     id: c.id,
     name: t(c.labelKey),
     icon: c.icon,
@@ -428,13 +350,13 @@ const categories = computed(() =>
 )
 
 const categoryOptions = computed(() =>
-  categories.value.map(c => ({
+  categories.value.map((c) => ({
     value: c.id,
     label: `${c.name} (${getCategoryCount(c.id)})`,
   }))
 )
 
-const loaders = INSTALLABLE_LOADERS.map(l => ({
+const loaders = INSTALLABLE_LOADERS.map((l) => ({
   value: l.value,
   label: l.label,
   icon: l.icon,
@@ -474,7 +396,7 @@ const filteredVersions = computed(() => {
 
   // 校正 all 分类下版本的 type，避免全部显示为 'all'
   const typeMap = versionTypeMap.value
-  versions = versions.map(v => {
+  versions = versions.map((v) => {
     const realType = typeMap.get(v.id)
     if (realType && realType !== 'all' && v.type !== realType) {
       return { ...v, type: realType as MinecraftVersionType }
@@ -484,7 +406,7 @@ const filteredVersions = computed(() => {
 
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase()
-    versions = versions.filter(v => v.id.toLowerCase().includes(query))
+    versions = versions.filter((v) => v.id.toLowerCase().includes(query))
   }
   // 按发布时间降序排列
   return versions.slice().sort((a, b) => {
@@ -513,20 +435,33 @@ async function fetchLoaderVersions() {
   const mc = installForm.value.mcVersion
   if (!mc) return
   switch (installForm.value.loader) {
-    case 'fabric': await loadFabricVersions(mc); break
-    case 'forge': await loadForgeVersions(mc); break
-    case 'neoforge': await loadNeoforgeVersions(mc); break
-    case 'quilt': await loadQuiltVersions(mc); break
+    case 'fabric':
+      await loadFabricVersions(mc)
+      break
+    case 'forge':
+      await loadForgeVersions(mc)
+      break
+    case 'neoforge':
+      await loadNeoforgeVersions(mc)
+      break
+    case 'quilt':
+      await loadQuiltVersions(mc)
+      break
   }
 }
 
 function getLoaderVersionOptions(loader: string) {
   switch (loader) {
-    case 'fabric': return (fabricVersions.value || []).map(v => ({ label: v, value: v }))
-    case 'forge': return (forgeVersions.value || []).map(v => ({ label: v, value: v }))
-    case 'neoforge': return (neoforgeVersions.value || []).map(v => ({ label: v, value: v }))
-    case 'quilt': return (quiltVersions.value || []).map(v => ({ label: v, value: v }))
-    default: return []
+    case 'fabric':
+      return (fabricVersions.value || []).map((v) => ({ label: v, value: v }))
+    case 'forge':
+      return (forgeVersions.value || []).map((v) => ({ label: v, value: v }))
+    case 'neoforge':
+      return (neoforgeVersions.value || []).map((v) => ({ label: v, value: v }))
+    case 'quilt':
+      return (quiltVersions.value || []).map((v) => ({ label: v, value: v }))
+    default:
+      return []
   }
 }
 
@@ -539,8 +474,8 @@ async function loadDefaultGamePath() {
   const data = res.data
   const paths = data.minecraft_paths || []
   gamePaths.value = paths.map((p: MinecraftPathEntry) => {
-    const pathStr = typeof p === 'string' ? p : (p.path || '')
-    const name = typeof p === 'object' ? (p.name || pathStr) : pathStr
+    const pathStr = typeof p === 'string' ? p : p.path || ''
+    const name = typeof p === 'object' ? p.name || pathStr : pathStr
     return { value: pathStr, label: name }
   })
 
@@ -549,7 +484,7 @@ async function loadDefaultGamePath() {
   } else if (paths.length > 0) {
     const first = paths[0]
     if (first) {
-      defaultGamePath.value = typeof first === 'string' ? first : (first.path || '')
+      defaultGamePath.value = typeof first === 'string' ? first : first.path || ''
     }
   }
 }
@@ -557,12 +492,18 @@ async function loadDefaultGamePath() {
 async function saveLastInstallPath(path: string) {
   if (!path) return
   const res = await run(async () => backend.config.get<GameConfig>('game'))
-  const gameCfg = (res?.success && res.data) ? res.data : {}
+  const gameCfg = res?.success && res.data ? res.data : {}
   await run(async () => backend.config.set('game', { ...gameCfg, last_install_path: path }))
 }
 
 function openInstallWithVersion(versionId: string) {
-  installForm.value = { mcVersion: versionId, versionName: '', loader: 'vanilla', loaderVersion: '', gamePath: defaultGamePath.value }
+  installForm.value = {
+    mcVersion: versionId,
+    versionName: '',
+    loader: 'vanilla',
+    loaderVersion: '',
+    gamePath: defaultGamePath.value,
+  }
   showInstallDialog.value = true
 }
 
@@ -586,9 +527,12 @@ function selectLoader(loader: string) {
 }
 
 // 选择加载器版本后自动更新默认版本名
-watch(() => installForm.value.loaderVersion, () => {
-  installForm.value.versionName = ''
-})
+watch(
+  () => installForm.value.loaderVersion,
+  () => {
+    installForm.value.versionName = ''
+  }
+)
 
 async function doInstall() {
   const versionId = installForm.value.mcVersion
@@ -731,14 +675,13 @@ onMounted(() => {
     if (scrollContainerRef.value) {
       visibleRange.value = {
         start: 0,
-        end: Math.ceil(scrollContainerRef.value.clientHeight / itemHeight) + bufferSize * 2
+        end: Math.ceil(scrollContainerRef.value.clientHeight / itemHeight) + bufferSize * 2,
       }
     }
   })
 })
 
-onUnmounted(() => {
-})
+onUnmounted(() => {})
 </script>
 
 <style scoped src="@/styles/views/versions/VersionsTab.css"></style>

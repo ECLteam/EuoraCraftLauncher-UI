@@ -9,7 +9,11 @@ export { createElement, $ }
 
 // ── 消息提示 ──
 
-export function showToast(message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info', duration = 3000): void {
+export function showToast(
+  message: string,
+  type: 'info' | 'success' | 'warning' | 'error' = 'info',
+  duration = 3000
+): void {
   const colors: Record<string, string> = {
     info: '#3b82f6',
     success: '#22c55e',
@@ -101,7 +105,10 @@ export function showConfirm(title: string, message: string): Promise<boolean> {
                 fontSize: '13px',
               },
               events: {
-                click: () => { overlay.remove(); resolve(false) },
+                click: () => {
+                  overlay.remove()
+                  resolve(false)
+                },
               },
             }),
             createElement('button', {
@@ -116,7 +123,10 @@ export function showConfirm(title: string, message: string): Promise<boolean> {
                 fontSize: '13px',
               },
               events: {
-                click: () => { overlay.remove(); resolve(true) },
+                click: () => {
+                  overlay.remove()
+                  resolve(true)
+                },
               },
             }),
           ],
@@ -202,8 +212,12 @@ export function showModal(options: ModalOptions): { close: () => void; el: HTMLE
       },
       events: {
         click: () => close(),
-        mouseenter: (e) => { (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.06)' },
-        mouseleave: (e) => { (e.target as HTMLElement).style.background = 'none' },
+        mouseenter: (e) => {
+          ;(e.target as HTMLElement).style.background = 'rgba(255,255,255,0.06)'
+        },
+        mouseleave: (e) => {
+          ;(e.target as HTMLElement).style.background = 'none'
+        },
       },
     })
     header.appendChild(closeBtn)
@@ -350,11 +364,7 @@ export interface ContextMenuItem {
   children?: ContextMenuItem[]
 }
 
-export function showContextMenu(
-  x: number,
-  y: number,
-  items: ContextMenuItem[]
-): { close: () => void } {
+export function showContextMenu(x: number, y: number, items: ContextMenuItem[]): { close: () => void } {
   const existing = document.querySelector('.plugin-context-menu')
   if (existing) existing.remove()
 
@@ -379,13 +389,15 @@ export function showContextMenu(
     const els: HTMLElement[] = []
     for (const item of list) {
       if (item.divider) {
-        els.push(createElement('div', {
-          style: {
-            height: '1px',
-            background: 'var(--divider, rgba(255,255,255,0.06))',
-            margin: '4px 8px',
-          },
-        }))
+        els.push(
+          createElement('div', {
+            style: {
+              height: '1px',
+              background: 'var(--divider, rgba(255,255,255,0.06))',
+              margin: '4px 8px',
+            },
+          })
+        )
         continue
       }
 
@@ -409,18 +421,20 @@ export function showContextMenu(
           item.icon ? createElement('span', { text: item.icon, style: { fontSize: '14px' } }) : null,
           createElement('span', { text: item.label }),
         ].filter(Boolean) as HTMLElement[],
-        events: item.disabled ? {} : {
-          click: () => {
-            item.onClick?.()
-            close()
-          },
-          mouseenter: (e) => {
-            if (!item.disabled) (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.06)'
-          },
-          mouseleave: (e) => {
-            (e.target as HTMLElement).style.background = 'transparent'
-          },
-        },
+        events: item.disabled
+          ? {}
+          : {
+              click: () => {
+                item.onClick?.()
+                close()
+              },
+              mouseenter: (e) => {
+                if (!item.disabled) (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.06)'
+              },
+              mouseleave: (e) => {
+                ;(e.target as HTMLElement).style.background = 'transparent'
+              },
+            },
       })
 
       els.push(itemEl)
@@ -554,12 +568,15 @@ export function createIframeBridge(options: IframeBridgeOptions): IframeBridge {
   function forwardEvent(iframe: HTMLIFrameElement, e: MouseEvent, type: string) {
     const rect = iframe.getBoundingClientRect()
     const targetOrigin = iframe.src ? new URL(iframe.src).origin : window.location.origin
-    iframe.contentWindow?.postMessage({
-      type: 'mouse',
-      eventType: type,
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    }, targetOrigin)
+    iframe.contentWindow?.postMessage(
+      {
+        type: 'mouse',
+        eventType: type,
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      },
+      targetOrigin
+    )
   }
 
   function setupIframe(iframe: HTMLIFrameElement) {
@@ -580,10 +597,14 @@ export function createIframeBridge(options: IframeBridgeOptions): IframeBridge {
     })
 
     if (options.onConfigUpdate) {
-      iframe.addEventListener('load', () => {
-        if (destroyed) return
-        options.onConfigUpdate?.(iframe, {})
-      }, { once: true })
+      iframe.addEventListener(
+        'load',
+        () => {
+          if (destroyed) return
+          options.onConfigUpdate?.(iframe, {})
+        },
+        { once: true }
+      )
     }
   }
 
@@ -608,7 +629,7 @@ export function createIframeBridge(options: IframeBridgeOptions): IframeBridge {
     for (const mutation of mutations) {
       for (const node of mutation.removedNodes) {
         if (node instanceof HTMLElement && (node.matches(selector) || node.querySelector(selector))) {
-          cleanupFns.forEach(fn => fn())
+          cleanupFns.forEach((fn) => fn())
           cleanupFns.length = 0
         }
       }
@@ -621,7 +642,7 @@ export function createIframeBridge(options: IframeBridgeOptions): IframeBridge {
 
   const cleanup = () => {
     destroyed = true
-    cleanupFns.forEach(fn => fn())
+    cleanupFns.forEach((fn) => fn())
     cleanupFns.length = 0
     observer?.disconnect()
     observer = null
@@ -679,13 +700,18 @@ export function createTooltip(
     tooltip.style.left = `${pos.left}px`
     tooltip.style.top = `${pos.top}px`
 
-    requestAnimationFrame(() => { if (tooltip) tooltip.style.opacity = '1' })
+    requestAnimationFrame(() => {
+      if (tooltip) tooltip.style.opacity = '1'
+    })
   }
 
   function hide() {
     if (tooltip) {
       tooltip.style.opacity = '0'
-      setTimeout(() => { tooltip?.remove(); tooltip = null }, 150)
+      setTimeout(() => {
+        tooltip?.remove()
+        tooltip = null
+      }, 150)
     }
   }
 

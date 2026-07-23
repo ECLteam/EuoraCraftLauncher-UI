@@ -1,4 +1,5 @@
 import js from '@eslint/js'
+import eslintConfigPrettier from 'eslint-config-prettier'
 import importPlugin from 'eslint-plugin-import'
 import vue from 'eslint-plugin-vue'
 import globals from 'globals'
@@ -9,10 +10,14 @@ export default ts.config(
   ...ts.configs.recommended,
   ...vue.configs['flat/recommended'],
   {
+    linterOptions: {
+      reportUnusedDisableDirectives: 'error',
+    },
     plugins: {
       import: importPlugin,
     },
     languageOptions: {
+      ecmaVersion: 'latest',
       globals: {
         ...globals.browser,
       },
@@ -29,11 +34,15 @@ export default ts.config(
       'vue/attribute-hyphenation': ['error', 'never'],
       'vue/v-on-event-hyphenation': ['error', 'never'],
       'vue/order-in-components': 'off',
+      'vue/define-macros-order': ['error', { order: ['defineOptions', 'defineProps', 'defineEmits', 'defineSlots'] }],
 
       // ── TypeScript ──
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
-      '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports', fixStyle: 'inline-type-imports' }],
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
+      ],
       '@typescript-eslint/no-import-type-side-effects': 'error',
 
       // ── General ──
@@ -44,14 +53,19 @@ export default ts.config(
       'prefer-const': 'error',
       'no-duplicate-imports': 'error',
       'no-template-curly-in-string': 'error',
-      'eqeqeq': ['error', 'always', { null: 'ignore' }],
+      eqeqeq: ['error', 'always', { null: 'ignore' }],
 
       // ── Import order ──
-      'import/order': ['error', {
-        'groups': ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'type'],
-        'newlines-between': 'never',
-        'alphabetize': { order: 'asc', caseInsensitive: true },
-      }],
+      'import/order': [
+        'error',
+        {
+          groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'type'],
+          pathGroups: [{ pattern: '@/**', group: 'internal' }],
+          pathGroupsExcludedImportTypes: ['builtin'],
+          'newlines-between': 'never',
+          alphabetize: { order: 'asc', caseInsensitive: true },
+        },
+      ],
     },
     settings: {
       'import/resolver': {
@@ -59,7 +73,16 @@ export default ts.config(
       },
     },
   },
+  eslintConfigPrettier,
   {
-    ignores: ['dist', 'node_modules', '*.d.ts', 'vite.config.*', 'tailwind.config.*', 'postcss.config.*'],
+    ignores: [
+      'dist',
+      'node_modules',
+      '*.d.ts',
+      '*.tsbuildinfo',
+      'vite.config.*',
+      'tailwind.config.*',
+      'postcss.config.*',
+    ],
   }
 )

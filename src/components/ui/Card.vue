@@ -1,43 +1,28 @@
 <template>
-  <div 
-    class="ui-card" 
-    :class="{ 'hoverable': hoverable, 'interactive': isInteractive }"
+  <div
+    class="ui-card"
+    :class="{ hoverable: hoverable, interactive: isInteractive }"
     :role="isInteractive ? 'button' : undefined"
     :tabindex="isInteractive ? 0 : undefined"
     @keydown="handleKeydown"
   >
-    <div
-      v-if="$slots.header || title"
-      class="card-header"
-    >
+    <div v-if="$slots.header || title" class="card-header">
       <slot name="header">
         <div class="header-content">
-          <i
-            v-if="icon"
-            :class="['icon', icon]"
-          />
+          <i v-if="icon" :class="['icon', icon]" />
           <span class="title-text">{{ title }}</span>
         </div>
-        <div
-          v-if="$slots.actions"
-          class="header-actions"
-        >
+        <div v-if="$slots.actions" class="header-actions">
           <slot name="actions" />
         </div>
       </slot>
     </div>
-    
-    <div
-      class="card-body"
-      :class="bodyClass"
-    >
+
+    <div class="card-body" :class="bodyClass">
       <slot />
     </div>
-    
-    <div
-      v-if="$slots.footer"
-      class="card-footer"
-    >
+
+    <div v-if="$slots.footer" class="card-footer">
       <slot name="footer" />
     </div>
   </div>
@@ -64,7 +49,7 @@ const isInteractive = computed(() => props.interactive || false)
 
 const handleKeydown = (event: KeyboardEvent) => {
   if (!isInteractive.value) return
-  
+
   if (event.key === 'Enter' || event.key === ' ') {
     event.preventDefault()
     emit('click', event as unknown as MouseEvent)

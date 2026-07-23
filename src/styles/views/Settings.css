@@ -1,4 +1,6 @@
-:root { --settings-nav-w: 180px; }
+:root {
+  --settings-nav-w: 180px;
+}
 
 .settings-page {
   display: flex;
@@ -57,7 +59,9 @@
   cursor: pointer;
   border-radius: var(--r-sm);
   margin: 0 7px;
-  transition: color var(--duration-fast) ease-out, background var(--duration-fast) ease-out;
+  transition:
+    color var(--duration-fast) ease-out,
+    background var(--duration-fast) ease-out;
 }
 
 .nav-item:hover {
@@ -71,7 +75,7 @@
   font-weight: 600;
 }
 
-[data-theme="dark"] .nav-item.active {
+[data-theme='dark'] .nav-item.active {
   color: var(--info);
 }
 
@@ -87,7 +91,7 @@
   transition: opacity var(--duration-fast) ease-out;
 }
 
-[data-theme="dark"] .nav-indicator {
+[data-theme='dark'] .nav-indicator {
   background: var(--info);
 }
 

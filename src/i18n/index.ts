@@ -1,8 +1,8 @@
 import { createI18n } from 'vue-i18n'
 import backend from '@/api/client'
+import type { UiConfig } from '@/types/api'
 import enUS from './locales/en-US.json'
 import zhCN from './locales/zh-CN.json'
-import type { UiConfig } from '@/types/api'
 
 interface TauriGlobal {
   __TAURI__?: {
@@ -13,10 +13,10 @@ interface TauriGlobal {
 // 支持的语言列表
 export const supportedLocales = [
   { code: 'zh-CN', name: '简体中文', flag: '🇨🇳' },
-  { code: 'en-US', name: 'English', flag: '🇺🇸' }
+  { code: 'en-US', name: 'English', flag: '🇺🇸' },
 ] as const
 
-export type LocaleCode = typeof supportedLocales[number]['code']
+export type LocaleCode = (typeof supportedLocales)[number]['code']
 
 export const defaultLocale: LocaleCode = 'zh-CN'
 
@@ -28,8 +28,8 @@ export const i18n = createI18n({
   fallbackWarn: import.meta.env.DEV,
   messages: {
     'zh-CN': zhCN,
-    'en-US': enUS
-  }
+    'en-US': enUS,
+  },
 })
 
 /**
@@ -42,7 +42,7 @@ export async function loadLocaleFromBackend(): Promise<LocaleCode> {
       const result = await backend.config.get<UiConfig>('ui')
       if (result.success && result.data?.locale) {
         const locale = result.data.locale as LocaleCode
-        if (supportedLocales.some(l => l.code === locale)) {
+        if (supportedLocales.some((l) => l.code === locale)) {
           i18n.global.locale.value = locale
           document.documentElement.setAttribute('lang', locale)
           return locale

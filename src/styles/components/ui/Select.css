@@ -135,7 +135,8 @@
   font-size: 12px;
 }
 
-.select-dropdown-enter-from, .select-dropdown-leave-to {
+.select-dropdown-enter-from,
+.select-dropdown-leave-to {
   opacity: 0;
   transform: translateY(-7px);
 }

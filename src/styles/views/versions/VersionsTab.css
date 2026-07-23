@@ -73,7 +73,7 @@
   cursor: not-allowed;
 }
 
-  .search-box {
+.search-box {
   position: relative;
   display: flex;
   align-items: center;
@@ -236,7 +236,9 @@
   transition: all var(--duration-fast) ease-out;
 }
 
-.btn-primary:hover { background: var(--primary-hover); }
+.btn-primary:hover {
+  background: var(--primary-hover);
+}
 
 .version-content {
   flex: 1;
@@ -401,11 +403,26 @@
   font-weight: 500;
 }
 
-.badge-success { background: var(--success-alpha); color: var(--success); }
-.badge-warning { background: var(--warning-alpha); color: var(--warning); }
-.badge-info { background: var(--info-alpha); color: var(--info); }
-.badge-default { background: var(--bg-base-alt); color: var(--text-secondary); }
-.badge-april { background: rgba(240, 168, 200, 0.15); color: #c880a0; }
+.badge-success {
+  background: var(--success-alpha);
+  color: var(--success);
+}
+.badge-warning {
+  background: var(--warning-alpha);
+  color: var(--warning);
+}
+.badge-info {
+  background: var(--info-alpha);
+  color: var(--info);
+}
+.badge-default {
+  background: var(--bg-base-alt);
+  color: var(--text-secondary);
+}
+.badge-april {
+  background: rgba(240, 168, 200, 0.15);
+  color: #c880a0;
+}
 
 .empty-state {
   display: flex;
@@ -416,7 +433,9 @@
   gap: var(--s-md);
 }
 
-.empty-icon { color: var(--text-tertiary); }
+.empty-icon {
+  color: var(--text-tertiary);
+}
 
 .empty-text {
   font-size: 13px;
@@ -439,5 +458,3 @@
   gap: var(--s-md);
   color: var(--text-secondary);
 }
-
-

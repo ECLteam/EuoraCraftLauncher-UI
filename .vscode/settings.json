@@ -1,0 +1,11 @@
+{
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "eslint.validate": ["javascript", "typescript", "vue"],
+  "files.eol": "\n",
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "vue.server.hybridMode": true
+}

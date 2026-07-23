@@ -5,7 +5,7 @@ import { useIntervalFn as useVueuseIntervalFn } from '@vueuse/core'
 export function useIntervalFn(
   fn: () => void | Promise<void>,
   interval: number | (() => number),
-  options: { immediate?: boolean } = {},
+  options: { immediate?: boolean } = {}
 ) {
   const immediate = options.immediate ?? false
   const { isActive, resume, pause } = useVueuseIntervalFn(fn, interval, {

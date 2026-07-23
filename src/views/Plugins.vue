@@ -4,26 +4,10 @@
     <div class="plugins-toolbar">
       <div class="toolbar-left">
         <div class="search-box">
-          <UiIcon
-            name="search"
-            :size="16"
-            class="search-icon"
-          />
-          <input
-            v-model="searchQuery"
-            type="text"
-            :placeholder="t('plugins.searchPlugins')"
-            class="search-input"
-          >
-          <button
-            v-if="searchQuery"
-            class="search-clear"
-            @click="searchQuery = ''"
-          >
-            <UiIcon
-              name="close"
-              :size="14"
-            />
+          <UiIcon name="search" :size="16" class="search-icon" />
+          <input v-model="searchQuery" type="text" :placeholder="t('plugins.searchPlugins')" class="search-input" />
+          <button v-if="searchQuery" class="search-clear" @click="searchQuery = ''">
+            <UiIcon name="close" :size="14" />
           </button>
         </div>
         <div class="filter-group">
@@ -38,78 +22,18 @@
         </div>
       </div>
       <div class="toolbar-right">
-        <button
-          class="btn-create"
-          @click="installPlugin"
-        >
-          <UiIcon
-            name="add"
-            :size="16"
-          />
+        <button class="btn-create" @click="installPlugin">
+          <UiIcon name="add" :size="16" />
           <span>{{ t('plugins.install') }}</span>
         </button>
       </div>
     </div>
 
     <!-- 插件：插件页工具栏下方插槽 -->
-    <div
-      id="plugin-slot-plugins-toolbar-after"
-      class="plugin-slot-container"
-    />
+    <div id="plugin-slot-plugins-toolbar-after" class="plugin-slot-container" />
 
     <!-- 内容区 -->
     <div class="plugins-content">
-      <!-- 空状态 -->
-      <div
-        v-if="filteredPlugins.length === 0 && !loading"
-        class="empty-state"
-      >
-        <UiIcon
-          name="lab"
-          :size="48"
-          class="empty-icon"
-        />
-        <template v-if="activeFilter === 'disabled'">
-          <p class="empty-text">
-            {{ t('plugins.noDisabledPlugins') }}
-          </p>
-          <p class="empty-hint">
-            {{ t('plugins.noDisabledPluginsHint') }}
-          </p>
-        </template>
-        <template v-else>
-          <p class="empty-text">
-            {{ t('plugins.noPlugins') }}
-          </p>
-          <p class="empty-hint">
-            {{ t('plugins.noPluginsHint') }}
-          </p>
-          <button
-            class="btn-primary"
-            @click="installPlugin"
-          >
-            <UiIcon
-              name="add"
-              :size="16"
-            />
-            {{ t('plugins.installFirst') }}
-          </button>
-        </template>
-      </div>
-
-      <!-- 加载中 -->
-      <div
-        v-else-if="loading && filteredPlugins.length === 0"
-        class="loading-state"
-      >
-        <UiIcon
-          name="loading"
-          :size="24"
-          class="loading-icon spin"
-        />
-        <span class="loading-text">{{ t('plugins.loading') }}</span>
-      </div>
-
       <div class="list-view">
         <!-- 列表视图 -->
         <div class="list-header">
@@ -119,24 +43,14 @@
           <span class="col-status">{{ t('plugins.status') }}</span>
           <span class="col-actions" />
         </div>
-        <div
-          v-for="plugin in filteredPlugins"
-          :key="plugin.name"
-          :class="['list-row', `list-row--${plugin.status}`]"
-        >
+        <div v-for="plugin in filteredPlugins" :key="plugin.name" :class="['list-row', `list-row--${plugin.status}`]">
           <div class="col-name">
             <div class="list-item-icon">
-              <UiIcon
-                :name="plugin.icon || 'plugin'"
-                :size="18"
-              />
+              <UiIcon :name="plugin.icon || 'plugin'" :size="18" />
             </div>
             <div class="list-item-info">
               <span class="list-item-name">{{ plugin.title || plugin.name }}</span>
-              <span
-                v-if="plugin.description"
-                class="list-item-desc"
-              >{{ plugin.description }}</span>
+              <span v-if="plugin.description" class="list-item-desc">{{ plugin.description }}</span>
             </div>
           </div>
           <div class="col-version">
@@ -155,10 +69,7 @@
               :title="plugin.status === 'enabled' ? t('plugins.disable') : t('plugins.enable')"
               @click="togglePlugin(plugin)"
             >
-              <UiIcon
-                :name="plugin.status === 'enabled' ? 'check' : 'play'"
-                :size="14"
-              />
+              <UiIcon :name="plugin.status === 'enabled' ? 'check' : 'play'" :size="14" />
             </button>
             <button
               class="row-action-btn"
@@ -166,29 +77,48 @@
               :disabled="reloadingPlugins.includes(plugin.name)"
               @click="reloadPlugin(plugin)"
             >
-              <UiIcon
-                name="refresh"
-                :size="14"
-              />
+              <UiIcon name="refresh" :size="14" />
             </button>
-            <button
-              class="row-action-btn row-action-danger"
-              :title="t('plugins.unload')"
-              @click="unloadPlugin(plugin)"
-            >
-              <UiIcon
-                name="trash"
-                :size="14"
-              />
+            <button class="row-action-btn row-action-danger" :title="t('plugins.unload')" @click="unloadPlugin(plugin)">
+              <UiIcon name="trash" :size="14" />
             </button>
           </div>
         </div>
       </div>
+
+      <!-- 空状态 -->
+      <div v-if="filteredPlugins.length === 0 && !loading" class="empty-state">
+        <UiIcon name="lab" :size="48" class="empty-icon" />
+        <template v-if="activeFilter === 'disabled'">
+          <p class="empty-text">
+            {{ t('plugins.noDisabledPlugins') }}
+          </p>
+          <p class="empty-hint">
+            {{ t('plugins.noDisabledPluginsHint') }}
+          </p>
+        </template>
+        <template v-else>
+          <p class="empty-text">
+            {{ t('plugins.noPlugins') }}
+          </p>
+          <p class="empty-hint">
+            {{ t('plugins.noPluginsHint') }}
+          </p>
+          <button class="btn-primary" @click="installPlugin">
+            <UiIcon name="add" :size="16" />
+            {{ t('plugins.installFirst') }}
+          </button>
+        </template>
+      </div>
+
+      <!-- 加载中 -->
+      <div v-else-if="loading && filteredPlugins.length === 0" class="loading-state">
+        <UiIcon name="loading" :size="24" class="loading-icon spin" />
+        <span class="loading-text">{{ t('plugins.loading') }}</span>
+      </div>
+
       <!-- 插件：插件页列表底部插槽 -->
-      <div
-        id="plugin-slot-plugins-list-bottom"
-        class="plugin-slot-container"
-      />
+      <div id="plugin-slot-plugins-list-bottom" class="plugin-slot-container" />
     </div>
   </div>
 </template>
@@ -227,17 +157,18 @@ const filters = computed(() => [
 const filteredPlugins = computed(() => {
   let result = plugins.value
   if (activeFilter.value === 'enabled') {
-    result = result.filter(p => p.status === 'enabled')
+    result = result.filter((p) => p.status === 'enabled')
   } else if (activeFilter.value === 'disabled') {
-    result = result.filter(p => p.status === 'disabled' || p.status === 'error')
+    result = result.filter((p) => p.status === 'disabled' || p.status === 'error')
   }
   if (searchQuery.value.trim()) {
     const q = searchQuery.value.toLowerCase()
-    result = result.filter(p =>
-      p.name.toLowerCase().includes(q) ||
-      (p.title && p.title.toLowerCase().includes(q)) ||
-      (p.author && p.author.toLowerCase().includes(q)) ||
-      (p.description && p.description.toLowerCase().includes(q))
+    result = result.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        (p.title && p.title.toLowerCase().includes(q)) ||
+        (p.author && p.author.toLowerCase().includes(q)) ||
+        (p.description && p.description.toLowerCase().includes(q))
     )
   }
   return result
@@ -255,15 +186,12 @@ async function loadPlugins() {
 async function togglePlugin(plugin: Plugin) {
   const action = plugin.status === 'enabled' ? 'disable' : 'enable'
   const command = action === 'enable' ? 'plugin_enable' : 'plugin_disable'
-  const result = await run(
-    async () => backend.command(command, { plugin_name: plugin.name }),
-    {
-      showSuccess: true,
-      successMessage: t(`plugins.${action}Success`, { name: plugin.title || plugin.name }),
-      showError: true,
-      errorMessage: t(`plugins.${action}Failed`),
-    }
-  )
+  const result = await run(async () => backend.command(command, { plugin_name: plugin.name }), {
+    showSuccess: true,
+    successMessage: t(`plugins.${action}Success`, { name: plugin.title || plugin.name }),
+    showError: true,
+    errorMessage: t(`plugins.${action}Failed`),
+  })
   if (!result?.success) return
   await loadPlugins()
 }
@@ -271,29 +199,23 @@ async function togglePlugin(plugin: Plugin) {
 async function reloadPlugin(plugin: Plugin) {
   if (reloadingPlugins.value.includes(plugin.name)) return
   reloadingPlugins.value = [...reloadingPlugins.value, plugin.name]
-  const result = await run(
-    async () => backend.command('plugin_reload', { plugin_name: plugin.name }),
-    {
-      showSuccess: true,
-      successMessage: t('plugins.reloadSuccess', { name: plugin.title || plugin.name }),
-      showError: true,
-      errorMessage: t('plugins.reloadFailed'),
-    }
-  )
-  reloadingPlugins.value = reloadingPlugins.value.filter(n => n !== plugin.name)
+  const result = await run(async () => backend.command('plugin_reload', { plugin_name: plugin.name }), {
+    showSuccess: true,
+    successMessage: t('plugins.reloadSuccess', { name: plugin.title || plugin.name }),
+    showError: true,
+    errorMessage: t('plugins.reloadFailed'),
+  })
+  reloadingPlugins.value = reloadingPlugins.value.filter((n) => n !== plugin.name)
   if (result?.success) await loadPlugins()
 }
 
 async function unloadPlugin(plugin: Plugin) {
-  const result = await run(
-    async () => backend.command('plugin_unload', { plugin_name: plugin.name }),
-    {
-      showSuccess: true,
-      successMessage: t('plugins.unloadSuccess', { name: plugin.title || plugin.name }),
-      showError: true,
-      errorMessage: t('plugins.unloadFailed'),
-    }
-  )
+  const result = await run(async () => backend.command('plugin_unload', { plugin_name: plugin.name }), {
+    showSuccess: true,
+    successMessage: t('plugins.unloadSuccess', { name: plugin.title || plugin.name }),
+    showError: true,
+    errorMessage: t('plugins.unloadFailed'),
+  })
   if (result?.success) await loadPlugins()
 }
 
@@ -302,15 +224,12 @@ async function installPlugin() {
   if (!result?.success || !result.data?.path) return
   const pluginPath = result.data.path
 
-  const installResult = await run(
-    async () => backend.command('plugin_install', { plugin_path: pluginPath }),
-    {
-      showSuccess: true,
-      successMessage: t('plugins.installSuccess'),
-      showError: true,
-      errorMessage: t('plugins.installFailed'),
-    }
-  )
+  const installResult = await run(async () => backend.command('plugin_install', { plugin_path: pluginPath }), {
+    showSuccess: true,
+    successMessage: t('plugins.installSuccess'),
+    showError: true,
+    errorMessage: t('plugins.installFailed'),
+  })
   if (installResult?.success) await loadPlugins()
 }
 
@@ -339,4 +258,3 @@ onUnmounted(() => {
 </script>
 
 <style scoped src="@/styles/views/Plugins.css"></style>
-

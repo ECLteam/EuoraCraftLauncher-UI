@@ -18,31 +18,57 @@ export interface VersionTypeMeta {
 
 /** 版本类型完整元数据（标签、图标、badge 样式） */
 export const VERSION_TYPES: VersionTypeMeta[] = [
-  { id: 'release', labelKey: 'versions.download.release', icon: 'check', image: '/img/item/grass.png', badgeClass: 'badge-success' },
-  { id: 'snapshot', labelKey: 'versions.download.snapshot', icon: 'lab', image: '/img/item/command.png', badgeClass: 'badge-warning' },
-  { id: 'old_beta', labelKey: 'versions.download.oldBeta', icon: 'archive', image: '/img/item/coal.png', badgeClass: 'badge-info' },
-  { id: 'old_alpha', labelKey: 'versions.download.oldAlpha', icon: 'archive', image: '/img/item/quartz.png', badgeClass: 'badge-info' },
-  { id: 'april_fools', labelKey: 'versions.download.aprilFools', icon: 'cube', image: '/img/item/iron.png', badgeClass: 'badge-april' },
+  {
+    id: 'release',
+    labelKey: 'versions.download.release',
+    icon: 'check',
+    image: '/img/item/grass.png',
+    badgeClass: 'badge-success',
+  },
+  {
+    id: 'snapshot',
+    labelKey: 'versions.download.snapshot',
+    icon: 'lab',
+    image: '/img/item/command.png',
+    badgeClass: 'badge-warning',
+  },
+  {
+    id: 'old_beta',
+    labelKey: 'versions.download.oldBeta',
+    icon: 'archive',
+    image: '/img/item/coal.png',
+    badgeClass: 'badge-info',
+  },
+  {
+    id: 'old_alpha',
+    labelKey: 'versions.download.oldAlpha',
+    icon: 'archive',
+    image: '/img/item/quartz.png',
+    badgeClass: 'badge-info',
+  },
+  {
+    id: 'april_fools',
+    labelKey: 'versions.download.aprilFools',
+    icon: 'cube',
+    image: '/img/item/iron.png',
+    badgeClass: 'badge-april',
+  },
 ]
 
 /** 版本类型 -> 图标名（用于 UiIcon） */
-export const VERSION_ICON_MAP: Record<string, string> = Object.fromEntries(
-  VERSION_TYPES.map(v => [v.id, v.icon])
-)
+export const VERSION_ICON_MAP: Record<string, string> = Object.fromEntries(VERSION_TYPES.map((v) => [v.id, v.icon]))
 
 /** 版本类型 -> 像素图标资源 */
-export const VERSION_IMAGE_MAP: Record<string, string> = Object.fromEntries(
-  VERSION_TYPES.map(v => [v.id, v.image])
-)
+export const VERSION_IMAGE_MAP: Record<string, string> = Object.fromEntries(VERSION_TYPES.map((v) => [v.id, v.image]))
 
 /** 版本类型 -> badge CSS 类 */
 export const VERSION_BADGE_CLASS_MAP: Record<string, string> = Object.fromEntries(
-  VERSION_TYPES.map(v => [v.id, v.badgeClass])
+  VERSION_TYPES.map((v) => [v.id, v.badgeClass])
 )
 
 /** 版本类型 -> i18n key */
 export const VERSION_LABEL_KEY_MAP: Record<string, string> = Object.fromEntries(
-  VERSION_TYPES.map(v => [v.id, v.labelKey])
+  VERSION_TYPES.map((v) => [v.id, v.labelKey])
 )
 
 /** 版本筛选分类 */
@@ -100,13 +126,13 @@ for (const l of LOADERS) {
 export const LOADER_LABEL_MAP: Record<string, string> = { ...LOADER_NAME_MAP }
 
 /** 安装页面可选的加载器列表（排除 OptiFine 和 LiteLoader） */
-export const INSTALLABLE_LOADERS = LOADERS.filter(
-  l => !['optifine', 'liteloader'].includes(l.value)
-)
+export const INSTALLABLE_LOADERS = LOADERS.filter((l) => !['optifine', 'liteloader'].includes(l.value))
 
 /** 加载器 -> 后端命令后缀映射 */
-export const LOADER_COMMAND_MAP: Record<string, Extract<CommandName,
-  'fabric_versions' | 'forge_versions' | 'neoforge_versions' | 'quilt_versions'>> = {
+export const LOADER_COMMAND_MAP: Record<
+  string,
+  Extract<CommandName, 'fabric_versions' | 'forge_versions' | 'neoforge_versions' | 'quilt_versions'>
+> = {
   fabric: 'fabric_versions',
   forge: 'forge_versions',
   neoforge: 'neoforge_versions',

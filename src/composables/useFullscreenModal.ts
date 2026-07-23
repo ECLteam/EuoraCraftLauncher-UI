@@ -11,7 +11,9 @@ const modalStack = ref<FullscreenModalState[]>([])
 
 export function useFullscreenModal() {
   // 当前顶层全屏弹窗状态
-  const currentModal = computed(() => modalStack.value.length > 0 ? modalStack.value[modalStack.value.length - 1] : null)
+  const currentModal = computed(() =>
+    modalStack.value.length > 0 ? modalStack.value[modalStack.value.length - 1] : null
+  )
   const isVisible = computed(() => modalStack.value.length > 0)
   const title = computed(() => currentModal.value?.title || '')
 
@@ -19,7 +21,7 @@ export function useFullscreenModal() {
     const newState: FullscreenModalState = {
       visible: true,
       title,
-      onClose
+      onClose,
     }
     modalStack.value.push(newState)
   }
@@ -34,7 +36,7 @@ export function useFullscreenModal() {
     topModal.title = ''
     onClose?.()
   }
-  
+
   const reset = () => {
     while (modalStack.value.length > 0) {
       const modal = modalStack.value.pop()!
@@ -47,6 +49,6 @@ export function useFullscreenModal() {
     title,
     open,
     close,
-    reset
+    reset,
   }
 }

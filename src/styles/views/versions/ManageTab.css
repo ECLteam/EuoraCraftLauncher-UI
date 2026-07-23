@@ -61,7 +61,7 @@
   background: var(--primary-alpha);
 }
 
-[data-theme="dark"] .path-item.active {
+[data-theme='dark'] .path-item.active {
   background: rgba(74, 127, 217, 0.12);
 }
 
@@ -144,7 +144,7 @@
   color: var(--text-tertiary);
 }
 
-[data-theme="dark"] .path-version-count.is-empty {
+[data-theme='dark'] .path-version-count.is-empty {
   color: var(--text-secondary);
 }
 
@@ -152,7 +152,7 @@
   color: var(--text-secondary);
 }
 
-[data-theme="dark"] .path-item.active .path-version-count {
+[data-theme='dark'] .path-item.active .path-version-count {
   color: var(--text-tertiary);
 }
 
@@ -205,7 +205,7 @@
 
 .path-divider::before,
 .path-divider::after {
-  content: "";
+  content: '';
   position: absolute;
   left: 0;
   right: 0;
@@ -480,11 +480,29 @@
   border-bottom: none;
 }
 
-.col-icon { width: 40px; flex-shrink: 0; }
-.col-name { flex: 1; min-width: 80px; }
-.col-type { width: 64px; flex-shrink: 0; }
-.col-status { width: 56px; flex-shrink: 0; }
-.col-actions { width: 64px; flex-shrink: 0; display: flex; justify-content: flex-end; gap: 3px; }
+.col-icon {
+  width: 40px;
+  flex-shrink: 0;
+}
+.col-name {
+  flex: 1;
+  min-width: 80px;
+}
+.col-type {
+  width: 64px;
+  flex-shrink: 0;
+}
+.col-status {
+  width: 56px;
+  flex-shrink: 0;
+}
+.col-actions {
+  width: 64px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 3px;
+}
 
 .version-icon {
   width: 32px;
@@ -536,12 +554,30 @@
   font-weight: 500;
 }
 
-.badge-vanilla { background: var(--bg-base-alt); color: var(--text-secondary); }
-.badge-fabric { background: rgba(218, 190, 140, 0.15); color: #b8944a; }
-.badge-forge { background: rgba(140, 130, 180, 0.15); color: #7a6eaa; }
-.badge-quilt { background: rgba(140, 180, 160, 0.15); color: #5a9a72; }
-.badge-success { background: var(--success-alpha); color: var(--success); }
-.badge-error { background: var(--error-alpha); color: var(--error); }
+.badge-vanilla {
+  background: var(--bg-base-alt);
+  color: var(--text-secondary);
+}
+.badge-fabric {
+  background: rgba(218, 190, 140, 0.15);
+  color: #b8944a;
+}
+.badge-forge {
+  background: rgba(140, 130, 180, 0.15);
+  color: #7a6eaa;
+}
+.badge-quilt {
+  background: rgba(140, 180, 160, 0.15);
+  color: #5a9a72;
+}
+.badge-success {
+  background: var(--success-alpha);
+  color: var(--success);
+}
+.badge-error {
+  background: var(--error-alpha);
+  color: var(--error);
+}
 
 .btn-action {
   display: flex;
@@ -617,7 +653,6 @@
   gap: var(--s-md);
   color: var(--text-secondary);
 }
-
 
 .btn-install-version {
   display: inline-flex;
@@ -734,6 +769,11 @@
   margin: 0;
 }
 
-.badge-neoforge { background: rgba(140, 150, 200, 0.15); color: #6a7eb4; }
-.badge-optifine { background: rgba(200, 180, 140, 0.15); color: #b8942a; }
-
+.badge-neoforge {
+  background: rgba(140, 150, 200, 0.15);
+  color: #6a7eb4;
+}
+.badge-optifine {
+  background: rgba(200, 180, 140, 0.15);
+  color: #b8942a;
+}

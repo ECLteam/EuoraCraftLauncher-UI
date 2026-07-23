@@ -285,17 +285,25 @@
   border-radius: 50%;
   border: 4px solid var(--bg-elevated);
   background: var(--primary);
-  box-shadow: 0 0 0 1px var(--border), var(--shadow-xs);
-  transition: transform var(--duration-fast) var(--ease-spring), box-shadow var(--duration-fast) ease-out;
+  box-shadow:
+    0 0 0 1px var(--border),
+    var(--shadow-xs);
+  transition:
+    transform var(--duration-fast) var(--ease-spring),
+    box-shadow var(--duration-fast) ease-out;
 }
 
 .memory-slider-input::-webkit-slider-thumb:hover {
   transform: scale(1.08);
-  box-shadow: 0 0 0 3px var(--primary-alpha), var(--shadow-xs);
+  box-shadow:
+    0 0 0 3px var(--primary-alpha),
+    var(--shadow-xs);
 }
 
 .memory-slider-input:focus-visible::-webkit-slider-thumb {
-  box-shadow: var(--glow-focus), 0 0 0 1px var(--primary);
+  box-shadow:
+    var(--glow-focus),
+    0 0 0 1px var(--primary);
 }
 
 .memory-slider-input::-moz-range-thumb {
@@ -304,7 +312,9 @@
   border-radius: 50%;
   border: 4px solid var(--bg-elevated);
   background: var(--primary);
-  box-shadow: 0 0 0 1px var(--border), var(--shadow-xs);
+  box-shadow:
+    0 0 0 1px var(--border),
+    var(--shadow-xs);
 }
 
 .memory-slider-input::-moz-range-progress {
@@ -400,8 +410,9 @@
 
 .memory-panel-enter-active,
 .memory-panel-leave-active {
-  transition: opacity var(--duration-normal) var(--ease-smooth),
-              transform var(--duration-normal) var(--ease-smooth);
+  transition:
+    opacity var(--duration-normal) var(--ease-smooth),
+    transform var(--duration-normal) var(--ease-smooth);
   transform-origin: top center;
 }
 

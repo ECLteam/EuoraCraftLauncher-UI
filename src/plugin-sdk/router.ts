@@ -68,7 +68,7 @@ export function navigateTo(path: string, query?: Record<string, string>): void {
     }
   } else {
     const current = parseRoute().path
-    const base = pluginPrefix && current.startsWith(pluginPrefix) ? current : (pluginPrefix || '/')
+    const base = pluginPrefix && current.startsWith(pluginPrefix) ? current : pluginPrefix || '/'
     fullPath = base.replace(/\/$/, '') + '/' + path.replace(/^\//, '')
   }
 
@@ -91,7 +91,7 @@ export function replaceTo(path: string, query?: Record<string, string>): void {
     fullPath = pluginPrefix && !path.startsWith(pluginPrefix) ? pluginPrefix + path : path
   } else {
     const current = parseRoute().path
-    const base = pluginPrefix && current.startsWith(pluginPrefix) ? current : (pluginPrefix || '/')
+    const base = pluginPrefix && current.startsWith(pluginPrefix) ? current : pluginPrefix || '/'
     fullPath = base.replace(/\/$/, '') + '/' + path.replace(/^\//, '')
   }
 

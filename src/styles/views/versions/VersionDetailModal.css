@@ -71,7 +71,9 @@
   font-weight: 500;
   cursor: pointer;
   border-radius: 0;
-  transition: color var(--duration-fast) ease-out, background var(--duration-fast) ease-out;
+  transition:
+    color var(--duration-fast) ease-out,
+    background var(--duration-fast) ease-out;
 }
 
 .vdm-nav-item:hover {
@@ -84,7 +86,7 @@
   font-weight: 600;
 }
 
-[data-theme="dark"] .vdm-nav-item.active {
+[data-theme='dark'] .vdm-nav-item.active {
   color: var(--info);
 }
 
@@ -100,7 +102,7 @@
   transition: opacity var(--duration-fast) ease-out;
 }
 
-[data-theme="dark"] .vdm-nav-item .nav-indicator {
+[data-theme='dark'] .vdm-nav-item .nav-indicator {
   background: var(--info);
 }
 
@@ -245,7 +247,9 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: background var(--duration-fast) ease-out, color var(--duration-fast) ease-out;
+  transition:
+    background var(--duration-fast) ease-out,
+    color var(--duration-fast) ease-out;
 }
 
 .btn-action-card:hover {
@@ -289,7 +293,9 @@
   color: var(--text-primary);
   font-size: 12px;
   outline: none;
-  transition: border-color var(--duration-fast) ease-out, box-shadow var(--duration-fast) ease-out;
+  transition:
+    border-color var(--duration-fast) ease-out,
+    box-shadow var(--duration-fast) ease-out;
 }
 
 .vdm-tab .text-input:focus {
@@ -324,7 +330,10 @@
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: color var(--duration-fast) ease-out, border-color var(--duration-fast) ease-out, background var(--duration-fast) ease-out;
+  transition:
+    color var(--duration-fast) ease-out,
+    border-color var(--duration-fast) ease-out,
+    background var(--duration-fast) ease-out;
 }
 
 .java-browse-btn:hover {

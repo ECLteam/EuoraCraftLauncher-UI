@@ -8,11 +8,7 @@
         </p>
       </div>
       <div class="dev-actions">
-        <UiButton
-          variant="primary"
-          size="sm"
-          @click="$router.push('/')"
-        >
+        <UiButton variant="primary" size="sm" @click="$router.push('/')">
           {{ t('common.close') }}
         </UiButton>
       </div>
@@ -33,59 +29,29 @@
     <div class="section">
       <h2>{{ t('dev.button') }}</h2>
       <div class="btn-group">
-        <UiButton variant="primary">
-          Primary
-        </UiButton>
-        <UiButton variant="secondary">
-          Secondary
-        </UiButton>
-        <UiButton variant="outline">
-          Outline
-        </UiButton>
-        <UiButton variant="text">
-          Text
-        </UiButton>
-        <UiButton :loading="true">
-          Loading
-        </UiButton>
-        <UiButton :disabled="true">
-          Disabled
-        </UiButton>
+        <UiButton variant="primary"> Primary </UiButton>
+        <UiButton variant="secondary"> Secondary </UiButton>
+        <UiButton variant="outline"> Outline </UiButton>
+        <UiButton variant="text"> Text </UiButton>
+        <UiButton :loading="true"> Loading </UiButton>
+        <UiButton :disabled="true"> Disabled </UiButton>
       </div>
     </div>
 
     <div class="section">
       <h2>{{ t('dev.input') }}</h2>
       <div class="input-group">
-        <UiInput
-          v-model="inputValue"
-          :placeholder="t('dev.normalInput')"
-        />
-        <UiInput
-          v-model="inputValue"
-          :placeholder="t('dev.withIcon')"
-          icon="icon-search"
-        />
-        <UiInput
-          v-model="inputValue"
-          :placeholder="t('dev.clearable')"
-          clearable
-        />
-        <UiInput
-          v-model="inputValue"
-          :placeholder="t('dev.password')"
-          type="password"
-        />
+        <UiInput v-model="inputValue" :placeholder="t('dev.normalInput')" />
+        <UiInput v-model="inputValue" :placeholder="t('dev.withIcon')" icon="icon-search" />
+        <UiInput v-model="inputValue" :placeholder="t('dev.clearable')" clearable />
+        <UiInput v-model="inputValue" :placeholder="t('dev.password')" type="password" />
       </div>
     </div>
 
     <div class="section">
       <h2>{{ t('dev.card') }}</h2>
       <div class="card-group">
-        <UiCard
-          :title="t('dev.normalCard')"
-          icon="icon-cube"
-        >
+        <UiCard :title="t('dev.normalCard')" icon="icon-cube">
           {{ t('dev.cardContent') }}
         </UiCard>
         <UiCard :title="t('dev.noIcon')">
@@ -97,32 +63,18 @@
     <div class="section">
       <h2>{{ t('dev.message') }}</h2>
       <div class="btn-group">
-        <UiButton @click="showMsg('info')">
-          Info
-        </UiButton>
-        <UiButton @click="showMsg('success')">
-          Success
-        </UiButton>
-        <UiButton @click="showMsg('warning')">
-          Warning
-        </UiButton>
-        <UiButton @click="showMsg('error')">
-          Error
-        </UiButton>
+        <UiButton @click="showMsg('info')"> Info </UiButton>
+        <UiButton @click="showMsg('success')"> Success </UiButton>
+        <UiButton @click="showMsg('warning')"> Warning </UiButton>
+        <UiButton @click="showMsg('error')"> Error </UiButton>
       </div>
     </div>
 
     <!-- 普通弹窗 -->
-    <Modal
-      v-model:visible="showNormalModal"
-      :title="t('dev.normalModalTest')"
-    >
+    <Modal v-model:visible="showNormalModal" :title="t('dev.normalModalTest')">
       <p>{{ t('dev.normalModalDesc') }}</p>
       <template #footer>
-        <UiButton
-          variant="secondary"
-          @click="showNormalModal = false"
-        >
+        <UiButton variant="secondary" @click="showNormalModal = false">
           {{ t('common.close') }}
         </UiButton>
         <UiButton variant="primary">
@@ -132,10 +84,7 @@
     </Modal>
 
     <!-- 全屏弹窗 -->
-    <FullscreenModal
-      v-model:visible="showFullscreenModal"
-      :title="t('dev.fullscreenModalTest')"
-    >
+    <FullscreenModal v-model:visible="showFullscreenModal" :title="t('dev.fullscreenModalTest')">
       <div class="fullscreen-content">
         <p>{{ t('dev.fullscreenModalDesc') }}</p>
         <UiButton @click="showNestedModal = true">
@@ -143,20 +92,14 @@
         </UiButton>
       </div>
       <template #footer>
-        <UiButton
-          variant="secondary"
-          @click="showFullscreenModal = false"
-        >
+        <UiButton variant="secondary" @click="showFullscreenModal = false">
           {{ t('common.close') }}
         </UiButton>
       </template>
     </FullscreenModal>
 
     <!-- 嵌套弹窗 -->
-    <Modal
-      v-model:visible="showNestedModal"
-      :title="t('dev.nestedModal')"
-    >
+    <Modal v-model:visible="showNestedModal" :title="t('dev.nestedModal')">
       <p>{{ t('dev.nestedModalDesc') }}</p>
       <template #footer>
         <UiButton @click="showNestedModal = false">
@@ -190,7 +133,7 @@ const showMsg = (type: 'info' | 'success' | 'warning' | 'error') => {
     info: t('common.info'),
     success: t('common.success'),
     warning: t('common.warning'),
-    error: t('common.error')
+    error: t('common.error'),
   }
   message[type](messages[type] ?? '')
 }

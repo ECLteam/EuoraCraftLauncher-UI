@@ -1,36 +1,19 @@
 <template>
-  <header
-    class="titlebar"
-    data-tauri-drag-region
-  >
+  <header class="titlebar" data-tauri-drag-region>
     <!-- 左侧 -->
     <div class="titlebar-left">
       <template v-if="isFullscreenModalVisible">
-        <button
-          class="titlebar-back-btn"
-          :title="t('common.back')"
-          @click="handleClose"
-        >
-          <UiIcon
-            name="arrow-left"
-            :size="18"
-          />
+        <button class="titlebar-back-btn" :title="t('common.back')" @click="handleClose">
+          <UiIcon name="arrow-left" :size="18" />
         </button>
         <span class="titlebar-modal-title">{{ fullscreenModalTitle }}</span>
       </template>
       <template v-else>
         <div class="titlebar-brand">
-          <img
-            src="/favicon.ico"
-            alt="Logo"
-            class="titlebar-logo"
-          >
+          <img src="/favicon.ico" alt="Logo" class="titlebar-logo" />
           <span class="titlebar-app-name">{{ topNavEnabled ? 'ECL' : 'EuoraCraft Launcher' }}</span>
         </div>
-        <div
-          id="plugin-slot-titlebar-left"
-          class="plugin-slot-container"
-        />
+        <div id="plugin-slot-titlebar-left" class="plugin-slot-container" />
       </template>
     </div>
 
@@ -38,78 +21,45 @@
     <div class="titlebar-center" />
 
     <!-- 顶部导航菜单（横向标题栏模式，绝对定位居中） -->
-    <nav
-      v-if="topNavEnabled && !isFullscreenModalVisible"
-      class="titlebar-nav"
-    >
+    <nav v-if="topNavEnabled && !isFullscreenModalVisible" class="titlebar-nav">
       <button
         v-for="item in menuItems"
         :key="item.path"
         class="titlebar-nav-item"
         :class="{
-          active: route.path === item.path
-            || (item.path !== '/' && route.path.startsWith(item.path))
+          active: route.path === item.path || (item.path !== '/' && route.path.startsWith(item.path)),
         }"
         @click="handleNavClick(item)"
       >
-        <UiIcon
-          :name="item.iconName"
-          :size="16"
-        />
+        <UiIcon :name="item.iconName" :size="16" />
         <span>{{ item.label }}</span>
       </button>
     </nav>
 
     <!-- 右侧窗口控制 -->
     <div class="titlebar-right">
-      <div
-        id="plugin-slot-titlebar-right"
-        class="plugin-slot-container"
-      />
+      <div id="plugin-slot-titlebar-right" class="plugin-slot-container" />
       <button
         v-if="hasActiveTasks"
         class="titlebar-btn titlebar-btn-task"
         :title="t('task.title')"
         @click="toggleTaskPanel"
       >
-        <UiIcon
-          name="download"
-          :size="16"
-        />
-        <span
-          v-if="activeTaskCount > 0"
-          class="task-badge"
-        >{{ activeTaskCount }}</span>
+        <UiIcon name="download" :size="16" />
+        <span v-if="activeTaskCount > 0" class="task-badge">{{ activeTaskCount }}</span>
       </button>
       <button
         class="titlebar-btn"
         :title="isDark ? t('settings.themeLight') : t('settings.themeDark')"
         @click="toggleTheme"
       >
-        <UiIcon
-          :name="isDark ? 'moon' : 'sun'"
-          :size="16"
-        />
+        <UiIcon :name="isDark ? 'moon' : 'sun'" :size="16" />
       </button>
-      <button
-        class="titlebar-btn"
-        :title="t('common.minimize')"
-        @click="minimize"
-      >
-        <UiIcon
-          name="minimize"
-          :size="16"
-        />
+      <button class="titlebar-btn" :title="t('common.minimize')" @click="minimize">
+        <UiIcon name="minimize" :size="16" />
       </button>
-      <button
-        class="titlebar-btn titlebar-btn-close"
-        :title="t('common.close')"
-        @click="close"
-      >
-        <UiIcon
-          name="close"
-          :size="16"
-        />
+      <button class="titlebar-btn titlebar-btn-close" :title="t('common.close')" @click="close">
+        <UiIcon name="close" :size="16" />
       </button>
     </div>
   </header>
@@ -148,11 +98,13 @@ const { hasActiveTasks, activeCount: activeTaskCount, togglePanel: toggleTaskPan
 const isFullscreenModalVisible = computed(() => fullscreenModal.isVisible.value)
 const fullscreenModalTitle = computed(() => fullscreenModal.title.value)
 
-const menuItems = computed(() => MENU_ITEMS.map(item => ({
-  path: item.path,
-  label: t(item.labelKey),
-  iconName: item.iconName,
-})))
+const menuItems = computed(() =>
+  MENU_ITEMS.map((item) => ({
+    path: item.path,
+    label: t(item.labelKey),
+    iconName: item.iconName,
+  }))
+)
 
 const handleNavClick = (item: { path: string }) => {
   router.push(item.path)

@@ -35,7 +35,9 @@ class Logger {
       console.log('[API]', ...args)
     }
   }
-  static error(...args: unknown[]) { console.error('[API Error]', ...args) }
+  static error(...args: unknown[]) {
+    console.error('[API Error]', ...args)
+  }
 }
 
 // ── 环境检测 ──────────────────────────────────────────────────────
@@ -117,14 +119,13 @@ const _eventCleanups = new Map<string, Map<(payload: unknown) => void, () => voi
  * @param handler - 事件处理函数
  * @returns 取消监听的函数
  */
-async function onEvent<T = unknown>(
-  event: string,
-  handler: (payload: T) => void,
-): Promise<() => void> {
+async function onEvent<T = unknown>(event: string, handler: (payload: T) => void): Promise<() => void> {
   const tauri = getTauri()
   if (!tauri) throw new Error('Tauri 环境未就绪')
   const unlisten = await tauri.event.listen<T>(event, (e) => handler(e.payload))
-  return () => { unlisten() }
+  return () => {
+    unlisten()
+  }
 }
 
 /**
@@ -138,13 +139,21 @@ function offEvent(event: string, cb?: (payload: unknown) => void) {
   if (cb) {
     const unlisten = cleanups.get(cb)
     if (unlisten) {
-      try { unlisten() } catch { /* 清理时忽略错误 */ }
+      try {
+        unlisten()
+      } catch {
+        /* 清理时忽略错误 */
+      }
       cleanups.delete(cb)
       if (cleanups.size === 0) _eventCleanups.delete(event)
     }
   } else {
     for (const fn of cleanups.values()) {
-      try { fn() } catch { /* 清理时忽略错误 */ }
+      try {
+        fn()
+      } catch {
+        /* 清理时忽略错误 */
+      }
     }
     cleanups.clear()
     _eventCleanups.delete(event)
@@ -156,27 +165,29 @@ function subscribeEvent<T>(event: string, cb: (payload: T) => void): () => void 
   let unlistened = false
   const trackedCallback = cb as (payload: unknown) => void
 
-  onEvent<T>(event, cb).then(fn => {
-    if (unlistened) {
-      fn()
-      return
-    }
+  onEvent<T>(event, cb)
+    .then((fn) => {
+      if (unlistened) {
+        fn()
+        return
+      }
 
-    let disposed = false
-    unlisten = () => {
-      if (disposed) return
-      disposed = true
-      fn()
-      const cleanups = _eventCleanups.get(event)
-      cleanups?.delete(trackedCallback)
-      if (cleanups?.size === 0) _eventCleanups.delete(event)
-    }
-    const cleanups = _eventCleanups.get(event) ?? new Map()
-    cleanups.set(trackedCallback, unlisten)
-    _eventCleanups.set(event, cleanups)
-  }).catch(err => {
-    Logger.error(`[on] 注册事件 ${event} 失败:`, err)
-  })
+      let disposed = false
+      unlisten = () => {
+        if (disposed) return
+        disposed = true
+        fn()
+        const cleanups = _eventCleanups.get(event)
+        cleanups?.delete(trackedCallback)
+        if (cleanups?.size === 0) _eventCleanups.delete(event)
+      }
+      const cleanups = _eventCleanups.get(event) ?? new Map()
+      cleanups.set(trackedCallback, unlisten)
+      _eventCleanups.set(event, cleanups)
+    })
+    .catch((err) => {
+      Logger.error(`[on] 注册事件 ${event} 失败:`, err)
+    })
 
   return () => {
     unlistened = true
@@ -202,7 +213,9 @@ async function resolveFileUrl(path: string): Promise<string | null> {
   if (core?.convertFileSrc) {
     try {
       return core.convertFileSrc(res.data.path)
-    } catch { /* 转换失败时返回 null */ }
+    } catch {
+      /* 转换失败时返回 null */
+    }
   }
   return null
 }
@@ -212,7 +225,6 @@ async function resolveFileUrl(path: string): Promise<string | null> {
 // ═══════════════════════════════════════════════════════════════════
 
 export const backend = {
-
   /** 配置存取 — 前端定义结构，后端只持久化 */
   config: {
     get<T = unknown>(section: ConfigSection) {
@@ -244,7 +256,7 @@ export const backend = {
    */
   command<K extends keyof CommandPayloadMap>(
     name: K,
-    params?: CommandPayloadMap[K],
+    params?: CommandPayloadMap[K]
   ): Promise<ApiResponse<CommandResponseMap[K]>> {
     return call(String(name), params ?? {})
   },
@@ -255,10 +267,7 @@ export const backend = {
    * @param cb - 事件回调函数
    * @returns 取消监听的函数
    */
-  on<E extends BackendEventName>(
-    event: E,
-    cb: (payload: BackendEvents[E]) => void,
-  ): () => void {
+  on<E extends BackendEventName>(event: E, cb: (payload: BackendEvents[E]) => void): () => void {
     return subscribeEvent(event, cb)
   },
 
@@ -295,7 +304,6 @@ export const backend = {
       return call<{ path: string }>('file_resolve', { path })
     },
   },
-
 }
 
 export default backend

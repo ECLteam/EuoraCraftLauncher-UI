@@ -27,10 +27,7 @@
         </div>
       </div>
 
-      <div
-        v-if="!localSettings.java_auto"
-        class="setting-item"
-      >
+      <div v-if="!localSettings.java_auto" class="setting-item">
         <div class="setting-info">
           <div class="setting-label">
             {{ t('settings.javaPath') }}
@@ -41,28 +38,13 @@
         </div>
         <div class="setting-control">
           <div class="java-selector">
-            <div
-              ref="javaSelectRef"
-              class="custom-select"
-              :class="{ open: isJavaOpen }"
-            >
-              <div
-                class="select-trigger"
-                @click="toggleJavaOpen"
-              >
+            <div ref="javaSelectRef" class="custom-select" :class="{ open: isJavaOpen }">
+              <div class="select-trigger" @click="toggleJavaOpen">
                 <span class="selected-text">{{ selectedJavaLabel || t('settings.javaPathPlaceholder') }}</span>
-                <UiIcon
-                  name="chevron-down"
-                  class="select-arrow"
-                  :class="{ rotated: isJavaOpen }"
-                  :size="14"
-                />
+                <UiIcon name="chevron-down" class="select-arrow" :class="{ rotated: isJavaOpen }" :size="14" />
               </div>
               <Transition name="select-dropdown">
-                <div
-                  v-show="isJavaOpen"
-                  class="select-dropdown"
-                >
+                <div v-show="isJavaOpen" class="select-dropdown">
                   <div
                     v-for="java in javaList"
                     :key="java.path"
@@ -74,20 +56,12 @@
                       <span class="option-label">Java {{ java.major_version }} ({{ java.java_type }})</span>
                       <span class="option-desc">{{ java.version }} - {{ java.arch }}</span>
                     </div>
-                    <UiIcon
-                      v-if="localSettings.java_path === java.path"
-                      name="check"
-                      :size="14"
-                      class="check-icon"
-                    />
+                    <UiIcon v-if="localSettings.java_path === java.path" name="check" :size="14" class="check-icon" />
                   </div>
                 </div>
               </Transition>
             </div>
-            <button
-              class="btn-ghost"
-              @click="browseJava"
-            >
+            <button class="btn-ghost" @click="browseJava">
               {{ t('common.browse') }}
             </button>
           </div>
@@ -151,7 +125,7 @@
               :aria-label="t('settings.memorySize')"
               :aria-valuetext="formatMemory(safeMemorySize)"
               @input="debouncedSaveConfig()"
-            >
+            />
             <div class="memory-slider-scale">
               <span>1 GB</span>
               <span>{{ formatMemory(maxMemory) }}</span>
@@ -213,10 +187,7 @@
       </div>
     </div>
 
-    <div
-      id="plugin-slot-settings-game-section-after"
-      class="plugin-slot-container"
-    />
+    <div id="plugin-slot-settings-game-section-after" class="plugin-slot-container" />
   </div>
 </template>
 
@@ -271,29 +242,31 @@ const systemMemory = ref<SystemMemoryInfo>({
   totalMb: 16384,
   usedMb: 4096,
   freeMb: 12288,
-  percentUsed: 25
+  percentUsed: 25,
 })
 
 const javaList = ref<JavaInfo[]>([])
 const isJavaOpen = ref(false)
 const javaSelectRef = ref<HTMLElement | null>(null)
 
-watch(() => props.settings, (newSettings) => {
-  if (newSettings) {
-    localSettings.value = {
-      java_auto: newSettings.java_auto,
-      java_path: newSettings.java_path ?? '',
-      memory_auto: newSettings.memory_auto,
-      memory_size: newSettings.memory_size,
-      fullscreen: newSettings.fullscreen
+watch(
+  () => props.settings,
+  (newSettings) => {
+    if (newSettings) {
+      localSettings.value = {
+        java_auto: newSettings.java_auto,
+        java_path: newSettings.java_path ?? '',
+        memory_auto: newSettings.memory_auto,
+        memory_size: newSettings.memory_size,
+        fullscreen: newSettings.fullscreen,
+      }
     }
-  }
-}, { immediate: true, deep: true })
+  },
+  { immediate: true, deep: true }
+)
 
 const javaAutoDesc = computed(() => {
-  return localSettings.value.java_auto
-    ? t('settings.javaSelectionAutoDesc')
-    : t('settings.javaSelectionManualDesc')
+  return localSettings.value.java_auto ? t('settings.javaSelectionAutoDesc') : t('settings.javaSelectionManualDesc')
 })
 
 const memoryAutoDesc = computed(() => {
@@ -320,7 +293,7 @@ const safeMemorySize = computed({
   get: () => localSettings.value.memory_size ?? 1024,
   set: (value: number) => {
     localSettings.value.memory_size = value
-  }
+  },
 })
 
 const remainingMemory = computed(() => {
@@ -329,7 +302,7 @@ const remainingMemory = computed(() => {
 
 const selectedJavaLabel = computed(() => {
   if (!localSettings.value.java_path) return ''
-  const java = javaList.value.find(j => j.path === localSettings.value.java_path)
+  const java = javaList.value.find((j) => j.path === localSettings.value.java_path)
   if (!java) return localSettings.value.java_path
   return `Java ${java.major_version} (${java.java_type})`
 })
@@ -355,7 +328,7 @@ const loadGameConfig = async () => {
     java_path: data.java_path ?? '',
     memory_auto: data.memory_auto,
     memory_size: data.memory_size,
-    fullscreen: data.fullscreen
+    fullscreen: data.fullscreen,
   }
   emit('update:settings', { ...localSettings.value })
 }
@@ -366,7 +339,7 @@ const saveConfig = async () => {
     java_path: localSettings.value.java_path,
     memory_auto: localSettings.value.memory_auto,
     memory_size: localSettings.value.memory_size,
-    fullscreen: localSettings.value.fullscreen
+    fullscreen: localSettings.value.fullscreen,
   }
   const result = await run(async () => backend.config.set('game', config))
   if (result?.success) {
@@ -423,7 +396,9 @@ const browseJava = async () => {
   message.success(t('common.success'))
 }
 
-useClickOutside(javaSelectRef, () => { isJavaOpen.value = false })
+useClickOutside(javaSelectRef, () => {
+  isJavaOpen.value = false
+})
 
 onMounted(() => {
   loadJavaList()
@@ -436,4 +411,3 @@ onUnmounted(() => {
 </script>
 
 <style scoped src="@/styles/views/settings/GameTab.css"></style>
-

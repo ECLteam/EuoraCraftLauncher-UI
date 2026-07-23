@@ -7,11 +7,11 @@
 /* ---- CSS 变量（继承宿主主题） ---- */
 
 .plugin-root {
-  --plugin-primary: var(--primary, #4A7FD9);
-  --plugin-primary-hover: var(--primary-hover, #3A6FC9);
+  --plugin-primary: var(--primary, #4a7fd9);
+  --plugin-primary-hover: var(--primary-hover, #3a6fc9);
   --plugin-primary-light: var(--primary-light, rgba(74, 127, 217, 0.12));
-  --plugin-text: var(--text-primary, #1A1A1A);
-  --plugin-text-secondary: var(--text-secondary, #5C5C5C);
+  --plugin-text: var(--text-primary, #1a1a1a);
+  --plugin-text-secondary: var(--text-secondary, #5c5c5c);
   --plugin-bg: var(--card-bg, rgba(255, 255, 255, 0.92));
   --plugin-bg-hover: var(--bg-elevated, rgba(255, 255, 255, 0.96));
   --plugin-border: var(--border, rgba(0, 0, 0, 0.06));
@@ -122,11 +122,11 @@
 
 .plugin-btn-danger {
   background: rgba(229, 92, 92, 0.12);
-  color: #E55C5C;
+  color: #e55c5c;
 }
 
 .plugin-btn-danger:hover:not(:disabled) {
-  background: #E55C5C;
+  background: #e55c5c;
   color: #fff;
 }
 
@@ -189,7 +189,7 @@
 
 .plugin-badge-error {
   background: rgba(229, 92, 92, 0.12);
-  color: #E55C5C;
+  color: #e55c5c;
 }
 
 /* ---- 列表项 ---- */
@@ -321,45 +321,98 @@
 
 /* ---- 弹性布局辅助 ---- */
 
-.plugin-flex { display: flex; }
-.plugin-flex-col { flex-direction: column; }
-.plugin-flex-center { align-items: center; justify-content: center; }
-.plugin-flex-between { align-items: center; justify-content: space-between; }
-.plugin-gap { gap: var(--plugin-gap); }
-.plugin-gap-lg { gap: var(--plugin-gap-lg); }
-.plugin-flex-1 { flex: 1; }
-.plugin-flex-wrap { flex-wrap: wrap; }
+.plugin-flex {
+  display: flex;
+}
+.plugin-flex-col {
+  flex-direction: column;
+}
+.plugin-flex-center {
+  align-items: center;
+  justify-content: center;
+}
+.plugin-flex-between {
+  align-items: center;
+  justify-content: space-between;
+}
+.plugin-gap {
+  gap: var(--plugin-gap);
+}
+.plugin-gap-lg {
+  gap: var(--plugin-gap-lg);
+}
+.plugin-flex-1 {
+  flex: 1;
+}
+.plugin-flex-wrap {
+  flex-wrap: wrap;
+}
 
 /* ---- 间距辅助 ---- */
 
-.plugin-mt { margin-top: var(--plugin-gap); }
-.plugin-mt-lg { margin-top: var(--plugin-gap-lg); }
-.plugin-mb { margin-bottom: var(--plugin-gap); }
-.plugin-mb-lg { margin-bottom: var(--plugin-gap-lg); }
-.plugin-p { padding: var(--plugin-gap); }
-.plugin-p-lg { padding: var(--plugin-gap-lg); }
+.plugin-mt {
+  margin-top: var(--plugin-gap);
+}
+.plugin-mt-lg {
+  margin-top: var(--plugin-gap-lg);
+}
+.plugin-mb {
+  margin-bottom: var(--plugin-gap);
+}
+.plugin-mb-lg {
+  margin-bottom: var(--plugin-gap-lg);
+}
+.plugin-p {
+  padding: var(--plugin-gap);
+}
+.plugin-p-lg {
+  padding: var(--plugin-gap-lg);
+}
 
 /* ---- 文本辅助 ---- */
 
-.plugin-text-sm { font-size: var(--plugin-font-sm); }
-.plugin-text-secondary { color: var(--plugin-text-secondary); }
-.plugin-text-primary { color: var(--plugin-primary); }
-.plugin-text-center { text-align: center; }
-.plugin-text-ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.plugin-font-mono { font-family: 'Consolas', 'Monaco', monospace; }
+.plugin-text-sm {
+  font-size: var(--plugin-font-sm);
+}
+.plugin-text-secondary {
+  color: var(--plugin-text-secondary);
+}
+.plugin-text-primary {
+  color: var(--plugin-primary);
+}
+.plugin-text-center {
+  text-align: center;
+}
+.plugin-text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.plugin-font-mono {
+  font-family: 'Consolas', 'Monaco', monospace;
+}
 
 /* ---- 滚动条 ---- */
 
-.plugin-scroll::-webkit-scrollbar { width: 4px; }
-.plugin-scroll::-webkit-scrollbar-track { background: transparent; }
-.plugin-scroll::-webkit-scrollbar-thumb { background: var(--plugin-border); border-radius: 2px; }
-.plugin-scroll::-webkit-scrollbar-thumb:hover { background: var(--plugin-text-secondary); }
+.plugin-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.plugin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.plugin-scroll::-webkit-scrollbar-thumb {
+  background: var(--plugin-border);
+  border-radius: 2px;
+}
+.plugin-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--plugin-text-secondary);
+}
 
 /* ---- 暗色主题适配 ---- */
 
-[data-theme="dark"] .plugin-root {
-  --plugin-text: #E8E9EB;
-  --plugin-text-secondary: #A0A3A8;
+[data-theme='dark'] .plugin-root {
+  --plugin-text: #e8e9eb;
+  --plugin-text-secondary: #a0a3a8;
   --plugin-bg: rgba(35, 38, 45, 0.92);
   --plugin-bg-hover: rgba(45, 48, 55, 0.96);
   --plugin-border: rgba(255, 255, 255, 0.08);

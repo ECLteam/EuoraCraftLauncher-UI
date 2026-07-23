@@ -21,7 +21,7 @@ function defineWidget<K extends keyof HTMLElementTagNameMap = 'div'>(
   name: string,
   defaultClass: string | string[],
   render: (el: HTMLElementTagNameMap[K]) => void,
-  options: WidgetOptions & { tag?: K } = {},
+  options: WidgetOptions & { tag?: K } = {}
 ): HTMLElementTagNameMap[K] {
   const tag = (options.tag || 'div') as K
   const baseClasses = Array.isArray(defaultClass) ? [...defaultClass] : [defaultClass]
@@ -54,33 +54,40 @@ interface CardOptions {
 }
 
 export function card(options: CardOptions = {}): HTMLElement {
-  return defineWidget('card', 'plugin-card', (el) => {
-    if (options.title || options.subtitle) {
-      const header = createElement('div', { class: 'plugin-card-header' })
-      if (options.title) header.appendChild(createElement('span', { text: options.title }))
-      if (options.subtitle) {
-        header.appendChild(createElement('span', {
-          class: 'plugin-text-sm plugin-text-secondary',
-          text: options.subtitle,
-        }))
+  return defineWidget(
+    'card',
+    'plugin-card',
+    (el) => {
+      if (options.title || options.subtitle) {
+        const header = createElement('div', { class: 'plugin-card-header' })
+        if (options.title) header.appendChild(createElement('span', { text: options.title }))
+        if (options.subtitle) {
+          header.appendChild(
+            createElement('span', {
+              class: 'plugin-text-sm plugin-text-secondary',
+              text: options.subtitle,
+            })
+          )
+        }
+        el.appendChild(header)
       }
-      el.appendChild(header)
-    }
 
-    if (options.body) {
-      const body = createElement('div', { class: 'plugin-card-body' })
-      if (typeof options.body === 'string') body.textContent = options.body
-      else body.appendChild(options.body)
-      el.appendChild(body)
-    }
+      if (options.body) {
+        const body = createElement('div', { class: 'plugin-card-body' })
+        if (typeof options.body === 'string') body.textContent = options.body
+        else body.appendChild(options.body)
+        el.appendChild(body)
+      }
 
-    if (options.footer) {
-      const footer = createElement('div', { class: 'plugin-card-footer' })
-      if (typeof options.footer === 'string') footer.textContent = options.footer
-      else footer.appendChild(options.footer)
-      el.appendChild(footer)
-    }
-  }, { class: options.class, onClick: options.onClick })
+      if (options.footer) {
+        const footer = createElement('div', { class: 'plugin-card-footer' })
+        if (typeof options.footer === 'string') footer.textContent = options.footer
+        else footer.appendChild(options.footer)
+        el.appendChild(footer)
+      }
+    },
+    { class: options.class, onClick: options.onClick }
+  )
 }
 
 // ---- 按钮 ----
@@ -104,17 +111,22 @@ export function button(options: ButtonOptions = {}): HTMLButtonElement {
   const classes = ['plugin-btn', `plugin-btn-${variant}`]
   if (size !== 'md') classes.push(`plugin-btn-${size}`)
 
-  return defineWidget('button', classes, (el) => {
-    const btn = el as HTMLButtonElement
-    if (disabled) btn.disabled = true
-    if (loading) btn.appendChild(createElement('span', { class: 'plugin-spinner', text: '⟳' }))
-    if (options.icon) btn.appendChild(createElement('span', { class: 'plugin-btn-icon', text: options.icon }))
-    if (options.text) btn.appendChild(createElement('span', { text: options.text }))
-  }, {
-    tag: 'button',
-    class: options.class,
-    onClick: disabled ? undefined : options.onClick,
-  }) as HTMLButtonElement
+  return defineWidget(
+    'button',
+    classes,
+    (el) => {
+      const btn = el as HTMLButtonElement
+      if (disabled) btn.disabled = true
+      if (loading) btn.appendChild(createElement('span', { class: 'plugin-spinner', text: '⟳' }))
+      if (options.icon) btn.appendChild(createElement('span', { class: 'plugin-btn-icon', text: options.icon }))
+      if (options.text) btn.appendChild(createElement('span', { text: options.text }))
+    },
+    {
+      tag: 'button',
+      class: options.class,
+      onClick: disabled ? undefined : options.onClick,
+    }
+  ) as HTMLButtonElement
 }
 
 // ---- 输入框 ----
@@ -129,19 +141,24 @@ interface InputOptions {
 }
 
 export function input(options: InputOptions = {}): HTMLInputElement {
-  return defineWidget('input', 'plugin-input', (el) => {
-    const inputEl = el as HTMLInputElement
-    inputEl.type = options.type || 'text'
-    inputEl.placeholder = options.placeholder || ''
-    inputEl.value = options.value || ''
-    if (options.disabled) inputEl.disabled = true
-    if (options.onChange) {
-      inputEl.addEventListener('input', () => options.onChange!(inputEl.value))
+  return defineWidget(
+    'input',
+    'plugin-input',
+    (el) => {
+      const inputEl = el as HTMLInputElement
+      inputEl.type = options.type || 'text'
+      inputEl.placeholder = options.placeholder || ''
+      inputEl.value = options.value || ''
+      if (options.disabled) inputEl.disabled = true
+      if (options.onChange) {
+        inputEl.addEventListener('input', () => options.onChange!(inputEl.value))
+      }
+    },
+    {
+      tag: 'input',
+      class: options.class,
     }
-  }, {
-    tag: 'input',
-    class: options.class,
-  }) as HTMLInputElement
+  ) as HTMLInputElement
 }
 
 // ---- 文本域 ----
@@ -154,15 +171,20 @@ interface TextareaOptions {
 }
 
 export function textarea(options: TextareaOptions = {}): HTMLTextAreaElement {
-  return defineWidget('textarea', 'plugin-input', (el) => {
-    const ta = el as HTMLTextAreaElement
-    ta.placeholder = options.placeholder || ''
-    ta.rows = options.rows || 3
-    if (options.value) ta.value = options.value
-    if (options.onChange) {
-      ta.addEventListener('input', () => options.onChange!(ta.value))
-    }
-  }, { tag: 'textarea' }) as HTMLTextAreaElement
+  return defineWidget(
+    'textarea',
+    'plugin-input',
+    (el) => {
+      const ta = el as HTMLTextAreaElement
+      ta.placeholder = options.placeholder || ''
+      ta.rows = options.rows || 3
+      if (options.value) ta.value = options.value
+      if (options.onChange) {
+        ta.addEventListener('input', () => options.onChange!(ta.value))
+      }
+    },
+    { tag: 'textarea' }
+  ) as HTMLTextAreaElement
 }
 
 // ---- 标签/徽章 ----
@@ -175,12 +197,16 @@ interface BadgeOptions {
 }
 
 export function badge(options: BadgeOptions): HTMLElement {
-  const cls = options.variant && options.variant !== 'default'
-    ? `plugin-badge plugin-badge-${options.variant}`
-    : 'plugin-badge'
-  return defineWidget('badge', cls, (el) => {
-    el.textContent = options.text
-  }, { tag: 'span' })
+  const cls =
+    options.variant && options.variant !== 'default' ? `plugin-badge plugin-badge-${options.variant}` : 'plugin-badge'
+  return defineWidget(
+    'badge',
+    cls,
+    (el) => {
+      el.textContent = options.text
+    },
+    { tag: 'span' }
+  )
 }
 
 // ---- 列表项 ----
@@ -195,23 +221,30 @@ interface ListItemOptions {
 }
 
 export function listItem(options: ListItemOptions): HTMLElement {
-  return defineWidget('listItem', 'plugin-list-item', (el) => {
-    if (options.icon) {
-      el.appendChild(createElement('span', { class: 'plugin-text-secondary', text: options.icon }))
-    }
-    const info = createElement('div', { class: 'plugin-flex-1' })
-    info.appendChild(createElement('div', { text: options.label }))
-    if (options.description) {
-      info.appendChild(createElement('div', {
-        class: 'plugin-text-sm plugin-text-secondary',
-        text: options.description,
-      }))
-    }
-    el.appendChild(info)
-    if (options.badge) {
-      el.appendChild(badge({ text: options.badge, variant: options.badgeVariant }))
-    }
-  }, { onClick: options.onClick })
+  return defineWidget(
+    'listItem',
+    'plugin-list-item',
+    (el) => {
+      if (options.icon) {
+        el.appendChild(createElement('span', { class: 'plugin-text-secondary', text: options.icon }))
+      }
+      const info = createElement('div', { class: 'plugin-flex-1' })
+      info.appendChild(createElement('div', { text: options.label }))
+      if (options.description) {
+        info.appendChild(
+          createElement('div', {
+            class: 'plugin-text-sm plugin-text-secondary',
+            text: options.description,
+          })
+        )
+      }
+      el.appendChild(info)
+      if (options.badge) {
+        el.appendChild(badge({ text: options.badge, variant: options.badgeVariant }))
+      }
+    },
+    { onClick: options.onClick }
+  )
 }
 
 // ---- 列表容器 ----
@@ -296,29 +329,36 @@ interface ProgressOptions {
 export function progress(options: ProgressOptions = {}): HTMLElement {
   const pct = Math.max(0, Math.min(100, options.percent || 0))
 
-  return defineWidget('progress', 'plugin-progress', (el) => {
-    if (options.label || options.showPercent) {
-      const header = createElement('div', {
-        class: 'plugin-flex plugin-flex-between plugin-mb',
-      })
-      if (options.label) header.appendChild(createElement('span', { text: options.label }))
-      if (options.showPercent !== false) {
-        header.appendChild(createElement('span', {
-          class: 'plugin-text-sm plugin-text-secondary',
-          text: `${Math.round(pct)}%`,
-        }))
+  return defineWidget(
+    'progress',
+    'plugin-progress',
+    (el) => {
+      if (options.label || options.showPercent) {
+        const header = createElement('div', {
+          class: 'plugin-flex plugin-flex-between plugin-mb',
+        })
+        if (options.label) header.appendChild(createElement('span', { text: options.label }))
+        if (options.showPercent !== false) {
+          header.appendChild(
+            createElement('span', {
+              class: 'plugin-text-sm plugin-text-secondary',
+              text: `${Math.round(pct)}%`,
+            })
+          )
+        }
+        el.appendChild(header)
       }
-      el.appendChild(header)
-    }
 
-    const track = createElement('div', { class: 'plugin-progress-track' })
-    const fill = createElement('div', {
-      class: 'plugin-progress-fill',
-      style: { width: `${pct}%` },
-    })
-    track.appendChild(fill)
-    el.appendChild(track)
-  }, { class: options.class })
+      const track = createElement('div', { class: 'plugin-progress-track' })
+      const fill = createElement('div', {
+        class: 'plugin-progress-fill',
+        style: { width: `${pct}%` },
+      })
+      track.appendChild(fill)
+      el.appendChild(track)
+    },
+    { class: options.class }
+  )
 }
 
 // ---- 分组 ----

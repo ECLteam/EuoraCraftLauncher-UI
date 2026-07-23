@@ -98,7 +98,7 @@ export function useGlobalCache<T = unknown>(
     setCache,
     deleteCache,
     refresh,
-    isValid
+    isValid,
   }
 }
 
@@ -168,7 +168,7 @@ export function useAutoRefreshCache<T = unknown>(
     refresh: cache.refresh,
     isValid: cache.isValid,
     fetchData,
-    stopAutoRefresh
+    stopAutoRefresh,
   }
 }
 
@@ -178,31 +178,31 @@ export function useAutoRefreshCache<T = unknown>(
 export const cacheUtils = {
   /** 清空所有缓存 */
   clearAll: () => globalCache.clear(),
-  
+
   /** 清空指定分组缓存 */
   clearGroup: (group: string) => globalCache.clearGroup(group),
-  
+
   /** 获取缓存统计 */
   getStats: () => globalCache.getStats(),
-  
+
   /** 检查缓存是否存在 */
   has: (key: string) => globalCache.has(key),
-  
+
   /** 批量设置缓存 */
   batchSet: <T>(items: Array<{ key: string; value: T; options?: CacheOptions }>) => {
     items.forEach(({ key, value, options }) => {
       globalCache.set(key, value, options)
     })
   },
-  
+
   /** 批量获取缓存 */
   batchGet: <T>(keys: string[]): Record<string, T | null> => {
     const result: Record<string, T | null> = {}
-    keys.forEach(key => {
+    keys.forEach((key) => {
       result[key] = globalCache.get<T>(key)
     })
     return result
-  }
+  },
 }
 
 // 导出常量
