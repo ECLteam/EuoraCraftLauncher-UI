@@ -2,6 +2,7 @@ import { darkTheme, type GlobalTheme, type GlobalThemeOverrides } from 'naive-ui
 import { ref, computed, readonly } from 'vue'
 import backend from '@/api/client'
 import { PRESET_COLORS, DEFAULT_PRIMARY_COLOR, LIGHT_THEME_COLORS, DARK_THEME_COLORS } from '@/config/theme'
+import { resolveNavigationMode } from '@/features/settings/model/navigation'
 import type { BackgroundConfig, NavigationMode, ThemeConfig, UiConfig } from '@/types/api'
 
 interface ThemeInitPayload {
@@ -366,11 +367,7 @@ export async function initTheme(uiConfig?: unknown): Promise<void> {
       if (typeof themeData.sidebar_collapsed === 'boolean') {
         sidebarCollapsed.value = themeData.sidebar_collapsed
       }
-      if (themeData.navigation_mode === 'sidebar' || themeData.navigation_mode === 'top') {
-        navigationMode.value = themeData.navigation_mode
-      } else if (typeof themeData.titlebar_hidden === 'boolean') {
-        navigationMode.value = themeData.titlebar_hidden ? 'sidebar' : 'top'
-      }
+      navigationMode.value = resolveNavigationMode(themeData)
     }
 
     if (payload?.background) {

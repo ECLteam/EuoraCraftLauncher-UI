@@ -1,5 +1,6 @@
 import { create as createNaiveUI } from 'naive-ui'
 import { createApp } from 'vue'
+import { pinia } from '@/app/stores'
 import App from '@/App.vue'
 import { initTheme } from '@/composables/useTheme'
 import { i18n, getCurrentLocale, loadLocaleFromBackend } from '@/i18n'
@@ -17,6 +18,7 @@ loadLocaleFromBackend().catch(() => {})
 
 const naive = createNaiveUI()
 const app = createApp(App)
+app.use(pinia)
 app.use(router)
 app.use(naive)
 app.use(i18n)
