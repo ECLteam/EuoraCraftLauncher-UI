@@ -142,7 +142,7 @@ export function useAvatarRenderer() {
       const name = username?.trim() || 'Player'
 
       // 统一通过后端API获取头像，包括离线玩家
-      if ((window as unknown as { __TAURI__?: { pytauri?: unknown } }).__TAURI__?.pytauri) {
+      if (backend.runtime.isAvailable) {
         try {
           // 对于离线玩家，设置use_default_skin=true
           const useDefaultSkin = !id || accountType.toLowerCase() === 'offline'

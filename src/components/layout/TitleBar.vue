@@ -12,6 +12,7 @@
         <div class="titlebar-brand">
           <img src="/favicon.ico" alt="Logo" class="titlebar-logo" />
           <span class="titlebar-app-name">{{ topNavEnabled ? 'ECL' : 'EuoraCraft Launcher' }}</span>
+          <span v-if="isShowcaseMode" class="titlebar-mode-badge">SHOWCASE</span>
         </div>
         <div id="plugin-slot-titlebar-left" class="plugin-slot-container" />
       </template>
@@ -55,10 +56,10 @@
       >
         <UiIcon :name="isDark ? 'moon' : 'sun'" :size="16" />
       </button>
-      <button class="titlebar-btn" :title="t('common.minimize')" @click="minimize">
+      <button v-if="isDesktopMode" class="titlebar-btn" :title="t('common.minimize')" @click="minimize">
         <UiIcon name="minimize" :size="16" />
       </button>
-      <button class="titlebar-btn titlebar-btn-close" :title="t('common.close')" @click="close">
+      <button v-if="isDesktopMode" class="titlebar-btn titlebar-btn-close" :title="t('common.close')" @click="close">
         <UiIcon name="close" :size="16" />
       </button>
     </div>
@@ -69,6 +70,8 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import backend from '@/api/client'
+import { desktopWindow } from '@/app/runtime/desktopWindow'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useFullscreenModal } from '@/composables/useFullscreenModal'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
@@ -77,14 +80,6 @@ import { useTopNav } from '@/composables/useTopNav'
 import { MENU_ITEMS } from '@/constants/menu'
 
 defineOptions({ name: 'TitleBar' })
-
-interface TauriGlobal {
-  __TAURI__?: {
-    window?: {
-      getCurrentWindow?: () => { minimize: () => Promise<void>; close: () => Promise<void> }
-    }
-  }
-}
 
 const { t } = useI18n()
 const { isDark, toggleTheme } = useTheme()
@@ -97,6 +92,8 @@ const { hasActiveTasks, activeCount: activeTaskCount, togglePanel: toggleTaskPan
 
 const isFullscreenModalVisible = computed(() => fullscreenModal.isVisible.value)
 const fullscreenModalTitle = computed(() => fullscreenModal.title.value)
+const isDesktopMode = backend.runtime.isDesktop
+const isShowcaseMode = backend.runtime.isShowcase
 
 const menuItems = computed(() =>
   MENU_ITEMS.map((item) => ({
@@ -111,12 +108,10 @@ const handleNavClick = (item: { path: string }) => {
 }
 
 const minimize = async () => {
-  const w = (window as unknown as TauriGlobal).__TAURI__?.window?.getCurrentWindow?.()
-  if (w) await w.minimize()
+  await desktopWindow.minimize()
 }
 const close = async () => {
-  const w = (window as unknown as TauriGlobal).__TAURI__?.window?.getCurrentWindow?.()
-  if (w) await w.close()
+  await desktopWindow.close()
 }
 const handleClose = () => fullscreenModal.close()
 </script>

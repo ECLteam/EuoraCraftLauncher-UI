@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "showcase": "vite --mode showcase",
     "typecheck": "vue-tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit",
     "build": "pnpm typecheck && vite build",
+    "build:showcase": "pnpm typecheck && vite build --mode showcase",
     "preview": "vite preview",
     "lint": "eslint src eslint.config.js",
     "lint:fix": "eslint src eslint.config.js --fix",

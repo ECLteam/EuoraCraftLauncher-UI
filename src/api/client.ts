@@ -23,6 +23,7 @@ import type {
   FsEntry,
   PathInfo,
 } from '@/types/api'
+import { createBackendTransport } from './transport'
 
 const CONFIG = {
   DEBUG: import.meta.env.DEV,
@@ -40,30 +41,10 @@ class Logger {
   }
 }
 
-// ── 环境检测 ──────────────────────────────────────────────────────
-
-interface TauriGlobal {
-  pytauri: {
-    pyInvoke: (cmd: string, payload?: unknown) => Promise<unknown>
-  }
-  event: {
-    listen: <T = unknown>(event: string, handler: (e: { payload: T }) => void) => Promise<() => void>
-  }
-  core: {
-    convertFileSrc?: (path: string) => string
-  }
-}
-
-function getTauri(): TauriGlobal | undefined {
-  return (window as unknown as { __TAURI__?: TauriGlobal }).__TAURI__
-}
+const transport = createBackendTransport()
 
 function checkEnv(): boolean {
-  return !!getTauri()?.pytauri
-}
-
-function getCore(): TauriGlobal['core'] | undefined {
-  return getTauri()?.core
+  return transport.available
 }
 
 // ── IPC 调用 ──────────────────────────────────────────────────────
@@ -78,12 +59,11 @@ const IPC_TIMEOUT_MS = 30000
  * @throws 当 Tauri 环境未就绪或调用超时时抛出错误
  */
 async function invokeWithTimeout(command: string, payload: unknown = {}): Promise<unknown> {
-  const tauri = getTauri()
-  if (!tauri) throw new Error('Tauri 环境未就绪')
+  if (!transport.available) throw new Error('后端 Transport 未就绪')
   const timeoutPromise = new Promise<never>((_, reject) =>
     setTimeout(() => reject(new Error(`IPC 调用超时 (${IPC_TIMEOUT_MS / 1000}s): ${command}`)), IPC_TIMEOUT_MS)
   )
-  return Promise.race([tauri.pytauri.pyInvoke(command, payload), timeoutPromise])
+  return Promise.race([transport.invoke(command, payload), timeoutPromise])
 }
 
 /**
@@ -120,12 +100,8 @@ const _eventCleanups = new Map<string, Map<(payload: unknown) => void, () => voi
  * @returns 取消监听的函数
  */
 async function onEvent<T = unknown>(event: string, handler: (payload: T) => void): Promise<() => void> {
-  const tauri = getTauri()
-  if (!tauri) throw new Error('Tauri 环境未就绪')
-  const unlisten = await tauri.event.listen<T>(event, (e) => handler(e.payload))
-  return () => {
-    unlisten()
-  }
+  if (!transport.available) throw new Error('后端 Transport 未就绪')
+  return transport.listen(event, handler)
 }
 
 /**
@@ -209,15 +185,7 @@ async function resolveFileUrl(path: string): Promise<string | null> {
   const res = await call<{ path: string }>('file_resolve', { path })
   if (!res.success || !res.data?.path) return null
 
-  const core = getCore()
-  if (core?.convertFileSrc) {
-    try {
-      return core.convertFileSrc(res.data.path)
-    } catch {
-      /* 转换失败时返回 null */
-    }
-  }
-  return null
+  return transport.convertFileSrc(res.data.path)
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -225,6 +193,14 @@ async function resolveFileUrl(path: string): Promise<string | null> {
 // ═══════════════════════════════════════════════════════════════════
 
 export const backend = {
+  /** 当前应用运行环境。业务代码不应再直接检测 window.__TAURI__。 */
+  runtime: {
+    mode: transport.mode,
+    isAvailable: transport.available,
+    isDesktop: transport.mode === 'desktop',
+    isShowcase: transport.mode === 'showcase',
+  },
+
   /** 配置存取 — 前端定义结构，后端只持久化 */
   config: {
     get<T = unknown>(section: ConfigSection) {

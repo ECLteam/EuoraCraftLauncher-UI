@@ -4,12 +4,6 @@ import type { UiConfig } from '@/types/api'
 import enUS from './locales/en-US.json'
 import zhCN from './locales/zh-CN.json'
 
-interface TauriGlobal {
-  __TAURI__?: {
-    pytauri?: unknown
-  }
-}
-
 // 支持的语言列表
 export const supportedLocales = [
   { code: 'zh-CN', name: '简体中文', flag: '🇨🇳' },
@@ -38,7 +32,7 @@ export const i18n = createI18n({
  */
 export async function loadLocaleFromBackend(): Promise<LocaleCode> {
   try {
-    if (typeof window !== 'undefined' && (window as unknown as TauriGlobal).__TAURI__?.pytauri) {
+    if (backend.runtime.isAvailable) {
       const result = await backend.config.get<UiConfig>('ui')
       if (result.success && result.data?.locale) {
         const locale = result.data.locale as LocaleCode
@@ -64,7 +58,7 @@ export async function setLocale(locale: LocaleCode): Promise<void> {
   document.documentElement.setAttribute('lang', locale)
 
   try {
-    if (typeof window !== 'undefined' && (window as unknown as TauriGlobal).__TAURI__?.pytauri) {
+    if (backend.runtime.isAvailable) {
       const ui = (await backend.config.get<UiConfig>('ui')).data || {}
       await backend.config.set('ui', { ...ui, locale })
     }

@@ -296,14 +296,10 @@ function setTitlebarHidden(val: boolean) {
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null
 
-function isTauriReady(): boolean {
-  return !!(window as unknown as { __TAURI__?: { pytauri?: unknown } }).__TAURI__?.pytauri
-}
-
 async function saveThemeConfig() {
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(async () => {
-    if (!isTauriReady()) return
+    if (!backend.runtime.isAvailable) return
     const uiRes = await backend.config.get<UiConfig>('ui')
     if (!uiRes.success) return
     const ui = uiRes.data ?? {}

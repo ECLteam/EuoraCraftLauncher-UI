@@ -14,10 +14,6 @@ const state = ref<UserAgreementState>({
   loading: false,
 })
 
-function isTauriReady(): boolean {
-  return !!(window as unknown as { __TAURI__?: { pytauri?: unknown } }).__TAURI__?.pytauri
-}
-
 export function useUserAgreement() {
   const isAccepted = computed(() => state.value.accepted)
   const isLoading = computed(() => state.value.loading)
@@ -29,7 +25,7 @@ export function useUserAgreement() {
 
   const acceptUserAgreement = async (): Promise<boolean> => {
     state.value.loading = true
-    if (!isTauriReady()) {
+    if (!backend.runtime.isAvailable) {
       state.value.accepted = true
       state.value.loading = false
       return true
@@ -47,7 +43,7 @@ export function useUserAgreement() {
 
   const rejectUserAgreement = async (): Promise<void> => {
     state.value.accepted = false
-    if (!isTauriReady()) return
+    if (!backend.runtime.isAvailable) return
 
     const result = await backend.command('user_agreement_clear')
     if (!result?.success) {

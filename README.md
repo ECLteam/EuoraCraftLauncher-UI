@@ -9,6 +9,24 @@ pnpm install
 pnpm dev
 ```
 
+## 展示模式
+
+展示模式使用纯前端的内存 Transport 提供账户、版本、插件、Mod、配置和进度事件示例，不依赖
+PyTauri、Python 后端或本地文件。展示模式中的修改会在刷新页面后还原。
+
+```bash
+pnpm showcase
+```
+
+也可以在普通开发服务器地址后添加 `?showcase=1` 临时进入展示模式：
+
+```text
+http://localhost:5173/?showcase=1
+```
+
+展示模式会在标题栏显示 `SHOWCASE` 标识。生产桌面模式仍使用 PyTauri Transport，两者共享相同的
+类型化 API 客户端。
+
 提交代码前运行统一质量检查：
 
 ```bash
@@ -23,5 +41,6 @@ pnpm check
 - `pnpm lint:fix`：自动修复可安全修复的 Lint 问题。
 - `pnpm typecheck`：执行严格 TypeScript 类型检查。
 - `pnpm build`：类型检查并构建生产版本。
+- `pnpm build:showcase`：类型检查并构建可独立展示的前端版本。
 
 目录、命名、Vue、TypeScript、样式和 Git 约定见 [CONTRIBUTING.md](./CONTRIBUTING.md)。后端接口见 [BACKEND_API.md](./BACKEND_API.md)。
