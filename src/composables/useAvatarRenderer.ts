@@ -120,6 +120,35 @@ export async function loadAvatarImage(url: string): Promise<HTMLImageElement | n
   })
 }
 
+/**
+ * 从标准 Minecraft 皮肤中裁切正面头像，并叠加头部第二层。
+ * 支持 64×32、64×64 及其整数倍高清皮肤。
+ */
+export async function renderSkinAvatar(skinUrl: string, size: number): Promise<string | null> {
+  const image = await loadAvatarImage(skinUrl)
+  if (!image) return null
+
+  const scale = image.naturalWidth / 64
+  if (!Number.isInteger(scale) || scale < 1 || image.naturalHeight < 32 * scale) return null
+
+  const outputSize = Math.max(1, Math.round(size))
+  const faceSize = 8 * scale
+  const canvas = document.createElement('canvas')
+  canvas.width = outputSize
+  canvas.height = outputSize
+
+  const context = canvas.getContext('2d')
+  if (!context) return null
+  context.imageSmoothingEnabled = false
+
+  // 基础脸部：皮肤坐标 (8, 8) 到 (16, 16)。
+  context.drawImage(image, 8 * scale, 8 * scale, faceSize, faceSize, 0, 0, outputSize, outputSize)
+  // 帽子/头发覆盖层：皮肤坐标 (40, 8) 到 (48, 16)。
+  context.drawImage(image, 40 * scale, 8 * scale, faceSize, faceSize, 0, 0, outputSize, outputSize)
+
+  return canvas.toDataURL('image/png')
+}
+
 export function getAvatarUrl(uuid: string, size: number): string {
   return buildAvatarUrl(uuid, size)
 }
@@ -132,7 +161,8 @@ export function useAvatarRenderer() {
     uuid: string | undefined,
     username: string | undefined,
     accountType: AccountType | string,
-    size: number
+    size: number,
+    skinUrl?: string
   ): Promise<string | null> {
     loading.value = true
     error.value = false
@@ -140,6 +170,19 @@ export function useAvatarRenderer() {
     try {
       const id = uuid?.trim()
       const name = username?.trim() || 'Player'
+      const localSkinUrl = skinUrl?.trim()
+
+      // 展示账户和带本地皮肤的账户完全由前端裁切，不经过后端头像 API。
+      if (localSkinUrl) {
+        const cachedSkin = getCached(localSkinUrl, 'skin', size)
+        if (cachedSkin) return cachedSkin
+
+        const skinAvatar = await renderSkinAvatar(localSkinUrl, size)
+        if (skinAvatar) {
+          setCache(localSkinUrl, 'skin', size, skinAvatar)
+          return skinAvatar
+        }
+      }
 
       // 统一通过后端API获取头像，包括离线玩家
       if (backend.runtime.isAvailable) {

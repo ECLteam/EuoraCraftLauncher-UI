@@ -65,6 +65,7 @@ export const showcaseAccounts: AccountListData = {
       type: 'microsoft',
       email: 'player@example.com',
       uuid: '8667ba71b85a4004af54457a9734eed7',
+      skinUrl: `${import.meta.env.BASE_URL}img/skins/Alex.png`,
       isCurrent: true,
     },
     {
@@ -72,6 +73,7 @@ export const showcaseAccounts: AccountListData = {
       alias: 'Builder',
       type: 'offline',
       uuid: 'showcase-offline-player',
+      skinUrl: `${import.meta.env.BASE_URL}img/skins/Steve.png`,
       isCurrent: false,
     },
     {
@@ -80,6 +82,7 @@ export const showcaseAccounts: AccountListData = {
       type: 'authlib',
       auth_server: 'https://example.com/api/yggdrasil',
       uuid: 'showcase-authlib-player',
+      skinUrl: `${import.meta.env.BASE_URL}img/skins/Ari.png`,
       isCurrent: false,
     },
   ],
@@ -288,6 +291,7 @@ export function createShowcaseAccount(alias: string, type: MinecraftAccount['typ
     alias,
     type,
     uuid: `showcase-${alias.toLowerCase().replace(/\s+/g, '-')}`,
+    skinUrl: `${import.meta.env.BASE_URL}img/skins/Sunny.png`,
     isCurrent: false,
   }
 }

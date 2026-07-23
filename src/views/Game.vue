@@ -22,6 +22,7 @@
                 :uuid="account.currentAccount?.uuid"
                 :username="account.currentAccount?.alias"
                 :typeName="account.currentAccount?.type"
+                :skinUrl="account.currentAccount?.skinUrl"
                 :size="40"
               />
               <div v-else class="account-avatar-placeholder">
@@ -237,6 +238,7 @@
                   :uuid="acc.uuid"
                   :username="acc.alias"
                   :typeName="acc.type"
+                  :skinUrl="acc.skinUrl"
                   :size="32"
                 />
                 <div class="al-info">

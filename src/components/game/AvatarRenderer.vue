@@ -14,6 +14,7 @@ const props = withDefaults(defineProps<Props>(), {
   uuid: '',
   username: '',
   typeName: 'Mojang',
+  skinUrl: '',
   size: 64,
 })
 
@@ -21,6 +22,7 @@ interface Props {
   uuid?: string
   username?: string
   typeName?: string
+  skinUrl?: string
   size?: number
 }
 
@@ -34,7 +36,7 @@ const containerStyle = computed<CSSProperties>(() => ({
 }))
 
 async function updateAvatar() {
-  const url = await renderAvatar(props.uuid, props.username, props.typeName, props.size)
+  const url = await renderAvatar(props.uuid, props.username, props.typeName, props.size, props.skinUrl)
   if (url) {
     avatarUrl.value = url
   }
@@ -44,7 +46,10 @@ onMounted(() => {
   updateAvatar()
 })
 
-watch([() => props.uuid, () => props.username, () => props.typeName, () => props.size], updateAvatar)
+watch(
+  [() => props.uuid, () => props.username, () => props.typeName, () => props.skinUrl, () => props.size],
+  updateAvatar
+)
 </script>
 
 <style scoped src="@/styles/components/game/AvatarRenderer.css"></style>
