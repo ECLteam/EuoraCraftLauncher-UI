@@ -192,22 +192,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch, onUnmounted } from 'vue'
+import { storeToRefs } from 'pinia'
+import { computed, onMounted, ref, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import backend from '@/api/client'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useClickOutside } from '@/composables/useClickOutside'
 import { useGlassMessage } from '@/composables/useGlassMessage'
-import type { GameConfig } from '@/types/api'
+import { settingsApi } from '@/features/settings/api/settingsApi'
+import { useSettingsStore } from '@/features/settings/stores/settingsStore'
+import type { JavaInstallation } from '@/types/api'
 
-interface JavaInfo {
-  path: string
-  version: string
-  major_version: number
-  java_type: string
-  arch: string
-}
+type JavaInfo = JavaInstallation
 
 interface SystemMemoryInfo {
   totalMb: number
@@ -216,27 +212,11 @@ interface SystemMemoryInfo {
   percentUsed: number
 }
 
-interface GameSettings {
-  java_auto?: boolean
-  java_path?: string
-  memory_auto?: boolean
-  memory_size?: number
-  fullscreen?: boolean
-}
-
-const props = defineProps<{
-  settings: GameSettings
-}>()
-
-const emit = defineEmits<{
-  (e: 'update:settings', value: GameSettings): void
-}>()
-
 const { t } = useI18n()
 const message = useGlassMessage()
 const { run } = useAsyncAction({ showSuccess: false, showError: true, errorMessage: t('common.error') })
-
-const localSettings = ref<GameSettings>({})
+const settingsStore = useSettingsStore()
+const { game: localSettings } = storeToRefs(settingsStore)
 
 const systemMemory = ref<SystemMemoryInfo>({
   totalMb: 16384,
@@ -248,22 +228,6 @@ const systemMemory = ref<SystemMemoryInfo>({
 const javaList = ref<JavaInfo[]>([])
 const isJavaOpen = ref(false)
 const javaSelectRef = ref<HTMLElement | null>(null)
-
-watch(
-  () => props.settings,
-  (newSettings) => {
-    if (newSettings) {
-      localSettings.value = {
-        java_auto: newSettings.java_auto,
-        java_path: newSettings.java_path ?? '',
-        memory_auto: newSettings.memory_auto,
-        memory_size: newSettings.memory_size,
-        fullscreen: newSettings.fullscreen,
-      }
-    }
-  },
-  { immediate: true, deep: true }
-)
 
 const javaAutoDesc = computed(() => {
   return localSettings.value.java_auto ? t('settings.javaSelectionAutoDesc') : t('settings.javaSelectionManualDesc')
@@ -313,24 +277,12 @@ const formatMemory = (mb: number): string => {
 }
 
 const loadJavaList = async () => {
-  const result = await run(async () => backend.command('java_list'))
-  if (result?.success && result.data) {
-    javaList.value = result.data
-  }
+  const result = await run(async () => settingsApi.listJava())
+  if (result) javaList.value = result
 }
 
 const loadGameConfig = async () => {
-  const result = await run(async () => backend.config.get<GameConfig>('game'))
-  if (!result?.success || !result.data) return
-  const data = result.data
-  localSettings.value = {
-    java_auto: data.java_auto,
-    java_path: data.java_path ?? '',
-    memory_auto: data.memory_auto,
-    memory_size: data.memory_size,
-    fullscreen: data.fullscreen,
-  }
-  emit('update:settings', { ...localSettings.value })
+  await run(async () => settingsStore.load())
 }
 
 const saveConfig = async () => {
@@ -341,10 +293,7 @@ const saveConfig = async () => {
     memory_size: localSettings.value.memory_size,
     fullscreen: localSettings.value.fullscreen,
   }
-  const result = await run(async () => backend.config.set('game', config))
-  if (result?.success) {
-    emit('update:settings', { ...localSettings.value })
-  }
+  await run(async () => settingsStore.patchGame(config))
 }
 
 /** 防抖保存：拖动滑块时延迟保存，避免高频请求 */
@@ -389,9 +338,9 @@ const selectJava = (java: JavaInfo) => {
 }
 
 const browseJava = async () => {
-  const result = await run(async () => backend.command('select_java'))
-  if (!result?.success || !result.data?.path) return
-  localSettings.value.java_path = result.data.path
+  const path = await run(async () => settingsApi.selectJava())
+  if (!path) return
+  localSettings.value.java_path = path
   await saveConfig()
   message.success(t('common.success'))
 }

@@ -193,7 +193,6 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import backend from '@/api/client'
 import UiIcon from '@/components/ui/Icon.vue'
 import UiSlider from '@/components/ui/Slider.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
@@ -202,31 +201,19 @@ import { useGlassMessage } from '@/composables/useGlassMessage'
 import { useTheme, type ThemeMode, presetColors } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
 import { THEME_MODE_OPTIONS } from '@/config/theme'
+import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import { supportedLocales, setLocale, type LocaleCode } from '@/i18n'
-import type { UiConfig } from '@/types/api'
-
-interface GeneralSettings {
-  mode?: string
-  primary_color?: string
-  blur_amount?: number
-  background_image?: string
-  topNavEnabled?: boolean
-}
-
-const props = defineProps<{
-  settings: GeneralSettings
-}>()
-
-const emit = defineEmits<{
-  (e: 'update:settings', value: GeneralSettings): void
-}>()
 
 const { t, locale } = useI18n()
 const message = useGlassMessage()
 const { run } = useAsyncAction({ showSuccess: false, showError: true, errorMessage: t('common.error') })
+const settingsStore = useSettingsStore()
 const currentLocale = computed(() => locale.value as LocaleCode)
 
 const {
+  themeMode,
+  primaryColor,
+  backgroundImagePath,
   setThemeMode,
   setPrimaryColor,
   setBackgroundImage,
@@ -238,10 +225,10 @@ const {
 const { topNavEnabled, toggleTopNav } = useTopNav()
 
 const currentSettings = computed(() => ({
-  mode: props.settings?.mode ?? '',
-  primary_color: props.settings?.primary_color ?? '',
-  blur_amount: props.settings?.blur_amount,
-  background_image: props.settings?.background_image ?? '',
+  mode: themeMode.value,
+  primary_color: primaryColor.value,
+  blur_amount: blurAmount.value,
+  background_image: backgroundImagePath.value,
 }))
 
 const bgBrightness = ref(Math.round(backgroundOpacity.value * 100))
@@ -259,34 +246,19 @@ const langSelectRef = ref<HTMLElement | null>(null)
 
 const selectedLanguage = computed(() => supportedLocales.find((l) => l.code === currentLocale.value))
 
-const updateField = (field: keyof GeneralSettings, value: string | number | boolean) => {
-  emit('update:settings', { ...props.settings, [field]: value })
-}
-
-/**
- * 通用 UI 配置更新函数
- * 统一处理 theme 配置的读取、合并与保存
- */
 async function updateUiConfig(
   partialTheme: Partial<{
-    mode: string
+    mode: ThemeMode
     primary_color: string
     blur_amount: number
   }>
 ) {
-  const uiRes = await backend.config.get<UiConfig>('ui')
-  if (!uiRes.success) return
-  const uiCfg = uiRes.data || {}
   await run(async () =>
-    backend.config.set('ui', {
-      ...uiCfg,
-      theme: {
-        ...uiCfg.theme,
-        mode: currentSettings.value.mode,
-        primary_color: currentSettings.value.primary_color,
-        blur_amount: currentSettings.value.blur_amount,
-        ...partialTheme,
-      },
+    settingsStore.patchUiTheme({
+      mode: currentSettings.value.mode,
+      primary_color: currentSettings.value.primary_color,
+      blur_amount: currentSettings.value.blur_amount,
+      ...partialTheme,
     })
   )
 }
@@ -296,14 +268,12 @@ const toggleLangOpen = () => {
 }
 
 const handleThemeChange = async (mode: ThemeMode) => {
-  updateField('mode', mode)
-  setThemeMode(mode)
+  setThemeMode(mode, false)
   await updateUiConfig({ mode })
 }
 
 const handleColorChange = async (color: string) => {
-  updateField('primary_color', color)
-  setPrimaryColor(color)
+  setPrimaryColor(color, false)
   await updateUiConfig({ primary_color: color })
 }
 
@@ -312,40 +282,22 @@ const handleColorInput = (e: Event) => {
 }
 
 const handleBlurChange = async (val: number) => {
-  updateField('blur_amount', val)
-  setBlurAmount(val)
+  setBlurAmount(val, false)
   await updateUiConfig({ blur_amount: val })
 }
 
 const handleBrightnessChange = async (val: number) => {
   bgBrightness.value = val
   const opacity = val / 100
-  setBackgroundOpacity(opacity)
-  const uiRes = await backend.config.get<UiConfig>('ui')
-  if (!uiRes.success) return
-  const uiCfg = uiRes.data || {}
-  await run(async () =>
-    backend.config.set('ui', {
-      ...uiCfg,
-      background: { ...(uiCfg.background || {}), opacity },
-    })
-  )
+  setBackgroundOpacity(opacity, false)
+  await run(async () => settingsStore.patchUiBackground({ opacity }))
 }
 
 const selectLocalImage = async () => {
-  const result = await run(async () => backend.command('select_image'))
-  if (!result?.success || !result.data?.path) return
-
-  updateField('background_image', result.data.path)
-  const uiCfg = (await backend.config.get<UiConfig>('ui')).data || {}
-  await backend.config.set('ui', {
-    ...uiCfg,
-    background: { ...(uiCfg.background || {}), type: 'custom', path: result.data.path },
-  })
-  const imgData = await backend.command('image_read_file', { path: result.data.path })
-  const imageUrl = imgData.data?.base64 || imgData.data?.dataUrl
-  if (imgData.success && imageUrl) {
-    setBackgroundImage(imageUrl, result.data.path)
+  const result = await run(async () => settingsStore.chooseBackgroundImage())
+  if (!result) return
+  if (result.imageUrl) {
+    setBackgroundImage(result.imageUrl, result.path, false)
   }
   message.success(t('common.success'))
 }
@@ -353,32 +305,23 @@ const selectLocalImage = async () => {
 let bgTimer: ReturnType<typeof setTimeout> | null = null
 const handleBgImageInput = (e: Event) => {
   const val = (e.target as HTMLInputElement).value
-  updateField('background_image', val)
   if (bgTimer) clearTimeout(bgTimer)
   bgTimer = setTimeout(async () => {
     if (!val) {
-      setBackgroundImage('', '')
-      const uiNone = (await backend.config.get<UiConfig>('ui')).data || {}
-      await backend.config.set('ui', { ...uiNone, background: { type: 'none', path: '' } })
+      setBackgroundImage('', '', false)
+      await run(async () => settingsStore.patchUiBackground({ type: 'none', path: '' }))
       return
     }
     if (!val.startsWith('http')) return
 
     message.loading('Loading...')
-    const result = await run(async () => backend.command('image_save_url', { url: val }))
-    if (!result?.success || !result.data?.path) return
-
-    const localPath = result.data.path
-    const uiCfg2 = (await backend.config.get<UiConfig>('ui')).data || {}
-    await backend.config.set('ui', { ...uiCfg2, background: { type: 'custom', path: localPath } })
-    updateField('background_image', localPath)
-    const imgData = await backend.command('image_read_file', { path: localPath })
-    const imageUrl = imgData.data?.base64 || imgData.data?.dataUrl
-    if (imgData.success && imageUrl) {
-      setBackgroundImage(imageUrl, localPath)
+    const result = await run(async () => settingsStore.saveRemoteBackground(val))
+    if (!result) return
+    if (result.imageUrl) {
+      setBackgroundImage(result.imageUrl, result.path, false)
       message.success(t('common.success'))
     } else {
-      message.error('加载背景图失败: ' + imgData.message)
+      message.error('加载背景图失败')
     }
   }, 800)
 }
@@ -386,10 +329,7 @@ const handleBgImageInput = (e: Event) => {
 const handleLanguageChange = async (langCode: LocaleCode) => {
   isLangOpen.value = false
   await setLocale(langCode)
-  const uiRes = await backend.config.get('ui')
-  if (!uiRes.success) return
-  const uiCfg = uiRes.data || {}
-  await run(async () => backend.config.set('ui', { ...uiCfg, locale: langCode }))
+  await run(async () => settingsStore.patchUi({ locale: langCode }))
 }
 
 useClickOutside(langSelectRef, () => {

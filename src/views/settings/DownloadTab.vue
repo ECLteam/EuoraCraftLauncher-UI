@@ -1,20 +1,8 @@
 <template>
   <div class="tab-pane">
-    <div class="settings-section">
-      <div class="section-label">
-        {{ t('settings.downloadSettings') }}
-      </div>
-
-      <div class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label">
-            {{ t('settings.downloadSource') }}
-          </div>
-          <div class="setting-desc">
-            {{ t('settings.downloadSourceDesc') }}
-          </div>
-        </div>
-        <div class="setting-control">
+    <SettingSection :title="t('settings.downloadSettings')">
+      <SettingRow :label="t('settings.downloadSource')" :description="t('settings.downloadSourceDesc')">
+        <template #default>
           <div ref="selectRef" class="custom-select" :class="{ open: isOpen }">
             <div class="select-trigger" @click="toggleOpen">
               <span class="selected-text">{{ selectedDownloadSource?.label || t('common.select') }}</span>
@@ -43,19 +31,11 @@
               </div>
             </Transition>
           </div>
-        </div>
-      </div>
+        </template>
+      </SettingRow>
 
-      <div class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label">
-            {{ t('settings.downloadThreads') }}
-          </div>
-          <div class="setting-desc">
-            {{ t('settings.downloadThreadsDesc') }}
-          </div>
-        </div>
-        <div class="setting-control">
+      <SettingRow :label="t('settings.downloadThreads')" :description="t('settings.downloadThreadsDesc')">
+        <template #default>
           <UiSlider
             v-model="localSettings.download_threads"
             :min="1"
@@ -63,56 +43,31 @@
             :suffix="' ' + t('settings.threads')"
             @update:modelValue="handleThreadsChange"
           />
-        </div>
-      </div>
-    </div>
+        </template>
+      </SettingRow>
+    </SettingSection>
 
     <div id="plugin-slot-settings-download-section-after" class="plugin-slot-container" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, computed, watch } from 'vue'
+import { storeToRefs } from 'pinia'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import backend from '@/api/client'
 import UiIcon from '@/components/ui/Icon.vue'
 import UiSlider from '@/components/ui/Slider.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useClickOutside } from '@/composables/useClickOutside'
 import { MIRROR_OPTIONS } from '@/config/version'
-
-interface DownloadSettings {
-  mirror_source?: string
-  download_threads?: number
-}
-
-const props = defineProps<{
-  settings: DownloadSettings
-}>()
-
-const emit = defineEmits<{
-  (e: 'update:settings', value: DownloadSettings): void
-}>()
+import SettingRow from '@/features/settings/components/SettingRow.vue'
+import SettingSection from '@/features/settings/components/SettingSection.vue'
+import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 
 const { t } = useI18n()
 const { run } = useAsyncAction({ showSuccess: false, showError: true, errorMessage: t('common.error') })
-
-const localSettings = reactive<Required<DownloadSettings>>({
-  mirror_source: props.settings.mirror_source ?? '',
-  download_threads: props.settings.download_threads ?? 8,
-})
-
-// 监听外部 props 变化，同步到 localSettings
-watch(
-  () => props.settings,
-  (newSettings) => {
-    if (newSettings) {
-      localSettings.mirror_source = newSettings.mirror_source ?? ''
-      localSettings.download_threads = newSettings.download_threads ?? 8
-    }
-  },
-  { deep: true }
-)
+const settingsStore = useSettingsStore()
+const { download: localSettings } = storeToRefs(settingsStore)
 
 const isOpen = ref(false)
 const selectRef = ref<HTMLElement | null>(null)
@@ -126,38 +81,20 @@ const downloadOptions = computed(() =>
 )
 
 const selectedDownloadSource = computed(() =>
-  downloadOptions.value.find((o) => o.value === localSettings.mirror_source)
+  downloadOptions.value.find((o) => o.value === localSettings.value.mirror_source)
 )
-
-const updateField = (field: keyof DownloadSettings, value: string | number) => {
-  emit('update:settings', { ...props.settings, [field]: value })
-}
 
 const toggleOpen = () => {
   isOpen.value = !isOpen.value
 }
 
 const handleDownloadSourceChange = async (value: 'official' | 'bmclapi') => {
-  localSettings.mirror_source = value
-  updateField('mirror_source', value)
   isOpen.value = false
-  await run(async () =>
-    backend.config.set('download', {
-      mirror_source: value,
-      download_threads: localSettings.download_threads,
-    })
-  )
+  await run(async () => settingsStore.patchDownload({ mirror_source: value }))
 }
 
 const handleThreadsChange = async (val: number) => {
-  localSettings.download_threads = val
-  updateField('download_threads', val)
-  await run(async () =>
-    backend.config.set('download', {
-      mirror_source: localSettings.mirror_source,
-      download_threads: val,
-    })
-  )
+  await run(async () => settingsStore.patchDownload({ download_threads: val }))
 }
 
 useClickOutside(selectRef, () => {

@@ -1,9 +1,9 @@
 import { darkTheme, type GlobalTheme, type GlobalThemeOverrides } from 'naive-ui'
 import { ref, computed, readonly } from 'vue'
-import backend from '@/api/client'
 import { PRESET_COLORS, DEFAULT_PRIMARY_COLOR, LIGHT_THEME_COLORS, DARK_THEME_COLORS } from '@/config/theme'
+import { settingsApi } from '@/features/settings/api/settingsApi'
 import { resolveNavigationMode } from '@/features/settings/model/navigation'
-import type { BackgroundConfig, NavigationMode, ThemeConfig, UiConfig } from '@/types/api'
+import type { BackgroundConfig, NavigationMode, ThemeConfig } from '@/types/api'
 
 interface ThemeInitPayload {
   theme?: Partial<ThemeConfig> & { background_opacity?: number }
@@ -254,35 +254,35 @@ function updateTheme() {
   document.documentElement.setAttribute('data-titlebar-hidden', titlebarHidden.value ? '1' : '0')
 }
 
-function setThemeMode(mode: ThemeMode) {
+function setThemeMode(mode: ThemeMode, persist = true) {
   themeMode.value = mode
   updateTheme()
-  saveThemeConfig()
+  if (persist) saveThemeConfig()
 }
 
-function setPrimaryColor(color: string) {
+function setPrimaryColor(color: string, persist = true) {
   primaryColor.value = color
   updateTheme()
-  saveThemeConfig()
+  if (persist) saveThemeConfig()
 }
 
-function setBackgroundImage(url: string, path?: string) {
+function setBackgroundImage(url: string, path?: string, persist = true) {
   backgroundImage.value = url
   if (path !== undefined) backgroundImagePath.value = path
   updateTheme()
-  saveThemeConfig()
+  if (persist) saveThemeConfig()
 }
 
-function setBlurAmount(amount: number) {
+function setBlurAmount(amount: number, persist = true) {
   blurAmount.value = amount
   updateTheme()
-  saveThemeConfig()
+  if (persist) saveThemeConfig()
 }
 
-function setBackgroundOpacity(opacity: number) {
+function setBackgroundOpacity(opacity: number, persist = true) {
   backgroundOpacity.value = opacity
   updateTheme()
-  saveThemeConfig()
+  if (persist) saveThemeConfig()
 }
 
 function setSidebarCollapsed(val: boolean) {
@@ -308,11 +308,9 @@ let saveTimer: ReturnType<typeof setTimeout> | null = null
 async function saveThemeConfig() {
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(async () => {
-    if (!backend.runtime.isAvailable) return
-    const uiRes = await backend.config.get<UiConfig>('ui')
-    if (!uiRes.success) return
-    const ui = uiRes.data ?? {}
-    await backend.config.set('ui', {
+    if (!settingsApi.isAvailable) return
+    const ui = await settingsApi.getUi()
+    await settingsApi.saveUi({
       ...ui,
       theme: {
         mode: themeMode.value,
@@ -375,9 +373,8 @@ export async function initTheme(uiConfig?: unknown): Promise<void> {
       backgroundImagePath.value = bgData.path ?? ''
 
       if (bgData.path && bgData.type !== 'default') {
-        const imgData = await backend.command('image_read_file', { path: bgData.path })
-        const imageUrl = imgData.data?.base64 || imgData.data?.dataUrl
-        if (imgData.success && imageUrl) {
+        const imageUrl = await settingsApi.readImage(bgData.path)
+        if (imageUrl) {
           backgroundImage.value = imageUrl
         } else {
           backgroundImage.value = ''
