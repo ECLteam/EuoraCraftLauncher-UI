@@ -783,11 +783,7 @@ const goToInstallVersion = () => {
 
 onMounted(() => {
   version.loadVersions()
-  backend.command('accounts_current').then((res) => {
-    if (res.success && res.data) {
-      account.currentAccount = res.data
-    }
-  })
+  account.loadCurrentAccount()
 
   // 检测是否设置了游戏目录
   backend.config.get<GameConfig>('game').then((res) => {
