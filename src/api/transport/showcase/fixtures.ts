@@ -45,7 +45,8 @@ export const showcaseConfig: Record<string, unknown> = {
       primary_color: '#6f8cff',
       blur_amount: 18,
       sidebar_collapsed: false,
-      titlebar_hidden: false,
+      navigation_mode: 'sidebar',
+      titlebar_hidden: true,
       background_opacity: 0.16,
     },
     background: {

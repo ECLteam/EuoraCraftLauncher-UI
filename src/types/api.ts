@@ -57,8 +57,12 @@ export interface ThemeConfig {
   primary_color: string
   blur_amount: number
   sidebar_collapsed: boolean
+  navigation_mode?: NavigationMode
+  /** @deprecated 兼容旧配置；true 对应 sidebar，false 对应 top。 */
   titlebar_hidden: boolean
 }
+
+export type NavigationMode = 'sidebar' | 'top'
 
 export interface DownloadConfig {
   mirror_source: 'official' | 'bmclapi'

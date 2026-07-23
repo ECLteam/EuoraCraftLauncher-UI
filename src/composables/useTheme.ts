@@ -2,7 +2,7 @@ import { darkTheme, type GlobalTheme, type GlobalThemeOverrides } from 'naive-ui
 import { ref, computed, readonly } from 'vue'
 import backend from '@/api/client'
 import { PRESET_COLORS, DEFAULT_PRIMARY_COLOR, LIGHT_THEME_COLORS, DARK_THEME_COLORS } from '@/config/theme'
-import type { BackgroundConfig, ThemeConfig, UiConfig } from '@/types/api'
+import type { BackgroundConfig, NavigationMode, ThemeConfig, UiConfig } from '@/types/api'
 
 interface ThemeInitPayload {
   theme?: Partial<ThemeConfig> & { background_opacity?: number }
@@ -188,7 +188,8 @@ const backgroundImagePath = ref('')
 const backgroundOpacity = ref(0)
 const blurAmount = ref(0)
 const sidebarCollapsed = ref(true)
-const titlebarHidden = ref(true)
+const navigationMode = ref<NavigationMode>('sidebar')
+const titlebarHidden = computed(() => navigationMode.value === 'sidebar')
 const isDark = ref(false)
 const systemDark = ref(false)
 
@@ -248,6 +249,7 @@ function updateTheme() {
   document.documentElement.style.setProperty('--bg-blur', `${blurAmount.value}px`)
 
   document.documentElement.setAttribute('data-sidebar-collapsed', sidebarCollapsed.value ? '1' : '0')
+  document.documentElement.setAttribute('data-navigation-mode', navigationMode.value)
   document.documentElement.setAttribute('data-titlebar-hidden', titlebarHidden.value ? '1' : '0')
 }
 
@@ -289,7 +291,13 @@ function setSidebarCollapsed(val: boolean) {
 }
 
 function setTitlebarHidden(val: boolean) {
-  titlebarHidden.value = val
+  navigationMode.value = val ? 'sidebar' : 'top'
+  updateTheme()
+  saveThemeConfig()
+}
+
+function setNavigationMode(mode: NavigationMode) {
+  navigationMode.value = mode
   updateTheme()
   saveThemeConfig()
 }
@@ -310,6 +318,7 @@ async function saveThemeConfig() {
         primary_color: primaryColor.value,
         blur_amount: blurAmount.value,
         sidebar_collapsed: sidebarCollapsed.value,
+        navigation_mode: navigationMode.value,
         titlebar_hidden: titlebarHidden.value,
         background_opacity: backgroundOpacity.value,
       },
@@ -357,8 +366,10 @@ export async function initTheme(uiConfig?: unknown): Promise<void> {
       if (typeof themeData.sidebar_collapsed === 'boolean') {
         sidebarCollapsed.value = themeData.sidebar_collapsed
       }
-      if (typeof themeData.titlebar_hidden === 'boolean') {
-        titlebarHidden.value = themeData.titlebar_hidden
+      if (themeData.navigation_mode === 'sidebar' || themeData.navigation_mode === 'top') {
+        navigationMode.value = themeData.navigation_mode
+      } else if (typeof themeData.titlebar_hidden === 'boolean') {
+        navigationMode.value = themeData.titlebar_hidden ? 'sidebar' : 'top'
       }
     }
 
@@ -410,6 +421,7 @@ export function useTheme() {
     backgroundOpacity: readonly(backgroundOpacity),
     blurAmount: readonly(blurAmount),
     sidebarCollapsed: readonly(sidebarCollapsed),
+    navigationMode: readonly(navigationMode),
     titlebarHidden: readonly(titlebarHidden),
     isDark: readonly(isDark),
     naiveTheme,
@@ -421,6 +433,7 @@ export function useTheme() {
     setBlurAmount,
     setBackgroundOpacity,
     setSidebarCollapsed,
+    setNavigationMode,
     setTitlebarHidden,
     toggleTheme,
     initTheme,
@@ -436,6 +449,7 @@ export const globalThemeState = {
   backgroundImagePath,
   backgroundOpacity,
   blurAmount,
+  navigationMode,
   isDark,
   naiveTheme,
   themeOverrides,
@@ -444,6 +458,7 @@ export const globalThemeState = {
   setPrimaryColor,
   setBackgroundImage,
   setBackgroundOpacity,
+  setNavigationMode,
   toggleTheme,
   initTheme,
 }

@@ -200,13 +200,3 @@
   transform: translateY(0) scale(0.97);
   transition-duration: 0.06s;
 }
-.showcase-plugin-notice {
-  margin: 10px 14px 0;
-  padding: 8px 12px;
-  border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--glass-border));
-  border-radius: var(--r-sm);
-  background: color-mix(in srgb, var(--primary) 8%, var(--glass-bg));
-  color: var(--text-secondary);
-  font-size: 11px;
-  line-height: 1.45;
-}

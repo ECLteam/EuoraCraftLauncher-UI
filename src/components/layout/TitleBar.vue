@@ -12,7 +12,14 @@
         <div class="titlebar-brand">
           <img src="/favicon.ico" alt="Logo" class="titlebar-logo" />
           <span class="titlebar-app-name">{{ topNavEnabled ? 'ECL' : 'EuoraCraft Launcher' }}</span>
-          <span v-if="isShowcaseMode" class="titlebar-mode-badge">SHOWCASE</span>
+          <span
+            v-if="isShowcaseMode"
+            class="titlebar-mode-badge"
+            title="展示模式使用本地演示数据，不连接后端"
+            aria-label="展示模式：使用本地演示数据，不连接后端"
+          >
+            SHOWCASE
+          </span>
         </div>
         <div id="plugin-slot-titlebar-left" class="plugin-slot-container" />
       </template>

@@ -253,15 +253,7 @@ export function createShowcaseTransport(): BackendTransport {
       case 'plugin_get_routes':
         return success([])
       case 'plugin_get_slots':
-        return success({
-          'content-top': [
-            {
-              plugin: 'showcase-dashboard',
-              html: '<div class="showcase-plugin-notice">Showcase Transport · 当前数据与操作均不连接后端</div>',
-              priority: 100,
-            },
-          ],
-        })
+        return success({})
       case 'plugin_call_command':
         return success({ command: payload.command, mode: 'showcase' })
       case 'plugin_get_settings':
