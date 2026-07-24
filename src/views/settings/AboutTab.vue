@@ -10,7 +10,7 @@
           </div>
           <div class="info-col">
             <div class="item-title">EuoraCraft Launcher</div>
-            <div class="item-desc">
+            <div v-if="versionText" class="item-desc">
               {{ versionText }}
             </div>
           </div>
@@ -57,8 +57,13 @@
     <div class="about-card">
       <div class="card-title">技术栈</div>
       <div class="card-body">
-        <div class="tech-flow">
-          <span v-for="tech in techStack" :key="tech" class="tech-tag">{{ tech }}</span>
+        <div class="tech-stack">
+          <div v-for="group in techStack" :key="group.label" class="tech-group">
+            <div class="tech-group-label">{{ group.label }}</div>
+            <div class="tech-flow">
+              <span v-for="tech in group.items" :key="tech" class="tech-tag">{{ tech }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -179,19 +184,34 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, type Ref } from 'vue'
+import { computed, inject, onMounted, ref, type Ref } from 'vue'
+import type { AppRuntimeMode } from '@/app/runtime/mode'
 import UiIcon from '@/components/ui/Icon.vue'
 import { URLS } from '@/config/urls'
+import { aboutApi } from '@/features/settings/api/aboutApi'
+import type { LauncherInfo } from '@/types/api'
 
 const launcherVersion = inject<Readonly<Ref<string>>>('launcherVersion')
 const launcherVersionType = inject<Readonly<Ref<'dev' | 'beta' | 'release'>>>('launcherVersionType')
+const runtimeMode = inject<AppRuntimeMode>('runtimeMode', 'browser')
+const launcherInfo = ref<LauncherInfo | null>(null)
+const frontendVersion = import.meta.env.VITE_APP_VERSION?.trim() || ''
 
 const versionText = computed(() => {
-  const v = launcherVersion?.value
-  const t = launcherVersionType?.value
-  if (!v) return '当前版本：v1.0.0'
-  if (t && t !== 'release') return `当前版本：v${v}-${t}`
-  return `当前版本：v${v}`
+  if (runtimeMode === 'showcase') {
+    return frontendVersion ? `演示模式 · 前端版本 v${frontendVersion}` : '演示模式'
+  }
+  if (runtimeMode !== 'desktop') return ''
+
+  const version = launcherInfo.value?.version || launcherVersion?.value
+  const versionType = launcherInfo.value?.version_type || launcherVersionType?.value
+  if (!version) return ''
+  if (versionType && versionType !== 'release') return `启动器版本：v${version}-${versionType}`
+  return `启动器版本：v${version}`
+})
+
+onMounted(async () => {
+  launcherInfo.value = await aboutApi.getLauncherInfo()
 })
 
 interface ThanksItem {
@@ -248,30 +268,44 @@ const thanks: ThanksItem[] = [
 ]
 
 const techStack = [
-  'Vue 3',
-  'TypeScript',
-  'Vite',
-  'Naive UI',
-  'GSAP',
-  'TailwindCSS',
-  'Vue Router',
-  'Vue I18n',
-  'Iconify',
-  'Sass',
-  'Python',
-  'PyTauri',
-  'Requests',
-  'Cryptography',
-  'Keyring',
-  'MSAL',
-  'Pydantic',
-  'Pillow',
-  'AnyIO',
-  'PyInstaller',
-  'Terser',
-  'PostCSS',
-  'Autoprefixer',
-  'Ruff',
+  {
+    label: '前端',
+    items: [
+      'Vue 3',
+      'TypeScript',
+      'Vite',
+      'Pinia',
+      'Vue Router',
+      'Vue I18n',
+      'Naive UI',
+      'VueUse',
+      'GSAP',
+      'Iconify',
+      'Valibot',
+      'Tailwind CSS',
+    ],
+  },
+  {
+    label: '桌面与后端',
+    items: [
+      'Python 3.11+',
+      'PyTauri 0.8',
+      'Tauri 2',
+      'AnyIO',
+      'HTTPX',
+      'Requests',
+      'Pydantic 2',
+      'Cryptography',
+      'Keyring',
+      'MSAL',
+      'Pillow',
+      'psutil',
+    ],
+  },
+  {
+    label: '工程化',
+    items: ['Vitest', 'ESLint', 'Prettier', 'PostCSS', 'Autoprefixer', 'Ruff', 'PyInstaller'],
+  },
 ]
 </script>
 

@@ -1,0 +1,51 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import backend from '@/api/client'
+import { aboutApi } from './aboutApi'
+
+const mocks = vi.hoisted(() => ({
+  command: vi.fn(),
+  runtime: {
+    isDesktop: true,
+  },
+}))
+
+vi.mock('@/api/client', () => ({
+  default: {
+    runtime: mocks.runtime,
+    command: mocks.command,
+  },
+}))
+
+describe('aboutApi', () => {
+  beforeEach(() => {
+    mocks.command.mockReset()
+    mocks.runtime.isDesktop = true
+  })
+
+  it('桌面模式通过 launcher_info 获取启动器版本', async () => {
+    mocks.command.mockResolvedValue({
+      success: true,
+      data: { version: '0.1.1', version_type: 'dev', debug: true },
+    })
+
+    await expect(aboutApi.getLauncherInfo()).resolves.toEqual({
+      version: '0.1.1',
+      version_type: 'dev',
+      debug: true,
+    })
+    expect(backend.command).toHaveBeenCalledWith('launcher_info')
+  })
+
+  it('非桌面模式不会调用 IPC', async () => {
+    mocks.runtime.isDesktop = false
+
+    await expect(aboutApi.getLauncherInfo()).resolves.toBeNull()
+    expect(backend.command).not.toHaveBeenCalled()
+  })
+
+  it('IPC 获取失败时不显示伪造版本', async () => {
+    mocks.command.mockResolvedValue({ success: false, message: 'unavailable' })
+
+    await expect(aboutApi.getLauncherInfo()).resolves.toBeNull()
+  })
+})

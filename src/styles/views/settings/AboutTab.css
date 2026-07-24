@@ -128,6 +128,26 @@
   color: var(--text-on-primary);
 }
 
+.tech-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tech-group {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+}
+
+.tech-group-label {
+  padding-top: 3px;
+  color: var(--text-tertiary);
+  font-size: 10px;
+  font-weight: 600;
+}
+
 .tech-flow {
   display: flex;
   flex-wrap: wrap;
@@ -185,4 +205,11 @@
 .legal-btns {
   display: flex;
   gap: 7px;
+}
+
+@media (max-width: 720px) {
+  .tech-group {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
 }

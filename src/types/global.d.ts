@@ -1,5 +1,9 @@
 /// <reference lib="dom" />
 
+interface ImportMetaEnv {
+  readonly VITE_APP_VERSION?: string
+}
+
 interface TauriCore {
   pytauri: {
     pyInvoke: (command: string, payload?: unknown) => Promise<unknown>
