@@ -1,4 +1,5 @@
 import type { ApiResponse, BackendEvents, MinecraftAccount, PluginInfo } from '@/types/api'
+import { loadShowcaseConfig, persistShowcaseConfig } from './configPersistence'
 import {
   createShowcaseAccount,
   showcaseAccounts,
@@ -38,7 +39,7 @@ function wait(duration = 90): Promise<void> {
 
 export function createShowcaseTransport(): BackendTransport {
   const listeners = new Map<string, Set<EventHandler>>()
-  const config = structuredClone(showcaseConfig)
+  const config = loadShowcaseConfig(showcaseConfig)
   const accounts = structuredClone(showcaseAccounts)
   const plugins = structuredClone(showcasePlugins)
 
@@ -111,6 +112,7 @@ export function createShowcaseTransport(): BackendTransport {
         return success(structuredClone(config[String(payload.section)]))
       case 'config_set':
         config[String(payload.section)] = cloneConfigData(payload.data)
+        persistShowcaseConfig(config)
         return success()
       case 'config_list':
       case 'list_sections':

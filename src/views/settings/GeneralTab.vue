@@ -341,7 +341,7 @@ const handleShowcaseImageSelected = async (event: Event) => {
     if (!file.type.startsWith('image/')) throw new Error('请选择图片文件')
     const imageUrl = await readImageFile(file)
     const path = `Showcase/${file.name}`
-    await settingsStore.patchUiBackground({ type: 'custom', path })
+    await settingsStore.patchUiBackground({ type: 'custom', path, image_base64: imageUrl })
     return { imageUrl, path }
   })
 
@@ -358,14 +358,14 @@ const handleBgImageInput = (e: Event) => {
   bgTimer = setTimeout(async () => {
     if (!val) {
       setBackgroundImage('', '', false)
-      await run(async () => settingsStore.patchUiBackground({ type: 'none', path: '' }))
+      await run(async () => settingsStore.patchUiBackground({ type: 'none', path: '', image_base64: '' }))
       return
     }
     if (!val.startsWith('http')) return
 
     if (settingsApi.isShowcase) {
       const saved = await run(async () => {
-        await settingsStore.patchUiBackground({ type: 'custom', path: val })
+        await settingsStore.patchUiBackground({ type: 'custom', path: val, image_base64: '' })
         return true
       })
       if (!saved) return

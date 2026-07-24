@@ -372,7 +372,11 @@ export async function initTheme(uiConfig?: unknown): Promise<void> {
       const bgData = payload.background
       backgroundImagePath.value = bgData.path ?? ''
 
-      if (bgData.path && bgData.type !== 'default') {
+      if (bgData.image_base64) {
+        backgroundImage.value = bgData.image_base64
+      } else if (settingsApi.isShowcase && bgData.path?.startsWith('http')) {
+        backgroundImage.value = bgData.path
+      } else if (bgData.path && bgData.type !== 'default') {
         const imageUrl = await settingsApi.readImage(bgData.path)
         if (imageUrl) {
           backgroundImage.value = imageUrl

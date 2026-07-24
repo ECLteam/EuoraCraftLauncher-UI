@@ -1,11 +1,16 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { reactive } from 'vue'
 import { normalizeLoaderVersions } from '@/features/versions/model/loaderVersions'
 import type { ApiResponse } from '@/types/api'
+import { SHOWCASE_CONFIG_STORAGE_KEY } from './configPersistence'
 import { createShowcaseTransport } from '.'
 
 describe('ShowcaseTransport', () => {
-  it('配置写入只保存在当前 transport 内存中', async () => {
+  beforeEach(() => {
+    localStorage.removeItem(SHOWCASE_CONFIG_STORAGE_KEY)
+  })
+
+  it('配置写入后可从当前 transport 读取', async () => {
     const transport = createShowcaseTransport()
     const nextUi = { locale: 'en-US', theme: { navigation_mode: 'sidebar' } }
 
@@ -14,6 +19,50 @@ describe('ShowcaseTransport', () => {
 
     expect(result.success).toBe(true)
     expect(result.data).toEqual(nextUi)
+  })
+
+  it('配置写入可在新的 transport 实例中恢复', async () => {
+    const first = createShowcaseTransport()
+    const nextGame = { memory_auto: false, memory_size: 6144 }
+
+    await first.invoke('config_set', { section: 'game', data: nextGame })
+
+    const second = createShowcaseTransport()
+    const result = (await second.invoke('config_get', { section: 'game' })) as ApiResponse<typeof nextGame>
+
+    expect(result.data).toMatchObject(nextGame)
+  })
+
+  it('持久化配置会与新增加的默认字段合并', async () => {
+    localStorage.setItem(
+      SHOWCASE_CONFIG_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        config: {
+          ui: { locale: 'en-US' },
+        },
+      })
+    )
+
+    const transport = createShowcaseTransport()
+    const result = (await transport.invoke('config_get', { section: 'ui' })) as ApiResponse<{
+      locale: string
+      theme: Record<string, unknown>
+    }>
+
+    expect(result.data?.locale).toBe('en-US')
+    expect(result.data?.theme).toMatchObject({ sidebar_collapsed: true })
+  })
+
+  it('损坏的浏览器配置不会阻止展示模式启动', async () => {
+    localStorage.setItem(SHOWCASE_CONFIG_STORAGE_KEY, '{invalid')
+
+    const transport = createShowcaseTransport()
+    const result = (await transport.invoke('config_get', { section: 'ui' })) as ApiResponse<{
+      locale: string
+    }>
+
+    expect(result.data?.locale).toBe('zh-CN')
   })
 
   it('可写入包含嵌套 Vue Proxy 的设置对象', async () => {

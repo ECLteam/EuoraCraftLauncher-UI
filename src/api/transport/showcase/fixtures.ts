@@ -269,7 +269,7 @@ export const showcaseMods: ModSearchItem[] = [
 export const showcaseInfoCard: InfoCardData = {
   mode: 'rotate',
   tips: [
-    '展示模式中的操作只会修改浏览器内存，不会写入后端配置。',
+    '展示模式设置会保存在当前浏览器中，不会写入后端配置。',
     '可以在版本页体验搜索、筛选和安装流程。',
     '插件页提供启用、禁用和重载交互示例。',
   ],
