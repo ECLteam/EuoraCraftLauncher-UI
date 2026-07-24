@@ -38,6 +38,7 @@ export const showcaseConfig: Record<string, unknown> = {
     mirror_source: 'official',
     download_threads: 16,
   },
+  version_settings: {},
   ui: {
     locale: 'zh-CN',
     theme: {

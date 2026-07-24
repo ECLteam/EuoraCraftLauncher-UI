@@ -127,6 +127,79 @@
   max-width: 780px;
 }
 
+.settings-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-lg);
+  margin-bottom: var(--s-xl);
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--bg-base);
+}
+
+.settings-summary > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.settings-summary strong {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.settings-summary span {
+  margin-top: 2px;
+  color: var(--text-tertiary);
+  font-size: 10px;
+}
+
+.btn-reset-settings {
+  flex-shrink: 0;
+  padding: 6px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-size: 11px;
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) ease-out,
+    color var(--duration-fast) ease-out;
+}
+
+.btn-reset-settings:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.btn-reset-settings:disabled {
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+.settings-loading-state {
+  display: flex;
+  min-height: 240px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+.settings-loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
 /* ── 设置区段 ── */
 
 .vdm-tab .settings-section {
@@ -342,6 +415,11 @@
   background: var(--primary-alpha);
 }
 
+.java-browse-btn:disabled {
+  color: var(--text-disabled);
+  cursor: wait;
+}
+
 /* ── 开关 ── */
 
 .toggle-switch {
@@ -383,4 +461,30 @@
   font-size: 13px;
   padding: var(--s-xl) 0;
   text-align: center;
+}
+
+.vdm-footer-status {
+  flex: 1;
+  min-width: 0;
+  color: var(--warning);
+  font-size: 11px;
+}
+
+@media (max-width: 950px) {
+  .vdm-container {
+    gap: var(--s-md);
+  }
+
+  .vdm-nav {
+    width: 156px;
+    min-width: 156px;
+  }
+
+  .vdm-content {
+    padding: var(--s-lg);
+  }
+
+  .java-path-input {
+    width: 220px;
+  }
 }

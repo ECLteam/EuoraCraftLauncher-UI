@@ -11,6 +11,8 @@ import {
 } from '@/config/game'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import { versionInstallApi } from '@/features/versions/api/versionInstallApi'
+import { versionSettingsApi } from '@/features/versions/api/versionSettingsApi'
+import { createDefaultVersionSettings, parseLaunchArguments } from '@/features/versions/model/versionSettings'
 import type { ScannedVersion, LaunchProgress } from '@/types/api'
 import { useGlassMessage } from './useGlassMessage'
 import { globalLaunchProgress } from './useLaunchProgress'
@@ -185,9 +187,24 @@ export function useVersionManager(t: (key: string, ...args: unknown[]) => string
 
     setLaunchProgress(0, 'prepare', `正在准备启动 ${selectedVersion.value}...`)
 
+    let versionSettings = createDefaultVersionSettings()
+    try {
+      versionSettings = await versionSettingsApi.get({
+        versionId: selectedVersion.value,
+        path: currentGamePath.value,
+      })
+    } catch (error) {
+      console.warn('[VersionSettings] 读取版本独立设置失败，将使用全局设置:', error)
+    }
+
     const launchResult = await backend.command('launch_instance', {
       version_id: selectedVersion.value,
       game_path: currentGamePath.value,
+      java_path: versionSettings.customJava ? versionSettings.javaPath || undefined : undefined,
+      memory: versionSettings.customMemory ? versionSettings.memory : undefined,
+      jvm_args: versionSettings.jvmArgs ? parseLaunchArguments(versionSettings.jvmArgs) : undefined,
+      game_args: versionSettings.gameArgs ? parseLaunchArguments(versionSettings.gameArgs) : undefined,
+      version_isolation: versionSettings.isolated,
     })
 
     unlisten()

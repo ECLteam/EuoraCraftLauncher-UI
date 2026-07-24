@@ -2,7 +2,7 @@
   <FullscreenModal
     v-model:visible="visible"
     :title="title"
-    :showFooter="false"
+    :showFooter="true"
     wrapperClass="version-detail-modal"
     bodyClass="version-detail-body"
   >
@@ -35,43 +35,43 @@
         <!-- 总览 -->
         <div v-if="activeTab === 'overview'" class="vdm-tab">
           <div class="settings-section">
-            <div class="section-label">版本信息</div>
+            <div class="section-label">{{ t('versions.detail.versionInfo') }}</div>
             <div class="info-grid">
               <div class="info-item">
-                <span class="info-label">版本 ID</span>
+                <span class="info-label">{{ t('versions.detail.versionId') }}</span>
                 <span class="info-value">{{ version?.versionId || '-' }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">加载器</span>
+                <span class="info-label">{{ t('versions.detail.loader') }}</span>
                 <span class="info-value">{{ getLoaderName(version?.primaryLoader || 'vanilla') }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">原版版本</span>
+                <span class="info-label">{{ t('versions.detail.vanillaVersion') }}</span>
                 <span class="info-value">{{ version?.vanillaName || '-' }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">状态</span>
+                <span class="info-label">{{ t('versions.detail.status') }}</span>
                 <span :class="['badge', version?.isBroken ? 'badge-error' : 'badge-success']">
-                  {{ version?.isBroken ? '损坏' : '正常' }}
+                  {{ version?.isBroken ? t('versions.detail.broken') : t('versions.detail.available') }}
                 </span>
               </div>
             </div>
           </div>
 
           <div class="settings-section">
-            <div class="section-label">快速操作</div>
+            <div class="section-label">{{ t('versions.detail.quickActions') }}</div>
             <div class="quick-actions">
               <button class="btn-action-card" @click="handleLaunch">
                 <UiIcon name="play" :size="20" />
-                <span>启动游戏</span>
+                <span>{{ t('versions.detail.launch') }}</span>
               </button>
               <button class="btn-action-card" @click="handleOpenFolder">
                 <UiIcon name="folder" :size="20" />
-                <span>打开文件夹</span>
+                <span>{{ t('versions.detail.openFolder') }}</span>
               </button>
               <button class="btn-action-card" @click="handleDelete">
                 <UiIcon name="trash" :size="20" />
-                <span>删除版本</span>
+                <span>{{ t('versions.detail.delete') }}</span>
               </button>
             </div>
           </div>
@@ -80,137 +80,182 @@
         <!-- Mod 管理 -->
         <div v-if="activeTab === 'mods'" class="vdm-tab">
           <div class="settings-section">
-            <div class="section-label">Mod 管理</div>
-            <p class="placeholder-text">Mod 管理功能即将推出</p>
+            <div class="section-label">{{ t('versions.detail.mods') }}</div>
+            <p class="placeholder-text">{{ t('versions.detail.placeholder') }}</p>
           </div>
         </div>
 
         <!-- 版本设置 -->
         <div v-if="activeTab === 'settings'" class="vdm-tab">
-          <div class="settings-section">
-            <div class="section-label">启动选项</div>
-            <div class="setting-item">
-              <div class="setting-info">
-                <div class="setting-label">版本隔离</div>
-                <div class="setting-desc">为此版本使用独立的游戏目录</div>
-              </div>
-              <div class="setting-control">
-                <button
-                  :class="['toggle-switch', { active: versionSettings.isolated }]"
-                  @click="versionSettings.isolated = !versionSettings.isolated"
-                >
-                  <span class="toggle-knob" />
-                </button>
-              </div>
-            </div>
+          <div v-if="settingsLoading" class="settings-loading-state">
+            <span class="settings-loading-spinner" />
+            <span>{{ t('versions.detail.loadingSettings') }}</span>
           </div>
+          <template v-else>
+            <div class="settings-summary">
+              <div>
+                <strong>{{ t('versions.detail.settings') }}</strong>
+                <span>{{
+                  isCustomized ? t('versions.detail.customizedSettings') : t('versions.detail.usingGlobalSettings')
+                }}</span>
+              </div>
+              <button class="btn-reset-settings" :disabled="settingsSaving || !isCustomized" @click="resetSettings">
+                {{ t('versions.detail.inheritGlobal') }}
+              </button>
+            </div>
 
-          <div class="settings-section">
-            <div class="section-label">内存分配</div>
-            <div class="setting-item">
-              <div class="setting-info">
-                <div class="setting-label">自定义内存</div>
-                <div class="setting-desc">为此版本单独设置内存大小</div>
-              </div>
-              <div class="setting-control">
-                <button
-                  :class="['toggle-switch', { active: versionSettings.customMemory }]"
-                  @click="versionSettings.customMemory = !versionSettings.customMemory"
-                >
-                  <span class="toggle-knob" />
-                </button>
-              </div>
-            </div>
-            <div v-if="versionSettings.customMemory" class="setting-item">
-              <div class="setting-info">
-                <div class="setting-label">内存大小 (MB)</div>
-              </div>
-              <div class="setting-control">
-                <input
-                  v-model.number="versionSettings.memory"
-                  type="number"
-                  min="512"
-                  step="256"
-                  class="text-input memory-input"
-                />
+            <div class="settings-section">
+              <div class="section-label">{{ t('versions.detail.launchOptions') }}</div>
+              <div class="setting-item">
+                <div class="setting-info">
+                  <div class="setting-label">{{ t('versions.detail.isolated') }}</div>
+                  <div class="setting-desc">{{ t('versions.detail.isolatedDesc') }}</div>
+                </div>
+                <div class="setting-control">
+                  <button
+                    :class="['toggle-switch', { active: versionSettings.isolated }]"
+                    role="switch"
+                    :aria-checked="versionSettings.isolated"
+                    @click="versionSettings.isolated = !versionSettings.isolated"
+                  >
+                    <span class="toggle-knob" />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="settings-section">
-            <div class="section-label">Java 运行时</div>
-            <div class="setting-item">
-              <div class="setting-info">
-                <div class="setting-label">自定义 Java</div>
-                <div class="setting-desc">为此版本单独指定 Java 路径</div>
+            <div class="settings-section">
+              <div class="section-label">{{ t('versions.detail.memoryAllocation') }}</div>
+              <div class="setting-item">
+                <div class="setting-info">
+                  <div class="setting-label">{{ t('versions.detail.customMemory') }}</div>
+                  <div class="setting-desc">{{ t('versions.detail.customMemoryDesc') }}</div>
+                </div>
+                <div class="setting-control">
+                  <button
+                    :class="['toggle-switch', { active: versionSettings.customMemory }]"
+                    role="switch"
+                    :aria-checked="versionSettings.customMemory"
+                    @click="versionSettings.customMemory = !versionSettings.customMemory"
+                  >
+                    <span class="toggle-knob" />
+                  </button>
+                </div>
               </div>
-              <div class="setting-control">
-                <button
-                  :class="['toggle-switch', { active: versionSettings.customJava }]"
-                  @click="versionSettings.customJava = !versionSettings.customJava"
-                >
-                  <span class="toggle-knob" />
-                </button>
+              <div v-if="versionSettings.customMemory" class="setting-item">
+                <div class="setting-info">
+                  <div class="setting-label">{{ t('versions.detail.memorySize') }} (MB)</div>
+                </div>
+                <div class="setting-control">
+                  <input
+                    v-model.number="versionSettings.memory"
+                    type="number"
+                    min="512"
+                    max="65536"
+                    step="256"
+                    class="text-input memory-input"
+                  />
+                </div>
               </div>
             </div>
-            <div v-if="versionSettings.customJava" class="setting-item">
-              <div class="setting-info">
-                <div class="setting-label">Java 路径</div>
-              </div>
-              <div class="setting-control">
-                <input
-                  v-model="versionSettings.javaPath"
-                  type="text"
-                  class="text-input java-path-input"
-                  placeholder="选择 Java 可执行文件..."
-                />
-                <button class="btn-ghost java-browse-btn">浏览</button>
-              </div>
-            </div>
-          </div>
 
-          <div class="settings-section">
-            <div class="section-label">JVM 参数</div>
-            <div class="setting-item">
-              <div class="setting-info">
-                <div class="setting-label">自定义 JVM 参数</div>
-                <div class="setting-desc">追加到启动命令的 JVM 参数</div>
+            <div class="settings-section">
+              <div class="section-label">{{ t('versions.detail.javaRuntime') }}</div>
+              <div class="setting-item">
+                <div class="setting-info">
+                  <div class="setting-label">{{ t('versions.detail.customJava') }}</div>
+                  <div class="setting-desc">{{ t('versions.detail.customJavaDesc') }}</div>
+                </div>
+                <div class="setting-control">
+                  <button
+                    :class="['toggle-switch', { active: versionSettings.customJava }]"
+                    role="switch"
+                    :aria-checked="versionSettings.customJava"
+                    @click="versionSettings.customJava = !versionSettings.customJava"
+                  >
+                    <span class="toggle-knob" />
+                  </button>
+                </div>
+              </div>
+              <div v-if="versionSettings.customJava" class="setting-item">
+                <div class="setting-info">
+                  <div class="setting-label">{{ t('versions.detail.javaPath') }}</div>
+                </div>
+                <div class="setting-control">
+                  <input
+                    v-model="versionSettings.javaPath"
+                    type="text"
+                    class="text-input java-path-input"
+                    :placeholder="t('versions.detail.javaPathPlaceholder')"
+                  />
+                  <button class="btn-ghost java-browse-btn" :disabled="javaSelecting" @click="selectJava">
+                    {{ t('common.browse') }}
+                  </button>
+                </div>
               </div>
             </div>
-            <textarea
-              v-model="versionSettings.jvmArgs"
-              class="text-input args-textarea"
-              placeholder="例如：-XX:+UseG1GC -XX:+ParallelRefProcEnabled"
-            />
-          </div>
 
-          <div class="settings-section">
-            <div class="section-label">游戏参数</div>
-            <div class="setting-item">
-              <div class="setting-info">
-                <div class="setting-label">自定义游戏参数</div>
-                <div class="setting-desc">追加到游戏进程的启动参数</div>
+            <div class="settings-section">
+              <div class="section-label">{{ t('versions.detail.jvmArgs') }}</div>
+              <div class="setting-item">
+                <div class="setting-info">
+                  <div class="setting-label">{{ t('versions.detail.customJvmArgs') }}</div>
+                  <div class="setting-desc">{{ t('versions.detail.customJvmArgsDesc') }}</div>
+                </div>
               </div>
+              <textarea
+                v-model="versionSettings.jvmArgs"
+                class="text-input args-textarea"
+                :placeholder="t('versions.detail.jvmArgsPlaceholder')"
+              />
             </div>
-            <textarea
-              v-model="versionSettings.gameArgs"
-              class="text-input args-textarea"
-              placeholder="例如：--server 127.0.0.1 --port 25565"
-            />
-          </div>
+
+            <div class="settings-section">
+              <div class="section-label">{{ t('versions.detail.gameArgs') }}</div>
+              <div class="setting-item">
+                <div class="setting-info">
+                  <div class="setting-label">{{ t('versions.detail.customGameArgs') }}</div>
+                  <div class="setting-desc">{{ t('versions.detail.customGameArgsDesc') }}</div>
+                </div>
+              </div>
+              <textarea
+                v-model="versionSettings.gameArgs"
+                class="text-input args-textarea"
+                :placeholder="t('versions.detail.gameArgsPlaceholder')"
+              />
+            </div>
+          </template>
         </div>
 
         <!-- 存档管理 -->
         <div v-if="activeTab === 'saves'" class="vdm-tab">
           <div class="settings-section">
-            <div class="section-label">存档管理</div>
-            <p class="placeholder-text">存档管理功能即将推出</p>
+            <div class="section-label">{{ t('versions.detail.saves') }}</div>
+            <p class="placeholder-text">{{ t('versions.detail.placeholder') }}</p>
           </div>
         </div>
       </div>
     </div>
 
     <div id="plugin-slot-version-detail-footer" class="plugin-slot-container" />
+
+    <template #footer>
+      <div class="vdm-footer-status">
+        <span v-if="activeTab === 'settings' && settingsDirty">{{ t('versions.detail.unsavedChanges') }}</span>
+      </div>
+      <UiButton variant="secondary" :disabled="settingsSaving" @click="visible = false">
+        {{ t('common.close') }}
+      </UiButton>
+      <UiButton
+        v-if="activeTab === 'settings'"
+        variant="primary"
+        :loading="settingsSaving"
+        :disabled="settingsLoading || !settingsDirty"
+        @click="saveSettings"
+      >
+        {{ t('versions.detail.saveSettings') }}
+      </UiButton>
+    </template>
   </FullscreenModal>
 </template>
 
@@ -218,8 +263,12 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
+import UiButton from '@/components/ui/Button.vue'
 import UiIcon from '@/components/ui/Icon.vue'
+import { useGlassMessage } from '@/composables/useGlassMessage'
 import { versionInstallApi } from '@/features/versions/api/versionInstallApi'
+import { versionSettingsApi } from '@/features/versions/api/versionSettingsApi'
+import { createDefaultVersionSettings, type VersionSettingsTarget } from '@/features/versions/model/versionSettings'
 import type { ScannedVersion } from '@/types/api'
 import { getLoaderIcon, getLoaderName } from '@/utils/loader'
 
@@ -236,6 +285,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const message = useGlassMessage()
 
 const visible = computed({
   get: () => props.visible,
@@ -253,15 +303,39 @@ const tabs = computed(() => [
   { id: 'saves' as const, icon: 'folder', label: t('versions.detail.saves') },
 ])
 
-const versionSettings = reactive({
-  isolated: false,
-  customMemory: false,
-  memory: 4096,
-  customJava: false,
-  javaPath: '',
-  jvmArgs: '',
-  gameArgs: '',
-})
+const versionSettings = reactive(createDefaultVersionSettings())
+const settingsLoading = ref(false)
+const settingsSaving = ref(false)
+const javaSelecting = ref(false)
+const savedSettingsSnapshot = ref(JSON.stringify(createDefaultVersionSettings()))
+const settingsDirty = computed(() => JSON.stringify(versionSettings) !== savedSettingsSnapshot.value)
+const isCustomized = computed(() => JSON.stringify(versionSettings) !== JSON.stringify(createDefaultVersionSettings()))
+
+function getSettingsTarget(): VersionSettingsTarget | null {
+  if (!props.version) return null
+  return {
+    versionId: props.version.versionId || props.version.id,
+    path: props.version.path || props.version.jsonPath || '',
+  }
+}
+
+async function loadSettings() {
+  const target = getSettingsTarget()
+  if (!target) return
+  const defaults = createDefaultVersionSettings()
+  Object.assign(versionSettings, defaults)
+  savedSettingsSnapshot.value = JSON.stringify(defaults)
+  settingsLoading.value = true
+  try {
+    const settings = await versionSettingsApi.get(target)
+    Object.assign(versionSettings, settings)
+    savedSettingsSnapshot.value = JSON.stringify(settings)
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : t('versions.detail.loadSettingsFailed'))
+  } finally {
+    settingsLoading.value = false
+  }
+}
 
 // 重置 activeTab 当弹窗打开时
 watch(
@@ -269,10 +343,63 @@ watch(
   (val) => {
     if (val) {
       activeTab.value = 'overview'
-      // TODO: 加载版本独立设置
+      void loadSettings()
     }
   }
 )
+
+async function saveSettings() {
+  const target = getSettingsTarget()
+  if (!target) return
+  if (versionSettings.customMemory && (versionSettings.memory < 512 || versionSettings.memory > 65536)) {
+    message.warning(t('versions.detail.invalidMemory'))
+    return
+  }
+  if (versionSettings.customJava && !versionSettings.javaPath.trim()) {
+    message.warning(t('versions.detail.javaPathRequired'))
+    return
+  }
+
+  settingsSaving.value = true
+  try {
+    await versionSettingsApi.save(target, { ...versionSettings })
+    savedSettingsSnapshot.value = JSON.stringify(versionSettings)
+    message.success(t('versions.detail.settingsSaved'))
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : t('versions.detail.saveSettingsFailed'))
+  } finally {
+    settingsSaving.value = false
+  }
+}
+
+async function resetSettings() {
+  const target = getSettingsTarget()
+  if (!target) return
+  settingsSaving.value = true
+  try {
+    await versionSettingsApi.reset(target)
+    const defaults = createDefaultVersionSettings()
+    Object.assign(versionSettings, defaults)
+    savedSettingsSnapshot.value = JSON.stringify(defaults)
+    message.success(t('versions.detail.settingsReset'))
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : t('versions.detail.saveSettingsFailed'))
+  } finally {
+    settingsSaving.value = false
+  }
+}
+
+async function selectJava() {
+  javaSelecting.value = true
+  try {
+    const path = await versionSettingsApi.selectJava()
+    if (path) versionSettings.javaPath = path
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : t('versions.detail.javaSelectFailed'))
+  } finally {
+    javaSelecting.value = false
+  }
+}
 
 function handleLaunch() {
   if (props.version) {
@@ -282,8 +409,8 @@ function handleLaunch() {
 }
 
 function handleOpenFolder() {
-  if (props.version?.jsonPath) {
-    void versionInstallApi.openFolder(props.version.jsonPath)
+  if (props.version?.path) {
+    void versionInstallApi.openFolder(props.version.path)
   }
 }
 

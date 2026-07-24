@@ -595,6 +595,8 @@ export interface CommandPayloadMap {
     width?: number
     height?: number
     jvm_args?: string[]
+    game_args?: string[]
+    version_isolation?: boolean
     download_threads?: number
   }
   cancel_launch: undefined
