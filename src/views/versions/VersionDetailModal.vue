@@ -1,10 +1,11 @@
 <template>
-  <FullscreenModal
+  <Modal
     v-model:visible="visible"
     :title="title"
     :showFooter="true"
     wrapperClass="version-detail-modal"
     bodyClass="version-detail-body"
+    width="960px"
   >
     <div class="vdm-container">
       <!-- 左侧导航 -->
@@ -259,13 +260,13 @@
         {{ t('versions.detail.saveSettings') }}
       </UiButton>
     </template>
-  </FullscreenModal>
+  </Modal>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import FullscreenModal from '@/components/modals/FullscreenModal.vue'
+import Modal from '@/components/modals/Modal.vue'
 import UiButton from '@/components/ui/Button.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useGlassMessage } from '@/composables/useGlassMessage'
@@ -295,7 +296,7 @@ const visible = computed({
   set: (val) => emit('update:visible', val),
 })
 
-const title = computed(() => props.version?.versionId || '版本设置')
+const title = computed(() => t('versions.detail.title', { version: props.version?.versionId || '-' }))
 
 const activeTab = ref<'overview' | 'mods' | 'settings' | 'saves'>('overview')
 

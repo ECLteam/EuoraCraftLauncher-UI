@@ -5,28 +5,28 @@
 
 .vdm-container {
   display: flex;
-  height: 100%;
-  gap: var(--s-lg);
+  height: min(620px, calc(90vh - 110px));
+  min-height: 360px;
+  gap: 0;
 }
 
 /* ── 左侧导航 ── */
 
 .vdm-nav {
-  width: 180px;
-  min-width: 180px;
+  width: 164px;
+  min-width: 164px;
   display: flex;
   flex-direction: column;
-  background: var(--card-bg);
-  border-top: var(--card-border-top);
-  border-bottom: var(--card-border-bottom);
-  border-radius: var(--r-sm);
+  padding-right: var(--s-md);
+  border-right: 1px solid var(--divider);
+  background: transparent;
   overflow: hidden;
 }
 
 .vdm-nav-header {
   display: flex;
   align-items: center;
-  padding: 0 var(--s-lg);
+  padding: 0 var(--s-md);
   height: 43px;
   border-bottom: 1px solid var(--divider);
   flex-shrink: 0;
@@ -60,7 +60,7 @@
   display: flex;
   align-items: center;
   height: 36px;
-  padding: 0 var(--s-lg);
+  padding: 0 var(--s-md);
   gap: var(--s-sm);
   position: relative;
   width: 100%;
@@ -70,7 +70,7 @@
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  border-radius: 0;
+  border-radius: var(--r-sm);
   transition:
     color var(--duration-fast) ease-out,
     background var(--duration-fast) ease-out;
@@ -92,7 +92,7 @@
 
 .vdm-nav-item .nav-indicator {
   position: absolute;
-  left: 0;
+  left: -1px;
   top: 9px;
   bottom: 9px;
   width: 3px;
@@ -115,16 +115,13 @@
 .vdm-content {
   flex: 1;
   min-width: 0;
-  background: var(--card-bg);
-  border-top: var(--card-border-top);
-  border-bottom: var(--card-border-bottom);
-  border-radius: var(--r-sm);
-  padding: var(--s-xl);
+  background: transparent;
+  padding: var(--s-sm) var(--s-xl) var(--s-xl);
   overflow-y: auto;
 }
 
 .vdm-tab {
-  max-width: 780px;
+  width: 100%;
 }
 
 .settings-summary {
@@ -286,49 +283,35 @@
 /* ── 版本设置卡片 ── */
 
 .settings-tab {
-  max-width: 820px;
   padding-bottom: var(--s-md);
 }
 
 .settings-tab .settings-section {
-  margin-bottom: var(--s-md);
-  padding: 0 16px 4px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  background: var(--card-bg);
-  overflow: hidden;
-  transition:
-    border-color var(--duration-fast) ease-out,
-    box-shadow var(--duration-fast) ease-out;
-}
-
-.settings-tab .settings-section:focus-within {
-  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
-  box-shadow: 0 3px 14px rgb(0 0 0 / 4%);
+  margin-bottom: var(--s-xl);
+  padding: 0;
 }
 
 .settings-tab .section-label {
-  margin: 0 -16px;
-  padding: 11px 16px 10px;
+  margin: 0;
+  padding: 0 0 var(--s-sm);
   border-bottom: 1px solid var(--divider);
-  background: var(--bg-base);
   color: var(--text-secondary);
-  font-size: 11px;
-  letter-spacing: 0.03em;
+  font-size: 12px;
+  letter-spacing: 0.04em;
 }
 
 .settings-tab .setting-item {
-  min-height: 58px;
-  padding: 11px 0;
+  min-height: 54px;
+  padding: 10px 0;
 }
 
 .settings-tab .setting-detail {
-  min-height: 54px;
-  margin: 0 -6px 7px;
-  padding: 9px 10px;
-  border: 1px solid var(--divider);
+  min-height: 50px;
+  margin: 0;
+  padding: 8px 10px;
+  border-bottom: none;
   border-radius: var(--r-sm);
-  background: var(--bg-base);
+  background: var(--bg-hover);
 }
 
 .settings-tab .setting-item-copy {
@@ -587,17 +570,13 @@
 }
 
 @media (max-width: 950px) {
-  .vdm-container {
-    gap: var(--s-md);
-  }
-
   .vdm-nav {
-    width: 156px;
-    min-width: 156px;
+    width: 148px;
+    min-width: 148px;
   }
 
   .vdm-content {
-    padding: var(--s-lg);
+    padding: var(--s-sm) var(--s-lg) var(--s-lg);
   }
 
   .settings-tab .setting-control-wide {

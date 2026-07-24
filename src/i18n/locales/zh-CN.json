@@ -167,6 +167,7 @@
       "defaultPathTip": "默认路径不能修改路径位置，但可以修改名称"
     },
     "detail": {
+      "title": "版本详情 · {version}",
       "overview": "总览",
       "mods": "模组",
       "settings": "设置",

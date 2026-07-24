@@ -93,7 +93,7 @@
       </template>
     </Modal>
 
-    <!-- 版本设置全屏弹窗 -->
+    <!-- 版本详情弹窗 -->
     <VersionDetailModal
       v-model:visible="showDetailModal"
       :version="detailVersion"
