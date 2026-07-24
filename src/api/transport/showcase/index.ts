@@ -27,6 +27,11 @@ function getPayload(payload: unknown): Record<string, unknown> {
   return payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : {}
 }
 
+function cloneConfigData<T>(value: T): T {
+  if (value === undefined) return value
+  return JSON.parse(JSON.stringify(value)) as T
+}
+
 function wait(duration = 90): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, duration))
 }
@@ -105,7 +110,7 @@ export function createShowcaseTransport(): BackendTransport {
       case 'config_get':
         return success(structuredClone(config[String(payload.section)]))
       case 'config_set':
-        config[String(payload.section)] = structuredClone(payload.data)
+        config[String(payload.section)] = cloneConfigData(payload.data)
         return success()
       case 'config_list':
       case 'list_sections':
