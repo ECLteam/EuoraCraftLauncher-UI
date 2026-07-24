@@ -167,7 +167,6 @@
       "defaultPathTip": "Default path cannot change location but can change name"
     },
     "detail": {
-      "title": "Version Details · {version}",
       "overview": "Overview",
       "mods": "Mods",
       "settings": "Settings",

@@ -5,28 +5,29 @@
 
 .vdm-container {
   display: flex;
-  height: min(620px, calc(90vh - 110px));
-  min-height: 360px;
-  gap: 0;
+  height: 100%;
+  gap: var(--s-lg);
+  padding: var(--s-lg);
 }
 
 /* ── 左侧导航 ── */
 
 .vdm-nav {
-  width: 164px;
-  min-width: 164px;
+  width: 180px;
+  min-width: 180px;
   display: flex;
   flex-direction: column;
-  padding-right: var(--s-md);
-  border-right: 1px solid var(--divider);
-  background: transparent;
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
   overflow: hidden;
 }
 
 .vdm-nav-header {
   display: flex;
   align-items: center;
-  padding: 0 var(--s-md);
+  padding: 0 var(--s-lg);
   height: 43px;
   border-bottom: 1px solid var(--divider);
   flex-shrink: 0;
@@ -60,7 +61,7 @@
   display: flex;
   align-items: center;
   height: 36px;
-  padding: 0 var(--s-md);
+  padding: 0 var(--s-lg);
   gap: var(--s-sm);
   position: relative;
   width: 100%;
@@ -70,7 +71,7 @@
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  border-radius: var(--r-sm);
+  border-radius: 0;
   transition:
     color var(--duration-fast) ease-out,
     background var(--duration-fast) ease-out;
@@ -92,7 +93,7 @@
 
 .vdm-nav-item .nav-indicator {
   position: absolute;
-  left: -1px;
+  left: 0;
   top: 9px;
   bottom: 9px;
   width: 3px;
@@ -115,13 +116,17 @@
 .vdm-content {
   flex: 1;
   min-width: 0;
-  background: transparent;
-  padding: var(--s-sm) var(--s-xl) var(--s-xl);
+  background: var(--card-bg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
+  padding: var(--s-xl);
   overflow-y: auto;
 }
 
 .vdm-tab {
   width: 100%;
+  max-width: 900px;
 }
 
 .settings-summary {
@@ -366,10 +371,9 @@
   flex-direction: column;
   gap: 4px;
   padding: var(--s-md) var(--s-md);
-  background: var(--card-bg);
-  border-top: var(--card-border-top);
-  border-bottom: var(--card-border-bottom);
-  border-radius: var(--r-sm);
+  background: var(--bg-base);
+  border: 1px solid var(--divider);
+  border-radius: var(--r-md);
 }
 
 .info-label {
@@ -401,14 +405,11 @@
   flex: 1;
   height: 40px;
   padding: 0 var(--s-lg);
-  background: var(--card-bg);
-  border-top: var(--card-border-top);
-  border-bottom: var(--card-border-bottom);
-  border-radius: var(--r-sm);
-  border-left: none;
-  border-right: none;
-  color: var(--text-primary);
-  font-size: 13px;
+  background: var(--bg-base);
+  border: 1px solid var(--divider);
+  border-radius: var(--r-md);
+  color: var(--text-secondary);
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition:
@@ -419,6 +420,7 @@
 .btn-action-card:hover {
   background: var(--bg-hover);
   color: var(--primary);
+  border-color: var(--border-hover);
 }
 
 .btn-action-card:last-child:hover {
@@ -570,13 +572,18 @@
 }
 
 @media (max-width: 950px) {
+  .vdm-container {
+    gap: var(--s-md);
+    padding: var(--s-md);
+  }
+
   .vdm-nav {
-    width: 148px;
-    min-width: 148px;
+    width: 156px;
+    min-width: 156px;
   }
 
   .vdm-content {
-    padding: var(--s-sm) var(--s-lg) var(--s-lg);
+    padding: var(--s-lg);
   }
 
   .settings-tab .setting-control-wide {
