@@ -8,34 +8,22 @@
   >
     <div class="vdm-container">
       <!-- 左侧导航 -->
-      <div :class="['vdm-nav', { collapsed: navCollapsed }]">
+      <div class="vdm-nav">
         <div class="vdm-nav-header">
           <div class="vdm-version-badge">
             <UiIcon :name="getLoaderIcon(version?.primaryLoader || 'vanilla')" :size="20" />
             <span class="vdm-version-name">{{ version?.versionId || '...' }}</span>
           </div>
-          <button
-            class="vdm-nav-toggle"
-            :title="navCollapsed ? t('sidebar.expand') : t('sidebar.collapse')"
-            :aria-label="navCollapsed ? t('sidebar.expand') : t('sidebar.collapse')"
-            :aria-expanded="!navCollapsed"
-            @click="navCollapsed = !navCollapsed"
-          >
-            <UiIcon name="menu" :size="17" />
-          </button>
         </div>
         <div class="vdm-nav-list">
           <button
             v-for="tab in tabs"
             :key="tab.id"
             :class="['vdm-nav-item', { active: activeTab === tab.id }]"
-            :title="navCollapsed ? tab.label : undefined"
             @click="activeTab = tab.id"
           >
             <span class="nav-indicator" />
-            <span class="vdm-nav-icon">
-              <UiIcon :name="tab.icon" :size="17" />
-            </span>
+            <UiIcon :name="tab.icon" :size="17" />
             <span class="vdm-nav-label">{{ tab.label }}</span>
           </button>
         </div>
@@ -310,7 +298,6 @@ const visible = computed({
 const title = computed(() => props.version?.versionId || t('versions.detail.settings'))
 
 const activeTab = ref<'overview' | 'mods' | 'settings' | 'saves'>('overview')
-const navCollapsed = ref(true)
 
 const tabs = computed(() => [
   { id: 'overview' as const, icon: 'info', label: t('versions.detail.overview') },
@@ -359,7 +346,6 @@ watch(
   (val) => {
     if (val) {
       activeTab.value = 'overview'
-      navCollapsed.value = true
       void loadSettings()
     }
   }
