@@ -132,17 +132,31 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--s-lg);
-  margin-bottom: var(--s-xl);
-  padding: 12px 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--bg-base);
+  margin-bottom: var(--s-lg);
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--border));
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--primary) 6%, var(--card-bg));
 }
 
-.settings-summary > div {
+.settings-summary-copy {
   display: flex;
   min-width: 0;
   flex-direction: column;
+  position: relative;
+  padding-left: 16px;
+}
+
+.settings-summary-copy::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-alpha);
 }
 
 .settings-summary strong {
@@ -151,32 +165,39 @@
   font-weight: 600;
 }
 
-.settings-summary span {
-  margin-top: 2px;
+.settings-summary-status {
+  margin-top: 3px;
   color: var(--text-tertiary);
-  font-size: 10px;
+  font-size: 11px;
+  line-height: 1.45;
 }
 
 .btn-reset-settings {
   flex-shrink: 0;
-  padding: 6px 11px;
+  min-height: 30px;
+  padding: 6px 12px;
   border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--bg-elevated);
+  border-radius: var(--r-md);
+  background: var(--card-bg);
   color: var(--text-secondary);
   font-size: 11px;
+  font-weight: 600;
   cursor: pointer;
   transition:
     border-color var(--duration-fast) ease-out,
-    color var(--duration-fast) ease-out;
+    color var(--duration-fast) ease-out,
+    background var(--duration-fast) ease-out;
 }
 
 .btn-reset-settings:hover:not(:disabled) {
   border-color: var(--primary);
   color: var(--primary);
+  background: var(--primary-alpha);
 }
 
 .btn-reset-settings:disabled {
+  border-color: transparent;
+  background: transparent;
   color: var(--text-disabled);
   cursor: not-allowed;
 }
@@ -260,6 +281,93 @@
   display: flex;
   align-items: center;
   gap: var(--s-sm);
+}
+
+/* ── 版本设置卡片 ── */
+
+.settings-tab {
+  max-width: 820px;
+  padding-bottom: var(--s-md);
+}
+
+.settings-tab .settings-section {
+  margin-bottom: var(--s-md);
+  padding: 0 16px 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--card-bg);
+  overflow: hidden;
+  transition:
+    border-color var(--duration-fast) ease-out,
+    box-shadow var(--duration-fast) ease-out;
+}
+
+.settings-tab .settings-section:focus-within {
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+  box-shadow: 0 3px 14px rgb(0 0 0 / 4%);
+}
+
+.settings-tab .section-label {
+  margin: 0 -16px;
+  padding: 11px 16px 10px;
+  border-bottom: 1px solid var(--divider);
+  background: var(--bg-base);
+  color: var(--text-secondary);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+}
+
+.settings-tab .setting-item {
+  min-height: 58px;
+  padding: 11px 0;
+}
+
+.settings-tab .setting-detail {
+  min-height: 54px;
+  margin: 0 -6px 7px;
+  padding: 9px 10px;
+  border: 1px solid var(--divider);
+  border-radius: var(--r-sm);
+  background: var(--bg-base);
+}
+
+.settings-tab .setting-item-copy {
+  min-height: auto;
+  padding-bottom: 3px;
+  border-bottom: none;
+}
+
+.settings-tab .setting-control-wide {
+  flex: 0 1 440px;
+  min-width: 0;
+}
+
+.number-input-wrap {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg-elevated);
+  overflow: hidden;
+  transition:
+    border-color var(--duration-fast) ease-out,
+    box-shadow var(--duration-fast) ease-out;
+}
+
+.number-input-wrap:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.input-suffix {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  border-left: 1px solid var(--divider);
+  background: var(--bg-base);
+  color: var(--text-tertiary);
+  font-size: 10px;
+  font-weight: 600;
 }
 
 /* ── 信息网格 ── */
@@ -377,19 +485,27 @@
 }
 
 .memory-input {
-  width: 120px;
+  width: 104px;
+  border: none !important;
+  border-radius: 0 !important;
   text-align: right;
 }
 
+.memory-input:focus {
+  box-shadow: none !important;
+}
+
 .java-path-input {
-  width: 280px;
+  min-width: 0;
+  flex: 1;
 }
 
 .args-textarea {
   width: 100%;
-  min-height: 80px;
+  min-height: 86px;
   resize: vertical;
-  margin-top: var(--s-sm);
+  margin: 7px 0 12px;
+  line-height: 1.55;
 }
 
 /* ── 按钮（幽灵风格） ── */
@@ -484,7 +600,30 @@
     padding: var(--s-lg);
   }
 
-  .java-path-input {
-    width: 220px;
+  .settings-tab .setting-control-wide {
+    flex-basis: 340px;
+  }
+}
+
+@media (max-width: 700px) {
+  .settings-summary {
+    align-items: flex-start;
+  }
+
+  .settings-tab .setting-detail {
+    align-items: stretch;
+    flex-direction: column;
+    gap: var(--s-sm);
+  }
+
+  .settings-tab .setting-detail .setting-control,
+  .settings-tab .setting-control-wide {
+    width: 100%;
+    flex-basis: auto;
+  }
+
+  .number-input-wrap,
+  .memory-input {
+    width: 100%;
   }
 }

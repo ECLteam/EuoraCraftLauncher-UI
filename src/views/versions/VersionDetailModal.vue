@@ -86,16 +86,16 @@
         </div>
 
         <!-- 版本设置 -->
-        <div v-if="activeTab === 'settings'" class="vdm-tab">
+        <div v-if="activeTab === 'settings'" class="vdm-tab settings-tab">
           <div v-if="settingsLoading" class="settings-loading-state">
             <span class="settings-loading-spinner" />
             <span>{{ t('versions.detail.loadingSettings') }}</span>
           </div>
           <template v-else>
             <div class="settings-summary">
-              <div>
+              <div class="settings-summary-copy">
                 <strong>{{ t('versions.detail.settings') }}</strong>
-                <span>{{
+                <span class="settings-summary-status">{{
                   isCustomized ? t('versions.detail.customizedSettings') : t('versions.detail.usingGlobalSettings')
                 }}</span>
               </div>
@@ -142,19 +142,22 @@
                   </button>
                 </div>
               </div>
-              <div v-if="versionSettings.customMemory" class="setting-item">
+              <div v-if="versionSettings.customMemory" class="setting-item setting-detail">
                 <div class="setting-info">
-                  <div class="setting-label">{{ t('versions.detail.memorySize') }} (MB)</div>
+                  <div class="setting-label">{{ t('versions.detail.memorySize') }}</div>
                 </div>
                 <div class="setting-control">
-                  <input
-                    v-model.number="versionSettings.memory"
-                    type="number"
-                    min="512"
-                    max="65536"
-                    step="256"
-                    class="text-input memory-input"
-                  />
+                  <div class="number-input-wrap">
+                    <input
+                      v-model.number="versionSettings.memory"
+                      type="number"
+                      min="512"
+                      max="65536"
+                      step="256"
+                      class="text-input memory-input"
+                    />
+                    <span class="input-suffix">MB</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -177,11 +180,11 @@
                   </button>
                 </div>
               </div>
-              <div v-if="versionSettings.customJava" class="setting-item">
+              <div v-if="versionSettings.customJava" class="setting-item setting-detail">
                 <div class="setting-info">
                   <div class="setting-label">{{ t('versions.detail.javaPath') }}</div>
                 </div>
-                <div class="setting-control">
+                <div class="setting-control setting-control-wide">
                   <input
                     v-model="versionSettings.javaPath"
                     type="text"
@@ -197,7 +200,7 @@
 
             <div class="settings-section">
               <div class="section-label">{{ t('versions.detail.jvmArgs') }}</div>
-              <div class="setting-item">
+              <div class="setting-item setting-item-copy">
                 <div class="setting-info">
                   <div class="setting-label">{{ t('versions.detail.customJvmArgs') }}</div>
                   <div class="setting-desc">{{ t('versions.detail.customJvmArgsDesc') }}</div>
@@ -212,7 +215,7 @@
 
             <div class="settings-section">
               <div class="section-label">{{ t('versions.detail.gameArgs') }}</div>
-              <div class="setting-item">
+              <div class="setting-item setting-item-copy">
                 <div class="setting-info">
                   <div class="setting-label">{{ t('versions.detail.customGameArgs') }}</div>
                   <div class="setting-desc">{{ t('versions.detail.customGameArgsDesc') }}</div>
