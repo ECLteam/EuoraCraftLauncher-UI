@@ -297,3 +297,118 @@ export function createShowcaseAccount(alias: string, type: MinecraftAccount['typ
     isCurrent: false,
   }
 }
+
+// ===========================================================================
+// Demo Task Queue
+// ===========================================================================
+
+/** Interface for pre-populating the task queue in showcase mode */
+export interface DemoTaskDef {
+  type: 'install' | 'download'
+  name: string
+  status: 'pending' | 'running' | 'completed' | 'error' | 'canceled'
+  progress: number
+  message: string
+  versionId: string
+  loaderType: string
+  subtasks?: { id: string; name: string; status: 'pending' | 'running' | 'completed' | 'error'; message: string }[]
+}
+
+/** Demo task definitions for showcase mode */
+export const showcaseDemoTasks: DemoTaskDef[] = [
+  {
+    type: 'download',
+    name: '下载 Minecraft 1.21.5',
+    status: 'running',
+    progress: 65,
+    message: '正在下载 client.jar (12.4 MB / 18.9 MB)',
+    versionId: '1.21.5',
+    loaderType: 'Vanilla',
+    subtasks: [
+      { id: 'sub1', name: '下载 JSON 索引', status: 'completed', message: '已完成' },
+      { id: 'sub2', name: '下载 client.jar', status: 'running', message: '65%' },
+      { id: 'sub3', name: '下载资源文件', status: 'pending', message: '等待中' },
+      { id: 'sub4', name: '下载库文件', status: 'pending', message: '等待中' },
+    ],
+  },
+  {
+    type: 'install',
+    name: '安装 Forge 55.0.9',
+    status: 'pending',
+    progress: 0,
+    message: '等待 Minecraft 1.21.5 下载完成...',
+    versionId: '1.21.5',
+    loaderType: 'Forge',
+  },
+  {
+    type: 'install',
+    name: '安装 OptiFine HD U J1',
+    status: 'completed',
+    progress: 100,
+    message: '安装完成，已注入到 1.21.5',
+    versionId: '1.21.5',
+    loaderType: 'OptiFine',
+  },
+  {
+    type: 'download',
+    name: '删除旧版本 1.16.5',
+    status: 'error',
+    progress: 34,
+    message: '部分文件被其他进程占用，无法删除',
+    versionId: '1.16.5',
+    loaderType: 'Vanilla',
+  },
+  {
+    type: 'install',
+    name: '更新插件 世界备份 v2.0.1',
+    status: 'pending',
+    progress: 0,
+    message: '队列中，等待当前任务完成',
+    versionId: '',
+    loaderType: '',
+  },
+  {
+    type: 'download',
+    name: '下载光影包 SEUS v11',
+    status: 'canceled',
+    progress: 12,
+    message: '用户取消了下载',
+    versionId: '',
+    loaderType: '',
+  },
+  {
+    type: 'install',
+    name: '安装 Fabric API 0.16.10',
+    status: 'completed',
+    progress: 100,
+    message: '已安装到 1.21.5 Fabric',
+    versionId: '1.21.5',
+    loaderType: 'Fabric',
+  },
+]
+
+/** Load demo tasks into the global task queue (call once in showcase mode) */
+export function loadShowcaseTasks(globalTaskQueue: {
+  addTask: (task: { type: 'install' | 'download'; name: string; versionId: string; loaderType: string }) => string
+  updateTask: (id: string, updates: { status?: string; progress?: number; message?: string }) => void
+  addSubtask: (id: string, subtask: { id: string; name: string; status: 'pending' | 'running' | 'completed' | 'error'; message: string }) => void
+}): void {
+  for (const def of showcaseDemoTasks) {
+    const taskId = globalTaskQueue.addTask({
+      type: def.type,
+      name: def.name,
+      versionId: def.versionId,
+      loaderType: def.loaderType,
+    })
+    globalTaskQueue.updateTask(taskId, {
+      status: def.status,
+      progress: def.progress,
+      message: def.message,
+    })
+    if (def.subtasks) {
+      for (const sub of def.subtasks) {
+        globalTaskQueue.addSubtask(taskId, sub)
+      }
+    }
+  }
+}

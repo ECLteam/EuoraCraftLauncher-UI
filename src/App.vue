@@ -10,11 +10,11 @@
         <NNotificationProvider>
           <div id="app">
             <!-- 背景层 -->
-            <div class="app-background" />
-            <div class="app-background-overlay" />
+            <div class="app-background"></div>
+            <div class="app-background-overlay"></div>
 
             <!-- 主布局 -->
-            <a href="#main-content" class="skip-link">跳到主要内容</a>
+            <!--<a href="#main-content" class="skip-link">跳到主要内容</a>-->
             <div class="app-layout">
               <!-- 顶部栏 - 始终可交互 -->
               <TitleBar
@@ -27,7 +27,7 @@
                 <SideBar />
 
                 <!-- 插件：侧栏扩展插槽 -->
-                <div id="plugin-slot-sidebar-extra" class="plugin-slot-container plugin-sidebar-slot" />
+                <div id="plugin-slot-sidebar-extra" class="plugin-slot-container plugin-sidebar-slot"></div>
 
                 <!-- 内容区 - 全屏弹窗仅覆盖此区域 -->
                 <main
@@ -37,7 +37,7 @@
                   tabindex="-1"
                 >
                   <!-- 插件：内容区顶部插槽 -->
-                  <div id="plugin-slot-content-top" class="plugin-slot-container" />
+                  <div id="plugin-slot-content-top" class="plugin-slot-container"></div>
                   <div v-if="isAgreementAccepted" class="page-container">
                     <RouterView v-slot="{ Component, route: currentRoute }">
                       <Transition name="page" mode="out-in">
@@ -45,10 +45,10 @@
                       </Transition>
                     </RouterView>
                     <!-- 插件：页面底部插槽 -->
-                    <div id="plugin-slot-page-bottom" class="plugin-slot-container" />
+                    <div id="plugin-slot-page-bottom" class="plugin-slot-container"></div>
                   </div>
 
-                  <!-- 未同意协议时的占位提示 
+                  <!-- 未同意协议时的占位提示
                   <div v-else class="agreement-placeholder">
                     <UiIcon name="info" />
                     <p>{{ t('agreement.pleaseAccept') }}</p>
@@ -58,7 +58,7 @@
                   <GlassMessage ref="messageRef" />
 
                   <!-- 插件：内容区底部插槽 -->
-                  <div id="plugin-slot-content-bottom" class="plugin-slot-container" />
+                  <div id="plugin-slot-content-bottom" class="plugin-slot-container"></div>
 
                   <!-- 任务队列全屏面板 -->
                   <TaskQueuePanel />
@@ -142,8 +142,10 @@ import TaskQueuePanel from '@/components/panels/TaskQueuePanel.vue'
 import GlassMessage from '@/components/ui/GlassMessage.vue'
 import { useFullscreenModal } from '@/composables/useFullscreenModal'
 import { setMessageRef, useGlassMessage } from '@/composables/useGlassMessage'
+import { globalTaskQueue } from '@/composables/useTaskQueue'
 import { useTheme } from '@/composables/useTheme'
 import { useUserAgreement } from '@/composables/useUserAgreement'
+import { loadShowcaseTasks } from '@/api/transport/showcase/fixtures'
 
 const router = useRouter()
 const { naiveTheme, themeOverrides } = useTheme()
@@ -215,6 +217,11 @@ onMounted(async () => {
     await appRuntime.start()
   } catch (error) {
     console.error('[App] 应用运行层初始化失败:', error)
+  }
+
+  // 演示模式下加载示例任务数据
+  if (appRuntime.isShowcaseMode) {
+    loadShowcaseTasks(globalTaskQueue)
   }
 })
 
