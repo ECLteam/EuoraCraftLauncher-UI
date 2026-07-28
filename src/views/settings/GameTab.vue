@@ -96,67 +96,77 @@
         </div>
       </div>
 
-      <Transition name="memory-panel">
-        <div
-          v-if="!localSettings.memory_auto"
-          class="memory-manual-section"
-          :style="{ '--memory-slider-progress': sliderValuePosition + '%' }"
-        >
-          <div class="memory-header">
-            <div class="memory-header-copy">
-              <div class="memory-header-label">
-                {{ t('settings.memorySize') }}
-              </div>
-              <div class="memory-header-desc">
-                {{ t('settings.memorySizeDesc') }}
-              </div>
+      <div
+        class="memory-manual-section"
+        :class="{ 'is-auto': localSettings.memory_auto }"
+        :style="{ '--memory-slider-progress': localSettings.memory_auto ? '0%' : sliderValuePosition + '%' }"
+      >
+        <div class="memory-header">
+          <div class="memory-header-copy">
+            <div class="memory-header-label">
+              {{ t('settings.memorySize') }}
+              <span v-if="localSettings.memory_auto" class="auto-badge">{{ t('settings.memoryAuto') }}</span>
             </div>
-            <output class="memory-current-value">{{ formatMemory(safeMemorySize) }}</output>
-          </div>
-
-          <div class="memory-slider-block">
-            <input
-              v-model.number="safeMemorySize"
-              type="range"
-              min="1024"
-              :max="maxMemory"
-              step="256"
-              class="memory-slider-input"
-              :aria-label="t('settings.memorySize')"
-              :aria-valuetext="formatMemory(safeMemorySize)"
-              @input="debouncedSaveConfig()"
-            />
-            <div class="memory-slider-scale">
-              <span>1 GB</span>
-              <span>{{ formatMemory(maxMemory) }}</span>
+            <div class="memory-header-desc">
+              {{ t('settings.memorySizeDesc') }}
             </div>
           </div>
+          <output class="memory-current-value" :class="{ 'is-auto': localSettings.memory_auto }">{{ formatMemory(safeMemorySize) }}</output>
+        </div>
 
-          <div class="memory-stats">
-            <div class="memory-stat">
-              <span class="memory-stat-label">
-                <i class="system-used" />
-                {{ t('settings.memoryUsed') }}
-              </span>
-              <strong>{{ formatMemory(systemMemory.usedMb) }}</strong>
-            </div>
-            <div class="memory-stat">
-              <span class="memory-stat-label">
-                <i class="game-allocated" />
-                {{ t('settings.memoryAllocated') }}
-              </span>
-              <strong class="is-primary">{{ formatMemory(safeMemorySize) }}</strong>
-            </div>
-            <div class="memory-stat">
-              <span class="memory-stat-label">
-                <i class="remaining" />
-                {{ t('settings.memoryRemaining') }}
-              </span>
-              <strong>{{ formatMemory(remainingMemory) }}</strong>
-            </div>
+        <div class="memory-slider-block">
+          <input
+            v-model.number="safeMemorySize"
+            type="range"
+            :disabled="localSettings.memory_auto"
+            min="1024"
+            :max="maxMemory"
+            step="256"
+            class="memory-slider-input"
+            :aria-label="t('settings.memorySize')"
+            :aria-valuetext="formatMemory(safeMemorySize)"
+            @input="debouncedSaveConfig()"
+          />
+          <div class="memory-slider-scale">
+            <span>1 GB</span>
+            <span>{{ formatMemory(maxMemory) }}</span>
           </div>
         </div>
-      </Transition>
+
+        <div class="memory-bar-wrapper">
+          <div class="memory-bar-track">
+            <div
+              class="memory-bar-segment system-used"
+              :style="{ width: memoryBarSegments.systemUsedPct + '%' }"
+              :title="t('settings.memoryUsed') + ': ' + formatMemory(systemMemory.usedMb)"
+            />
+            <div
+              class="memory-bar-segment game-allocated"
+              :style="{ width: memoryBarSegments.gameAllocatedPct + '%' }"
+              :title="t('settings.memoryAllocated') + ': ' + formatMemory(safeMemorySize)"
+            />
+            <div
+              class="memory-bar-segment remaining"
+              :style="{ width: memoryBarSegments.remainingPct + '%' }"
+              :title="t('settings.memoryRemaining') + ': ' + formatMemory(remainingMemory)"
+            />
+          </div>
+          <div class="memory-bar-legend">
+            <span class="legend-item">
+              <i class="system-used" />
+              {{ t('settings.memoryUsed') }} {{ formatMemory(systemMemory.usedMb) }}
+            </span>
+            <span class="legend-item">
+              <i class="game-allocated" />
+              {{ t('settings.memoryAllocated') }} {{ formatMemory(safeMemorySize) }}
+            </span>
+            <span class="legend-item">
+              <i class="remaining" />
+              {{ t('settings.memoryRemaining') }} {{ formatMemory(remainingMemory) }}
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 启动选项 -->
@@ -187,7 +197,7 @@
       </div>
     </div>
 
-    <div id="plugin-slot-settings-game-section-after" class="plugin-slot-container" />
+    <div id="plugin-slot-settings-game-section-after" class="plugin-slot-container"></div>
   </div>
 </template>
 
@@ -262,6 +272,14 @@ const safeMemorySize = computed({
 
 const remainingMemory = computed(() => {
   return Math.max(0, systemMemory.value.totalMb - systemMemory.value.usedMb - safeMemorySize.value)
+})
+
+const memoryBarSegments = computed(() => {
+  const total = systemMemory.value.totalMb || 1
+  const usedPct = Math.round((systemMemory.value.usedMb / total) * 100)
+  const allocatedPct = Math.round((safeMemorySize.value / total) * 100)
+  const remainingPct = Math.max(0, 100 - usedPct - allocatedPct)
+  return { systemUsedPct: usedPct, gameAllocatedPct: allocatedPct, remainingPct }
 })
 
 const selectedJavaLabel = computed(() => {

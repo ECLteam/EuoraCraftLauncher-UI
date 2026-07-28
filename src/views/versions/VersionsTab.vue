@@ -24,7 +24,7 @@
             <UiIcon name="close" :size="14" />
           </button>
         </div>
-        <div id="plugin-slot-versions-list-toolbar" class="plugin-slot-container" />
+        <div id="plugin-slot-versions-list-toolbar" class="plugin-slot-container"></div>
       </div>
     </div>
 

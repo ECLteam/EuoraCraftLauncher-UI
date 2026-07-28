@@ -101,7 +101,7 @@
                       <p class="agreement-desc">
                         {{ t('agreement.description') }}
                       </p>
-                      <a :href="agreementUrl" target="_blank" class="agreement-link-btn">
+                      <a href="#" class="agreement-link-btn" @click.prevent="openExternalUrl(agreementUrl)">
                         <UiIcon name="external-link" />
                         {{ t('agreement.viewFull') }}
                       </a>
@@ -145,6 +145,7 @@ import { setMessageRef, useGlassMessage } from '@/composables/useGlassMessage'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
 import { useTheme } from '@/composables/useTheme'
 import { useUserAgreement } from '@/composables/useUserAgreement'
+import { openExternalUrl } from '@/utils/openExternal'
 import { loadShowcaseTasks } from '@/api/transport/showcase/fixtures'
 
 const router = useRouter()

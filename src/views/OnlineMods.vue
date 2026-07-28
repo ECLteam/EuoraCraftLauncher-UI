@@ -17,7 +17,7 @@
     </div>
 
     <!-- 插件：联机模组搜索栏下方插槽 -->
-    <div id="plugin-slot-online-mods-search-after" class="plugin-slot-container" />
+    <div id="plugin-slot-online-mods-search-after" class="plugin-slot-container"></div>
 
     <div v-if="loading" class="loading-state">
       <NSpin size="medium" />

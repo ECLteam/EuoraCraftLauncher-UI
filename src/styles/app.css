@@ -1,4 +1,4 @@
-#app {
+﻿#app {
   position: relative;
   width: 100vw;
   height: 100vh;
@@ -42,6 +42,8 @@
   inset: 0;
   z-index: 0;
   background: var(--bg-overlay-tint);
+  backdrop-filter: blur(var(--bg-blur, 0px));
+  -webkit-backdrop-filter: blur(var(--bg-blur, 0px));
   pointer-events: none;
 }
 
@@ -206,3 +208,5 @@
   transform: translateY(0) scale(0.97);
   transition-duration: 0.06s;
 }
+
+

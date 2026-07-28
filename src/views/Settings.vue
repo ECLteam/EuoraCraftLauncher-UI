@@ -21,20 +21,20 @@
         </RouterLink>
       </div>
       <!-- 插件：设置页导航底部插槽 -->
-      <div id="plugin-slot-settings-nav-bottom" class="plugin-slot-container" />
+      <div id="plugin-slot-settings-nav-bottom" class="plugin-slot-container"></div>
     </div>
 
     <!-- 右侧内容区 -->
     <div class="settings-content">
       <!-- 插件：设置页内容区顶部插槽 -->
-      <div id="plugin-slot-settings-content-top" class="plugin-slot-container" />
+      <div id="plugin-slot-settings-content-top" class="plugin-slot-container"></div>
       <RouterView v-slot="{ Component }">
         <Transition name="page" mode="out-in">
           <component :is="Component" />
         </Transition>
       </RouterView>
       <!-- 插件：设置页内容区底部插槽 -->
-      <div id="plugin-slot-settings-content-bottom" class="plugin-slot-container" />
+      <div id="plugin-slot-settings-content-bottom" class="plugin-slot-container"></div>
     </div>
   </div>
 </template>

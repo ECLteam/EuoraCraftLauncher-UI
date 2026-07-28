@@ -1,6 +1,6 @@
 <template>
   <div class="fab-launch-bar" :class="{ 'no-version-bar': versionsCount === 0 }">
-    <div id="plugin-slot-game-launch-before" class="plugin-slot-container" />
+    <div id="plugin-slot-game-launch-before" class="plugin-slot-container"></div>
     <div class="fab-row-top">
       <button
         v-if="versionsCount > 0"

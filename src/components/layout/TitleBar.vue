@@ -21,12 +21,12 @@
             SHOWCASE
           </span>
         </div>
-        <div id="plugin-slot-titlebar-left" class="plugin-slot-container" />
+        <div id="plugin-slot-titlebar-left" class="plugin-slot-container"></div>
       </template>
     </div>
 
     <!-- 中间拖拽区 -->
-    <div class="titlebar-center" />
+    <div class="titlebar-center"></div>
 
     <!-- 顶部导航菜单（横向标题栏模式，绝对定位居中） -->
     <nav v-if="topNavEnabled && !isFullscreenModalVisible" class="titlebar-nav">
@@ -46,9 +46,9 @@
 
     <!-- 右侧窗口控制 -->
     <div class="titlebar-right">
-      <div id="plugin-slot-titlebar-right" class="plugin-slot-container" />
+      <div id="plugin-slot-titlebar-right" class="plugin-slot-container"></div>
+      <TitleBarTray />
       <button
-        v-if="hasActiveTasks"
         class="titlebar-btn titlebar-btn-task"
         :title="t('task.title')"
         @click="toggleTaskPanel"
@@ -83,6 +83,7 @@ import UiIcon from '@/components/ui/Icon.vue'
 import { useFullscreenModal } from '@/composables/useFullscreenModal'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
 import { useTheme } from '@/composables/useTheme'
+import TitleBarTray from '@/components/layout/TitleBarTray.vue'
 import { useTopNav } from '@/composables/useTopNav'
 import { MENU_ITEMS } from '@/constants/menu'
 
@@ -95,7 +96,7 @@ const fullscreenModal = useFullscreenModal()
 const route = useRoute()
 const router = useRouter()
 
-const { hasActiveTasks, activeCount: activeTaskCount, togglePanel: toggleTaskPanel } = globalTaskQueue
+const { activeCount: activeTaskCount, togglePanel: toggleTaskPanel } = globalTaskQueue
 
 const isFullscreenModalVisible = computed(() => fullscreenModal.isVisible.value)
 const fullscreenModalTitle = computed(() => fullscreenModal.title.value)

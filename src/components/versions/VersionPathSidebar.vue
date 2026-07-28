@@ -17,7 +17,7 @@
         :class="['path-item', { active: selectedIndex === index }]"
         @click="emit('select', index)"
       >
-        <div class="path-indicator" />
+        <div class="path-indicator"></div>
         <UiIcon name="folder" :size="16" class="path-icon" />
         <div class="path-info">
           <div class="path-name-row">

@@ -49,7 +49,7 @@
           </main>
 
           <footer v-if="showFooter" class="modal-footer">
-            <div id="plugin-slot-modal-footer-extra" class="plugin-slot-container" />
+            <div id="plugin-slot-modal-footer-extra" class="plugin-slot-container"></div>
             <slot name="footer">
               <template v-if="type === 'agreement'">
                 <UiButton variant="secondary" @click="handleCancel">

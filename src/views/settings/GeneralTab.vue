@@ -1,6 +1,54 @@
 <template>
   <div class="tab-pane">
-    <!-- 外观 -->
+
+    <!-- Language -->
+    <div class="settings-section">
+      <div class="section-label">
+        {{ t('settings.languageRegion') }}
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">
+            {{ t('settings.language') }}
+          </div>
+          <div class="setting-desc">
+            {{ t('settings.languageDesc') }}
+          </div>
+        </div>
+        <div class="setting-control">
+          <div ref="langSelectRef" class="custom-select" :class="{ open: isLangOpen }">
+            <div class="select-trigger" @click.stop="toggleLangOpen">
+              <span class="selected-text">
+                <span class="lang-option">
+                  <span class="lang-flag">{{ selectedLanguage?.flag }}</span>
+                  <span class="lang-name">{{ selectedLanguage?.name }}</span>
+                </span>
+              </span>
+              <UiIcon name="chevron-down" class="select-arrow" :class="{ rotated: isLangOpen }" :size="14" />
+            </div>
+            <div v-if="isLangOpen" class="select-dropdown">
+                <div
+                  v-for="lang in supportedLocales"
+                  :key="lang.code"
+                  class="select-option"
+                  :class="{ active: currentLocale === lang.code }"
+                  @click="handleLanguageChange(lang.code)"
+                >
+                  <div class="option-content">
+                    <span class="lang-flag">{{ lang.flag }}</span>
+                    <span class="lang-name">{{ lang.name }}</span>
+                  </div>
+                  <UiIcon v-if="currentLocale === lang.code" name="check" :size="14" class="check-icon" />
+                </div>
+              </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Appearance -->
     <div class="settings-section">
       <div class="section-label">
         {{ t('settings.appearance') }}
@@ -48,12 +96,11 @@
               :class="['color-dot', { active: currentSettings.primary_color === color.value }]"
               :style="{ backgroundColor: color.value }"
               :title="color.name"
-              @click="handleColorChange(color.value)"
-            />
+              @click="handleColorChange(color.value)"></div>
             <div class="custom-color-wrapper">
               <input
                 type="color"
-                :value="currentSettings.primary_color"
+                :value="currentSettings.primary_color || DEFAULT_PRIMARY_COLOR"
                 class="color-input-native"
                 @input="handleColorInput"
               />
@@ -61,6 +108,34 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <div class="setting-label">
+            {{ t('settings.topNav') }}
+          </div>
+          <div class="setting-desc">
+            {{ t('settings.topNavDesc') }}
+          </div>
+        </div>
+        <div class="setting-control">
+          <button
+            :class="['toggle-switch', { active: topNavEnabled }]"
+            role="switch"
+            :aria-checked="topNavEnabled"
+            @click="toggleTopNav"
+          >
+            <span class="toggle-knob" />
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Background -->
+    <div class="settings-section">
+      <div class="section-label">
+        {{ t('settings.background') }}
       </div>
 
       <div class="setting-item">
@@ -125,76 +200,7 @@
       </div>
     </div>
 
-    <!-- 语言与交互 -->
-    <div class="settings-section">
-      <div class="section-label">
-        {{ t('settings.languageRegion') }}
-      </div>
-
-      <div class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label">
-            {{ t('settings.language') }}
-          </div>
-          <div class="setting-desc">
-            {{ t('settings.languageDesc') }}
-          </div>
-        </div>
-        <div class="setting-control">
-          <div ref="langSelectRef" class="custom-select" :class="{ open: isLangOpen }">
-            <div class="select-trigger" @click="toggleLangOpen">
-              <span class="selected-text">
-                <span class="lang-option">
-                  <span class="lang-flag">{{ selectedLanguage?.flag }}</span>
-                  <span class="lang-name">{{ selectedLanguage?.name }}</span>
-                </span>
-              </span>
-              <UiIcon name="chevron-down" class="select-arrow" :class="{ rotated: isLangOpen }" :size="14" />
-            </div>
-            <Transition name="select-dropdown">
-              <div v-show="isLangOpen" class="select-dropdown">
-                <div
-                  v-for="lang in supportedLocales"
-                  :key="lang.code"
-                  class="select-option"
-                  :class="{ active: currentLocale === lang.code }"
-                  @click="handleLanguageChange(lang.code)"
-                >
-                  <div class="option-content">
-                    <span class="lang-flag">{{ lang.flag }}</span>
-                    <span class="lang-name">{{ lang.name }}</span>
-                  </div>
-                  <UiIcon v-if="currentLocale === lang.code" name="check" :size="14" class="check-icon" />
-                </div>
-              </div>
-            </Transition>
-          </div>
-        </div>
-      </div>
-
-      <div class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label">
-            {{ t('settings.topNav') }}
-          </div>
-          <div class="setting-desc">
-            {{ t('settings.topNavDesc') }}
-          </div>
-        </div>
-        <div class="setting-control">
-          <button
-            :class="['toggle-switch', { active: topNavEnabled }]"
-            role="switch"
-            :aria-checked="topNavEnabled"
-            @click="toggleTopNav"
-          >
-            <span class="toggle-knob" />
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div id="plugin-slot-settings-general-section-after" class="plugin-slot-container" />
+    <div id="plugin-slot-settings-general-section-after" class="plugin-slot-container"></div>
   </div>
 </template>
 
@@ -204,11 +210,11 @@ import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
 import UiSlider from '@/components/ui/Slider.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
-import { useClickOutside } from '@/composables/useClickOutside'
+
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { useTheme, type ThemeMode, presetColors } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
-import { THEME_MODE_OPTIONS } from '@/config/theme'
+import { DEFAULT_PRIMARY_COLOR, THEME_MODE_OPTIONS } from '@/config/theme'
 import { settingsApi } from '@/features/settings/api/settingsApi'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import { supportedLocales, setLocale, type LocaleCode } from '@/i18n'
@@ -391,10 +397,6 @@ const handleLanguageChange = async (langCode: LocaleCode) => {
   await setLocale(langCode)
   await run(async () => settingsStore.patchUi({ locale: langCode }))
 }
-
-useClickOutside(langSelectRef, () => {
-  isLangOpen.value = false
-})
 
 onUnmounted(() => {
   if (bgTimer) clearTimeout(bgTimer)

@@ -7,7 +7,7 @@
     wrapperClass="task-queue-wrapper"
   >
     <div class="tq-content">
-      <div id="plugin-slot-task-queue-top" class="plugin-slot-container" />
+      <div id="plugin-slot-task-queue-top" class="plugin-slot-container"></div>
       <!-- 空状态 -->
       <div v-if="tasks.length === 0" class="tq-empty">
         <UiIcon name="cube" :size="48" class="tq-empty-icon" />
@@ -85,7 +85,7 @@
             </div>
           </Transition>
         </div>
-        <div id="plugin-slot-task-queue-item-actions" class="plugin-slot-container" />
+        <div id="plugin-slot-task-queue-item-actions" class="plugin-slot-container"></div>
       </div>
     </div>
 

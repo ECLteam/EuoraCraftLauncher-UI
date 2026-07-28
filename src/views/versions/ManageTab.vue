@@ -1,6 +1,6 @@
 <template>
   <div class="manage-page">
-    <div id="plugin-slot-versions-manage-top" class="plugin-slot-container" />
+    <div id="plugin-slot-versions-manage-top" class="plugin-slot-container"></div>
     <!-- 统一容器：路径列表 + 版本列表 -->
     <div class="manage-container">
       <VersionPathSidebar
@@ -14,7 +14,7 @@
       />
 
       <!-- 分隔线 -->
-      <div class="path-divider" />
+      <div class="path-divider"></div>
 
       <InstalledVersionList
         v-model:searchQuery="searchQuery"

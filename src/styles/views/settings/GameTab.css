@@ -341,73 +341,80 @@
   line-height: 1;
 }
 
-.memory-stats {
-  display: flex;
-  align-items: center;
-  margin-top: 13px;
-  padding-top: 11px;
-  border-top: 1px solid var(--divider);
+/* ---- 内存可视化条 ---- */
+
+.memory-bar-wrapper {
+  margin-top: 14px;
 }
 
-.memory-stat {
+.memory-bar-track {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex: 1;
-  gap: 6px;
+  height: 8px;
+  border-radius: var(--r-full);
+  overflow: hidden;
+  background: var(--slider-track);
+}
+
+.memory-bar-segment {
+  height: 100%;
+  transition: width var(--duration-normal) var(--ease-smooth);
   min-width: 0;
 }
 
-.memory-stat + .memory-stat {
-  margin-left: 10px;
-  padding-left: 10px;
-  border-left: 1px solid var(--divider);
+.memory-bar-segment + .memory-bar-segment {
+  box-shadow: inset 2px 0 0 rgba(0, 0, 0, 0.22);
 }
 
-.memory-stat-label {
+.memory-bar-segment.system-used {
+  background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+  opacity: 0.45;
+}
+
+.memory-bar-segment.game-allocated {
+  background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);
+}
+
+.memory-bar-segment.remaining {
+  background: linear-gradient(90deg, #93c5fd 0%, #bfdbfe 100%);
+  opacity: 0.55;
+}
+
+.memory-bar-legend {
   display: flex;
   align-items: center;
-  gap: 4px;
-  min-width: 0;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   color: var(--text-tertiary);
-  font-size: 9px;
+  font-size: 10px;
+  font-family: var(--font-mono);
   line-height: 1.2;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.memory-stat-label i {
-  width: 5px;
-  height: 5px;
+.legend-item i {
+  width: 6px;
+  height: 6px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: var(--border-strong);
 }
 
-.memory-stat-label i.system-used {
-  background: var(--text-tertiary);
+.legend-item i.system-used {
+  background: #93c5fd;
 }
 
-.memory-stat-label i.game-allocated {
-  background: var(--primary);
+.legend-item i.game-allocated {
+  background: #3b82f6;
 }
 
-.memory-stat-label i.remaining {
-  background: var(--success);
-}
-
-.memory-stat strong {
-  color: var(--text-primary);
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 600;
-  line-height: 1.2;
-  white-space: nowrap;
-}
-
-.memory-stat strong.is-primary {
-  color: var(--primary);
+.legend-item i.remaining {
+  background: #bfdbfe;
 }
 
 .memory-panel-enter-active,
@@ -422,4 +429,67 @@
 .memory-panel-leave-to {
   opacity: 0;
   transform: translateY(-5px) scale(0.99);
+}
+
+/* ---- 自动模式 ---- */
+
+.auto-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: var(--r-full);
+  background: var(--primary);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.6;
+  vertical-align: middle;
+  user-select: none;
+}
+
+.memory-current-value.is-auto {
+  color: var(--text-tertiary);
+  background: var(--bg-base-alt);
+}
+
+.memory-manual-section.is-auto {
+  opacity: 0.7;
+}
+
+.memory-manual-section.is-auto .memory-slider-input {
+  cursor: not-allowed;
+  background: linear-gradient(
+    to right,
+    var(--slider-track) 0,
+    var(--slider-track) 100%
+  );
+}
+
+.memory-manual-section.is-auto .memory-slider-input::-webkit-slider-thumb {
+  background: var(--text-tertiary);
+  border-color: var(--bg-base-alt);
+  cursor: not-allowed;
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+.memory-manual-section.is-auto .memory-slider-input::-webkit-slider-thumb:hover {
+  transform: none;
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+.memory-manual-section.is-auto .memory-bar-segment {
+  transition: width var(--duration-normal) var(--ease-smooth);
+}
+
+.memory-manual-section.is-auto .memory-bar-segment.system-used {
+  opacity: 0.3;
+}
+
+.memory-manual-section.is-auto .memory-bar-segment.game-allocated {
+  opacity: 0.55;
+}
+
+.memory-manual-section.is-auto .memory-bar-segment.remaining {
+  opacity: 0.35;
 }

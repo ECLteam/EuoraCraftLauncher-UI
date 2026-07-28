@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 前端定义的数据结构、命令参数/响应映射与事件映射。
  *
  * 后端不关心这些字段的具体含义，只负责存/取 JSON。
@@ -60,6 +60,7 @@ export interface ThemeConfig {
   navigation_mode?: NavigationMode
   /** @deprecated 兼容旧配置；true 对应 sidebar，false 对应 top。 */
   titlebar_hidden: boolean
+  transparent_bg: boolean
 }
 
 export type NavigationMode = 'sidebar' | 'top'

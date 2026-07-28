@@ -3,13 +3,13 @@
     <!-- 左侧：内容区 -->
     <div class="game-left">
       <!-- 插件：游戏页左侧插槽 -->
-      <div id="plugin-slot-game-left" class="plugin-slot-container" />
+      <div id="plugin-slot-game-left" class="plugin-slot-container"></div>
     </div>
 
     <!-- 右侧：固定 320px 卡片组 -->
     <div class="game-right">
       <!-- 插件：游戏页右侧顶部插槽 -->
-      <div id="plugin-slot-game-right-top" class="plugin-slot-container" />
+      <div id="plugin-slot-game-right-top" class="plugin-slot-container"></div>
       <Transition name="slide-out" mode="out-in">
         <!-- 账户卡片 + 你知道吗 -->
         <div v-if="!launchProgress.visible" key="cards" class="game-right-cards">
@@ -294,7 +294,7 @@
                 <p class="ms-step-label">
                   {{ t('game.login.browserOpened') }}
                 </p>
-                <a :href="account.microsoftLoginData.verificationUri" target="_blank" class="ms-login-link">
+                <a v-if="account.microsoftLoginData.verificationUri" href="#" class="ms-login-link" @click.prevent="openExternalUrl(account.microsoftLoginData.verificationUri!)">
                   <UiIcon name="external-link" :size="14" />
                   {{ account.microsoftLoginData.verificationUri }}
                 </a>
@@ -321,13 +321,13 @@
           </div>
 
           <div class="ms-login-status">
-            <div class="ms-login-spinner" />
+            <div class="ms-login-spinner"></div>
             <span class="ms-login-status-text">{{ t('game.login.autoDetecting') }}</span>
           </div>
         </div>
 
         <div v-else-if="account.microsoftLoginStatus === 'loading'" class="ms-login-loading">
-          <div class="ms-login-spinner" />
+          <div class="ms-login-spinner"></div>
           <span class="ms-login-loading-text">{{ t('game.login.waiting') }}</span>
         </div>
 
@@ -413,6 +413,7 @@ import { getVersionImage } from '@/config/version'
 import { useGameInfoCard } from '@/features/game-home/composables/useGameInfoCard'
 import { useGameHomeStore } from '@/features/game-home/stores/gameHomeStore'
 import { getLoaderIcon, getLoaderImage } from '@/utils/loader'
+import { openExternalUrl } from '@/utils/openExternal'
 
 const { t } = useI18n()
 const router = useRouter()

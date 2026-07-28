@@ -29,6 +29,7 @@ declare module 'vue' {
     Slider: typeof import('./src/components/ui/Slider.vue')['default']
     TaskQueuePanel: typeof import('./src/components/panels/TaskQueuePanel.vue')['default']
     TitleBar: typeof import('./src/components/layout/TitleBar.vue')['default']
+    TitleBarTray: typeof import('./src/components/layout/TitleBarTray.vue')['default']
     VersionPathSidebar: typeof import('./src/components/versions/VersionPathSidebar.vue')['default']
   }
 }

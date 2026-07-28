@@ -9,6 +9,7 @@ import type {
   ScannedVersion,
   VersionCatalogItem,
 } from '@/types/api'
+import type { TaskItem } from '@/composables/useTaskQueue'
 
 export const showcaseConfig: Record<string, unknown> = {
   launcher: {
@@ -390,7 +391,7 @@ export const showcaseDemoTasks: DemoTaskDef[] = [
 /** Load demo tasks into the global task queue (call once in showcase mode) */
 export function loadShowcaseTasks(globalTaskQueue: {
   addTask: (task: { type: 'install' | 'download'; name: string; versionId: string; loaderType: string }) => string
-  updateTask: (id: string, updates: { status?: string; progress?: number; message?: string }) => void
+  updateTask: (id: string, updates: Partial<Pick<TaskItem, 'status' | 'progress' | 'message' | 'subtasks'>>) => void
   addSubtask: (id: string, subtask: { id: string; name: string; status: 'pending' | 'running' | 'completed' | 'error'; message: string }) => void
 }): void {
   for (const def of showcaseDemoTasks) {

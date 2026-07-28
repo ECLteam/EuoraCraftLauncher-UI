@@ -217,3 +217,22 @@
   text-align: center;
   pointer-events: none;
 }
+
+/* ===== TitleBar Tray ===== */
+.titlebar-tray {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.titlebar-tray-btn {
+  transition: color var(--duration-fast) ease-out;
+}
+
+.titlebar-tray-btn .icon {
+  transition: transform var(--duration-fast) ease-out;
+}
+
+.titlebar-tray.is-open .titlebar-tray-btn .icon {
+  transform: rotate(180deg);
+}

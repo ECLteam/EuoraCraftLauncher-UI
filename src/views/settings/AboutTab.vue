@@ -15,7 +15,7 @@
             </div>
           </div>
           <div class="btn-col">
-            <a class="about-btn" :href="URLS.githubOrg" target="_blank">
+            <a class="about-btn" href="#" @click.prevent="openExternalUrl(URLS.githubOrg)">
               <UiIcon name="globe" :size="14" />
               <span>GitHub</span>
             </a>
@@ -43,7 +43,7 @@
             </div>
           </div>
           <div class="btn-col">
-            <a v-if="item.url" class="about-btn" :href="item.url" target="_blank">
+            <a v-if="item.url" class="about-btn" href="#" @click.prevent="openExternalUrl(item.url!)">
               <UiIcon name="globe" :size="14" />
               <span>{{ item.btnText }}</span>
             </a>
@@ -76,11 +76,11 @@
           <div class="license-name">PyTauri</div>
           <div class="license-text">Copyright WSH032. Licensed under MIT.</div>
           <div class="license-btns">
-            <a class="about-btn" :href="URLS.pytauri.repo" target="_blank">
+            <a class="about-btn" href="#" @click.prevent="openExternalUrl(URLS.pytauri.repo)">
               <UiIcon name="globe" :size="14" />
               <span>来源</span>
             </a>
-            <a class="about-btn" :href="URLS.pytauri.license" target="_blank">
+            <a class="about-btn" href="#" @click.prevent="openExternalUrl(URLS.pytauri.license)">
               <UiIcon name="globe" :size="14" />
               <span>许可</span>
             </a>
@@ -90,11 +90,11 @@
           <div class="license-name">Vue 3</div>
           <div class="license-text">Copyright Evan You. Licensed under MIT.</div>
           <div class="license-btns">
-            <a class="about-btn" :href="URLS.vue.repo" target="_blank">
+            <a class="about-btn" href="#" @click.prevent="openExternalUrl(URLS.vue.repo)">
               <UiIcon name="globe" :size="14" />
               <span>来源</span>
             </a>
-            <a class="about-btn" :href="URLS.vue.license" target="_blank">
+            <a class="about-btn" href="#" @click.prevent="openExternalUrl(URLS.vue.license)">
               <UiIcon name="globe" :size="14" />
               <span>许可</span>
             </a>
@@ -104,11 +104,11 @@
           <div class="license-name">Vite</div>
           <div class="license-text">Copyright Evan You &amp; Vite Contributors. Licensed under MIT.</div>
           <div class="license-btns">
-            <a class="about-btn" :href="URLS.vite.repo" target="_blank">
+            <a class="about-btn" href="#" @click.prevent="openExternalUrl(URLS.vite.repo)">
               <UiIcon name="globe" :size="14" />
               <span>来源</span>
             </a>
-            <a class="about-btn" :href="URLS.vite.license" target="_blank">
+            <a class="about-btn" href="#" @click.prevent="openExternalUrl(URLS.vite.license)">
               <UiIcon name="globe" :size="14" />
               <span>许可</span>
             </a>
@@ -120,11 +120,11 @@
             Copyright Tauri Programme within The Commons Conservancy. Licensed under MIT / Apache 2.0.
           </div>
           <div class="license-btns">
-            <a class="about-btn" :href="URLS.tauri.repo" target="_blank">
+            <a class="about-btn" href="#" @click.prevent="openExternalUrl(URLS.tauri.repo)">
               <UiIcon name="globe" :size="14" />
               <span>来源</span>
             </a>
-            <a class="about-btn" :href="URLS.tauri.license" target="_blank">
+            <a class="about-btn" href="#" @click.prevent="openExternalUrl(URLS.tauri.license)">
               <UiIcon name="globe" :size="14" />
               <span>许可</span>
             </a>
@@ -134,11 +134,11 @@
           <div class="license-name">Naive UI</div>
           <div class="license-text">Copyright 07akioni. Licensed under MIT.</div>
           <div class="license-btns">
-            <a class="about-btn" :href="URLS.naiveUI.repo" target="_blank">
+            <a class="about-btn" href="#" @click.prevent="openExternalUrl(URLS.naiveUI.repo)">
               <UiIcon name="globe" :size="14" />
               <span>来源</span>
             </a>
-            <a class="about-btn" :href="URLS.naiveUI.license" target="_blank">
+            <a class="about-btn" href="#" @click.prevent="openExternalUrl(URLS.naiveUI.license)">
               <UiIcon name="globe" :size="14" />
               <span>许可</span>
             </a>
@@ -148,11 +148,11 @@
           <div class="license-name">Authlib-Injector</div>
           <div class="license-text">Copyright yushijinhun. Licensed under AGPL-3.0.</div>
           <div class="license-btns">
-            <a class="about-btn" :href="URLS.authlibInjector.repo" target="_blank">
+            <a class="about-btn" href="#" @click.prevent="openExternalUrl(URLS.authlibInjector.repo)">
               <UiIcon name="globe" :size="14" />
               <span>来源</span>
             </a>
-            <a class="about-btn" :href="URLS.authlibInjector.license" target="_blank">
+            <a class="about-btn" href="#" @click.prevent="openExternalUrl(URLS.authlibInjector.license)">
               <UiIcon name="globe" :size="14" />
               <span>许可</span>
             </a>
@@ -171,7 +171,7 @@
           Minecraft 是 Mojang Synergies AB 的商标。
         </p>
         <div class="legal-btns">
-          <a class="about-btn highlight" :href="URLS.githubOrg" target="_blank">
+          <a class="about-btn highlight" href="#" @click.prevent="openExternalUrl(URLS.githubOrg)">
             <UiIcon name="globe" :size="14" />
             <span>开源代码</span>
           </a>
@@ -179,7 +179,7 @@
       </div>
     </div>
 
-    <div id="plugin-slot-settings-about-bottom" class="plugin-slot-container" />
+    <div id="plugin-slot-settings-about-bottom" class="plugin-slot-container"></div>
   </div>
 </template>
 
@@ -187,6 +187,7 @@
 import { computed, inject, onMounted, ref, type Ref } from 'vue'
 import type { AppRuntimeMode } from '@/app/runtime/mode'
 import UiIcon from '@/components/ui/Icon.vue'
+import { openExternalUrl } from '@/utils/openExternal'
 import { URLS } from '@/config/urls'
 import { aboutApi } from '@/features/settings/api/aboutApi'
 import type { LauncherInfo } from '@/types/api'

@@ -296,6 +296,115 @@
   }
 }
 
+/* --- 非线性入场：弹跳/故障/砸入/预判/浮空 --- */
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  80% {
+    transform: scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes glitch-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  20% {
+    opacity: 0.3;
+    transform: translateX(6px);
+  }
+  40% {
+    transform: translateX(-4px);
+  }
+  60% {
+    transform: translateX(3px);
+  }
+  80% {
+    transform: translateX(-1px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes slam-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-40px) scale(0.8);
+  }
+  60% {
+    transform: translateY(4px) scale(1.02);
+  }
+  80% {
+    transform: translateY(-2px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes anticipate-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.85);
+  }
+  30% {
+    transform: translateY(4px) scale(1.05);
+  }
+  60% {
+    transform: translateY(-2px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes float-loop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-4px);
+  }
+  50% {
+    transform: translateY(-1px);
+  }
+  75% {
+    transform: translateY(-5px);
+  }
+}
+@keyframes heartbeat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  10% {
+    transform: scale(1.12);
+  }
+  20% {
+    transform: scale(0.95);
+  }
+  30% {
+    transform: scale(1.08);
+  }
+  40% {
+    transform: scale(0.97);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
 /* --- 用户协议专用（scope 在 app.css） --- */
 @keyframes agreement-fade-in {
   from {
@@ -335,12 +444,12 @@
    2. Vue <Transition> 命名过渡
    ───────────────────────────────────────── */
 
-/* ── 页面路由过渡 ─────────────────────── */
-/* 入场：慢 + 淡入上滑。出场：快 + 淡出下滑 */
+/* ── 页面路由过渡（非线性） ─────── */
+/* 入场：弹跳上滑。出场：快速淡出下滑 */
 .page-enter-active {
   transition:
     opacity var(--duration-slow) var(--ease-enter),
-    transform var(--duration-slow) var(--ease-enter);
+    transform var(--duration-slow) var(--ease-spring);
 }
 .page-leave-active {
   transition:
@@ -349,7 +458,7 @@
 }
 .page-enter-from {
   opacity: 0;
-  transform: translateY(11px) scale(0.98);
+  transform: translateY(14px) scale(0.97);
 }
 .page-leave-to {
   opacity: 0;
@@ -538,7 +647,7 @@
 .slide-out-enter-active {
   transition:
     opacity var(--duration-slow) var(--ease-enter),
-    transform var(--duration-slow) var(--ease-spring);
+    transform var(--duration-slow) var(--ease-overshoot);
 }
 .slide-out-leave-active {
   transition:
@@ -634,6 +743,25 @@
 }
 .skeleton-pulse {
   animation: skeleton-pulse 1.8s var(--ease-smooth) infinite;
+}
+
+.pop-in {
+  animation: pop-in var(--duration-slower) var(--ease-overshoot) forwards;
+}
+.glitch-in {
+  animation: glitch-in var(--duration-normal) var(--ease-glitch) forwards;
+}
+.slam-in {
+  animation: slam-in var(--duration-slower) var(--ease-slam) forwards;
+}
+.anticipate-in {
+  animation: anticipate-in var(--duration-slower) var(--ease-anticipate) forwards;
+}
+.float-loop {
+  animation: float-loop 2.5s linear infinite;
+}
+.heartbeat {
+  animation: heartbeat 1.2s var(--ease-smooth);
 }
 
 /* ─────────────────────────────────────────

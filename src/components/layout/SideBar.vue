@@ -20,9 +20,9 @@
     <!-- 导航区域 -->
     <nav class="sidebar-nav" @mouseleave="handleMouseLeave">
       <!-- 插件：侧边栏顶部插槽 -->
-      <div id="plugin-slot-sidebar-top" class="plugin-slot-container" />
-      <div v-if="!isCollapsed" ref="activeBgRef" class="sidebar-active-bg" />
-      <div v-if="!isCollapsed" ref="indicatorRef" class="sidebar-active-indicator" />
+      <div id="plugin-slot-sidebar-top" class="plugin-slot-container"></div>
+      <div v-if="!isCollapsed" ref="activeBgRef" class="sidebar-active-bg"></div>
+      <div v-if="!isCollapsed" ref="indicatorRef" class="sidebar-active-indicator"></div>
 
       <template v-for="(item, index) in menuItems" :key="item.path">
         <div v-if="!isCollapsed && index === 0" class="sidebar-section-label">
@@ -80,7 +80,7 @@
 
       <!-- 插件注册的导航项 -->
       <template v-if="!isCollapsed">
-        <div v-for="pRoute in pluginRoutesList" :key="pRoute.path" class="sidebar-plugin-divider" />
+        <div v-for="pRoute in pluginRoutesList" :key="pRoute.path" class="sidebar-plugin-divider"></div>
         <button
           v-for="pRoute in pluginRoutesList"
           :key="'btn-' + pRoute.path"
@@ -111,24 +111,21 @@
         </span>
         <span class="sidebar-item-text">{{ t('sidebar.debug') }}</span>
       </button>
-      <a
+      <button
         class="sidebar-item"
-        :href="URLS.docs"
-        target="_blank"
-        rel="noopener noreferrer"
         :title="isCollapsed ? t('sidebar.help') : undefined"
-        @click="handleHelpClick"
+        @click.prevent="handleHelpClick"
       >
         <span class="sidebar-item-icon">
           <UiIcon name="help" :size="20" />
         </span>
         <span class="sidebar-item-text">{{ t('sidebar.help') }}</span>
-      </a>
+      </button>
     </div>
   </aside>
 
   <!-- 移动端遮罩 -->
-  <div class="sidebar-overlay" @click="isExpanded = false" />
+  <div class="sidebar-overlay" @click="isExpanded = false"></div>
 </template>
 
 <script setup lang="ts">
@@ -141,6 +138,7 @@ import { useGlassMessage } from '@/composables/useGlassMessage'
 import { pluginRoutes } from '@/composables/usePluginBridge'
 import { useTheme } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
+import { openExternalUrl } from '@/utils/openExternal'
 import { URLS } from '@/config/urls'
 import { MENU_ITEMS } from '@/constants/menu'
 
@@ -263,8 +261,9 @@ const handleSubItemClick = (path: string) => {
   router.push(path)
 }
 
-const handleHelpClick = (event: MouseEvent) => {
-  if (!canNavigate()) event.preventDefault()
+const handleHelpClick = () => {
+  if (!canNavigate()) return
+  openExternalUrl(URLS.docs)
 }
 
 /** 通过实际 DOM 测量获取目标菜单项位置并更新指示器 */

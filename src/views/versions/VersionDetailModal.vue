@@ -27,7 +27,7 @@
             <span class="vdm-nav-label">{{ tab.label }}</span>
           </button>
         </div>
-        <div id="plugin-slot-version-detail-tab" class="plugin-slot-container" />
+        <div id="plugin-slot-version-detail-tab" class="plugin-slot-container"></div>
       </div>
 
       <!-- 右侧内容 -->
@@ -240,7 +240,7 @@
       </div>
     </div>
 
-    <div id="plugin-slot-version-detail-footer" class="plugin-slot-container" />
+    <div id="plugin-slot-version-detail-footer" class="plugin-slot-container"></div>
 
     <template #footer>
       <div class="vdm-footer-status">

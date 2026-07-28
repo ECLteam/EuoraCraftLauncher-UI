@@ -30,7 +30,7 @@
     </div>
 
     <!-- 插件：插件页工具栏下方插槽 -->
-    <div id="plugin-slot-plugins-toolbar-after" class="plugin-slot-container" />
+    <div id="plugin-slot-plugins-toolbar-after" class="plugin-slot-container"></div>
 
     <!-- 内容区 -->
     <div class="plugins-content">
@@ -118,7 +118,7 @@
       </div>
 
       <!-- 插件：插件页列表底部插槽 -->
-      <div id="plugin-slot-plugins-list-bottom" class="plugin-slot-container" />
+      <div id="plugin-slot-plugins-list-bottom" class="plugin-slot-container"></div>
     </div>
   </div>
 </template>

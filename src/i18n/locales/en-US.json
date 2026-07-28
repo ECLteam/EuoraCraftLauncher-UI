@@ -412,6 +412,7 @@
     "backgroundBrightness": "Background Brightness",
     "backgroundBrightnessDesc": "Adjust background image brightness, lower is darker",
     "backgroundBlurDesc": "Adjust background image blur amount",
+    "backgroundBlurTransparentDesc": "Adjust transparent background blur amount, shared with background image",
     "backgroundDefault": "Default",
     "backgroundCustom": "Custom",
     "backgroundBlur": "Background Blur",
@@ -475,7 +476,9 @@
     "mouseEffectOpacity": "Particle Opacity",
     "mouseEffectOpacityDesc": "Adjust the opacity of particles",
     "mouseEffectSpeed": "Particle Speed",
-    "mouseEffectSpeedDesc": "Adjust the speed of particles"
+    "mouseEffectSpeedDesc": "Adjust the speed of particles",
+    "transparentBg": "Transparent Background",
+    "transparentBgDesc": "Make the window background transparent, allowing desktop to show through"
   },
   "error": {
     "defaultTitle": "Critical Error",
@@ -510,7 +513,8 @@
     "close": "Close",
     "back": "Back",
     "launch": "Launch",
-    "select": "Select"
+    "select": "Select",
+    "more": "More"
   },
   "agreement": {
     "title": "User Agreement",
@@ -608,21 +612,12 @@
     "passwordPlaceholder": "Password"
   },
   "task": {
-    "title": "Task Queue",
-    "empty": "No tasks",
-    "clearCompleted": "Clear completed",
-    "subtask": "Subtask",
-    "statusPending": "Pending",
-    "statusRunning": "Running",
-    "statusCompleted": "Completed",
-    "statusFailed": "Failed"
-  },
-  "task": {
     "subtask": {
       "downloadJson": "Download version info",
       "downloadAssets": "Download assets",
       "checkFiles": "Check files"
-    }
+    },
+    "title": "Task"
   },
   "taskQueue": {
     "title": "Task Center",

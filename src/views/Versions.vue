@@ -21,13 +21,13 @@
         </RouterLink>
       </div>
       <!-- 插件：版本页导航底部插槽 -->
-      <div id="plugin-slot-versions-nav-bottom" class="plugin-slot-container" />
+      <div id="plugin-slot-versions-nav-bottom" class="plugin-slot-container"></div>
     </div>
 
     <!-- 右侧内容区 -->
     <div ref="contentRef" class="versions-content">
       <!-- 插件：版本页内容区顶部插槽 -->
-      <div id="plugin-slot-versions-content-top" class="plugin-slot-container" />
+      <div id="plugin-slot-versions-content-top" class="plugin-slot-container"></div>
       <RouterView v-slot="{ Component }">
         <Transition name="page" mode="out-in">
           <component :is="Component" />

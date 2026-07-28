@@ -329,3 +329,374 @@ export function useSequence(steps: SequenceStep[], options?: { delay?: number; o
 export function killTweens(targets: (string | HTMLElement) | (string | HTMLElement)[]) {
   gsap.killTweensOf(targets)
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// 11. 非线性交错弹跳入场 (Staggered Bounce)
+// ═══════════════════════════════════════════════════════════════════
+
+export interface StaggeredBounceOptions {
+  duration?: number
+  stagger?: number
+  delay?: number
+  from?: 'start' | 'end' | 'center' | number
+  /** 弹跳过冲强度 (1.0-2.5)，默认 1.7 */
+  intensity?: number
+}
+
+export function useStaggeredBounce(
+  items: (string | HTMLElement)[] | Ref<HTMLElement[] | null>,
+  options: StaggeredBounceOptions = {}
+) {
+  if (prefersReducedMotion()) return
+
+  const targets = unref(items) || []
+  if (!targets || targets.length === 0) return
+
+  const {
+    duration = DURATION.slower,
+    stagger = STAGGER.md,
+    delay = 0,
+    from = 'start',
+    intensity = 1.7,
+  } = options
+
+  gsap.from(targets, {
+    opacity: 0,
+    scale: 0.6,
+    y: 12,
+    duration,
+    ease: `back.out(${intensity})`,
+    stagger: { each: stagger, from },
+    delay,
+    clearProps: 'transform',
+  })
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 12. 3D 倾斜悬浮 (Tilt Hover)
+// ═══════════════════════════════════════════════════════════════════
+
+export interface TiltHoverOptions {
+  /** 最大倾斜角度 (deg) */
+  tiltAmount?: number
+  /** 抬升距离 (px) */
+  liftAmount?: number
+  /** 放大比例 */
+  scale?: number
+}
+
+export function useTiltHover(
+  element: HTMLElement | Ref<HTMLElement | null>,
+  options: TiltHoverOptions = {}
+) {
+  if (prefersReducedMotion()) return
+
+  const el = unref(element)
+  if (!el) return
+
+  const { tiltAmount = 5, liftAmount = -4, scale = 1.02 } = options
+
+  let bound = false
+
+  const onEnter = () => {
+    gsap.to(el, {
+      scale,
+      y: liftAmount,
+      duration: DURATION.slow,
+      ease: `back.out(1.7)`,
+    })
+  }
+
+  const onMove = (e: MouseEvent) => {
+    const rect = el.getBoundingClientRect()
+    const x = (e.clientX - rect.left) / rect.width - 0.5
+    const y = (e.clientY - rect.top) / rect.height - 0.5
+    gsap.to(el, {
+      rotateY: x * tiltAmount,
+      rotateX: -y * tiltAmount,
+      duration: DURATION.fast,
+      ease: 'power2.out',
+      overwrite: 'auto',
+    })
+  }
+
+  const onLeave = () => {
+    gsap.to(el, {
+      scale: 1,
+      y: 0,
+      rotateY: 0,
+      rotateX: 0,
+      duration: DURATION.normal,
+      ease: 'power2.out',
+      overwrite: 'auto',
+    })
+  }
+
+  if (!bound) {
+    el.addEventListener('mouseenter', onEnter)
+    el.addEventListener('mousemove', onMove)
+    el.addEventListener('mouseleave', onLeave)
+
+    onScopeDispose(() => {
+      el.removeEventListener('mouseenter', onEnter)
+      el.removeEventListener('mousemove', onMove)
+      el.removeEventListener('mouseleave', onLeave)
+      gsap.killTweensOf(el)
+    })
+    bound = true
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 13. 故障入场 (Glitch In)
+// ═══════════════════════════════════════════════════════════════════
+
+export interface GlitchInOptions {
+  duration?: number
+  delay?: number
+  /** 水平位移像素 */
+  intensity?: number
+}
+
+export function useGlitchIn(
+  element: string | HTMLElement | Ref<HTMLElement | null>,
+  options: GlitchInOptions = {}
+) {
+  if (prefersReducedMotion()) return
+
+  const el = unref(element) as HTMLElement | null
+  if (!el) return
+
+  const { duration = 0.25, delay = 0, intensity = 8 } = options
+
+  gsap.from(el, {
+    opacity: 0,
+    x: intensity,
+    duration,
+    delay,
+    ease: 'steps(4)',
+    clearProps: 'transform',
+  })
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 14. 砸入入场 (Slam In) — 从上方重砸
+// ═══════════════════════════════════════════════════════════════════
+
+export interface SlamInOptions {
+  duration?: number
+  delay?: number
+  /** 下落距离 (px) */
+  distance?: number
+}
+
+export function useSlamIn(
+  element: string | HTMLElement | Ref<HTMLElement | null>,
+  options: SlamInOptions = {}
+) {
+  if (prefersReducedMotion()) return
+
+  const el = unref(element) as HTMLElement | null
+  if (!el) return
+
+  const { duration = 0.4, delay = 0, distance = 40 } = options
+
+  gsap.from(el, {
+    opacity: 0,
+    y: -distance,
+    scale: 0.8,
+    duration,
+    delay,
+    ease: `back.out(1.4)`,
+    clearProps: 'transform',
+  })
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 15. 弹跳弹出入场 (Pop In)
+// ═══════════════════════════════════════════════════════════════════
+
+export interface PopInOptions {
+  duration?: number
+  delay?: number
+}
+
+export function usePopIn(
+  element: string | HTMLElement | Ref<HTMLElement | null>,
+  options: PopInOptions = {}
+) {
+  if (prefersReducedMotion()) return
+
+  const el = unref(element) as HTMLElement | null
+  if (!el) return
+
+  const { duration = 0.45, delay = 0 } = options
+
+  gsap.from(el, {
+    opacity: 0,
+    scale: 0.25,
+    duration,
+    delay,
+    ease: `back.out(2)`,
+    clearProps: 'transform',
+  })
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 16. 预判入场 (Anticipate In) — 蓄力后弹入
+// ═══════════════════════════════════════════════════════════════════
+
+export interface AnticipateInOptions {
+  duration?: number
+  delay?: number
+}
+
+export function useAnticipateIn(
+  element: string | HTMLElement | Ref<HTMLElement | null>,
+  options: AnticipateInOptions = {}
+) {
+  if (prefersReducedMotion()) return
+
+  const el = unref(element) as HTMLElement | null
+  if (!el) return
+
+  const { duration = 0.4, delay = 0 } = options
+
+  gsap.from(el, {
+    opacity: 0,
+    y: -8,
+    scale: 0.85,
+    duration,
+    delay,
+    ease: 'back.out(1.2)',
+    clearProps: 'transform',
+  })
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 17. 浮动循环 (Float Loop)
+// ═══════════════════════════════════════════════════════════════════
+
+export interface FloatOptions {
+  /** 浮动幅度 (px) */
+  amplitude?: number
+  duration?: number
+}
+
+export function useFloat(
+  element: string | HTMLElement | Ref<HTMLElement | null>,
+  options: FloatOptions = {}
+) {
+  if (prefersReducedMotion()) return
+
+  const el = unref(element) as HTMLElement | null
+  if (!el) return
+
+  const { amplitude = 4, duration = 2.5 } = options
+
+  gsap.to(el, {
+    y: `-=${amplitude}`,
+    duration,
+    ease: 'sine.inOut',
+    yoyo: true,
+    repeat: -1,
+  })
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 18. 心跳动画 (Heartbeat)
+// ═══════════════════════════════════════════════════════════════════
+
+export interface HeartbeatOptions {
+  duration?: number
+  delay?: number
+}
+
+export function useHeartbeat(
+  element: string | HTMLElement | Ref<HTMLElement | null>,
+  options: HeartbeatOptions = {}
+) {
+  if (prefersReducedMotion()) return
+
+  const el = unref(element) as HTMLElement | null
+  if (!el) return
+
+  const { duration = 1.2, delay = 0 } = options
+
+  gsap.fromTo(
+    el,
+    { scale: 1 },
+    {
+      scale: 1.12,
+      duration: duration * 0.15,
+      delay,
+      ease: 'power2.out',
+      onComplete: () => {
+        gsap.to(el, {
+          scale: 0.95,
+          duration: duration * 0.15,
+          ease: 'power2.in',
+          onComplete: () => {
+            gsap.to(el, {
+              scale: 1.08,
+              duration: duration * 0.12,
+              ease: 'power2.out',
+              onComplete: () => {
+                gsap.to(el, {
+                  scale: 1,
+                  duration: duration * 0.2,
+                  ease: 'back.out(1.7)',
+                })
+              },
+            })
+          },
+        })
+      },
+    }
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 19. 闪光扫过 (Shimmer)
+// ═══════════════════════════════════════════════════════════════════
+
+export interface ShimmerOptions {
+  duration?: number
+  delay?: number
+}
+
+export function useShimmer(
+  element: string | HTMLElement | Ref<HTMLElement | null>,
+  options: ShimmerOptions = {}
+) {
+  if (prefersReducedMotion()) return
+
+  const el = unref(element) as HTMLElement | null
+  if (!el) return
+
+  const { duration = 1.5, delay = 0 } = options
+
+  // Create a shimmer overlay
+  const shimmer = document.createElement('div')
+  shimmer.style.cssText = `
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+    transform: translateX(-100%);
+    pointer-events: none;
+    z-index: 1;
+  `
+  el.style.position = el.style.position || 'relative'
+  el.style.overflow = 'hidden'
+  el.appendChild(shimmer)
+
+  gsap.to(shimmer, {
+    x: '200%',
+    duration,
+    delay,
+    ease: 'power2.inOut',
+    onComplete: () => {
+      shimmer.remove()
+    },
+  })
+}

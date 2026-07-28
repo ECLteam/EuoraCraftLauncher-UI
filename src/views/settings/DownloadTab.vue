@@ -47,13 +47,13 @@
       </SettingRow>
     </SettingSection>
 
-    <div id="plugin-slot-settings-download-section-after" class="plugin-slot-container" />
+    <div id="plugin-slot-settings-download-section-after" class="plugin-slot-container"></div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
 import UiSlider from '@/components/ui/Slider.vue'
@@ -93,12 +93,20 @@ const handleDownloadSourceChange = async (value: 'official' | 'bmclapi') => {
   await run(async () => settingsStore.patchDownload({ mirror_source: value }))
 }
 
-const handleThreadsChange = async (val: number) => {
-  await run(async () => settingsStore.patchDownload({ download_threads: val }))
+let threadsSaveTimer: ReturnType<typeof setTimeout> | null = null
+const handleThreadsChange = (val: number) => {
+  if (threadsSaveTimer) clearTimeout(threadsSaveTimer)
+  threadsSaveTimer = setTimeout(() => {
+    run(async () => settingsStore.patchDownload({ download_threads: val }))
+  }, 400)
 }
 
 useClickOutside(selectRef, () => {
   isOpen.value = false
+})
+
+onUnmounted(() => {
+  if (threadsSaveTimer) clearTimeout(threadsSaveTimer)
 })
 </script>
 

@@ -1,13 +1,13 @@
 /* ============================================================
    VersionDetailModal — 版本详情弹窗样式
-   设计理念：与设置页（Settings）风格对齐
+   与设置页（Settings）风格对齐
    ============================================================ */
 
 .vdm-container {
   display: flex;
   height: 100%;
-  gap: var(--s-lg);
-  padding: var(--s-lg);
+  gap: 16px;
+  padding: 16px;
 }
 
 /* ── 左侧导航 ── */
@@ -21,14 +21,15 @@
   border-top: var(--card-border-top);
   border-bottom: var(--card-border-bottom);
   border-radius: var(--r-sm);
+  box-shadow: var(--card-shadow);
   overflow: hidden;
 }
 
 .vdm-nav-header {
   display: flex;
   align-items: center;
-  padding: 0 var(--s-lg);
-  height: 43px;
+  padding: 0 14px;
+  height: 44px;
   border-bottom: 1px solid var(--divider);
   flex-shrink: 0;
 }
@@ -36,7 +37,7 @@
 .vdm-version-badge {
   display: flex;
   align-items: center;
-  gap: var(--s-sm);
+  gap: 9px;
   flex: 1;
   min-width: 0;
   color: var(--text-primary);
@@ -53,25 +54,26 @@
 
 .vdm-nav-list {
   flex: 1;
-  padding: var(--s-sm) 0;
+  padding: 8px 0;
   overflow-y: auto;
 }
 
 .vdm-nav-item {
   display: flex;
   align-items: center;
-  height: 36px;
-  padding: 0 var(--s-lg);
-  gap: var(--s-sm);
+  height: 40px;
+  padding: 0 14px;
+  margin: 0 7px;
+  gap: 9px;
   position: relative;
-  width: 100%;
+  width: auto;
   border: none;
   background: transparent;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  border-radius: 0;
+  border-radius: var(--r-sm);
   transition:
     color var(--duration-fast) ease-out,
     background var(--duration-fast) ease-out;
@@ -84,6 +86,7 @@
 
 .vdm-nav-item.active {
   color: var(--primary);
+  background: var(--primary-alpha);
   font-weight: 600;
 }
 
@@ -111,6 +114,10 @@
   opacity: 1;
 }
 
+.vdm-nav-label {
+  white-space: nowrap;
+}
+
 /* ── 右侧内容 ── */
 
 .vdm-content {
@@ -120,58 +127,62 @@
   border-top: var(--card-border-top);
   border-bottom: var(--card-border-bottom);
   border-radius: var(--r-sm);
-  padding: var(--s-xl);
+  box-shadow: var(--card-shadow);
+  padding: 24px;
   overflow-y: auto;
 }
 
 .vdm-tab {
   width: 100%;
-  max-width: 900px;
+  max-width: 640px;
+  margin: 0 auto;
 }
+
+/* ── 设置摘要 ── */
 
 .settings-summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--s-lg);
-  margin-bottom: var(--s-lg);
+  gap: 16px;
+  margin-bottom: 24px;
   padding: 14px 16px;
-  border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--border));
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--border));
   border-radius: var(--r-md);
-  background: color-mix(in srgb, var(--primary) 6%, var(--card-bg));
+  background: color-mix(in srgb, var(--primary) 5%, var(--card-bg));
 }
 
 .settings-summary-copy {
   display: flex;
-  min-width: 0;
   flex-direction: column;
-  position: relative;
-  padding-left: 16px;
+  gap: 3px;
+  min-width: 0;
 }
 
-.settings-summary-copy::before {
-  content: '';
-  position: absolute;
-  top: 5px;
-  left: 0;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--primary);
-  box-shadow: 0 0 0 4px var(--primary-alpha);
-}
-
-.settings-summary strong {
+.settings-summary-copy strong {
   color: var(--text-primary);
   font-size: 13px;
   font-weight: 600;
 }
 
 .settings-summary-status {
-  margin-top: 3px;
+  padding-left: 14px;
+  position: relative;
   color: var(--text-tertiary);
   font-size: 11px;
-  line-height: 1.45;
+  line-height: 1.5;
+}
+
+.settings-summary-status::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  opacity: 0.7;
 }
 
 .btn-reset-settings {
@@ -204,9 +215,11 @@
   cursor: not-allowed;
 }
 
+/* ── 加载状态 ── */
+
 .settings-loading-state {
   display: flex;
-  min-height: 240px;
+  min-height: 200px;
   align-items: center;
   justify-content: center;
   gap: 10px;
@@ -223,12 +236,10 @@
   animation: spin 0.8s linear infinite;
 }
 
-/* ── 设置区段 ── */
+/* ── 设置区段（与 GameTab / Settings 风格对齐） ── */
 
 .vdm-tab .settings-section {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: var(--s-2xl);
+  margin-bottom: 28px;
 }
 
 .vdm-tab .settings-section:last-child {
@@ -241,23 +252,21 @@
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  margin-bottom: var(--s-md);
-  padding-bottom: var(--s-sm);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--divider);
 }
 
 .vdm-tab .setting-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: var(--s-xl);
-  min-height: 48px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--divider);
+  gap: 24px;
+  margin-bottom: 16px;
 }
 
 .vdm-tab .setting-item:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .vdm-tab .setting-info {
@@ -282,59 +291,43 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: var(--s-sm);
+  justify-content: flex-end;
+  gap: 8px;
 }
 
-/* ── 版本设置卡片 ── */
+/* ── 版本设置 tab 微调 ── */
 
 .settings-tab {
-  padding-bottom: var(--s-md);
-}
-
-.settings-tab .settings-section {
-  margin-bottom: var(--s-xl);
-  padding: 0;
-}
-
-.settings-tab .section-label {
-  margin: 0;
-  padding: 0 0 var(--s-sm);
-  border-bottom: 1px solid var(--divider);
-  color: var(--text-secondary);
-  font-size: 12px;
-  letter-spacing: 0.04em;
-}
-
-.settings-tab .setting-item {
-  min-height: 54px;
-  padding: 10px 0;
+  padding-bottom: 8px;
 }
 
 .settings-tab .setting-detail {
-  min-height: 50px;
-  margin: 0;
-  padding: 8px 10px;
-  border-bottom: none;
+  padding: 10px 12px;
+  margin-bottom: 16px;
   border-radius: var(--r-sm);
   background: var(--bg-hover);
 }
 
+.settings-tab .setting-detail .setting-item {
+  margin-bottom: 0;
+}
+
 .settings-tab .setting-item-copy {
-  min-height: auto;
-  padding-bottom: 3px;
-  border-bottom: none;
+  margin-bottom: 6px;
 }
 
 .settings-tab .setting-control-wide {
-  flex: 0 1 440px;
+  flex: 0 1 420px;
   min-width: 0;
 }
+
+/* ── 数字输入（内存） ── */
 
 .number-input-wrap {
   display: flex;
   align-items: stretch;
   border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  border-radius: var(--r-sm);
   background: var(--bg-elevated);
   overflow: hidden;
   transition:
@@ -344,7 +337,7 @@
 
 .number-input-wrap:focus-within {
   border-color: var(--primary);
-  box-shadow: 0 0 0 2px var(--primary-light);
+  box-shadow: 0 0 0 2px var(--primary-alpha);
 }
 
 .input-suffix {
@@ -363,16 +356,15 @@
 .info-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--s-md);
+  gap: 12px;
 }
 
 .info-item {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: var(--s-md) var(--s-md);
-  background: var(--bg-base);
-  border: 1px solid var(--divider);
+  padding: 14px 16px;
+  background: var(--bg-hover);
   border-radius: var(--r-md);
 }
 
@@ -390,23 +382,23 @@
   color: var(--text-primary);
 }
 
-/* ── 快速操作卡片 ── */
+/* ── 快速操作 ── */
 
 .quick-actions {
   display: flex;
-  gap: var(--s-md);
+  gap: 10px;
 }
 
 .btn-action-card {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--s-sm);
+  gap: 8px;
   flex: 1;
-  height: 40px;
-  padding: 0 var(--s-lg);
-  background: var(--bg-base);
-  border: 1px solid var(--divider);
+  height: 42px;
+  padding: 0 16px;
+  background: var(--bg-hover);
+  border: 1px solid transparent;
   border-radius: var(--r-md);
   color: var(--text-secondary);
   font-size: 12px;
@@ -414,13 +406,14 @@
   cursor: pointer;
   transition:
     background var(--duration-fast) ease-out,
-    color var(--duration-fast) ease-out;
+    color var(--duration-fast) ease-out,
+    border-color var(--duration-fast) ease-out;
 }
 
 .btn-action-card:hover {
-  background: var(--bg-hover);
+  background: var(--bg-elevated);
   color: var(--primary);
-  border-color: var(--border-hover);
+  border-color: var(--border);
 }
 
 .btn-action-card:last-child:hover {
@@ -454,10 +447,11 @@
 .vdm-tab .text-input {
   padding: 7px 11px;
   border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  border-radius: var(--r-sm);
   background: var(--bg-elevated);
   color: var(--text-primary);
   font-size: 12px;
+  font-family: var(--font-mono);
   outline: none;
   transition:
     border-color var(--duration-fast) ease-out,
@@ -466,7 +460,11 @@
 
 .vdm-tab .text-input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 2px var(--primary-light);
+  box-shadow: 0 0 0 2px var(--primary-alpha);
+}
+
+.vdm-tab .text-input::placeholder {
+  color: var(--text-disabled);
 }
 
 .memory-input {
@@ -474,6 +472,7 @@
   border: none !important;
   border-radius: 0 !important;
   text-align: right;
+  font-family: var(--font-mono);
 }
 
 .memory-input:focus {
@@ -487,10 +486,11 @@
 
 .args-textarea {
   width: 100%;
-  min-height: 86px;
+  min-height: 80px;
   resize: vertical;
-  margin: 7px 0 12px;
+  margin: 6px 0 0;
   line-height: 1.55;
+  font-family: var(--font-mono);
 }
 
 /* ── 按钮（幽灵风格） ── */
@@ -498,22 +498,22 @@
 .java-browse-btn {
   padding: 7px 13px;
   border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  background: transparent;
+  border-radius: var(--r-sm);
+  background: var(--bg-elevated);
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
   transition:
     color var(--duration-fast) ease-out,
     border-color var(--duration-fast) ease-out,
     background var(--duration-fast) ease-out;
 }
 
-.java-browse-btn:hover {
+.java-browse-btn:hover:not(:disabled) {
   color: var(--primary);
   border-color: var(--primary);
-  background: var(--primary-alpha);
 }
 
 .java-browse-btn:disabled {
@@ -521,12 +521,12 @@
   cursor: wait;
 }
 
-/* ── 开关 ── */
+/* ── 开关（与 GameTab 统一为 29×16） ── */
 
 .toggle-switch {
-  width: 40px;
-  height: 22px;
-  border-radius: 11px;
+  width: 29px;
+  height: 16px;
+  border-radius: 8px;
   border: none;
   background: var(--bg-base-alt);
   cursor: pointer;
@@ -543,16 +543,16 @@
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 18px;
-  height: 18px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
   background: var(--bg-elevated);
-  box-shadow: var(--shadow-sm);
   transition: transform var(--duration-fast) var(--ease-spring);
+  box-shadow: var(--shadow-xs);
 }
 
 .toggle-switch.active .toggle-knob {
-  transform: translateX(18px);
+  transform: translateX(13px);
 }
 
 /* ── 占位文本 ── */
@@ -560,9 +560,11 @@
 .placeholder-text {
   color: var(--text-tertiary);
   font-size: 13px;
-  padding: var(--s-xl) 0;
+  padding: 32px 0;
   text-align: center;
 }
+
+/* ── 底部状态 ── */
 
 .vdm-footer-status {
   flex: 1;
@@ -571,23 +573,25 @@
   font-size: 11px;
 }
 
+/* ── 响应式 ── */
+
 @media (max-width: 950px) {
   .vdm-container {
-    gap: var(--s-md);
-    padding: var(--s-md);
+    gap: 12px;
+    padding: 12px;
   }
 
   .vdm-nav {
-    width: 156px;
-    min-width: 156px;
+    width: 150px;
+    min-width: 150px;
   }
 
   .vdm-content {
-    padding: var(--s-lg);
+    padding: 20px;
   }
 
   .settings-tab .setting-control-wide {
-    flex-basis: 340px;
+    flex-basis: 300px;
   }
 }
 
@@ -597,9 +601,8 @@
   }
 
   .settings-tab .setting-detail {
-    align-items: stretch;
     flex-direction: column;
-    gap: var(--s-sm);
+    gap: 10px;
   }
 
   .settings-tab .setting-detail .setting-control,
