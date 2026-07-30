@@ -2,19 +2,6 @@
   <div class="game-page">
     <div class="game-left">
       <div id="plugin-slot-game-left" class="plugin-slot-container"></div>
-      <NCard class="game-hero" contentStyle="padding: 28px;">
-        <span class="game-hero__kicker">EUORACRAFT LAUNCHER</span>
-        <h1>{{ t('game.quickLaunch') }}</h1>
-        <p>{{ t('game.welcomeContent') }}</p>
-        <NSpace>
-          <NTag :bordered="false" type="info">
-            {{ account.currentAccount?.alias || t('game.noAccount') }}
-          </NTag>
-          <NTag :bordered="false">
-            {{ version.selectedVersion || t('game.noVersions') }}
-          </NTag>
-        </NSpace>
-      </NCard>
     </div>
 
     <div class="game-right">
@@ -23,8 +10,11 @@
         <div v-if="!launchProgress.visible" key="cards" class="game-right-cards">
           <GameAccountCard
             :account="account.currentAccount"
+            :accounts="account.accounts"
             :accountTypeLabel="account.accountTypeLabel"
+            :loading="account.accountsLoading"
             @manage="account.openAccountModal"
+            @switch="account.switchAccount"
           />
           <GameInfoCard
             :data="infoCardData"
@@ -62,13 +52,11 @@
       />
     </div>
 
-    <Modal
+    <FullscreenModal
       v-model:visible="account.showAccountModal"
       :title="t('game.accountManagement')"
       :showFooter="false"
       bodyClass="account-modal-body"
-      wrapperClass="account-management-modal"
-      width="820px"
     >
       <div class="account-container">
         <section class="account-list-panel ecl-surface">
@@ -78,51 +66,60 @@
               {{ account.accounts.length }}
             </NTag>
           </div>
+
+          <div class="account-table-header">
+            <span>{{ t('game.username') }}</span>
+            <span>{{ t('game.accountType') }}</span>
+            <span>{{ t('plugins.status') }}</span>
+            <span></span>
+          </div>
+
           <NSpin :show="account.accountsLoading" class="account-list-spin">
-            <NList v-if="account.accounts.length" hoverable>
-              <NListItem v-for="savedAccount in account.accounts" :key="savedAccount.id">
-                <template #prefix>
+            <div v-if="account.accounts.length" class="account-list">
+              <div v-for="savedAccount in account.accounts" :key="savedAccount.id" class="account-row">
+                <div class="account-identity">
                   <AvatarRenderer
                     :uuid="savedAccount.uuid"
                     :username="savedAccount.alias"
                     :typeName="savedAccount.type"
                     :skinUrl="savedAccount.skinUrl"
-                    :size="34"
+                    :size="32"
                   />
-                </template>
-                <NThing :title="savedAccount.alias">
-                  <template #description>
-                    <NSpace :size="6">
-                      <NTag size="small" :bordered="false">
-                        {{ accountTypeName(savedAccount.type) }}
-                      </NTag>
-                      <span class="account-secondary">
-                        {{ savedAccount.email || savedAccount.auth_server || '' }}
-                      </span>
-                    </NSpace>
-                  </template>
-                </NThing>
-                <template #suffix>
-                  <NSpace :size="6">
-                    <NTag v-if="savedAccount.isCurrent" size="small" type="success">
-                      {{ t('game.current') }}
-                    </NTag>
-                    <NButton v-else quaternary size="small" @click="account.switchAccount(savedAccount.id)">
-                      {{ t('game.switch') }}
-                    </NButton>
-                    <NButton
-                      quaternary
-                      size="small"
-                      type="error"
-                      :title="t('app.delete')"
-                      @click="account.removeAccount(savedAccount.id, savedAccount.alias)"
-                    >
-                      <template #icon><UiIcon name="delete" :size="14" /></template>
-                    </NButton>
-                  </NSpace>
-                </template>
-              </NListItem>
-            </NList>
+                  <div class="account-primary">
+                    <span class="account-name">{{ savedAccount.alias }}</span>
+                    <span class="account-secondary">
+                      {{ savedAccount.email || savedAccount.auth_server || '' }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="account-type-cell">
+                  <NTag size="small" :bordered="false">
+                    {{ accountTypeName(savedAccount.type) }}
+                  </NTag>
+                </div>
+
+                <div class="account-status-cell">
+                  <NTag v-if="savedAccount.isCurrent" size="small" type="success">
+                    {{ t('game.current') }}
+                  </NTag>
+                  <NButton v-else quaternary size="tiny" @click="account.switchAccount(savedAccount.id)">
+                    {{ t('game.switch') }}
+                  </NButton>
+                </div>
+
+                <NButton
+                  class="account-delete"
+                  quaternary
+                  size="tiny"
+                  type="error"
+                  :title="t('app.delete')"
+                  @click="account.removeAccount(savedAccount.id, savedAccount.alias)"
+                >
+                  <template #icon><UiIcon name="delete" :size="13" /></template>
+                </NButton>
+              </div>
+            </div>
             <NEmpty v-else class="account-empty" :description="t('game.noAccounts')" />
           </NSpin>
         </section>
@@ -184,7 +181,7 @@
           </div>
         </section>
       </div>
-    </Modal>
+    </FullscreenModal>
 
     <Modal
       v-model:visible="account.showMicrosoftLoginModal"
@@ -252,20 +249,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  NAlert,
-  NButton,
-  NCard,
-  NEmpty,
-  NInput,
-  NList,
-  NListItem,
-  NSelect,
-  NSpace,
-  NSpin,
-  NTag,
-  NThing,
-} from 'naive-ui'
+import { NAlert, NButton, NEmpty, NInput, NSelect, NSpin, NTag } from 'naive-ui'
 import { storeToRefs } from 'pinia'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -276,6 +260,7 @@ import GameInfoCard from '@/components/game/GameInfoCard.vue'
 import GameLaunchBar from '@/components/game/GameLaunchBar.vue'
 import LaunchProgressCard from '@/components/game/LaunchProgressCard.vue'
 import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
+import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAccountManager } from '@/composables/useAccountManager'
@@ -387,7 +372,7 @@ function goToInstallVersion() {
 
 onMounted(() => {
   version.loadVersions()
-  account.loadCurrentAccount()
+  account.loadAccounts()
   startInfoCard().catch((error) => {
     console.warn('[GameHome] 加载首页数据失败:', error)
   })

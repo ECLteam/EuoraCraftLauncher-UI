@@ -19,25 +19,66 @@
           {{ account ? accountTypeLabel : t('game.clickManageToAdd') }}
         </div>
       </div>
-      <NButton size="small" @click="emit('manage')">{{ t('game.manage') }}</NButton>
+      <div class="account-actions">
+        <NButton size="small" @click="emit('manage')">{{ t('game.manage') }}</NButton>
+        <NDropdown
+          trigger="click"
+          placement="bottom-end"
+          :showArrow="true"
+          :disabled="loading || !accounts.length"
+          :options="accountOptions"
+          @select="selectAccount"
+        >
+          <NButton quaternary circle size="small" :title="t('game.switch')" :disabled="loading || !accounts.length">
+            <template #icon><UiIcon name="chevron-down" :size="15" /></template>
+          </NButton>
+        </NDropdown>
+      </div>
     </div>
   </NCard>
 </template>
 
 <script setup lang="ts">
-import { NButton, NCard } from 'naive-ui'
+import { NButton, NCard, NDropdown } from 'naive-ui'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AvatarRenderer from '@/components/game/AvatarRenderer.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import type { MinecraftAccount } from '@/types/api'
 
-defineProps<{
+const props = defineProps<{
   account: MinecraftAccount | null
+  accounts: MinecraftAccount[]
   accountTypeLabel: string
+  loading?: boolean
 }>()
 
-const emit = defineEmits<{ manage: [] }>()
+const emit = defineEmits<{
+  manage: []
+  switch: [accountId: string]
+}>()
 const { t } = useI18n()
+
+const accountOptions = computed(() =>
+  props.accounts.map((savedAccount) => ({
+    label: `${savedAccount.id === props.account?.id ? '✓ ' : ''}${savedAccount.alias} · ${getAccountTypeLabel(
+      savedAccount.type
+    )}`,
+    key: savedAccount.id,
+  }))
+)
+
+function getAccountTypeLabel(type: MinecraftAccount['type']) {
+  if (type === 'microsoft') return t('game.microsoftAccount')
+  if (type === 'authlib') return t('game.authlibAccount')
+  return t('game.offlineAccount')
+}
+
+function selectAccount(accountId: string | number) {
+  const selectedAccountId = String(accountId)
+  if (selectedAccountId === props.account?.id) return
+  emit('switch', selectedAccountId)
+}
 </script>
 
 <style scoped>
@@ -84,5 +125,12 @@ const { t } = useI18n()
   margin-top: 2px;
   color: var(--ecl-text-secondary);
   font-size: 11px;
+}
+
+.account-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 2px;
 }
 </style>
