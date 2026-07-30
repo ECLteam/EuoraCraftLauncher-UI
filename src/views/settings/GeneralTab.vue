@@ -1,6 +1,5 @@
 <template>
   <div class="tab-pane">
-
     <!-- Language -->
     <div class="settings-section">
       <div class="section-label">
@@ -17,33 +16,12 @@
           </div>
         </div>
         <div class="setting-control">
-          <div ref="langSelectRef" class="custom-select" :class="{ open: isLangOpen }">
-            <div class="select-trigger" @click.stop="toggleLangOpen">
-              <span class="selected-text">
-                <span class="lang-option">
-                  <span class="lang-flag">{{ selectedLanguage?.flag }}</span>
-                  <span class="lang-name">{{ selectedLanguage?.name }}</span>
-                </span>
-              </span>
-              <UiIcon name="chevron-down" class="select-arrow" :class="{ rotated: isLangOpen }" :size="14" />
-            </div>
-            <div v-if="isLangOpen" class="select-dropdown">
-                <div
-                  v-for="lang in supportedLocales"
-                  :key="lang.code"
-                  class="select-option"
-                  :class="{ active: currentLocale === lang.code }"
-                  @click="handleLanguageChange(lang.code)"
-                >
-                  <div class="option-content">
-                    <span class="lang-flag">{{ lang.flag }}</span>
-                    <span class="lang-name">{{ lang.name }}</span>
-                  </div>
-                  <UiIcon v-if="currentLocale === lang.code" name="check" :size="14" class="check-icon" />
-                </div>
-              </div>
-
-          </div>
+          <NSelect
+            class="setting-select"
+            :value="currentLocale"
+            :options="languageOptions"
+            @update:value="handleLanguageUpdate"
+          />
         </div>
       </div>
     </div>
@@ -96,7 +74,8 @@
               :class="['color-dot', { active: currentSettings.primary_color === color.value }]"
               :style="{ backgroundColor: color.value }"
               :title="color.name"
-              @click="handleColorChange(color.value)"></div>
+              @click="handleColorChange(color.value)"
+            ></div>
             <div class="custom-color-wrapper">
               <input
                 type="color"
@@ -120,14 +99,7 @@
           </div>
         </div>
         <div class="setting-control">
-          <button
-            :class="['toggle-switch', { active: topNavEnabled }]"
-            role="switch"
-            :aria-checked="topNavEnabled"
-            @click="toggleTopNav"
-          >
-            <span class="toggle-knob" />
-          </button>
+          <NSwitch :value="topNavEnabled" @update:value="toggleTopNav" />
         </div>
       </div>
     </div>
@@ -148,26 +120,25 @@
           </div>
         </div>
         <div class="setting-control">
-          <div class="bg-input-group">
-            <input
-              type="text"
-              :value="currentSettings.background_image"
+          <NInputGroup class="background-input-group">
+            <NInput
+              :value="backgroundInput"
               :placeholder="t('settings.backgroundPlaceholder')"
-              class="text-input"
-              @input="handleBgImageInput"
+              clearable
+              @update:value="handleBgImageInput"
             />
-            <button class="btn-ghost" @click="selectLocalImage">
+            <NButton @click="selectLocalImage">
               {{ t('common.browse') }}
-            </button>
-            <input
-              ref="showcaseImageInputRef"
-              class="visually-hidden-file-input"
-              type="file"
-              accept="image/*"
-              tabindex="-1"
-              @change="handleShowcaseImageSelected"
-            />
-          </div>
+            </NButton>
+          </NInputGroup>
+          <input
+            ref="showcaseImageInputRef"
+            class="visually-hidden-file-input"
+            type="file"
+            accept="image/*"
+            tabindex="-1"
+            @change="handleShowcaseImageSelected"
+          />
         </div>
       </div>
 
@@ -181,7 +152,16 @@
           </div>
         </div>
         <div class="setting-control">
-          <UiSlider v-model="bgBrightness" :min="0" :max="100" suffix="%" @update:modelValue="handleBrightnessChange" />
+          <div class="slider-control">
+            <NSlider
+              :value="bgBrightness"
+              :min="0"
+              :max="100"
+              :tooltip="false"
+              @update:value="handleBrightnessChange"
+            />
+            <span>{{ bgBrightness }}%</span>
+          </div>
         </div>
       </div>
 
@@ -195,7 +175,10 @@
           </div>
         </div>
         <div class="setting-control">
-          <UiSlider v-model="blurAmount" :min="0" :max="20" suffix="px" @update:modelValue="handleBlurChange" />
+          <div class="slider-control">
+            <NSlider :value="blurAmount" :min="0" :max="20" :tooltip="false" @update:value="handleBlurChange" />
+            <span>{{ blurAmount }}px</span>
+          </div>
         </div>
       </div>
     </div>
@@ -205,12 +188,11 @@
 </template>
 
 <script setup lang="ts">
+import { NButton, NInput, NInputGroup, NSelect, NSlider, NSwitch } from 'naive-ui'
 import { ref, computed, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
-import UiSlider from '@/components/ui/Slider.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
-
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { useTheme, type ThemeMode, presetColors } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
@@ -247,6 +229,7 @@ const currentSettings = computed(() => ({
 }))
 
 const bgBrightness = ref(Math.round(backgroundOpacity.value * 100))
+const backgroundInput = ref(backgroundImagePath.value)
 
 const themeOptions = computed(() =>
   THEME_MODE_OPTIONS.map((opt) => ({
@@ -256,11 +239,14 @@ const themeOptions = computed(() =>
   }))
 )
 
-const isLangOpen = ref(false)
-const langSelectRef = ref<HTMLElement | null>(null)
 const showcaseImageInputRef = ref<HTMLInputElement | null>(null)
 
-const selectedLanguage = computed(() => supportedLocales.find((l) => l.code === currentLocale.value))
+const languageOptions = computed(() =>
+  supportedLocales.map((language) => ({
+    label: `${language.flag}  ${language.name}`,
+    value: language.code,
+  }))
+)
 
 async function updateUiConfig(
   partialTheme: Partial<{
@@ -277,10 +263,6 @@ async function updateUiConfig(
       ...partialTheme,
     })
   )
-}
-
-const toggleLangOpen = () => {
-  isLangOpen.value = !isLangOpen.value
 }
 
 const handleThemeChange = async (mode: ThemeMode) => {
@@ -319,6 +301,7 @@ const selectLocalImage = async () => {
   if (!result) return
   if (result.imageUrl) {
     setBackgroundImage(result.imageUrl, result.path, false)
+    backgroundInput.value = result.path
   }
   message.success(t('common.success'))
 }
@@ -354,12 +337,13 @@ const handleShowcaseImageSelected = async (event: Event) => {
   input.value = ''
   if (!result) return
   setBackgroundImage(result.imageUrl, result.path, false)
+  backgroundInput.value = result.path
   message.success(t('common.success'))
 }
 
 let bgTimer: ReturnType<typeof setTimeout> | null = null
-const handleBgImageInput = (e: Event) => {
-  const val = (e.target as HTMLInputElement).value
+const handleBgImageInput = (val: string) => {
+  backgroundInput.value = val
   if (bgTimer) clearTimeout(bgTimer)
   bgTimer = setTimeout(async () => {
     if (!val) {
@@ -393,9 +377,12 @@ const handleBgImageInput = (e: Event) => {
 }
 
 const handleLanguageChange = async (langCode: LocaleCode) => {
-  isLangOpen.value = false
   await setLocale(langCode)
   await run(async () => settingsStore.patchUi({ locale: langCode }))
+}
+
+const handleLanguageUpdate = (langCode: string) => {
+  void handleLanguageChange(langCode as LocaleCode)
 }
 
 onUnmounted(() => {

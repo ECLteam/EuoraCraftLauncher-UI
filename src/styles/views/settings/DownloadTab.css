@@ -4,6 +4,23 @@
   margin: 0 auto;
 }
 
+.download-source-select {
+  width: 210px;
+}
+
+.threads-control {
+  display: grid;
+  grid-template-columns: 220px 72px;
+  align-items: center;
+  gap: 12px;
+}
+
+.threads-control > span {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  text-align: right;
+}
+
 .settings-section {
   margin-bottom: var(--s-2xl);
 }

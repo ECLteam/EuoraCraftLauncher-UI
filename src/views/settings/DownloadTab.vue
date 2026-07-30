@@ -3,46 +3,27 @@
     <SettingSection :title="t('settings.downloadSettings')">
       <SettingRow :label="t('settings.downloadSource')" :description="t('settings.downloadSourceDesc')">
         <template #default>
-          <div ref="selectRef" class="custom-select" :class="{ open: isOpen }">
-            <div class="select-trigger" @click="toggleOpen">
-              <span class="selected-text">{{ selectedDownloadSource?.label || t('common.select') }}</span>
-              <UiIcon name="chevron-down" class="select-arrow" :class="{ rotated: isOpen }" :size="14" />
-            </div>
-            <Transition name="select-dropdown">
-              <div v-show="isOpen" class="select-dropdown">
-                <div
-                  v-for="option in downloadOptions"
-                  :key="option.value"
-                  class="select-option"
-                  :class="{ active: localSettings.mirror_source === option.value }"
-                  @click="handleDownloadSourceChange(option.value)"
-                >
-                  <div class="option-content">
-                    <span class="option-label">{{ option.label }}</span>
-                    <span class="option-desc">{{ option.desc }}</span>
-                  </div>
-                  <UiIcon
-                    v-if="localSettings.mirror_source === option.value"
-                    name="check"
-                    :size="14"
-                    class="check-icon"
-                  />
-                </div>
-              </div>
-            </Transition>
-          </div>
+          <NSelect
+            class="download-source-select"
+            :value="localSettings.mirror_source"
+            :options="downloadOptions"
+            @update:value="handleDownloadSourceChange"
+          />
         </template>
       </SettingRow>
 
       <SettingRow :label="t('settings.downloadThreads')" :description="t('settings.downloadThreadsDesc')">
         <template #default>
-          <UiSlider
-            v-model="localSettings.download_threads"
-            :min="1"
-            :max="16"
-            :suffix="' ' + t('settings.threads')"
-            @update:modelValue="handleThreadsChange"
-          />
+          <div class="threads-control">
+            <NSlider
+              :value="localSettings.download_threads"
+              :min="1"
+              :max="16"
+              :tooltip="false"
+              @update:value="handleThreadsChange"
+            />
+            <span>{{ localSettings.download_threads }} {{ t('settings.threads') }}</span>
+          </div>
         </template>
       </SettingRow>
     </SettingSection>
@@ -52,13 +33,11 @@
 </template>
 
 <script setup lang="ts">
+import { NSelect, NSlider } from 'naive-ui'
 import { storeToRefs } from 'pinia'
-import { ref, computed, onUnmounted } from 'vue'
+import { computed, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import UiIcon from '@/components/ui/Icon.vue'
-import UiSlider from '@/components/ui/Slider.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
-import { useClickOutside } from '@/composables/useClickOutside'
 import { MIRROR_OPTIONS } from '@/config/version'
 import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
@@ -69,9 +48,6 @@ const { run } = useAsyncAction({ showSuccess: false, showError: true, errorMessa
 const settingsStore = useSettingsStore()
 const { download: localSettings } = storeToRefs(settingsStore)
 
-const isOpen = ref(false)
-const selectRef = ref<HTMLElement | null>(null)
-
 const downloadOptions = computed(() =>
   MIRROR_OPTIONS.map((opt) => ({
     value: opt.value as 'official' | 'bmclapi',
@@ -80,30 +56,18 @@ const downloadOptions = computed(() =>
   }))
 )
 
-const selectedDownloadSource = computed(() =>
-  downloadOptions.value.find((o) => o.value === localSettings.value.mirror_source)
-)
-
-const toggleOpen = () => {
-  isOpen.value = !isOpen.value
-}
-
 const handleDownloadSourceChange = async (value: 'official' | 'bmclapi') => {
-  isOpen.value = false
   await run(async () => settingsStore.patchDownload({ mirror_source: value }))
 }
 
 let threadsSaveTimer: ReturnType<typeof setTimeout> | null = null
 const handleThreadsChange = (val: number) => {
+  localSettings.value.download_threads = val
   if (threadsSaveTimer) clearTimeout(threadsSaveTimer)
   threadsSaveTimer = setTimeout(() => {
-    run(async () => settingsStore.patchDownload({ download_threads: val }))
+    void run(async () => settingsStore.patchDownload({ download_threads: val }))
   }, 400)
 }
-
-useClickOutside(selectRef, () => {
-  isOpen.value = false
-})
 
 onUnmounted(() => {
   if (threadsSaveTimer) clearTimeout(threadsSaveTimer)

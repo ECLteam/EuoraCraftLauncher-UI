@@ -4,6 +4,27 @@
   margin: 0 auto;
 }
 
+.setting-select {
+  width: 190px;
+}
+
+.background-input-group {
+  width: min(420px, 46vw);
+}
+
+.slider-control {
+  display: grid;
+  grid-template-columns: minmax(160px, 240px) 48px;
+  align-items: center;
+  gap: 12px;
+}
+
+.slider-control > span {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  text-align: right;
+}
+
 .settings-section {
   margin-bottom: var(--s-2xl);
 }
@@ -385,4 +406,3 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
-

@@ -10,16 +10,11 @@
             <UiIcon name="close" :size="14" />
           </button>
         </div>
-        <div class="filter-group">
-          <button
-            v-for="f in filters"
-            :key="f.key"
-            :class="['filter-chip', { active: activeFilter === f.key }]"
-            @click="activeFilter = f.key"
-          >
+        <NRadioGroup v-model:value="activeFilter" class="filter-group" size="small">
+          <NRadioButton v-for="f in filters" :key="f.key" :value="f.key">
             {{ f.label }}
-          </button>
-        </div>
+          </NRadioButton>
+        </NRadioGroup>
       </div>
       <div class="toolbar-right">
         <button class="btn-create" @click="installPlugin">
@@ -139,13 +134,14 @@
 </template>
 
 <script setup lang="ts">
+import { NRadioButton, NRadioGroup } from 'naive-ui'
 import { storeToRefs } from 'pinia'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
-import { usePluginStore } from '@/features/plugins/stores/pluginStore'
 import PluginSettingsModal from '@/features/plugins/components/PluginSettingsModal.vue'
+import { usePluginStore } from '@/features/plugins/stores/pluginStore'
 import type { PluginInfo } from '@/types/api'
 
 const { t } = useI18n()
