@@ -1,5 +1,5 @@
 import backend from '@/api/client'
-import type { PluginInfo } from '@/types/api'
+import type { PluginInfo, PluginSettingsData } from '@/types/api'
 
 function assertSuccess<T>(result: { success: boolean; data?: T; message?: string }, operation: string): T {
   if (!result.success) throw new Error(result.message || `${operation}失败`)
@@ -37,5 +37,14 @@ export const pluginManagementApi = {
 
   onStatusChanged(handler: () => void): () => void {
     return backend.on('plugin:status_changed', handler)
+  },
+
+  async getSettings(pluginName: string): Promise<PluginSettingsData> {
+    const result = await backend.command('plugin_get_settings', { plugin_name: pluginName })
+    return assertSuccess(result, '读取插件设置')
+  },
+
+  async updateSetting(pluginName: string, key: string, value: unknown): Promise<void> {
+    assertSuccess(await backend.command('plugin_update_setting', { plugin_name: pluginName, key, value }), '更新插件设置')
   },
 }

@@ -270,88 +270,47 @@
       :title="t('game.login.title')"
       :closable="false"
       bodyClass="ms-login-body"
+      width="400px"
     >
       <div class="ms-login-content">
         <div v-if="account.microsoftLoginStatus === 'pending'" class="ms-login-pending">
-          <div class="ms-login-header">
-            <div class="ms-login-brand">
-              <div class="ms-login-icon">
-                <UiIcon name="microsoft" :size="24" />
-              </div>
-              <div class="ms-login-brand-text">
-                <h3 class="ms-login-brand-title">Microsoft 账户</h3>
-                <p class="ms-login-brand-desc">通过浏览器完成安全验证</p>
-              </div>
-            </div>
-          </div>
+          <p class="ms-login-tip">
+            {{ t('game.microsoftLoginHint') }}
+          </p>
 
-          <div class="ms-login-steps">
-            <div class="ms-login-step">
-              <div class="ms-step-indicator">
-                <span class="ms-step-num">1</span>
-              </div>
-              <div class="ms-step-body">
-                <p class="ms-step-label">
-                  {{ t('game.login.browserOpened') }}
-                </p>
-                <a v-if="account.microsoftLoginData.verificationUri" href="#" class="ms-login-link" @click.prevent="openExternalUrl(account.microsoftLoginData.verificationUri!)">
-                  <UiIcon name="external-link" :size="14" />
-                  {{ account.microsoftLoginData.verificationUri }}
-                </a>
-              </div>
-            </div>
+          <button class="ms-login-url" type="button" @click="account.openMicrosoftLoginPage">
+            <span>{{ account.microsoftLoginData.verificationUri }}</span>
+            <UiIcon name="external-link" :size="14" />
+          </button>
 
-            <div class="ms-login-step">
-              <div class="ms-step-indicator">
-                <span class="ms-step-num">2</span>
-              </div>
-              <div class="ms-step-body">
-                <p class="ms-step-label">
-                  {{ t('game.login.enterCode') }}
-                </p>
-                <div class="ms-code-row">
-                  <code class="ms-code">{{ account.microsoftLoginData.userCode }}</code>
-                  <button class="ms-code-copy-btn" @click="account.copyUserCode">
-                    <UiIcon :name="account.copiedUserCode ? 'check' : 'copy'" :size="14" />
-                    {{ account.copiedUserCode ? t('game.login.copied') : t('game.login.copyCode') }}
-                  </button>
-                </div>
-              </div>
-            </div>
+          <div class="ms-code-row">
+            <code class="ms-code">{{ account.microsoftLoginData.userCode }}</code>
+            <button class="ms-code-copy-btn" type="button" @click="account.copyUserCode">
+              <UiIcon :name="account.copiedUserCode ? 'check' : 'copy'" :size="14" />
+              {{ account.copiedUserCode ? t('game.login.copied') : t('game.login.copyCode') }}
+            </button>
           </div>
 
           <div class="ms-login-status">
             <div class="ms-login-spinner"></div>
-            <span class="ms-login-status-text">{{ t('game.login.autoDetecting') }}</span>
+            <span>{{ t('game.login.autoDetecting') }}</span>
           </div>
         </div>
 
         <div v-else-if="account.microsoftLoginStatus === 'loading'" class="ms-login-loading">
           <div class="ms-login-spinner"></div>
-          <span class="ms-login-loading-text">{{ t('game.login.waiting') }}</span>
+          <span>{{ t('game.login.waiting') }}</span>
         </div>
 
         <div v-else-if="account.microsoftLoginStatus === 'error'" class="ms-login-error">
-          <div class="ms-login-error-icon">
-            <UiIcon name="alert-circle" :size="28" />
-          </div>
-          <p class="ms-login-error-text">
-            {{ account.microsoftLoginError }}
-          </p>
+          <UiIcon name="warning" :size="20" />
+          <span>{{ account.microsoftLoginError }}</span>
         </div>
       </div>
 
       <template #footer>
         <UiButton variant="secondary" @click="account.cancelMicrosoftLogin">
           {{ t('common.cancel') }}
-        </UiButton>
-        <UiButton
-          variant="primary"
-          :loading="account.microsoftLoginStatus === 'loading' || account.completingMicrosoftLogin"
-          :disabled="account.microsoftLoginStatus === 'error'"
-          @click="account.completeMicrosoftLogin"
-        >
-          {{ t('game.login.complete') }}
         </UiButton>
       </template>
     </Modal>
@@ -413,7 +372,6 @@ import { getVersionImage } from '@/config/version'
 import { useGameInfoCard } from '@/features/game-home/composables/useGameInfoCard'
 import { useGameHomeStore } from '@/features/game-home/stores/gameHomeStore'
 import { getLoaderIcon, getLoaderImage } from '@/utils/loader'
-import { openExternalUrl } from '@/utils/openExternal'
 
 const { t } = useI18n()
 const router = useRouter()

@@ -199,7 +199,11 @@ export function createShowcaseTransport(): BackendTransport {
       case 'accounts_poll_microsoft_login':
         return success({ status: 'ready', message: '展示授权已完成' })
       case 'accounts_complete_microsoft_login':
-        return success({ success: true, account: structuredClone(accounts.accounts[0]), message: '展示登录完成' })
+        return success({
+          status: 'completed',
+          account: structuredClone(accounts.accounts[0]),
+          message: '展示登录完成',
+        })
       case 'authlib_servers':
         return success(structuredClone(showcaseAuthlibServers))
       case 'user_agreement_get':

@@ -72,20 +72,15 @@ export function once(event: string, handler: EventHandler): () => void {
 }
 
 export const Events = {
-  PLUGIN_ENABLED: 'plugin:enabled',
-  PLUGIN_DISABLED: 'plugin:disabled',
-  SETTINGS_CHANGED: 'plugin:settings_changed',
-  SETTINGS_REGISTERED: 'plugin:settings_registered',
-  ROUTE_REGISTERED: 'plugin:route_registered',
-  ROUTE_UNREGISTERED: 'plugin:route_unregistered',
+  CONFIG_UPDATED: 'config:updated',
+  PLUGIN_STATUS_CHANGED: 'plugin:status_changed',
+  PLUGIN_INSTALLED: 'plugin:installed',
+  CSS_INJECTED: 'plugin:css_injected',
   HTML_INJECTED: 'plugin:html_injected',
   SCRIPT_INJECTED: 'plugin:script_injected',
   TYPESCRIPT_INJECTED: 'plugin:typescript_injected',
-  SLOTS_CLEARED: 'plugin:slots_cleared',
-  SLOT_REGISTERED: 'plugin:slot_registered',
-  SLOT_UNREGISTERED: 'plugin:slot_unregistered',
-  PRE_UNLOAD: 'plugin:pre_unload',
-  CLEANUP: 'plugin:cleanup',
-  LAUNCHER_NOTIFY: 'launcher:notify',
-  STATE_CHANGED: 'plugin:state_changed',
+  ROUTE_REGISTERED: 'plugin:route_registered',
+  VUE_ROUTE_REGISTERED: 'plugin:vue_route_registered',
+  VUE_SLOT_REGISTERED: 'plugin:vue_slot_registered',
+  SETTINGS_CHANGED: 'plugin:settings_changed',
 } as const

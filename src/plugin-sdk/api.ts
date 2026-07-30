@@ -16,7 +16,7 @@ import type {
   PathInfo,
   PluginInfo,
   PluginRoute,
-  PluginSettingsSchema,
+  PluginSettingsData,
   ScannedVersion,
   SelectResult,
 } from '@/types/api'
@@ -39,7 +39,7 @@ export function callPluginCommand<T = unknown>(command: string, params?: JsonDic
  * 获取插件的设置定义。
  * @param pluginName - 插件名称
  */
-export function getPluginSettings(pluginName: string): Promise<ApiResponse<PluginSettingsSchema>> {
+export function getPluginSettings(pluginName: string): Promise<ApiResponse<PluginSettingsData>> {
   return backend.command('plugin_get_settings', { plugin_name: pluginName })
 }
 

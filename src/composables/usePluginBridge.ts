@@ -358,24 +358,7 @@ export function initPluginBridge(router: ReturnType<typeof useRouter>) {
     })
   )
 
-  unlistenFns.push(
-    pluginHostApi.subscribe('plugin:slot_registered', (payload) => {
-      const { slot, plugin, target, position } = payload
-      const ok = createDynamicSlot(slot, plugin, target, position || 'append')
-      if (!ok) {
-        console.warn(`[PluginBridge] 动态 slot 创建失败 [${slot}]: 目标 "${target}" 不存在`)
-      }
-    })
-  )
-
-  unlistenFns.push(
-    pluginHostApi.subscribe('plugin:slot_unregistered', (payload) => {
-      removeDynamicSlot(payload.slot)
-    })
-  )
-
   unlistenFns.push(pluginHostApi.subscribe('plugin:route_registered', () => refreshRoutes(router)))
-  unlistenFns.push(pluginHostApi.subscribe('plugin:route_unregistered', () => refreshRoutes(router)))
 
   unlistenFns.push(
     pluginHostApi.subscribe('plugin:script_injected', (payload) => {
@@ -395,23 +378,10 @@ export function initPluginBridge(router: ReturnType<typeof useRouter>) {
   )
 
   unlistenFns.push(
-    pluginHostApi.subscribe('plugin:disabled', (payload) => {
-      if (payload.plugin) fullCleanupPlugin(payload.plugin)
-    })
-  )
-  unlistenFns.push(
-    pluginHostApi.subscribe('plugin:pre_unload', (payload) => {
-      if (payload.name) fullCleanupPlugin(payload.name)
-    })
-  )
-  unlistenFns.push(
-    pluginHostApi.subscribe('plugin:cleanup', (payload) => {
-      if (payload.name) fullCleanupPlugin(payload.name)
-    })
-  )
-  unlistenFns.push(
-    pluginHostApi.subscribe('plugin:slots_cleared', (payload) => {
-      if (payload.plugin) clearPluginSlots(payload.plugin)
+    pluginHostApi.subscribe('plugin:status_changed', (payload) => {
+      if (payload.action === 'disabled' || payload.action === 'unloaded') {
+        fullCleanupPlugin(payload.name)
+      }
     })
   )
 

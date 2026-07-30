@@ -65,6 +65,14 @@
           </div>
           <div class="col-actions">
             <button
+              v-if="plugin.settings?.length"
+              class="row-action-btn"
+              :title="t('plugins.settings')"
+              @click="openSettings(plugin)"
+            >
+              <UiIcon name="settings" :size="14" />
+            </button>
+            <button
               class="row-action-btn"
               :title="plugin.status === 'enabled' ? t('plugins.disable') : t('plugins.enable')"
               @click="togglePlugin(plugin)"
@@ -120,6 +128,13 @@
       <!-- 插件：插件页列表底部插槽 -->
       <div id="plugin-slot-plugins-list-bottom" class="plugin-slot-container"></div>
     </div>
+
+    <!-- 设置全屏弹窗 -->
+    <PluginSettingsModal
+      :visible="settingsModalVisible"
+      :plugin="settingsTarget"
+      @close="settingsModalVisible = false"
+    />
   </div>
 </template>
 
@@ -130,6 +145,7 @@ import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { usePluginStore } from '@/features/plugins/stores/pluginStore'
+import PluginSettingsModal from '@/features/plugins/components/PluginSettingsModal.vue'
 import type { PluginInfo } from '@/types/api'
 
 const { t } = useI18n()
@@ -138,6 +154,8 @@ const pluginStore = usePluginStore()
 const { plugins, loading, reloadingPlugins } = storeToRefs(pluginStore)
 const searchQuery = ref('')
 const activeFilter = ref('all')
+const settingsModalVisible = ref(false)
+const settingsTarget = ref<PluginInfo | null>(null)
 
 const filters = computed(() => [
   { key: 'all', label: t('plugins.filterAll') },
@@ -201,6 +219,11 @@ async function installPlugin() {
     showError: true,
     errorMessage: t('plugins.installFailed'),
   })
+}
+
+function openSettings(plugin: PluginInfo) {
+  settingsTarget.value = plugin
+  settingsModalVisible.value = true
 }
 
 onMounted(() => {

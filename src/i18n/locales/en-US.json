@@ -389,7 +389,8 @@
     "providedEvents": "Provided Events",
     "subscribedEvents": "Subscribed Events",
     "loadFailed": "Failed to load plugin",
-    "pluginInstalled": "Plugin installed"
+    "pluginInstalled": "Plugin installed",
+    "settingSaved": "Saved"
   },
   "settings": {
     "title": "Settings",

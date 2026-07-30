@@ -2,6 +2,7 @@ import { storeToRefs } from 'pinia'
 import { ref, computed, reactive } from 'vue'
 import { useAccountStore } from '@/features/accounts/stores/accountStore'
 import type { MinecraftAccount, MicrosoftLoginData } from '@/types/api'
+import { openExternalUrl } from '@/utils/openExternal'
 import { useClipboard } from './useClipboard'
 import { useGlassMessage } from './useGlassMessage'
 import { useIntervalFn } from './useIntervalFn'
@@ -256,10 +257,12 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
         verificationUri: result.verificationUri || '',
       }
       microsoftLoginStatus.value = 'pending'
+      microsoftLoginError.value = ''
       showMicrosoftLoginModal.value = true
       if (result.interval) {
         pollInterval.value = result.interval * 1000
       }
+      void openMicrosoftLoginPage()
       runOnce()
       startPolling()
       return
@@ -272,6 +275,15 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     microsoftLoginStatus.value = 'loading'
     try {
       const result = await accountStore.completeMicrosoftLogin()
+      if (result.status === 'pending') {
+        microsoftLoginStatus.value = 'pending'
+        if (result.retry_after && result.retry_after > 0) {
+          pollInterval.value = result.retry_after * 1000
+        }
+        message.info(t('game.login.autoDetecting'))
+        startPolling()
+        return
+      }
       if (!result.account) throw new Error(result.message || t('game.login.failed'))
       message.success(t('game.login.success'))
       showMicrosoftLoginModal.value = false
@@ -297,6 +309,12 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
 
   async function copyUserCode() {
     await copyToClipboard(microsoftLoginData.value.userCode || '')
+  }
+
+  async function openMicrosoftLoginPage() {
+    const verificationUri = microsoftLoginData.value.verificationUri
+    if (!verificationUri) return
+    await Promise.allSettled([copyUserCode(), openExternalUrl(verificationUri)])
   }
 
   function reset() {
@@ -350,6 +368,7 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     cancelMicrosoftLogin,
     completeMicrosoftLogin,
     copyUserCode,
+    openMicrosoftLoginPage,
     showClientIdModal,
     cancelClientId,
     reset,

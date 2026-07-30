@@ -389,7 +389,8 @@
     "providedEvents": "提供的事件",
     "subscribedEvents": "订阅的事件",
     "loadFailed": "加载插件失败",
-    "pluginInstalled": "插件已安装"
+    "pluginInstalled": "插件已安装",
+    "settingSaved": "已保存"
   },
   "settings": {
     "title": "设置",

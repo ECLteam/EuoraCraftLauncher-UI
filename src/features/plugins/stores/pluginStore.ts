@@ -1,13 +1,14 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { pluginManagementApi } from '@/features/plugins/api/pluginManagementApi'
-import type { PluginInfo } from '@/types/api'
+import type { PluginInfo, PluginSettingsData } from '@/types/api'
 
 export const usePluginStore = defineStore('plugins', () => {
   const plugins = ref<PluginInfo[]>([])
   const loading = ref(false)
   const activeOperations = ref<string[]>([])
   const error = ref('')
+  const settingsCache = ref<Record<string, PluginSettingsData>>({})
   let unlistenStatus: (() => void) | null = null
   let refreshTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -59,6 +60,23 @@ export const usePluginStore = defineStore('plugins', () => {
     return installed
   }
 
+  async function getSettings(pluginName: string): Promise<PluginSettingsData> {
+    const data = await pluginManagementApi.getSettings(pluginName)
+    settingsCache.value = { ...settingsCache.value, [pluginName]: data }
+    return data
+  }
+
+  async function updateSetting(pluginName: string, key: string, value: unknown): Promise<void> {
+    await pluginManagementApi.updateSetting(pluginName, key, value)
+    const cached = settingsCache.value[pluginName]
+    if (cached) {
+      settingsCache.value = {
+        ...settingsCache.value,
+        [pluginName]: { ...cached, values: { ...cached.values, [key]: value } },
+      }
+    }
+  }
+
   function scheduleRefresh(): void {
     if (refreshTimer) clearTimeout(refreshTimer)
     refreshTimer = setTimeout(() => {
@@ -84,11 +102,14 @@ export const usePluginStore = defineStore('plugins', () => {
     activeOperations,
     reloadingPlugins,
     error,
+    settingsCache,
     load,
     toggle,
     reload,
     unload,
     install,
+    getSettings,
+    updateSetting,
     start,
     stop,
   }

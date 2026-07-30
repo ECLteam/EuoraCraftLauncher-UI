@@ -201,9 +201,11 @@ export interface MicrosoftPollData {
 }
 
 export interface MicrosoftCompleteData {
+  status?: 'pending' | 'completed'
   success?: boolean
   account?: MinecraftAccount
   message?: string
+  retry_after?: number
 }
 
 export interface AuthlibServer {
@@ -395,6 +397,7 @@ export interface PluginInfo {
   dependencies: Record<string, string>
   events: Record<string, unknown>
   services: string[]
+  settings: string[]
   is_system: boolean
 }
 
@@ -411,8 +414,30 @@ export interface PluginSlotItem {
   priority?: number
 }
 
-export interface PluginSettingsSchema {
-  schema: unknown
+export interface VueSlotItem {
+  plugin: string
+  component_name: string
+  template: string
+  script: string
+  style: string
+}
+
+export interface VueComponentDef {
+  plugin: string
+  template: string
+  script: string
+  style: string
+}
+
+export interface PluginSettingSchema {
+  key: string
+  default: unknown
+  description: string
+  type: 'bool' | 'string' | 'number' | 'select'
+}
+
+export interface PluginSettingsData {
+  schema: PluginSettingSchema[]
   values: Record<string, unknown>
 }
 
@@ -489,19 +514,26 @@ export interface BackendEvents {
   'plugin:script_injected': { plugin: string; script: string }
   'plugin:typescript_injected': { plugin: string; script: string }
   'plugin:html_injected': { plugin: string; slot: string; html: string; priority?: number }
+  'config:updated': { section: string; data: unknown }
   'plugin:route_registered': { plugin: string; path: string; title: string; icon?: string }
-  'plugin:route_unregistered': { plugin: string; path: string }
-  'plugin:slot_registered': {
-    slot: string
+  'plugin:vue_route_registered': {
     plugin: string
-    target: string
-    position: 'before' | 'after' | 'prepend' | 'append'
+    path: string
+    title: string
+    component_name: string
+    template: string
+    script: string
+    style: string
+    icon?: string
   }
-  'plugin:slot_unregistered': { slot: string; plugin: string }
-  'plugin:disabled': { plugin: string }
-  'plugin:pre_unload': { name: string }
-  'plugin:cleanup': { name: string }
-  'plugin:slots_cleared': { plugin: string }
+  'plugin:vue_slot_registered': {
+    plugin: string
+    slot: string
+    component_name: string
+    template: string
+    script: string
+    style: string
+  }
   'plugin:settings_changed': { plugin: string; key: string; old_value: unknown; new_value: unknown }
 }
 
@@ -585,6 +617,7 @@ export interface CommandPayloadMap {
   select_image: undefined
   select_file: undefined
   open_folder: { path: string }
+  open_url: { url: string }
 
   // 游戏实例
   instances_list: undefined
@@ -615,6 +648,8 @@ export interface CommandPayloadMap {
   plugin_install: { plugin_path: string }
   plugin_get_routes: { plugin_id?: string }
   plugin_get_slots: Record<string, never>
+  plugin_get_vue_slots: Record<string, never>
+  plugin_get_vue_components: Record<string, never>
   plugin_call_command: { command: string; params?: Record<string, unknown> }
   plugin_get_settings: { plugin_name: string }
   plugin_update_setting: { plugin_name: string; key: string; value: unknown }
@@ -743,6 +778,7 @@ export interface CommandResponseMap {
   select_image: ImageSelection
   select_file: SelectResult
   open_folder: void
+  open_url: void
 
   instances_list: GameInstance[]
   launch_instance: void
@@ -759,8 +795,10 @@ export interface CommandResponseMap {
   plugin_install: void
   plugin_get_routes: PluginRoute[]
   plugin_get_slots: Record<string, PluginSlotItem[]>
+  plugin_get_vue_slots: Record<string, VueSlotItem[]>
+  plugin_get_vue_components: Record<string, VueComponentDef>
   plugin_call_command: unknown
-  plugin_get_settings: PluginSettingsSchema
+  plugin_get_settings: PluginSettingsData
   plugin_update_setting: void
 
   get_mods: ModItem[]
