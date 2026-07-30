@@ -1,0 +1,27 @@
+name: Check quality
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+ check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10
+
+      - name: Checkout repo
+        uses: actions/checkout@v7
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check quality
+        run: pnpm check
