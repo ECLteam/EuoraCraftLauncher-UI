@@ -1,0 +1,26 @@
+:root {
+  --ecl-primary: #5b6ff5;
+  --ecl-canvas: #f4f6fa;
+  --ecl-surface: #ffffff;
+  --ecl-surface-muted: #f8f9fc;
+  --ecl-text: #1d2433;
+  --ecl-text-secondary: #596275;
+  --ecl-border: rgba(29, 36, 51, 0.1);
+  --ecl-control-height: 36px;
+  --ecl-radius-control: 6px;
+  --ecl-radius-card: 8px;
+  --ecl-radius-dialog: 10px;
+  --ecl-shadow-surface: 0 1px 2px rgba(29, 36, 51, 0.04);
+  --ecl-page-gap: 16px;
+  --ecl-page-padding: 20px;
+}
+
+[data-theme='dark'] {
+  --ecl-canvas: #171a21;
+  --ecl-surface: #222630;
+  --ecl-surface-muted: #292e39;
+  --ecl-text: #f1f3f7;
+  --ecl-text-secondary: #b4bbc9;
+  --ecl-border: rgba(255, 255, 255, 0.09);
+  --ecl-shadow-surface: 0 1px 2px rgba(0, 0, 0, 0.18);
+}

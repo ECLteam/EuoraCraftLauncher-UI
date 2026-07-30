@@ -13,20 +13,20 @@
     </slot>
 
     <template #footer>
-      <UiButton variant="secondary" :disabled="loading" @click="cancel">
+      <NButton :disabled="loading" @click="cancel">
         {{ cancelText || t('modal.cancel') }}
-      </UiButton>
-      <UiButton :variant="danger ? 'danger' : 'primary'" :loading="loading" @click="confirm">
+      </NButton>
+      <NButton :type="danger ? 'error' : 'primary'" :loading="loading" @click="confirm">
         {{ confirmText || t('modal.confirm') }}
-      </UiButton>
+      </NButton>
     </template>
   </Modal>
 </template>
 
 <script setup lang="ts">
+import { NButton } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import Modal from '@/components/modals/Modal.vue'
-import UiButton from '@/components/ui/Button.vue'
 
 const props = withDefaults(
   defineProps<{

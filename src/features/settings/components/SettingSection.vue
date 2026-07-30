@@ -1,6 +1,6 @@
 <template>
-  <section class="settings-section">
-    <div class="section-label">
+  <section class="settings-section ecl-surface">
+    <div class="settings-section__header">
       {{ title }}
     </div>
     <slot />
@@ -15,21 +15,20 @@ defineProps<{
 
 <style scoped>
 .settings-section {
-  margin-bottom: var(--s-2xl);
+  overflow: hidden;
+  margin-bottom: 16px;
 }
 
 .settings-section:last-child {
   margin-bottom: 0;
 }
 
-.section-label {
-  margin-bottom: var(--s-lg);
-  padding-bottom: var(--s-sm);
-  border-bottom: 1px solid var(--divider);
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.settings-section__header {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--ecl-border);
+  background: var(--ecl-surface-muted);
+  color: var(--ecl-text);
+  font-size: 13px;
+  font-weight: 650;
 }
 </style>

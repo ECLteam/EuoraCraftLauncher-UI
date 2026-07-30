@@ -123,6 +123,9 @@ function createThemeOverrides(isDark: boolean, primary: string): GlobalThemeOver
       popoverColor: baseColors.surface,
       borderColor: baseColors.border,
       dividerColor: baseColors.border,
+      borderRadius: '6px',
+      borderRadiusSmall: '6px',
+      fontFamily: 'var(--font-body)',
     },
     Button: {
       color: baseColors.background,
@@ -132,10 +135,19 @@ function createThemeOverrides(isDark: boolean, primary: string): GlobalThemeOver
       textColorHover: primaryScale.primary,
       border: `1px solid ${baseColors.border}`,
       borderHover: `1px solid ${primaryScale.primary}`,
+      heightMedium: '36px',
+      heightSmall: '32px',
+      borderRadiusMedium: '6px',
+      borderRadiusSmall: '6px',
+      fontWeight: '550',
+      paddingMedium: '0 14px',
     },
     Card: {
       color: baseColors.background,
       borderColor: baseColors.border,
+      borderRadius: '8px',
+      boxShadow: '0 1px 2px rgba(29, 36, 51, 0.04)',
+      paddingMedium: '16px',
     },
     Input: {
       color: baseColors.surface,
@@ -145,6 +157,10 @@ function createThemeOverrides(isDark: boolean, primary: string): GlobalThemeOver
       borderFocus: `1px solid ${primaryScale.primary}`,
       textColor: baseColors.text,
       placeholderColor: baseColors.textSecondary,
+      heightMedium: '36px',
+      heightSmall: '32px',
+      borderRadius: '6px',
+      boxShadowFocus: `0 0 0 2px ${rgba(primaryScale.primary, 0.16)}`,
     },
     Select: {
       color: baseColors.surface,
@@ -170,10 +186,27 @@ function createThemeOverrides(isDark: boolean, primary: string): GlobalThemeOver
       optionColorHover: baseColors.backgroundHover,
     },
     Menu: {
-      color: baseColors.background,
+      color: 'transparent',
       itemColorHover: baseColors.backgroundHover,
       itemTextColor: baseColors.text,
       itemTextColorHover: primaryScale.primary,
+      itemColorActive: primaryScale.primaryLight,
+      itemTextColorActive: primaryScale.primary,
+      itemIconColorActive: primaryScale.primary,
+      itemHeight: '40px',
+      itemBorderRadius: '6px',
+    },
+    Dialog: {
+      borderRadius: '10px',
+      titleFontSize: '17px',
+      padding: '20px',
+    },
+    Tabs: {
+      tabBorderRadius: '6px',
+      tabColorSegment: baseColors.backgroundHover,
+    },
+    Tag: {
+      borderRadius: '5px',
     },
   }
 }
@@ -250,10 +283,7 @@ function updateTheme() {
   document.documentElement.style.setProperty('--bg-opacity', String(backgroundOpacity.value))
   document.documentElement.style.setProperty('--bg-app', transparentBg.value ? 'transparent' : '')
   document.documentElement.style.setProperty('--bg-blur', `${blurAmount.value}px`)
-  document.documentElement.style.setProperty(
-    '--main-bg-layer-opacity',
-    transparentBg.value ? '1' : '0'
-  )
+  document.documentElement.style.setProperty('--main-bg-layer-opacity', transparentBg.value ? '1' : '0')
 
   document.documentElement.setAttribute('data-sidebar-collapsed', sidebarCollapsed.value ? '1' : '0')
   document.documentElement.setAttribute('data-navigation-mode', navigationMode.value)

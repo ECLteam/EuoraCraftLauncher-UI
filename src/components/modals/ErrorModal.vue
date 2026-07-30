@@ -27,13 +27,13 @@
           </main>
 
           <footer class="modal-footer error-modal-footer">
-            <UiButton variant="secondary" @click="handleClose">
+            <NButton @click="handleClose">
               {{ t('error.close') }}
-            </UiButton>
-            <UiButton variant="primary" :loading="exporting" @click="handleExportLogs">
+            </NButton>
+            <NButton type="primary" :loading="exporting" @click="handleExportLogs">
               <UiIcon name="download" :size="14" />
               {{ t('error.exportLogs') }}
-            </UiButton>
+            </NButton>
           </footer>
         </div>
       </div>
@@ -42,10 +42,10 @@
 </template>
 
 <script setup lang="ts">
+import { NButton } from 'naive-ui'
 import { ref, computed, watch, nextTick, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import backend from '@/api/client'
-import UiButton from '@/components/ui/Button.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 
 defineOptions({ name: 'ErrorModal' })

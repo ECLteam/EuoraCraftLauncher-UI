@@ -1,13 +1,16 @@
 <template>
-  <div class="info-card">
-    <button
+  <NCard class="info-card" contentStyle="padding: 0;">
+    <NButton
       v-if="canToggle"
       class="info-toggle-btn"
+      quaternary
+      circle
+      size="small"
       :title="view === 'tip' ? '查看公告' : '查看小贴士'"
       @click="emit('toggle')"
     >
-      <UiIcon :name="view === 'tip' ? 'bell' : 'lightbulb'" :size="14" />
-    </button>
+      <template #icon><UiIcon :name="view === 'tip' ? 'bell' : 'lightbulb'" :size="14" /></template>
+    </NButton>
 
     <Transition name="info-fade" mode="out-in">
       <div v-if="view === 'tip'" key="tip" class="info-tip">
@@ -56,10 +59,11 @@
         </div>
       </div>
     </Transition>
-  </div>
+  </NCard>
 </template>
 
 <script setup lang="ts">
+import { NButton, NCard } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
 import type { InfoCardData, InfoCardAnnouncement } from '@/types/api'
@@ -85,10 +89,6 @@ const { t } = useI18n()
 .info-card {
   position: relative;
   overflow: hidden;
-  border-top: var(--card-border-top);
-  border-bottom: var(--card-border-bottom);
-  border-radius: var(--r-sm);
-  background: var(--card-bg);
 }
 
 .info-toggle-btn {
@@ -96,22 +96,6 @@ const { t } = useI18n()
   z-index: 1;
   top: 7px;
   right: 7px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border: none;
-  border-radius: var(--r-xs);
-  background: var(--bg-hover);
-  color: var(--text-tertiary);
-  cursor: pointer;
-  transition: all var(--duration-fast) ease-out;
-}
-
-.info-toggle-btn:hover {
-  background: var(--bg-active);
-  color: var(--text-secondary);
 }
 
 .info-header {

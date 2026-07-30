@@ -1,130 +1,101 @@
 <template>
-  <div class="plugins-page">
-    <!-- 顶部工具栏 -->
-    <div class="plugins-toolbar">
-      <div class="toolbar-left">
-        <div class="search-box">
-          <UiIcon name="search" :size="16" class="search-icon" />
-          <input v-model="searchQuery" type="text" :placeholder="t('plugins.searchPlugins')" class="search-input" />
-          <button v-if="searchQuery" class="search-clear" @click="searchQuery = ''">
-            <UiIcon name="close" :size="14" />
-          </button>
-        </div>
-        <NRadioGroup v-model:value="activeFilter" class="filter-group" size="small">
-          <NRadioButton v-for="f in filters" :key="f.key" :value="f.key">
-            {{ f.label }}
-          </NRadioButton>
-        </NRadioGroup>
+  <div class="ecl-page plugins-page">
+    <div class="plugins-toolbar ecl-surface">
+      <div class="plugins-title">
+        <UiIcon name="plugin" :size="18" />
+        <span>{{ t('sidebar.plugins') }}</span>
       </div>
-      <div class="toolbar-right">
-        <button class="btn-create" @click="installPlugin">
-          <UiIcon name="add" :size="16" />
-          <span>{{ t('plugins.install') }}</span>
-        </button>
-      </div>
+      <NInput v-model:value="searchQuery" class="plugins-search" clearable :placeholder="t('plugins.searchPlugins')">
+        <template #prefix><UiIcon name="search" :size="15" /></template>
+      </NInput>
+      <NRadioGroup v-model:value="activeFilter" size="small">
+        <NRadioButton v-for="filter in filters" :key="filter.key" :value="filter.key">
+          {{ filter.label }}
+        </NRadioButton>
+      </NRadioGroup>
+      <NButton class="plugins-install" type="primary" @click="installPlugin">
+        <template #icon><UiIcon name="add" :size="16" /></template>
+        {{ t('plugins.install') }}
+      </NButton>
     </div>
 
-    <!-- 插件：插件页工具栏下方插槽 -->
     <div id="plugin-slot-plugins-toolbar-after" class="plugin-slot-container"></div>
 
-    <!-- 内容区 -->
-    <div class="plugins-content">
-      <div class="list-view">
-        <!-- 列表视图 -->
-        <div class="list-header">
-          <span class="col-name">{{ t('plugins.pluginName') }}</span>
-          <span class="col-version">{{ t('plugins.version') }}</span>
-          <span class="col-author">{{ t('plugins.author') }}</span>
-          <span class="col-status">{{ t('plugins.status') }}</span>
-          <span class="col-actions" />
-        </div>
-        <div v-for="plugin in filteredPlugins" :key="plugin.name" :class="['list-row', `list-row--${plugin.status}`]">
-          <div class="col-name">
-            <div class="list-item-icon">
-              <UiIcon :name="plugin.icon || 'plugin'" :size="18" />
-            </div>
-            <div class="list-item-info">
-              <span class="list-item-name">{{ plugin.title || plugin.name }}</span>
-              <span v-if="plugin.description" class="list-item-desc">{{ plugin.description }}</span>
-            </div>
-          </div>
-          <div class="col-version">
-            <span class="version-tag">{{ plugin.version }}</span>
-          </div>
-          <div class="col-author">
-            <span class="author-text">{{ plugin.author || '-' }}</span>
-          </div>
-          <div class="col-status">
-            <span :class="['status-dot', `status-${plugin.status}`]" />
-            <span class="status-text">{{ t(`plugins.${plugin.status}`) }}</span>
-          </div>
-          <div class="col-actions">
-            <button
-              v-if="plugin.settings?.length"
-              class="row-action-btn"
-              :title="t('plugins.settings')"
-              @click="openSettings(plugin)"
-            >
-              <UiIcon name="settings" :size="14" />
-            </button>
-            <button
-              class="row-action-btn"
-              :title="plugin.status === 'enabled' ? t('plugins.disable') : t('plugins.enable')"
-              @click="togglePlugin(plugin)"
-            >
-              <UiIcon :name="plugin.status === 'enabled' ? 'check' : 'play'" :size="14" />
-            </button>
-            <button
-              class="row-action-btn"
-              :title="t('plugins.reload')"
-              :disabled="reloadingPlugins.includes(plugin.name)"
-              @click="reloadPlugin(plugin)"
-            >
-              <UiIcon name="refresh" :size="14" />
-            </button>
-            <button class="row-action-btn row-action-danger" :title="t('plugins.unload')" @click="unloadPlugin(plugin)">
-              <UiIcon name="trash" :size="14" />
-            </button>
-          </div>
-        </div>
-      </div>
+    <NCard class="plugins-content" contentStyle="padding: 0; height: 100%; overflow: auto;">
+      <NSpin :show="loading" class="plugins-spin">
+        <NList v-if="filteredPlugins.length" hoverable>
+          <NListItem v-for="plugin in filteredPlugins" :key="plugin.name">
+            <template #prefix>
+              <div class="plugin-icon">
+                <UiIcon :name="plugin.icon || 'plugin'" :size="20" />
+              </div>
+            </template>
 
-      <!-- 空状态 -->
-      <div v-if="filteredPlugins.length === 0 && !loading" class="empty-state">
-        <UiIcon name="lab" :size="48" class="empty-icon" />
-        <template v-if="activeFilter === 'disabled'">
-          <p class="empty-text">
-            {{ t('plugins.noDisabledPlugins') }}
-          </p>
-          <p class="empty-hint">
-            {{ t('plugins.noDisabledPluginsHint') }}
-          </p>
-        </template>
-        <template v-else>
-          <p class="empty-text">
-            {{ t('plugins.noPlugins') }}
-          </p>
-          <p class="empty-hint">
-            {{ t('plugins.noPluginsHint') }}
-          </p>
-          <button class="btn-primary" @click="installPlugin">
-            <UiIcon name="add" :size="16" />
-            {{ t('plugins.installFirst') }}
-          </button>
-        </template>
-      </div>
+            <NThing :title="plugin.title || plugin.name" :description="plugin.description || plugin.name">
+              <template #header-extra>
+                <NSpace :size="6">
+                  <NTag size="small" :bordered="false">v{{ plugin.version }}</NTag>
+                  <NTag size="small" :type="statusType(plugin.status)">
+                    {{ t(`plugins.${plugin.status}`) }}
+                  </NTag>
+                </NSpace>
+              </template>
+              <template #footer>
+                <span class="plugin-meta">{{ plugin.author || '-' }}</span>
+              </template>
+            </NThing>
 
-      <!-- 加载中 -->
-      <div v-else-if="loading && filteredPlugins.length === 0" class="loading-state">
-        <UiIcon name="loading" :size="24" class="loading-icon spin" />
-        <span class="loading-text">{{ t('plugins.loading') }}</span>
-      </div>
+            <template #suffix>
+              <NSpace :size="6" :wrap="false">
+                <NButton
+                  v-if="plugin.settings?.length"
+                  quaternary
+                  size="small"
+                  :title="t('plugins.settings')"
+                  @click="openSettings(plugin)"
+                >
+                  <template #icon><UiIcon name="settings" :size="15" /></template>
+                </NButton>
+                <NButton quaternary size="small" @click="togglePlugin(plugin)">
+                  {{ plugin.status === 'enabled' ? t('plugins.disable') : t('plugins.enable') }}
+                </NButton>
+                <NButton
+                  quaternary
+                  size="small"
+                  :loading="reloadingPlugins.includes(plugin.name)"
+                  :title="t('plugins.reload')"
+                  @click="reloadPlugin(plugin)"
+                >
+                  <template #icon><UiIcon name="refresh" :size="15" /></template>
+                </NButton>
+                <NPopconfirm @positiveClick="unloadPlugin(plugin)">
+                  <template #trigger>
+                    <NButton quaternary size="small" type="error" :title="t('plugins.unload')">
+                      <template #icon><UiIcon name="trash" :size="15" /></template>
+                    </NButton>
+                  </template>
+                  {{ t('plugins.unload') }} {{ plugin.title || plugin.name }}?
+                </NPopconfirm>
+              </NSpace>
+            </template>
+          </NListItem>
+        </NList>
 
-      <!-- 插件：插件页列表底部插槽 -->
+        <NEmpty
+          v-else-if="!loading"
+          class="plugins-empty"
+          :description="activeFilter === 'disabled' ? t('plugins.noDisabledPlugins') : t('plugins.noPlugins')"
+        >
+          <template #extra>
+            <NButton v-if="activeFilter !== 'disabled'" type="primary" @click="installPlugin">
+              {{ t('plugins.installFirst') }}
+            </NButton>
+          </template>
+        </NEmpty>
+      </NSpin>
       <div id="plugin-slot-plugins-list-bottom" class="plugin-slot-container"></div>
-    </div>
+    </NCard>
 
-    <!-- 设置全屏弹窗 -->
     <PluginSettingsModal
       :visible="settingsModalVisible"
       :plugin="settingsTarget"
@@ -134,9 +105,23 @@
 </template>
 
 <script setup lang="ts">
-import { NRadioButton, NRadioGroup } from 'naive-ui'
+import {
+  NButton,
+  NCard,
+  NEmpty,
+  NInput,
+  NList,
+  NListItem,
+  NPopconfirm,
+  NRadioButton,
+  NRadioGroup,
+  NSpace,
+  NSpin,
+  NTag,
+  NThing,
+} from 'naive-ui'
 import { storeToRefs } from 'pinia'
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
@@ -162,22 +147,26 @@ const filters = computed(() => [
 const filteredPlugins = computed(() => {
   let result = plugins.value
   if (activeFilter.value === 'enabled') {
-    result = result.filter((p) => p.status === 'enabled')
+    result = result.filter((plugin) => plugin.status === 'enabled')
   } else if (activeFilter.value === 'disabled') {
-    result = result.filter((p) => p.status === 'disabled' || p.status === 'error')
+    result = result.filter((plugin) => plugin.status === 'disabled' || plugin.status === 'error')
   }
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase()
-    result = result.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        (p.title && p.title.toLowerCase().includes(q)) ||
-        (p.author && p.author.toLowerCase().includes(q)) ||
-        (p.description && p.description.toLowerCase().includes(q))
-    )
-  }
-  return result
+  const query = searchQuery.value.trim().toLowerCase()
+  if (!query) return result
+  return result.filter(
+    (plugin) =>
+      plugin.name.toLowerCase().includes(query) ||
+      plugin.title?.toLowerCase().includes(query) ||
+      plugin.author?.toLowerCase().includes(query) ||
+      plugin.description?.toLowerCase().includes(query)
+  )
 })
+
+function statusType(status: string): 'success' | 'error' | 'default' {
+  if (status === 'enabled') return 'success'
+  if (status === 'error') return 'error'
+  return 'default'
+}
 
 async function togglePlugin(plugin: PluginInfo) {
   const action = plugin.status === 'enabled' ? 'disable' : 'enable'
@@ -222,13 +211,8 @@ function openSettings(plugin: PluginInfo) {
   settingsModalVisible.value = true
 }
 
-onMounted(() => {
-  void pluginStore.start().catch(() => {})
-})
-
-onUnmounted(() => {
-  pluginStore.stop()
-})
+onMounted(() => void pluginStore.start().catch(() => {}))
+onUnmounted(() => pluginStore.stop())
 </script>
 
 <style scoped src="@/styles/views/Plugins.css"></style>

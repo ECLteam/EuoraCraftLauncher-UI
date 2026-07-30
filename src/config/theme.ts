@@ -1,11 +1,4 @@
-// ============================================================
-// 主题预设配置
-// 预设色、主题模式选项、亮暗色板
-// ============================================================
-
 import type { ThemeMode } from '@/composables/useTheme'
-
-// ---- 预设主题色 ----
 
 export interface PresetColor {
   name: string
@@ -13,7 +6,7 @@ export interface PresetColor {
 }
 
 export const PRESET_COLORS: PresetColor[] = [
-  { name: '品牌蓝', value: '#4A7FD9' },
+  { name: 'ECL 蓝', value: '#5B6FF5' },
   { name: '天空蓝', value: '#5B9BD5' },
   { name: '薄荷绿', value: '#52A37F' },
   { name: '珊瑚橙', value: '#D4755B' },
@@ -21,10 +14,7 @@ export const PRESET_COLORS: PresetColor[] = [
   { name: '石墨灰', value: '#6A6D74' },
 ]
 
-/** 默认主色 */
-export const DEFAULT_PRIMARY_COLOR = '#4A7FD9'
-
-// ---- 主题模式选项 ----
+export const DEFAULT_PRIMARY_COLOR = '#5B6FF5'
 
 export interface ThemeModeOption {
   value: ThemeMode
@@ -36,8 +26,6 @@ export const THEME_MODE_OPTIONS: ThemeModeOption[] = [
   { value: 'dark', icon: 'moon' },
   { value: 'system', icon: 'settings' },
 ]
-
-// ---- 亮色/暗色色板 ----
 
 export interface ThemeColorPalette {
   success: string
@@ -53,27 +41,27 @@ export interface ThemeColorPalette {
 }
 
 export const LIGHT_THEME_COLORS: ThemeColorPalette = {
-  success: '#52c41a',
-  warning: '#faad14',
-  error: '#E55C5C',
-  info: '#4A7FD9',
-  background: 'rgba(255,255,255,0.92)',
-  backgroundHover: 'rgba(255,255,255,0.96)',
-  surface: 'rgba(255,255,255,0.92)',
-  text: '#1A1A1A',
-  textSecondary: '#5C5C5C',
-  border: 'rgba(0,0,0,0.06)',
+  success: '#3E9B70',
+  warning: '#D99532',
+  error: '#D95763',
+  info: '#5B6FF5',
+  background: 'rgba(255,255,255,0.94)',
+  backgroundHover: '#F0F3F8',
+  surface: '#FFFFFF',
+  text: '#1D2433',
+  textSecondary: '#596275',
+  border: 'rgba(29,36,51,0.10)',
 }
 
 export const DARK_THEME_COLORS: ThemeColorPalette = {
-  success: '#52c41a',
-  warning: '#faad14',
-  error: '#E55C5C',
-  info: '#4A7FD9',
-  background: 'rgba(35,38,45,0.92)',
-  backgroundHover: 'rgba(45,48,55,0.96)',
-  surface: 'rgba(35,38,45,0.92)',
-  text: '#E8E9EB',
-  textSecondary: '#A0A3A8',
-  border: 'rgba(255,255,255,0.08)',
+  success: '#58B98A',
+  warning: '#E5AA51',
+  error: '#EB6B76',
+  info: '#8291FF',
+  background: 'rgba(34,38,48,0.94)',
+  backgroundHover: '#2D323E',
+  surface: '#222630',
+  text: '#F1F3F7',
+  textSecondary: '#B4BBC9',
+  border: 'rgba(255,255,255,0.09)',
 }

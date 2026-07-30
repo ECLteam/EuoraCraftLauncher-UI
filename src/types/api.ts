@@ -397,7 +397,7 @@ export interface PluginInfo {
   dependencies: Record<string, string>
   events: Record<string, unknown>
   services: string[]
-  settings: string[]
+  settings?: PluginSettingSchema[]
   is_system: boolean
 }
 

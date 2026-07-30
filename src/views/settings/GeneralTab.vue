@@ -1,209 +1,119 @@
 <template>
-  <div class="tab-pane">
-    <!-- Language -->
-    <div class="settings-section">
-      <div class="section-label">
-        {{ t('settings.languageRegion') }}
-      </div>
+  <div class="tab-pane general-settings">
+    <SettingSection :title="t('settings.languageRegion')">
+      <SettingRow :label="t('settings.language')" :description="t('settings.languageDesc')">
+        <NSelect
+          class="setting-select"
+          :value="currentLocale"
+          :options="languageOptions"
+          @update:value="handleLanguageUpdate"
+        />
+      </SettingRow>
+    </SettingSection>
 
-      <div class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label">
-            {{ t('settings.language') }}
-          </div>
-          <div class="setting-desc">
-            {{ t('settings.languageDesc') }}
-          </div>
-        </div>
-        <div class="setting-control">
-          <NSelect
-            class="setting-select"
-            :value="currentLocale"
-            :options="languageOptions"
-            @update:value="handleLanguageUpdate"
-          />
-        </div>
-      </div>
-    </div>
+    <SettingSection :title="t('settings.appearance')">
+      <SettingRow :label="t('settings.theme')" :description="t('settings.themeDesc')">
+        <NRadioGroup :value="currentSettings.mode" size="small" @update:value="handleThemeChange">
+          <NRadioButton v-for="option in themeOptions" :key="option.value" :value="option.value">
+            <span class="theme-option-label">
+              <UiIcon :name="option.icon" :size="14" />
+              {{ option.label }}
+            </span>
+          </NRadioButton>
+        </NRadioGroup>
+      </SettingRow>
 
-    <!-- Appearance -->
-    <div class="settings-section">
-      <div class="section-label">
-        {{ t('settings.appearance') }}
-      </div>
-
-      <div class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label">
-            {{ t('settings.theme') }}
-          </div>
-          <div class="setting-desc">
-            {{ t('settings.themeDesc') }}
-          </div>
-        </div>
-        <div class="setting-control">
-          <div class="theme-options">
-            <div
-              v-for="opt in themeOptions"
-              :key="opt.value"
-              :class="['theme-option', { active: currentSettings.mode === opt.value }]"
-              @click="handleThemeChange(opt.value as ThemeMode)"
-            >
-              <UiIcon :name="opt.icon" :size="18" />
-              <span class="theme-option-label">{{ opt.label }}</span>
-              <UiIcon v-if="currentSettings.mode === opt.value" name="check" :size="14" class="theme-check" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label">
-            {{ t('settings.primaryColor') }}
-          </div>
-          <div class="setting-desc">
-            {{ t('settings.primaryColorDesc') }}
-          </div>
-        </div>
-        <div class="setting-control">
-          <div class="color-presets">
-            <div
-              v-for="color in presetColors"
-              :key="color.value"
-              :class="['color-dot', { active: currentSettings.primary_color === color.value }]"
-              :style="{ backgroundColor: color.value }"
-              :title="color.name"
-              @click="handleColorChange(color.value)"
-            ></div>
-            <div class="custom-color-wrapper">
-              <input
-                type="color"
-                :value="currentSettings.primary_color || DEFAULT_PRIMARY_COLOR"
-                class="color-input-native"
-                @input="handleColorInput"
-              />
-              <span class="custom-color-label">+</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label">
-            {{ t('settings.topNav') }}
-          </div>
-          <div class="setting-desc">
-            {{ t('settings.topNavDesc') }}
-          </div>
-        </div>
-        <div class="setting-control">
-          <NSwitch :value="topNavEnabled" @update:value="toggleTopNav" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Background -->
-    <div class="settings-section">
-      <div class="section-label">
-        {{ t('settings.background') }}
-      </div>
-
-      <div class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label">
-            {{ t('settings.background') }}
-          </div>
-          <div class="setting-desc">
-            {{ t('settings.backgroundDesc') }}
-          </div>
-        </div>
-        <div class="setting-control">
-          <NInputGroup class="background-input-group">
-            <NInput
-              :value="backgroundInput"
-              :placeholder="t('settings.backgroundPlaceholder')"
-              clearable
-              @update:value="handleBgImageInput"
+      <SettingRow :label="t('settings.primaryColor')" :description="t('settings.primaryColorDesc')">
+        <div class="color-presets">
+          <button
+            v-for="color in presetColors"
+            :key="color.value"
+            :class="['color-dot', { active: currentSettings.primary_color === color.value }]"
+            :style="{ backgroundColor: color.value }"
+            :title="color.name"
+            type="button"
+            @click="handleColorChange(color.value)"
+          ></button>
+          <label class="custom-color-wrapper" :title="t('settings.primaryColor')">
+            <input
+              type="color"
+              :value="currentSettings.primary_color || DEFAULT_PRIMARY_COLOR"
+              class="color-input-native"
+              @input="handleColorInput"
             />
-            <NButton @click="selectLocalImage">
-              {{ t('common.browse') }}
-            </NButton>
-          </NInputGroup>
-          <input
-            ref="showcaseImageInputRef"
-            class="visually-hidden-file-input"
-            type="file"
-            accept="image/*"
-            tabindex="-1"
-            @change="handleShowcaseImageSelected"
+            <span class="custom-color-label">+</span>
+          </label>
+        </div>
+      </SettingRow>
+
+      <SettingRow :label="t('settings.topNav')" :description="t('settings.topNavDesc')">
+        <NSwitch :value="topNavEnabled" @update:value="toggleTopNav" />
+      </SettingRow>
+    </SettingSection>
+
+    <SettingSection :title="t('settings.background')">
+      <SettingRow :label="t('settings.background')" :description="t('settings.backgroundDesc')">
+        <NInputGroup class="background-input-group">
+          <NInput
+            :value="backgroundInput"
+            :placeholder="t('settings.backgroundPlaceholder')"
+            clearable
+            @update:value="handleBgImageInput"
           />
-        </div>
-      </div>
+          <NButton @click="selectLocalImage">{{ t('common.browse') }}</NButton>
+        </NInputGroup>
+        <input
+          ref="showcaseImageInputRef"
+          class="visually-hidden-file-input"
+          type="file"
+          accept="image/*"
+          tabindex="-1"
+          @change="handleShowcaseImageSelected"
+        />
+      </SettingRow>
 
-      <div class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label">
-            {{ t('settings.backgroundBrightness') }}
-          </div>
-          <div class="setting-desc">
-            {{ t('settings.backgroundBrightnessDesc') }}
-          </div>
+      <SettingRow :label="t('settings.backgroundBrightness')" :description="t('settings.backgroundBrightnessDesc')">
+        <div class="slider-control">
+          <NSlider :value="bgBrightness" :min="0" :max="100" :tooltip="false" @update:value="handleBrightnessChange" />
+          <span>{{ bgBrightness }}%</span>
         </div>
-        <div class="setting-control">
-          <div class="slider-control">
-            <NSlider
-              :value="bgBrightness"
-              :min="0"
-              :max="100"
-              :tooltip="false"
-              @update:value="handleBrightnessChange"
-            />
-            <span>{{ bgBrightness }}%</span>
-          </div>
-        </div>
-      </div>
+      </SettingRow>
 
-      <div class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label">
-            {{ t('settings.backgroundBlur') }}
-          </div>
-          <div class="setting-desc">
-            {{ t('settings.backgroundBlurDesc') }}
-          </div>
+      <SettingRow :label="t('settings.backgroundBlur')" :description="t('settings.backgroundBlurDesc')">
+        <div class="slider-control">
+          <NSlider :value="blurAmount" :min="0" :max="20" :tooltip="false" @update:value="handleBlurChange" />
+          <span>{{ blurAmount }}px</span>
         </div>
-        <div class="setting-control">
-          <div class="slider-control">
-            <NSlider :value="blurAmount" :min="0" :max="20" :tooltip="false" @update:value="handleBlurChange" />
-            <span>{{ blurAmount }}px</span>
-          </div>
-        </div>
-      </div>
-    </div>
+      </SettingRow>
+    </SettingSection>
 
     <div id="plugin-slot-settings-general-section-after" class="plugin-slot-container"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { NButton, NInput, NInputGroup, NSelect, NSlider, NSwitch } from 'naive-ui'
-import { ref, computed, onUnmounted } from 'vue'
+import { NButton, NInput, NInputGroup, NRadioButton, NRadioGroup, NSelect, NSlider, NSwitch } from 'naive-ui'
+import { computed, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useGlassMessage } from '@/composables/useGlassMessage'
-import { useTheme, type ThemeMode, presetColors } from '@/composables/useTheme'
+import { presetColors, useTheme, type ThemeMode } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
 import { DEFAULT_PRIMARY_COLOR, THEME_MODE_OPTIONS } from '@/config/theme'
 import { settingsApi } from '@/features/settings/api/settingsApi'
+import SettingRow from '@/features/settings/components/SettingRow.vue'
+import SettingSection from '@/features/settings/components/SettingSection.vue'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
-import { supportedLocales, setLocale, type LocaleCode } from '@/i18n'
+import { setLocale, supportedLocales, type LocaleCode } from '@/i18n'
 
 const { t, locale } = useI18n()
 const message = useGlassMessage()
-const { run } = useAsyncAction({ showSuccess: false, showError: true, errorMessage: t('common.error') })
+const { run } = useAsyncAction({
+  showSuccess: false,
+  showError: true,
+  errorMessage: t('common.error'),
+})
 const settingsStore = useSettingsStore()
 const currentLocale = computed(() => locale.value as LocaleCode)
 
@@ -230,16 +140,15 @@ const currentSettings = computed(() => ({
 
 const bgBrightness = ref(Math.round(backgroundOpacity.value * 100))
 const backgroundInput = ref(backgroundImagePath.value)
+const showcaseImageInputRef = ref<HTMLInputElement | null>(null)
 
 const themeOptions = computed(() =>
-  THEME_MODE_OPTIONS.map((opt) => ({
-    value: opt.value,
-    icon: opt.icon,
-    label: t(`settings.theme${opt.value.charAt(0).toUpperCase() + opt.value.slice(1)}`),
+  THEME_MODE_OPTIONS.map((option) => ({
+    value: option.value,
+    icon: option.icon,
+    label: t(`settings.theme${option.value.charAt(0).toUpperCase() + option.value.slice(1)}`),
   }))
 )
-
-const showcaseImageInputRef = ref<HTMLInputElement | null>(null)
 
 const languageOptions = computed(() =>
   supportedLocales.map((language) => ({
@@ -248,13 +157,7 @@ const languageOptions = computed(() =>
   }))
 )
 
-async function updateUiConfig(
-  partialTheme: Partial<{
-    mode: ThemeMode
-    primary_color: string
-    blur_amount: number
-  }>
-) {
+async function updateUiConfig(partialTheme: Partial<{ mode: ThemeMode; primary_color: string; blur_amount: number }>) {
   await run(async () =>
     settingsStore.patchUiTheme({
       mode: currentSettings.value.mode,
@@ -265,33 +168,33 @@ async function updateUiConfig(
   )
 }
 
-const handleThemeChange = async (mode: ThemeMode) => {
+async function handleThemeChange(mode: ThemeMode) {
   setThemeMode(mode, false)
   await updateUiConfig({ mode })
 }
 
-const handleColorChange = async (color: string) => {
+async function handleColorChange(color: string) {
   setPrimaryColor(color, false)
   await updateUiConfig({ primary_color: color })
 }
 
-const handleColorInput = (e: Event) => {
-  handleColorChange((e.target as HTMLInputElement).value)
+function handleColorInput(event: Event) {
+  void handleColorChange((event.target as HTMLInputElement).value)
 }
 
-const handleBlurChange = async (val: number) => {
-  setBlurAmount(val, false)
-  await updateUiConfig({ blur_amount: val })
+async function handleBlurChange(value: number) {
+  setBlurAmount(value, false)
+  await updateUiConfig({ blur_amount: value })
 }
 
-const handleBrightnessChange = async (val: number) => {
-  bgBrightness.value = val
-  const opacity = val / 100
+async function handleBrightnessChange(value: number) {
+  bgBrightness.value = value
+  const opacity = value / 100
   setBackgroundOpacity(opacity, false)
   await run(async () => settingsStore.patchUiBackground({ opacity }))
 }
 
-const selectLocalImage = async () => {
+async function selectLocalImage() {
   if (settingsApi.isShowcase) {
     showcaseImageInputRef.value?.click()
     return
@@ -310,18 +213,15 @@ function readImageFile(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        resolve(reader.result)
-      } else {
-        reject(new Error('读取背景图片失败'))
-      }
+      if (typeof reader.result === 'string') resolve(reader.result)
+      else reject(new Error('读取背景图片失败'))
     }
     reader.onerror = () => reject(reader.error ?? new Error('读取背景图片失败'))
     reader.readAsDataURL(file)
   })
 }
 
-const handleShowcaseImageSelected = async (event: Event) => {
+async function handleShowcaseImageSelected(event: Event) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
@@ -341,31 +241,31 @@ const handleShowcaseImageSelected = async (event: Event) => {
   message.success(t('common.success'))
 }
 
-let bgTimer: ReturnType<typeof setTimeout> | null = null
-const handleBgImageInput = (val: string) => {
-  backgroundInput.value = val
-  if (bgTimer) clearTimeout(bgTimer)
-  bgTimer = setTimeout(async () => {
-    if (!val) {
+let backgroundSaveTimer: ReturnType<typeof setTimeout> | null = null
+function handleBgImageInput(value: string) {
+  backgroundInput.value = value
+  if (backgroundSaveTimer) clearTimeout(backgroundSaveTimer)
+  backgroundSaveTimer = setTimeout(async () => {
+    if (!value) {
       setBackgroundImage('', '', false)
       await run(async () => settingsStore.patchUiBackground({ type: 'none', path: '', image_base64: '' }))
       return
     }
-    if (!val.startsWith('http')) return
+    if (!value.startsWith('http')) return
 
     if (settingsApi.isShowcase) {
       const saved = await run(async () => {
-        await settingsStore.patchUiBackground({ type: 'custom', path: val, image_base64: '' })
+        await settingsStore.patchUiBackground({ type: 'custom', path: value, image_base64: '' })
         return true
       })
       if (!saved) return
-      setBackgroundImage(val, val, false)
+      setBackgroundImage(value, value, false)
       message.success(t('common.success'))
       return
     }
 
     message.loading('Loading...')
-    const result = await run(async () => settingsStore.saveRemoteBackground(val))
+    const result = await run(async () => settingsStore.saveRemoteBackground(value))
     if (!result) return
     if (result.imageUrl) {
       setBackgroundImage(result.imageUrl, result.path, false)
@@ -376,17 +276,17 @@ const handleBgImageInput = (val: string) => {
   }, 800)
 }
 
-const handleLanguageChange = async (langCode: LocaleCode) => {
-  await setLocale(langCode)
-  await run(async () => settingsStore.patchUi({ locale: langCode }))
+async function handleLanguageChange(languageCode: LocaleCode) {
+  await setLocale(languageCode)
+  await run(async () => settingsStore.patchUi({ locale: languageCode }))
 }
 
-const handleLanguageUpdate = (langCode: string) => {
-  void handleLanguageChange(langCode as LocaleCode)
+function handleLanguageUpdate(languageCode: string) {
+  void handleLanguageChange(languageCode as LocaleCode)
 }
 
 onUnmounted(() => {
-  if (bgTimer) clearTimeout(bgTimer)
+  if (backgroundSaveTimer) clearTimeout(backgroundSaveTimer)
 })
 </script>
 

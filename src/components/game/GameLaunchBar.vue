@@ -1,33 +1,36 @@
 <template>
-  <div class="fab-launch-bar" :class="{ 'no-version-bar': versionsCount === 0 }">
+  <div class="game-launch-bar">
     <div id="plugin-slot-game-launch-before" class="plugin-slot-container"></div>
-    <div class="fab-row-top">
-      <button
+    <NSpace :size="8" :wrap="false">
+      <NButton
         v-if="versionsCount > 0"
-        class="fab-launch-btn"
+        class="fab-launch-btn launch-button"
+        type="primary"
+        size="large"
         :disabled="launching || !selectedVersion || !hasAccount"
         @click="emit('launch')"
       >
-        <UiIcon name="play" :size="16" />
-        <span class="fab-launch-label">{{ launching ? t('game.launching') : t('game.launch') }}</span>
-        <span class="fab-launch-version">{{ selectedVersion }}</span>
-      </button>
-      <button v-else class="fab-launch-btn no-version" @click="emit('manageVersions')">
-        <UiIcon name="download" :size="16" />
-        <span class="fab-launch-label">{{ t('game.noVersionInstall') }}</span>
-      </button>
-      <button class="fab-manage-btn" title="版本管理" @click="emit('manageVersions')">
-        <UiIcon name="grid" :size="16" />
-      </button>
-    </div>
-    <button v-if="versionsCount > 0" class="fab-settings-btn" title="版本设置" @click="emit('settings')">
-      <UiIcon name="settings" :size="16" />
-      <span class="fab-settings-label">版本设置</span>
-    </button>
+        <template #icon><UiIcon name="play" :size="16" /></template>
+        {{ launching ? t('game.launching') : t('game.launch') }}
+        <span class="launch-version">{{ selectedVersion }}</span>
+      </NButton>
+      <NButton v-else class="fab-launch-btn no-version launch-button" size="large" @click="emit('manageVersions')">
+        <template #icon><UiIcon name="download" :size="16" /></template>
+        {{ t('game.noVersionInstall') }}
+      </NButton>
+      <NButton size="large" :title="t('versions.title')" @click="emit('manageVersions')">
+        <template #icon><UiIcon name="grid" :size="16" /></template>
+      </NButton>
+    </NSpace>
+    <NButton v-if="versionsCount > 0" block @click="emit('settings')">
+      <template #icon><UiIcon name="settings" :size="16" /></template>
+      {{ t('settings.gameSettings') }}
+    </NButton>
   </div>
 </template>
 
 <script setup lang="ts">
+import { NButton, NSpace } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
 
@@ -48,120 +51,34 @@ const { t } = useI18n()
 </script>
 
 <style scoped>
-.fab-launch-bar {
+.game-launch-bar {
   display: flex;
-  flex-direction: column;
-  gap: 7px;
   width: 100%;
   margin-top: auto;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.fab-launch-bar.no-version-bar {
-  margin-bottom: 29px;
-}
-
-.fab-row-top {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.fab-launch-btn {
-  display: flex;
+.launch-button {
+  min-width: 0;
   flex: 1;
-  align-items: center;
-  gap: 7px;
-  min-width: 180px;
-  height: 43px;
-  padding: 0 18px;
-  border: none;
-  border-radius: var(--r-sm);
-  background: var(--primary);
-  color: var(--text-on-primary);
-  white-space: nowrap;
-  cursor: pointer;
-  transition: all var(--duration-fast) ease-out;
 }
 
-.fab-launch-btn:hover:not(:disabled) {
-  background: var(--primary-hover);
-}
-
-.fab-launch-btn:active:not(:disabled),
-.fab-manage-btn:active,
-.fab-settings-btn:active {
-  transform: translateY(1px);
-}
-
-.fab-launch-btn:disabled {
-  background: var(--bg-hover);
-  color: var(--text-disabled);
-  cursor: not-allowed;
-}
-
-.fab-launch-btn.no-version {
-  background: var(--bg-base-alt);
-  color: var(--text-secondary);
-}
-
-.fab-launch-btn.no-version:hover:not(:disabled) {
-  filter: brightness(0.92);
-  background: var(--bg-base-alt);
-}
-
-.fab-launch-label,
-.fab-settings-label {
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.fab-launch-version {
+.launch-version {
   overflow: hidden;
-  max-width: 108px;
-  margin-left: auto;
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 12px;
-  font-weight: 400;
+  max-width: 110px;
+  margin-left: 12px;
+  opacity: 0.72;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.fab-launch-btn:disabled .fab-launch-version {
-  color: var(--text-disabled);
-}
-
-.fab-manage-btn,
-.fab-settings-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 43px;
-  border: 1px solid var(--border);
-  border-top: var(--card-border-top);
-  border-bottom: var(--card-border-bottom);
-  border-radius: var(--r-sm);
-  background: var(--card-bg);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--duration-fast) ease-out;
-}
-
-.fab-manage-btn {
-  flex-shrink: 0;
-  width: 43px;
-}
-
-.fab-settings-btn {
-  gap: 7px;
+:deep(.n-space) {
   width: 100%;
-  font-size: 13px;
-  font-weight: 500;
 }
 
-.fab-manage-btn:hover,
-.fab-settings-btn:hover {
-  border-color: var(--border-hover);
-  background: var(--bg-hover);
-  color: var(--text-primary);
+:deep(.n-space > div:first-child) {
+  min-width: 0;
+  flex: 1;
 }
 </style>

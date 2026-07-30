@@ -1,5 +1,5 @@
 <template>
-  <div class="account-card">
+  <NCard class="account-card" contentStyle="padding: 14px 16px;">
     <div class="account-info">
       <AvatarRenderer
         v-if="account"
@@ -14,21 +14,18 @@
         <UiIcon name="user" :size="20" />
       </div>
       <div class="account-details">
-        <div class="account-name">
-          {{ account?.alias || t('game.noAccount') }}
-        </div>
+        <div class="account-name">{{ account?.alias || t('game.noAccount') }}</div>
         <div class="account-type">
           {{ account ? accountTypeLabel : t('game.clickManageToAdd') }}
         </div>
       </div>
-      <button class="account-manage-btn" @click="emit('manage')">
-        {{ t('game.manage') }}
-      </button>
+      <NButton size="small" @click="emit('manage')">{{ t('game.manage') }}</NButton>
     </div>
-  </div>
+  </NCard>
 </template>
 
 <script setup lang="ts">
+import { NButton, NCard } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import AvatarRenderer from '@/components/game/AvatarRenderer.vue'
 import UiIcon from '@/components/ui/Icon.vue'
@@ -39,51 +36,35 @@ defineProps<{
   accountTypeLabel: string
 }>()
 
-const emit = defineEmits<{
-  manage: []
-}>()
-
+const emit = defineEmits<{ manage: [] }>()
 const { t } = useI18n()
 </script>
 
 <style scoped>
-.account-card {
-  display: flex;
-  align-items: center;
-  height: 65px;
-  padding: 14px 18px;
-  border-top: var(--card-border-top);
-  border-bottom: var(--card-border-bottom);
-  border-radius: var(--r-sm);
-  background: var(--card-bg);
-}
-
 .account-info {
   display: flex;
   align-items: center;
-  gap: 11px;
-  width: 100%;
+  gap: 12px;
 }
 
 .account-avatar,
 .account-avatar-placeholder {
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--r-sm);
+  border-radius: 7px;
 }
 
 .account-avatar-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-base-alt);
-  color: var(--text-tertiary);
+  display: grid;
+  place-items: center;
+  background: var(--ecl-surface-muted);
+  color: var(--ecl-text-secondary);
 }
 
 .account-details {
-  flex: 1;
   min-width: 0;
+  flex: 1;
 }
 
 .account-name,
@@ -94,36 +75,14 @@ const { t } = useI18n()
 }
 
 .account-name {
-  color: var(--text-primary);
+  color: var(--ecl-text);
   font-size: 14px;
-  font-weight: 600;
-  line-height: 1.3;
+  font-weight: 650;
 }
 
 .account-type {
   margin-top: 2px;
-  color: var(--text-tertiary);
+  color: var(--ecl-text-secondary);
   font-size: 11px;
-}
-
-.account-manage-btn {
-  padding: 5px 14px;
-  border: 1px solid var(--primary);
-  border-radius: var(--r-sm);
-  background: transparent;
-  color: var(--primary);
-  font-size: 12px;
-  font-weight: 500;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: all var(--duration-fast) ease-out;
-}
-
-.account-manage-btn:hover {
-  background: var(--primary-alpha);
-}
-
-.account-manage-btn:active {
-  transform: translateY(1px);
 }
 </style>

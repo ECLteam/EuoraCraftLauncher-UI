@@ -27,16 +27,17 @@
                 </div>
               </slot>
             </div>
-            <UiButton
+            <NButton
               v-if="closable && showCloseBtn"
-              variant="ghost"
-              shape="circle"
-              size="sm"
-              icon="icon-close"
+              quaternary
+              circle
+              size="small"
               class="close-btn"
               :title="t('common.close')"
               @click="close"
-            />
+            >
+              <template #icon><UiIcon name="close" :size="15" /></template>
+            </NButton>
           </header>
 
           <main class="modal-body" :class="bodyClass">
@@ -52,27 +53,27 @@
             <div id="plugin-slot-modal-footer-extra" class="plugin-slot-container"></div>
             <slot name="footer">
               <template v-if="type === 'agreement'">
-                <UiButton variant="secondary" @click="handleCancel">
+                <NButton @click="handleCancel">
                   {{ cancelText || t('modal.disagree') }}
-                </UiButton>
-                <UiButton variant="primary" @click="handleConfirm">
+                </NButton>
+                <NButton type="primary" @click="handleConfirm">
                   {{ confirmText || t('modal.agree') }}
-                </UiButton>
+                </NButton>
               </template>
 
               <template v-else-if="type === 'confirm'">
-                <UiButton variant="secondary" @click="handleCancel">
+                <NButton @click="handleCancel">
                   {{ cancelText || t('modal.cancel') }}
-                </UiButton>
-                <UiButton :variant="danger ? 'danger' : 'primary'" @click="handleConfirm">
+                </NButton>
+                <NButton :type="danger ? 'error' : 'primary'" @click="handleConfirm">
                   {{ confirmText || t('modal.confirm') }}
-                </UiButton>
+                </NButton>
               </template>
 
               <template v-else-if="type === 'alert' || type === 'warning'">
-                <UiButton :variant="type === 'warning' ? 'danger' : 'primary'" @click="handleConfirm">
+                <NButton :type="type === 'warning' ? 'error' : 'primary'" @click="handleConfirm">
                   {{ confirmText || t('modal.ok') }}
-                </UiButton>
+                </NButton>
               </template>
             </slot>
           </footer>
@@ -83,9 +84,10 @@
 </template>
 
 <script setup lang="ts">
+import { NButton } from 'naive-ui'
 import { ref, computed, watch, nextTick, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import UiButton from '@/components/ui/Button.vue'
+import UiIcon from '@/components/ui/Icon.vue'
 
 defineOptions({ name: 'Modal' })
 

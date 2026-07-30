@@ -24,14 +24,16 @@ defineProps<{
 <style scoped>
 .setting-item {
   display: flex;
-  align-items: flex-start;
+  min-height: 64px;
+  align-items: center;
   justify-content: space-between;
-  gap: var(--s-xl);
-  margin-bottom: var(--s-xl);
+  gap: 24px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--ecl-border);
 }
 
 .setting-item:last-child {
-  margin-bottom: 0;
+  border-bottom: 0;
 }
 
 .setting-info {
@@ -41,13 +43,13 @@ defineProps<{
 
 .setting-label {
   margin-bottom: 2px;
-  color: var(--text-primary);
+  color: var(--ecl-text);
   font-size: 13px;
   font-weight: 600;
 }
 
 .setting-desc {
-  color: var(--text-tertiary);
+  color: var(--ecl-text-secondary);
   font-size: 11px;
   line-height: 1.5;
 }
