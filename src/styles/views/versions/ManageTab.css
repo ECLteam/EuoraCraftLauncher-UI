@@ -41,33 +41,58 @@
 }
 
 .path-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
   padding: var(--s-lg);
 }
 
-.form-group {
-  margin-bottom: 14px;
-}
-
-.form-group:last-child {
-  margin-bottom: 0;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  color: var(--text-primary);
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.input-with-button {
+.path-form-item {
   display: flex;
-  gap: var(--s-sm);
+  flex-direction: column;
+  gap: 8px;
 }
 
-.form-feedback {
-  margin: 10px 0 0;
-  color: var(--error);
+.path-form-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.path-form-label {
+  color: var(--ecl-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.path-form-desc {
+  color: var(--ecl-text-secondary);
   font-size: 11px;
+  line-height: 1.5;
+}
+
+.path-form-control {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.path-form-input :deep(.ui-input) {
+  height: 36px;
+  font-size: 13px;
+}
+
+.path-location-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.path-form-feedback {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: var(--ecl-radius-control);
+  background: var(--error-alpha);
+  color: var(--error);
+  font-size: 12px;
   line-height: 1.5;
 }

@@ -37,6 +37,7 @@
     "launch": "启动游戏",
     "launching": "启动中...",
     "noVersionInstall": "无版本，请安装版本",
+    "versionSettings": "版本设置",
     "accountManagement": "账户管理",
     "savedAccounts": "已保存的账户",
     "current": "当前",
@@ -48,10 +49,16 @@
     "microsoftAccountDesc": "通过浏览器登录已购买 Minecraft 的 Microsoft 账户",
     "offlineAccountDesc": "只设置游戏内用户名，不进行在线身份验证",
     "authlibAccountDesc": "使用第三方 Yggdrasil 验证服务器登录",
+    "authlibNotDeveloped": "外置登录暂未开发，后续版本开放。",
     "microsoftLoginHint": "登录将在安全的浏览器页面中完成，无需在启动器内输入密码。",
-    "continueMicrosoftLogin": "继续使用 Microsoft 登录",
+    "continueMicrosoftLogin": "使用 Microsoft 账户登录",
     "username": "用户名",
     "enterUsername": "输入用户名",
+    "advancedOptions": "高级选项",
+    "customUuid": "自定义 UUID",
+    "customUuidPlaceholder": "输入 32 位或标准格式 UUID",
+    "customUuidHint": "留空时将根据用户名自动生成离线 UUID。",
+    "invalidOfflineUuid": "UUID 格式无效，请输入 32 位十六进制字符或标准带连字符格式。",
     "offlineNoPassword": "离线账户无需密码",
     "close": "关闭",
     "noAccount": "无账号",
@@ -63,6 +70,7 @@
     "didYouKnow": "你知道吗",
     "announcement": "公告",
     "noAnnouncements": "暂无公告",
+    "viewAnnouncementDetails": "点击查看详情",
     "deleteConfirm": "确定要删除账户 \"{name}\" 吗？",
     "delete": "删除",
     "switch": "切换",
@@ -84,6 +92,10 @@
       "complete": "我已完成授权",
       "success": "登录成功",
       "failed": "登录失败"
+    },
+    "showcase": {
+      "title": "演示模式",
+      "description": "当前为演示模式，账户操作仅作界面展示，不会实际保存或登录。"
     },
     "clientId": {
       "title": "未配置 Microsoft 登录",
@@ -123,7 +135,9 @@
       "editPath": "编辑路径",
       "deletePath": "删除路径",
       "pathName": "路径名称",
+      "pathNameDesc": "用于在路径列表中显示的别名",
       "pathLocation": "路径位置",
+      "pathLocationDesc": "选择 Minecraft 游戏目录所在位置",
       "pathCount": "{count} 个路径",
       "versionCount": "{count} 个版本",
       "versionName": "版本名称",
@@ -253,6 +267,7 @@
       "latest": "最新",
       "startInstall": "开始安装",
       "installing": "正在安装...",
+      "installQueued": "安装任务已开始",
       "installSuccess": "安装成功",
       "installError": "安装失败",
       "install": "安装",
@@ -539,6 +554,9 @@
   "launch": {
     "title": "启动游戏"
   },
+  "launcherPopup": {
+    "doNotShowAgain": "不再显示"
+  },
   "dev": {
     "title": "组件调试工具",
     "desc": "点击下方按钮测试各个组件",
@@ -563,7 +581,23 @@
     "fullscreenModalDesc": "这是一个全屏弹窗，填满整个内容区域",
     "openNested": "打开嵌套弹窗",
     "nestedModal": "嵌套弹窗",
-    "nestedModalDesc": "嵌套在全屏弹窗里的普通弹窗"
+    "nestedModalDesc": "嵌套在全屏弹窗里的普通弹窗",
+    "dangerZone": "危险操作",
+    "dangerZoneDesc": "这些操作会修改启动器持久化数据，并在下次启动时生效。",
+    "debugOnly": "仅调试模式",
+    "resetData": "还原启动器数据",
+    "resetDataDesc": "将启动器设置、账号、首页信息和弹窗阅读记录恢复为默认状态。",
+    "resetDataScope": "清除弹窗阅读记录，保留日志、用户插件和插件配置。",
+    "clearPlugins": "清理插件",
+    "clearPluginsDesc": "移除所有用户插件及其配置。",
+    "clearPluginsScope": "保留内置系统插件、日志和其他启动器数据。",
+    "resetDataConfirmTitle": "确认还原启动器数据",
+    "resetDataConfirmContent": "下次启动时，设置、账号和首页信息会被移入备份目录并恢复默认值；弹窗阅读记录会立即清除。是否继续？",
+    "clearPluginsConfirmTitle": "确认清理用户插件",
+    "clearPluginsConfirmContent": "下次启动时，所有用户插件和插件配置会被移入备份目录。是否继续？",
+    "confirmDangerAction": "确认并安排",
+    "maintenanceScheduled": "操作已安排，请重启启动器。原数据将备份至：{path}",
+    "maintenanceFailed": "安排操作失败：{detail}"
   },
   "loader": {
     "fabric": "Fabric",

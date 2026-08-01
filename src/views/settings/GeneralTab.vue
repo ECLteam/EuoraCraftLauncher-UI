@@ -107,6 +107,14 @@ import SettingSection from '@/features/settings/components/SettingSection.vue'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import { setLocale, supportedLocales, type LocaleCode } from '@/i18n'
 
+function debounce<T extends (...args: any[]) => void>(fn: T, delay: number) {
+  let timer: ReturnType<typeof setTimeout> | null = null
+  return (...args: Parameters<T>) => {
+    if (timer) clearTimeout(timer)
+    timer = setTimeout(() => fn(...args), delay)
+  }
+}
+
 const { t, locale } = useI18n()
 const message = useGlassMessage()
 const { run } = useAsyncAction({
@@ -182,16 +190,25 @@ function handleColorInput(event: Event) {
   void handleColorChange((event.target as HTMLInputElement).value)
 }
 
-async function handleBlurChange(value: number) {
-  setBlurAmount(value, false)
+const saveBlur = debounce(async (value: number) => {
   await updateUiConfig({ blur_amount: value })
+}, 300)
+
+function handleBlurChange(value: number) {
+  setBlurAmount(value, false)
+  saveBlur(value)
 }
 
-async function handleBrightnessChange(value: number) {
+const saveBrightness = debounce(async (value: number) => {
+  const opacity = value / 100
+  await run(async () => settingsStore.patchUiBackground({ opacity }))
+}, 300)
+
+function handleBrightnessChange(value: number) {
   bgBrightness.value = value
   const opacity = value / 100
   setBackgroundOpacity(opacity, false)
-  await run(async () => settingsStore.patchUiBackground({ opacity }))
+  saveBrightness(value)
 }
 
 async function selectLocalImage() {
@@ -201,12 +218,17 @@ async function selectLocalImage() {
   }
 
   const result = await run(async () => settingsStore.chooseBackgroundImage())
+  console.log('[selectLocalImage] choose result:', result)
   if (!result) return
   if (result.imageUrl) {
+    console.log('[selectLocalImage] setting background, url length:', result.imageUrl.length)
     setBackgroundImage(result.imageUrl, result.path, false)
     backgroundInput.value = result.path
+    message.success(t('common.success'))
+  } else {
+    console.error('[selectLocalImage] 未获取到图片 URL, path:', result.path)
+    message.error('加载背景图失败')
   }
-  message.success(t('common.success'))
 }
 
 function readImageFile(file: File): Promise<string> {

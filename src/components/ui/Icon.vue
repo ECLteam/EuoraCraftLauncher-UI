@@ -49,6 +49,7 @@ const iconMap: Record<string, string> = {
   refresh: 'mdi:refresh',
   check: 'mdi:check',
   brush: 'mdi:brush',
+  list: 'mdi:format-list-bulleted',
 
   // 方向
   'chevron-down': 'mdi:chevron-down',

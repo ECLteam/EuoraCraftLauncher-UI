@@ -62,7 +62,18 @@ export const settingsApi = {
 
   async readImage(path: string): Promise<string | null> {
     const result = await backend.command('image_read_file', { path })
+    console.log('[readImage] raw result:', result)
     if (!result.success) throw new Error(result.message || '读取图片失败')
-    return result.data?.base64 || result.data?.dataUrl || null
+    const data = result.data ?? {}
+    if (data.dataUrl) {
+      console.log('[readImage] resolved dataUrl length:', data.dataUrl.length)
+      return data.dataUrl
+    }
+    if (data.base64) {
+      console.log('[readImage] resolved raw base64 length:', data.base64.length)
+      return `data:image/png;base64,${data.base64}`
+    }
+    console.log('[readImage] no image data returned')
+    return null
   },
 }

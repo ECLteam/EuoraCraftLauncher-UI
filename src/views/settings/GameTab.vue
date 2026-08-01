@@ -1,100 +1,50 @@
 <template>
-  <div class="tab-pane">
-    <!-- Java 运行时 -->
-    <div class="settings-section">
-      <div class="section-label">
-        {{ t('settings.javaSettings') }}
-      </div>
+  <div class="tab-pane game-settings">
+    <SettingSection :title="t('settings.javaSettings')">
+      <SettingRow :label="t('settings.javaAuto')" :description="javaAutoDesc">
+        <NSwitch :value="localSettings.java_auto" @update:value="handleJavaAutoToggle" />
+      </SettingRow>
 
-      <div class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label">
-            {{ t('settings.javaAuto') }}
-          </div>
-          <div class="setting-desc">
-            {{ javaAutoDesc }}
-          </div>
-        </div>
-        <div class="setting-control">
-          <button
-            :class="['toggle-switch', { active: localSettings.java_auto }]"
-            role="switch"
-            :aria-checked="localSettings.java_auto"
-            @click="handleJavaAutoToggle"
-          >
-            <span class="toggle-knob" />
-          </button>
-        </div>
-      </div>
-
-      <div v-if="!localSettings.java_auto" class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label">
-            {{ t('settings.javaPath') }}
-          </div>
-          <div class="setting-desc">
-            {{ t('settings.javaPathDesc') }}
-          </div>
-        </div>
-        <div class="setting-control">
-          <div class="java-selector">
-            <div ref="javaSelectRef" class="custom-select" :class="{ open: isJavaOpen }">
-              <div class="select-trigger" @click="toggleJavaOpen">
-                <span class="selected-text">{{ selectedJavaLabel || t('settings.javaPathPlaceholder') }}</span>
-                <UiIcon name="chevron-down" class="select-arrow" :class="{ rotated: isJavaOpen }" :size="14" />
-              </div>
-              <Transition name="select-dropdown">
-                <div v-show="isJavaOpen" class="select-dropdown">
-                  <div
-                    v-for="java in javaList"
-                    :key="java.path"
-                    class="select-option"
-                    :class="{ active: localSettings.java_path === java.path }"
-                    @click="selectJava(java)"
-                  >
-                    <div class="option-content">
-                      <span class="option-label">Java {{ java.major_version }} ({{ java.java_type }})</span>
-                      <span class="option-desc">{{ java.version }} - {{ java.arch }}</span>
-                    </div>
-                    <UiIcon v-if="localSettings.java_path === java.path" name="check" :size="14" class="check-icon" />
-                  </div>
-                </div>
-              </Transition>
+      <SettingRow
+        v-if="!localSettings.java_auto"
+        :label="t('settings.javaPath')"
+        :description="t('settings.javaPathDesc')"
+      >
+        <div class="java-selector">
+          <div ref="javaSelectRef" class="custom-select" :class="{ open: isJavaOpen }">
+            <div class="select-trigger" @click="toggleJavaOpen">
+              <span class="selected-text">{{ selectedJavaLabel || t('settings.javaPathPlaceholder') }}</span>
+              <UiIcon name="chevron-down" class="select-arrow" :class="{ rotated: isJavaOpen }" :size="14" />
             </div>
-            <button class="btn-ghost" @click="browseJava">
-              {{ t('common.browse') }}
-            </button>
+            <Transition name="select-dropdown">
+              <div v-show="isJavaOpen" class="select-dropdown">
+                <div
+                  v-for="java in javaList"
+                  :key="java.path"
+                  class="select-option"
+                  :class="{ active: localSettings.java_path === java.path }"
+                  @click="selectJava(java)"
+                >
+                  <div class="option-content">
+                    <span class="option-label">Java {{ java.major_version }} ({{ java.java_type }})</span>
+                    <span class="option-desc">{{ java.version }} - {{ java.arch }}</span>
+                  </div>
+                  <UiIcon v-if="localSettings.java_path === java.path" name="check" :size="14" class="check-icon" />
+                </div>
+              </div>
+            </Transition>
           </div>
+          <NButton size="small" @click="browseJava">
+            {{ t('common.browse') }}
+          </NButton>
         </div>
-      </div>
-    </div>
+      </SettingRow>
+    </SettingSection>
 
-    <!-- 内存分配 -->
-    <div class="settings-section">
-      <div class="section-label">
-        {{ t('settings.memory') }}
-      </div>
-
-      <div class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label">
-            {{ t('settings.memoryAuto') }}
-          </div>
-          <div class="setting-desc">
-            {{ memoryAutoDesc }}
-          </div>
-        </div>
-        <div class="setting-control">
-          <button
-            :class="['toggle-switch', { active: localSettings.memory_auto }]"
-            role="switch"
-            :aria-checked="localSettings.memory_auto"
-            @click="handleMemoryAutoToggle"
-          >
-            <span class="toggle-knob" />
-          </button>
-        </div>
-      </div>
+    <SettingSection :title="t('settings.memory')">
+      <SettingRow :label="t('settings.memoryAuto')" :description="memoryAutoDesc">
+        <NSwitch :value="localSettings.memory_auto" @update:value="handleMemoryAutoToggle" />
+      </SettingRow>
 
       <div
         class="memory-manual-section"
@@ -111,7 +61,9 @@
               {{ t('settings.memorySizeDesc') }}
             </div>
           </div>
-          <output class="memory-current-value" :class="{ 'is-auto': localSettings.memory_auto }">{{ formatMemory(safeMemorySize) }}</output>
+          <output class="memory-current-value" :class="{ 'is-auto': localSettings.memory_auto }">
+            {{ formatMemory(safeMemorySize) }}
+          </output>
         </div>
 
         <div class="memory-slider-block">
@@ -167,41 +119,20 @@
           </div>
         </div>
       </div>
-    </div>
+    </SettingSection>
 
-    <!-- 启动选项 -->
-    <div class="settings-section">
-      <div class="section-label">
-        {{ t('settings.runtime') }}
-      </div>
-
-      <div class="setting-item">
-        <div class="setting-info">
-          <div class="setting-label">
-            {{ t('settings.fullscreen') }}
-          </div>
-          <div class="setting-desc">
-            {{ t('settings.fullscreenDesc') }}
-          </div>
-        </div>
-        <div class="setting-control">
-          <button
-            :class="['toggle-switch', { active: localSettings.fullscreen }]"
-            role="switch"
-            :aria-checked="localSettings.fullscreen"
-            @click="handleFullscreenToggle"
-          >
-            <span class="toggle-knob" />
-          </button>
-        </div>
-      </div>
-    </div>
+    <SettingSection :title="t('settings.runtime')">
+      <SettingRow :label="t('settings.fullscreen')" :description="t('settings.fullscreenDesc')">
+        <NSwitch :value="localSettings.fullscreen" @update:value="handleFullscreenToggle" />
+      </SettingRow>
+    </SettingSection>
 
     <div id="plugin-slot-settings-game-section-after" class="plugin-slot-container"></div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { NButton, NSwitch } from 'naive-ui'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -210,6 +141,8 @@ import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useClickOutside } from '@/composables/useClickOutside'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { settingsApi } from '@/features/settings/api/settingsApi'
+import SettingRow from '@/features/settings/components/SettingRow.vue'
+import SettingSection from '@/features/settings/components/SettingSection.vue'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import type { JavaInstallation } from '@/types/api'
 
@@ -324,24 +257,24 @@ function debouncedSaveConfig(delay = 300) {
   }, delay)
 }
 
-const handleJavaAutoToggle = () => {
-  localSettings.value.java_auto = !localSettings.value.java_auto
-  if (localSettings.value.java_auto) {
+const handleJavaAutoToggle = (value: boolean) => {
+  localSettings.value.java_auto = value
+  if (value) {
     localSettings.value.java_path = ''
   }
   saveConfig()
 }
 
-const handleMemoryAutoToggle = () => {
-  localSettings.value.memory_auto = !localSettings.value.memory_auto
-  if (localSettings.value.memory_auto) {
+const handleMemoryAutoToggle = (value: boolean) => {
+  localSettings.value.memory_auto = value
+  if (value) {
     localSettings.value.memory_size = 4096
   }
   saveConfig()
 }
 
-const handleFullscreenToggle = () => {
-  localSettings.value.fullscreen = !localSettings.value.fullscreen
+const handleFullscreenToggle = (value: boolean) => {
+  localSettings.value.fullscreen = value
   saveConfig()
 }
 

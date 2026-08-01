@@ -48,7 +48,7 @@
         :hasAccount="Boolean(account.currentAccount)"
         @launch="version.launchGame(account.currentAccount)"
         @manageVersions="goToInstallVersion"
-        @settings="openGameSettings"
+        @versionSettings="openVersionSettings"
       />
     </div>
 
@@ -61,10 +61,16 @@
       <div class="account-container">
         <section class="account-list-panel ecl-surface">
           <div class="account-panel-header">
-            <span>{{ t('game.savedAccounts') }}</span>
-            <NTag v-if="account.accounts.length" size="small" :bordered="false">
-              {{ account.accounts.length }}
-            </NTag>
+            <div class="account-panel-heading">
+              <span>{{ t('game.savedAccounts') }}</span>
+              <NTag v-if="account.accounts.length" size="small" :bordered="false">
+                {{ account.accounts.length }}
+              </NTag>
+            </div>
+            <NButton type="primary" size="small" @click="openAddAccountModal">
+              <template #icon><UiIcon name="add" :size="14" /></template>
+              {{ t('game.addAccount') }}
+            </NButton>
           </div>
 
           <div class="account-table-header">
@@ -124,17 +130,29 @@
           </NSpin>
         </section>
 
-        <section class="account-add-panel ecl-surface">
-          <div class="account-panel-header">{{ t('game.addAccount') }}</div>
+        <Modal
+          v-model:visible="showAddAccountModal"
+          :title="t('game.addAccount')"
+          :showFooter="false"
+          bodyClass="account-add-modal-body"
+          width="480px"
+        >
           <div class="account-add-body">
-            <NSelect
-              v-model:value="selectedAccountType"
-              :options="accountTypeOptions"
-              :placeholder="t('game.selectAccountType')"
-              @update:value="handleAccountTypeChange"
-            />
+            <NAlert
+              v-if="isShowcaseMode"
+              class="showcase-account-warning"
+              type="warning"
+              :title="t('game.showcase.title')"
+            >
+              {{ t('game.showcase.description') }}
+            </NAlert>
+            <NRadioGroup v-model:value="selectedAccountType" class="account-type-switch" size="small">
+              <NRadioButton v-for="option in accountTypeOptions" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </NRadioButton>
+            </NRadioGroup>
 
-            <div class="account-type-intro">
+            <!--<div class="account-type-intro">
               <div class="account-type-icon">
                 <UiIcon :name="selectedAccountMeta.icon" :size="18" />
               </div>
@@ -142,17 +160,25 @@
                 <strong>{{ selectedAccountMeta.label }}</strong>
                 <p>{{ selectedAccountMeta.description }}</p>
               </div>
-            </div>
+            </div>-->
 
             <div v-if="selectedAccountType === 'microsoft'" class="account-form">
-              <NAlert type="info" :showIcon="true">
-                {{ t('game.microsoftLoginHint') }}
+              <NAlert
+                v-if="account.microsoftLoginConfig.needs_client_id"
+                class="microsoft-client-id-alert"
+                type="warning"
+                :title="t('game.clientId.title')"
+              >
+                <p>{{ t('game.clientId.description') }}</p>
+                <p>{{ t('game.clientId.fileHint') }}</p>
+                <code class="microsoft-client-id-value">MICROSOFT_CLIENT_ID=your_client_id_here</code>
               </NAlert>
               <NButton
                 type="primary"
                 block
-                :loading="account.startingMicrosoftLogin"
-                @click="account.startMicrosoftLogin"
+                :loading="account.startingMicrosoftLogin || account.isMicrosoftLoginConfigLoading"
+                :disabled="!account.microsoftLoginConfig.available"
+                @click="startMicrosoftFromAddModal"
               >
                 <template #icon><UiIcon name="microsoft" :size="15" /></template>
                 {{ t('game.continueMicrosoftLogin') }}
@@ -163,23 +189,50 @@
               <NInput
                 v-model:value="account.newOfflineUsername"
                 :placeholder="t('game.enterUsername')"
-                @keyup.enter="account.addOfflineAccount"
+                @keyup.enter="addOfflineFromModal"
               />
-              <NAlert type="default" :showIcon="false">{{ t('game.offlineNoPassword') }}</NAlert>
+              <button
+                type="button"
+                class="offline-advanced-toggle"
+                :class="{ expanded: showOfflineAdvanced }"
+                :aria-expanded="showOfflineAdvanced"
+                @click="showOfflineAdvanced = !showOfflineAdvanced"
+              >
+                <span>{{ t('game.advancedOptions') }}</span>
+                <UiIcon name="chevron-down" :size="16" />
+              </button>
+              <Transition name="offline-advanced">
+                <div v-if="showOfflineAdvanced" class="offline-advanced-panel">
+                  <label for="offline-custom-uuid">{{ t('game.customUuid') }}</label>
+                  <NInput
+                    id="offline-custom-uuid"
+                    v-model:value="account.newOfflineUuid"
+                    :placeholder="t('game.customUuidPlaceholder')"
+                    :status="account.offlineUuidError ? 'error' : undefined"
+                    @keyup.enter="addOfflineFromModal"
+                  />
+                  <small :class="{ error: account.offlineUuidError }">
+                    {{ account.offlineUuidError || t('game.customUuidHint') }}
+                  </small>
+                </div>
+              </Transition>
+              <!--<NAlert type="default" :showIcon="false">{{ t('game.offlineNoPassword') }}</NAlert>-->
               <NButton
                 type="primary"
                 block
                 :loading="account.addingOffline"
-                :disabled="!account.newOfflineUsername.trim()"
-                @click="account.addOfflineAccount"
+                :disabled="!account.newOfflineUsername.trim() || !!account.offlineUuidError"
+                @click="addOfflineFromModal"
               >
                 {{ t('game.addOfflineAccount') }}
               </NButton>
             </div>
 
-            <NAlert v-else type="warning" title="Authlib"> 外置登录暂未开发，后续版本开放。 </NAlert>
+            <NAlert v-else type="warning" title="Authlib">
+              {{ t('game.authlibNotDeveloped') }}
+            </NAlert>
           </div>
-        </section>
+        </Modal>
       </div>
     </FullscreenModal>
 
@@ -222,19 +275,6 @@
       </template>
     </Modal>
 
-    <Modal v-model:visible="account.showClientIdModal" :title="t('game.clientId.title')" :closable="false">
-      <div class="client-id-content">
-        <p>{{ t('game.clientId.description') }}</p>
-        <p>{{ t('game.clientId.fileHint') }}</p>
-        <pre>MICROSOFT_CLIENT_ID=your_client_id_here</pre>
-      </div>
-      <template #footer>
-        <NButton type="primary" @click="account.cancelClientId">
-          {{ t('common.confirm') }}
-        </NButton>
-      </template>
-    </Modal>
-
     <ConfirmDialog
       v-model:visible="account.showDeleteConfirmModal"
       :title="t('common.confirm')"
@@ -249,7 +289,7 @@
 </template>
 
 <script setup lang="ts">
-import { NAlert, NButton, NEmpty, NInput, NSelect, NSpin, NTag } from 'naive-ui'
+import { NAlert, NButton, NEmpty, NInput, NRadioButton, NRadioGroup, NSpin, NTag } from 'naive-ui'
 import { storeToRefs } from 'pinia'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -263,6 +303,7 @@ import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
+import backend from '@/api/client'
 import { useAccountManager } from '@/composables/useAccountManager'
 import { globalLaunchProgress } from '@/composables/useLaunchProgress'
 import { useVersionManager } from '@/composables/useVersionManager'
@@ -293,33 +334,33 @@ const {
 
 type AccountType = 'microsoft' | 'offline' | 'authlib'
 
+const showAddAccountModal = ref(false)
 const selectedAccountType = ref<AccountType>('microsoft')
+const showOfflineAdvanced = ref(false)
+const isShowcaseMode = backend.runtime.isShowcase
 const accountTypeOptions = computed(() => [
   { value: 'microsoft', label: t('game.microsoftAccount') },
   { value: 'offline', label: t('game.offlineAccount') },
   { value: 'authlib', label: t('game.authlibAccount') },
 ])
-const selectedAccountMeta = computed(() => {
-  const descriptions: Record<AccountType, string> = {
-    microsoft: t('game.microsoftAccountDesc'),
-    offline: t('game.offlineAccountDesc'),
-    authlib: t('game.authlibAccountDesc'),
-  }
-  const icons: Record<AccountType, string> = {
-    microsoft: 'microsoft',
-    offline: 'user',
-    authlib: 'shield',
-  }
-  const option = accountTypeOptions.value.find((item) => item.value === selectedAccountType.value)
-  return {
-    icon: icons[selectedAccountType.value],
-    label: option?.label || '',
-    description: descriptions[selectedAccountType.value],
-  }
-})
 
-function handleAccountTypeChange(value: AccountType) {
-  selectedAccountType.value = value
+function openAddAccountModal() {
+  selectedAccountType.value = 'microsoft'
+  showOfflineAdvanced.value = false
+  account.newOfflineUuid = ''
+  showAddAccountModal.value = true
+  void account.loadMicrosoftLoginConfig()
+}
+
+async function startMicrosoftFromAddModal() {
+  await account.startMicrosoftLogin()
+  if (account.showMicrosoftLoginModal) showAddAccountModal.value = false
+}
+
+async function addOfflineFromModal() {
+  const accountCount = account.accounts.length
+  await account.addOfflineAccount()
+  if (account.accounts.length > accountCount) showAddAccountModal.value = false
 }
 
 function accountTypeName(type: string): string {
@@ -362,8 +403,14 @@ async function handleLaunchProgressCancel() {
   }, 5000)
 }
 
-function openGameSettings() {
-  void router.push('/settings/game')
+function openVersionSettings() {
+  if (!version.selectedVersion) return
+  const query: Record<string, string> = {
+    version: version.selectedVersion,
+    tab: 'settings',
+  }
+  if (version.currentGamePath) query.gamePath = version.currentGamePath
+  void router.push({ name: 'versions-manage', query })
 }
 
 function goToInstallVersion() {

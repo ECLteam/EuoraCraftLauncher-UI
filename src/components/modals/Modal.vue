@@ -1,6 +1,6 @@
 <template>
   <Teleport to="body">
-    <Transition name="modal" @afterEnter="onAfterEnter" @afterLeave="onAfterLeave">
+    <Transition :name="transitionName" @afterEnter="onAfterEnter" @afterLeave="onAfterLeave">
       <div
         v-show="visible"
         class="modal-overlay"
@@ -106,6 +106,7 @@ const props = withDefaults(defineProps<Props>(), {
   lockScroll: true,
   danger: false,
   width: '',
+  transitionName: 'modal',
 })
 
 const emit = defineEmits<Emits>()
@@ -137,6 +138,7 @@ interface Props {
   wrapperClass?: string
   lockScroll?: boolean
   width?: string
+  transitionName?: string
 }
 
 interface Emits {

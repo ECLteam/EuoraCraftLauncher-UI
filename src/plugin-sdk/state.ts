@@ -59,7 +59,7 @@ const themeSlice = createStateSlice<ThemeState>(
     isDark: false,
     primaryColor: '',
     backgroundImage: '',
-    backgroundOpacity: 0,
+    backgroundOpacity: 1,
   },
   (state) => {
     return backend.config

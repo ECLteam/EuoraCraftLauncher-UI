@@ -1,13 +1,14 @@
 import { storeToRefs } from 'pinia'
 import { ref, computed, reactive } from 'vue'
 import { useAccountStore } from '@/features/accounts/stores/accountStore'
-import type { MinecraftAccount, MicrosoftLoginData } from '@/types/api'
+import type { MinecraftAccount, MicrosoftLoginData, MicrosoftLoginStatusEvent } from '@/types/api'
 import { openExternalUrl } from '@/utils/openExternal'
 import { useClipboard } from './useClipboard'
 import { useGlassMessage } from './useGlassMessage'
-import { useIntervalFn } from './useIntervalFn'
 
 export type Account = MinecraftAccount
+const OFFLINE_UUID_PATTERN =
+  /^(?:[0-9a-fA-F]{32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$/
 
 export function useAccountManager(t: (key: string, ...args: unknown[]) => string) {
   const message = useGlassMessage()
@@ -19,10 +20,17 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     isLoading: accountsLoading,
     authlibServers,
     isAuthlibLoading: authlibServersLoading,
+    microsoftLoginConfig,
+    isMicrosoftLoginConfigLoading,
   } = storeToRefs(accountStore)
 
   const showAccountModal = ref(false)
   const newOfflineUsername = ref('')
+  const newOfflineUuid = ref('')
+  const offlineUuidError = computed(() => {
+    const value = newOfflineUuid.value.trim()
+    return value && !OFFLINE_UUID_PATTERN.test(value) ? t('game.invalidOfflineUuid') : ''
+  })
   const addingOffline = ref(false)
 
   // Authlib
@@ -49,8 +57,6 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
   })
   const microsoftLoginError = ref('')
 
-  const showClientIdModal = ref(false)
-
   const showDeleteConfirmModal = ref(false)
   const deletingAccount = ref(false)
   const accountToDelete = ref<{ id: string; alias: string } | null>(null)
@@ -59,45 +65,11 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     return t('game.deleteConfirm', { name: accountToDelete.value.alias })
   })
 
-  const pollInterval = ref(5000)
-  let isPolling = false
+  let completingFromEvent = false
 
-  const {
-    resume: startPolling,
-    pause: stopPolling,
-    runOnce,
-  } = useIntervalFn(
-    async () => {
-      if (!showMicrosoftLoginModal.value || microsoftLoginStatus.value !== 'pending') {
-        stopPolling()
-        return
-      }
-      if (isPolling) return
-      isPolling = true
-      try {
-        const result = await accountStore.pollMicrosoftLogin()
-        if (result.status === 'ready') {
-          stopPolling()
-          microsoftLoginStatus.value = 'loading'
-          await completeMicrosoftLogin()
-        } else if (result.status === 'error') {
-          stopPolling()
-          microsoftLoginStatus.value = 'error'
-          microsoftLoginError.value = result.message || t('game.login.failed')
-          message.error(microsoftLoginError.value)
-        } else if (result.status === 'pending' && result.retry_after && result.retry_after > 0) {
-          stopPolling()
-          pollInterval.value = result.retry_after * 1000
-          startPolling()
-        }
-      } catch {
-        // 临时查询失败时保留轮询，下一周期继续尝试。
-      } finally {
-        isPolling = false
-      }
-    },
-    () => pollInterval.value
-  )
+  const stopMicrosoftLoginStatusListener = accountStore.onMicrosoftLoginStatus((event) => {
+    void handleMicrosoftLoginStatus(event)
+  })
 
   const accountTypeLabel = computed(() => {
     const type = currentAccount.value?.type
@@ -130,6 +102,7 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     authlibPassword.value = ''
     loadAccounts()
     loadAuthlibServers()
+    loadMicrosoftLoginConfig()
   }
 
   async function addOfflineAccount() {
@@ -138,12 +111,18 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
       message.error(t('game.status.emptyUsername'))
       return
     }
+    if (offlineUuidError.value) {
+      message.error(offlineUuidError.value)
+      return
+    }
 
     addingOffline.value = true
     try {
-      await accountStore.addOffline(username)
+      const customUuid = newOfflineUuid.value.trim() || undefined
+      await accountStore.addOffline(username, customUuid)
       message.success(t('game.status.accountAdded'))
       newOfflineUsername.value = ''
+      newOfflineUuid.value = ''
     } catch (reason) {
       message.error(reason instanceof Error ? reason.message : t('game.status.accountAddFailed'))
     } finally {
@@ -232,6 +211,7 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
   }
 
   async function startMicrosoftLogin() {
+    if (!microsoftLoginConfig.value.available) return
     startingMicrosoftLogin.value = true
     let result: MicrosoftLoginData
     try {
@@ -243,7 +223,7 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
       startingMicrosoftLogin.value = false
     }
     if (result.needs_client_id) {
-      showClientIdModal.value = true
+      microsoftLoginConfig.value = { available: false, needs_client_id: true }
       return
     }
     if (result.status === 'completed') {
@@ -259,12 +239,7 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
       microsoftLoginStatus.value = 'pending'
       microsoftLoginError.value = ''
       showMicrosoftLoginModal.value = true
-      if (result.interval) {
-        pollInterval.value = result.interval * 1000
-      }
       void openMicrosoftLoginPage()
-      runOnce()
-      startPolling()
       return
     }
     message.error(result.message || t('game.login.failed'))
@@ -277,11 +252,7 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
       const result = await accountStore.completeMicrosoftLogin()
       if (result.status === 'pending') {
         microsoftLoginStatus.value = 'pending'
-        if (result.retry_after && result.retry_after > 0) {
-          pollInterval.value = result.retry_after * 1000
-        }
         message.info(t('game.login.autoDetecting'))
-        startPolling()
         return
       }
       if (!result.account) throw new Error(result.message || t('game.login.failed'))
@@ -296,15 +267,23 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     }
   }
 
-  function cancelMicrosoftLogin() {
+  async function cancelMicrosoftLogin() {
     showMicrosoftLoginModal.value = false
     microsoftLoginStatus.value = 'pending'
     microsoftLoginError.value = ''
-    stopPolling()
+    try {
+      await accountStore.cancelMicrosoftLogin()
+    } catch (reason) {
+      console.warn('[MicrosoftLogin] 取消登录失败:', reason)
+    }
   }
 
-  function cancelClientId() {
-    showClientIdModal.value = false
+  async function loadMicrosoftLoginConfig() {
+    try {
+      await accountStore.loadMicrosoftLoginConfig()
+    } catch {
+      return
+    }
   }
 
   async function copyUserCode() {
@@ -317,12 +296,42 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     await Promise.allSettled([copyUserCode(), openExternalUrl(verificationUri)])
   }
 
+  async function handleMicrosoftLoginStatus(event: MicrosoftLoginStatusEvent) {
+    if (event.status === 'cancelled') {
+      showMicrosoftLoginModal.value = false
+      microsoftLoginStatus.value = 'pending'
+      microsoftLoginError.value = ''
+      return
+    }
+    if (!showMicrosoftLoginModal.value) return
+    if (event.status === 'error') {
+      microsoftLoginStatus.value = 'error'
+      microsoftLoginError.value = event.message || t('game.login.failed')
+      message.error(microsoftLoginError.value)
+      return
+    }
+    if (event.status === 'ready' && !completingFromEvent) {
+      completingFromEvent = true
+      try {
+        await completeMicrosoftLogin()
+      } finally {
+        completingFromEvent = false
+      }
+    }
+  }
+
   function reset() {
+    const shouldCancelMicrosoftLogin =
+      showMicrosoftLoginModal.value || startingMicrosoftLogin.value || completingMicrosoftLogin.value
     showAccountModal.value = false
     showMicrosoftLoginModal.value = false
     showDeleteConfirmModal.value = false
-    stopPolling()
-    isPolling = false
+    stopMicrosoftLoginStatusListener()
+    if (shouldCancelMicrosoftLogin) {
+      void accountStore.cancelMicrosoftLogin().catch((reason) => {
+        console.warn('[MicrosoftLogin] 页面卸载时取消登录失败:', reason)
+      })
+    }
   }
 
   return reactive({
@@ -332,6 +341,8 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     accountTypeLabel,
     showAccountModal,
     newOfflineUsername,
+    newOfflineUuid,
+    offlineUuidError,
     addingOffline,
     // Authlib
     showAuthlibForm,
@@ -352,6 +363,8 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     microsoftLoginStatus,
     microsoftLoginData,
     microsoftLoginError,
+    microsoftLoginConfig,
+    isMicrosoftLoginConfigLoading,
     copiedUserCode,
     showDeleteConfirmModal,
     deletingAccount,
@@ -359,6 +372,7 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     deleteConfirmMessage,
     loadAccounts,
     loadCurrentAccount,
+    loadMicrosoftLoginConfig,
     openAccountModal,
     addOfflineAccount,
     switchAccount,
@@ -369,8 +383,6 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     completeMicrosoftLogin,
     copyUserCode,
     openMicrosoftLoginPage,
-    showClientIdModal,
-    cancelClientId,
     reset,
   })
 }

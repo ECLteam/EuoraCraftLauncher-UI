@@ -51,7 +51,13 @@ describe('ShowcaseTransport', () => {
     }>
 
     expect(result.data?.locale).toBe('en-US')
-    expect(result.data?.theme).toMatchObject({ sidebar_collapsed: true })
+    expect(result.data?.theme).toMatchObject({
+      sidebar_collapsed: true,
+      background_opacity: 1,
+    })
+    expect(result.data).toMatchObject({
+      background: { opacity: 1 },
+    })
   })
 
   it('损坏的浏览器配置不会阻止展示模式启动', async () => {
@@ -94,6 +100,17 @@ describe('ShowcaseTransport', () => {
     const secondAccounts = (await second.invoke('accounts_list', {})) as ApiResponse<{ accounts: unknown[] }>
 
     expect(firstAccounts.data?.accounts).toHaveLength((secondAccounts.data?.accounts.length ?? 0) + 1)
+  })
+
+  it('展示模式添加离线账户时保留自定义 UUID', async () => {
+    const transport = createShowcaseTransport()
+
+    const result = (await transport.invoke('accounts_add_offline', {
+      username: 'CustomPlayer',
+      uuid: '01234567-89ab-cdef-0123-456789abcdef',
+    })) as ApiResponse<{ uuid: string }>
+
+    expect(result.data?.uuid).toBe('01234567-89ab-cdef-0123-456789abcdef')
   })
 
   it.each(['fabric', 'forge', 'neoforge', 'quilt'])('为 %s 安装流程提供可用加载器版本', async (loader) => {

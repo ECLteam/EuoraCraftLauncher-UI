@@ -37,6 +37,7 @@
     "launch": "Launch Game",
     "launching": "Launching...",
     "noVersionInstall": "No version, please install",
+    "versionSettings": "Version Settings",
     "accountManagement": "Account Management",
     "savedAccounts": "Saved Accounts",
     "current": "Current",
@@ -48,10 +49,16 @@
     "microsoftAccountDesc": "Sign in through your browser with a Microsoft account that owns Minecraft",
     "offlineAccountDesc": "Set an in-game username without online identity verification",
     "authlibAccountDesc": "Sign in with a third-party Yggdrasil authentication server",
+    "authlibNotDeveloped": "External authentication is not available yet and will be added in a future release.",
     "microsoftLoginHint": "Sign-in is completed in a secure browser page. Your password is never entered in the launcher.",
     "continueMicrosoftLogin": "Continue with Microsoft",
     "username": "Username",
     "enterUsername": "Enter username",
+    "advancedOptions": "Advanced options",
+    "customUuid": "Custom UUID",
+    "customUuidPlaceholder": "Enter a 32-digit or standard UUID",
+    "customUuidHint": "Leave blank to generate an offline UUID from the username.",
+    "invalidOfflineUuid": "Invalid UUID. Enter 32 hexadecimal characters or the standard hyphenated format.",
     "offlineNoPassword": "Offline accounts don't need a password",
     "close": "Close",
     "noAccount": "No Account",
@@ -63,6 +70,7 @@
     "didYouKnow": "Did You Know",
     "announcement": "Announcement",
     "noAnnouncements": "No announcements",
+    "viewAnnouncementDetails": "Click to view details",
     "deleteConfirm": "Are you sure you want to delete account \"{name}\"?",
     "delete": "Delete",
     "switch": "Switch",
@@ -84,6 +92,10 @@
       "complete": "I've completed authorization",
       "success": "Login successful",
       "failed": "Login failed"
+    },
+    "showcase": {
+      "title": "Showcase Mode",
+      "description": "You are in showcase mode. Account operations are for UI demonstration only and will not be saved or logged in."
     },
     "clientId": {
       "title": "Microsoft Login Not Configured",
@@ -123,7 +135,9 @@
       "editPath": "Edit Path",
       "deletePath": "Delete Path",
       "pathName": "Path Name",
+      "pathNameDesc": "Alias shown in the path list",
       "pathLocation": "Path Location",
+      "pathLocationDesc": "Select the Minecraft game directory",
       "pathCount": "{count} paths",
       "versionCount": "{count} versions",
       "versionName": "Version Name",
@@ -253,6 +267,7 @@
       "latest": "Latest",
       "startInstall": "Start Install",
       "installing": "Installing...",
+      "installQueued": "Installation task started",
       "installSuccess": "Installation successful",
       "installError": "Installation failed",
       "install": "Install",
@@ -539,6 +554,9 @@
   "launch": {
     "title": "Launch Game"
   },
+  "launcherPopup": {
+    "doNotShowAgain": "Don't show again"
+  },
   "dev": {
     "title": "Component Debug Tools",
     "desc": "Click buttons below to test components",
@@ -563,7 +581,23 @@
     "fullscreenModalDesc": "This is a fullscreen modal that fills the entire content area",
     "openNested": "Open Nested Modal",
     "nestedModal": "Nested Modal",
-    "nestedModalDesc": "A normal modal nested inside fullscreen modal"
+    "nestedModalDesc": "A normal modal nested inside fullscreen modal",
+    "dangerZone": "Danger Zone",
+    "dangerZoneDesc": "These actions modify persistent launcher data and take effect after restart.",
+    "debugOnly": "Debug mode only",
+    "resetData": "Reset launcher data",
+    "resetDataDesc": "Restore launcher settings, accounts, home information, and popup read history to defaults.",
+    "resetDataScope": "Clears popup read history while keeping logs, user plugins, and plugin settings.",
+    "clearPlugins": "Clear plugins",
+    "clearPluginsDesc": "Remove every user plugin and its settings.",
+    "clearPluginsScope": "Keeps bundled system plugins, logs, and other launcher data.",
+    "resetDataConfirmTitle": "Reset launcher data?",
+    "resetDataConfirmContent": "On next launch, settings, accounts, and home information will be moved to a backup and reset; popup read history will be cleared immediately. Continue?",
+    "clearPluginsConfirmTitle": "Clear user plugins?",
+    "clearPluginsConfirmContent": "On next launch, all user plugins and plugin settings will be moved to a backup. Continue?",
+    "confirmDangerAction": "Confirm and schedule",
+    "maintenanceScheduled": "Action scheduled. Restart the launcher to apply it. Backup location: {path}",
+    "maintenanceFailed": "Could not schedule the action: {detail}"
   },
   "loader": {
     "fabric": "Fabric",

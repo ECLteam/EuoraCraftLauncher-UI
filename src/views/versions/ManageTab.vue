@@ -50,32 +50,48 @@
     <!-- 添加/编辑路径弹窗 -->
     <Modal
       v-model:visible="showPathModal"
-      :title="isEditing ? t('versions.manage.editPath') : t('versions.manage.addGamePath')"
+      :title="isEditing ? t('versions.manage.editGamePath') : t('versions.manage.addGamePath')"
+      width="420px"
     >
       <div class="path-form">
-        <div class="form-group">
-          <label>{{ t('versions.manage.pathName') }}</label>
+        <div class="path-form-item">
+          <div class="path-form-header">
+            <label class="path-form-label">{{ t('versions.manage.pathName') }}</label>
+            <span class="path-form-desc">{{ t('versions.manage.pathNameDesc') }}</span>
+          </div>
           <UiInput
             v-model="pathForm.name"
             :placeholder="t('versions.manage.pathNamePlaceholder')"
             :disabled="pathSaving"
+            prefix-icon="folder"
+            class="path-form-input"
           />
         </div>
-        <div class="form-group">
-          <label>{{ t('versions.manage.pathLocation') }}</label>
-          <div class="input-with-button">
+        <div class="path-form-item">
+          <div class="path-form-header">
+            <label class="path-form-label">{{ t('versions.manage.pathLocation') }}</label>
+            <span class="path-form-desc">{{ t('versions.manage.pathLocationDesc') }}</span>
+          </div>
+          <div class="path-form-control">
             <UiInput
               v-model="pathForm.path"
               :placeholder="t('versions.manage.pathLocationPlaceholder')"
               :readonly="isDefaultPath"
               :disabled="pathSaving"
+              class="path-form-input path-location-input"
             />
-            <UiButton variant="secondary" :disabled="isDefaultPath || pathSaving" @click="browseForPath">
+            <UiButton
+              variant="secondary"
+              size="lg"
+              :disabled="isDefaultPath || pathSaving"
+              icon="folder"
+              @click="browseForPath"
+            >
               {{ t('common.browse') }}
             </UiButton>
           </div>
         </div>
-        <p v-if="pathFormError" class="form-feedback" role="alert">{{ pathFormError }}</p>
+        <p v-if="pathFormError" class="path-form-feedback" role="alert">{{ pathFormError }}</p>
       </div>
 
       <template #footer>
@@ -97,6 +113,7 @@
     <VersionDetailModal
       v-model:visible="showDetailModal"
       :version="detailVersion"
+      :initialTab="detailInitialTab"
       @launch="handleDetailLaunch"
       @delete="handleDetailDelete"
     />
@@ -106,7 +123,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import backend from '@/api/client'
 import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import Modal from '@/components/modals/Modal.vue'
@@ -131,6 +148,7 @@ import type { LaunchProgress, MinecraftPathEntry, ScannedVersion } from '@/types
 import VersionDetailModal from '@/views/versions/VersionDetailModal.vue'
 
 const { t } = useI18n()
+const route = useRoute()
 const router = useRouter()
 const message = useGlassMessage()
 const versionManager = useVersionManager(t)
@@ -153,6 +171,7 @@ const showConfirmModal = ref(false)
 const confirmLoading = ref(false)
 const showDetailModal = ref(false)
 const detailVersion = ref<ScannedVersion | null>(null)
+const detailInitialTab = ref<'overview' | 'mods' | 'settings' | 'saves'>('overview')
 const confirmTitle = ref('')
 const confirmContent = ref('')
 const confirmAction = ref<(() => void | Promise<void>) | null>(null)
@@ -215,9 +234,18 @@ const fetchGamePaths = async () => {
       }
       return p
     })
-    if (gamePaths.value.length > 0 && selectedPathIndex.value === -1) {
-      selectedPathIndex.value = 0
+    if (gamePaths.value.length > 0) {
+      const requestedPath = typeof route.query.gamePath === 'string' ? route.query.gamePath : ''
+      const requestedPathIndex = requestedPath
+        ? gamePaths.value.findIndex((gamePath) => gamePath.path === requestedPath)
+        : -1
+      if (requestedPathIndex >= 0) {
+        selectedPathIndex.value = requestedPathIndex
+      } else if (selectedPathIndex.value === -1) {
+        selectedPathIndex.value = 0
+      }
       await scanCurrentPath()
+      openRequestedVersionSettings()
     }
   } catch (error) {
     console.error(t('versions.manage.fetchConfigFailed'), error)
@@ -237,12 +265,14 @@ const scanCurrentPath = async () => {
   if (!currentPath.value) return
 
   loading.value = true
+  const currentPathValue = currentPath.value.path
   try {
-    const versions = await versionInstallApi.scan([currentPath.value.path])
-    scannedVersions.value = versions.map((version) => ({
-      ...version,
-      path: currentPath.value!.path,
-    }))
+    const versions = await versionInstallApi.scan([currentPathValue])
+    // 保留其他路径的版本，只替换当前路径的扫描结果
+    scannedVersions.value = [
+      ...scannedVersions.value.filter((v) => v.path !== currentPathValue),
+      ...versions.map((version) => ({ ...version, path: currentPathValue })),
+    ]
   } catch (error) {
     console.error(t('versions.manage.scanFailed'), error)
   } finally {
@@ -348,6 +378,8 @@ const removePath = async (index: number) => {
       return
     }
 
+    scannedVersions.value = scannedVersions.value.filter((v) => v.path !== removed.path)
+
     if (index === selectedPathIndex.value) {
       selectedPathIndex.value = Math.min(index, gamePaths.value.length - 1)
       await scanCurrentPath()
@@ -444,9 +476,21 @@ const handleLaunch = async (version: ScannedVersion) => {
   }
 }
 
-const handleOpenDetail = (version: ScannedVersion) => {
+const handleOpenDetail = (
+  version: ScannedVersion,
+  initialTab: 'overview' | 'mods' | 'settings' | 'saves' = 'overview'
+) => {
   detailVersion.value = version
+  detailInitialTab.value = initialTab
   showDetailModal.value = true
+}
+
+function openRequestedVersionSettings() {
+  if (route.query.tab !== 'settings' || typeof route.query.version !== 'string') return
+  const requestedVersion = currentPathVersions.value.find(
+    (version) => version.versionId === route.query.version || version.id === route.query.version
+  )
+  if (requestedVersion) handleOpenDetail(requestedVersion, 'settings')
 }
 
 const handleDetailLaunch = (version: ScannedVersion) => {

@@ -4,7 +4,9 @@ import type {
   AuthlibServer,
   MinecraftAccount,
   MicrosoftCompleteData,
+  MicrosoftLoginConfigData,
   MicrosoftLoginData,
+  MicrosoftLoginStatusEvent,
   MicrosoftPollData,
 } from '@/types/api'
 
@@ -22,8 +24,8 @@ export const accountsApi = {
     return assertSuccess(await backend.command('accounts_current'), '读取当前账户') ?? null
   },
 
-  async addOffline(username: string): Promise<MinecraftAccount> {
-    return assertSuccess(await backend.command('accounts_add_offline', { username }), '添加离线账户')
+  async addOffline(username: string, uuid?: string): Promise<MinecraftAccount> {
+    return assertSuccess(await backend.command('accounts_add_offline', { username, uuid }), '添加离线账户')
   },
 
   async addAuthlib(serverUrl: string, email: string, password: string): Promise<MinecraftAccount> {
@@ -53,6 +55,10 @@ export const accountsApi = {
     return assertSuccess(await backend.command('authlib_servers'), '读取外置登录服务器') ?? []
   },
 
+  async getMicrosoftLoginConfig(): Promise<MicrosoftLoginConfigData> {
+    return assertSuccess(await backend.command('accounts_microsoft_login_config'), '读取微软登录配置')
+  },
+
   async startMicrosoftLogin(): Promise<MicrosoftLoginData> {
     return assertSuccess(await backend.command('accounts_start_microsoft_login'), '启动微软登录')
   },
@@ -61,7 +67,15 @@ export const accountsApi = {
     return assertSuccess(await backend.command('accounts_poll_microsoft_login'), '查询微软登录状态')
   },
 
+  async cancelMicrosoftLogin(): Promise<void> {
+    assertSuccess(await backend.command('accounts_cancel_microsoft_login'), '取消微软登录')
+  },
+
   async completeMicrosoftLogin(): Promise<MicrosoftCompleteData> {
     return assertSuccess(await backend.command('accounts_complete_microsoft_login'), '完成微软登录')
+  },
+
+  onMicrosoftLoginStatus(handler: (event: MicrosoftLoginStatusEvent) => void): () => void {
+    return backend.on('accounts_microsoft_login_status', handler)
   },
 }

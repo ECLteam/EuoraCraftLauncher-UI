@@ -6,6 +6,7 @@ import { initTheme } from '@/composables/useTheme'
 import { i18n, supportedLocales } from '@/i18n'
 import type { BackendEvents, DownloadConfig, GameConfig, InstallProgress } from '@/types/api'
 import { installDesktopInteractionPolicy } from './interactionPolicy'
+import { useLauncherPopupQueue } from './useLauncherPopupQueue'
 import type { Router } from 'vue-router'
 
 interface MessageService {
@@ -33,6 +34,7 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
   const errorMessage = ref('')
   const errorDetail = ref('')
   const errorId = ref('')
+  const popupQueue = useLauncherPopupQueue()
 
   const cleanupCallbacks: Array<() => void> = []
   let started = false
@@ -119,7 +121,11 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
         errorId.value = payload.error_id || ''
         showErrorModal.value = true
       }),
-      backend.on('config:init', applyConfig),
+      backend.on('launcher:popup', popupQueue.enqueuePopup),
+      backend.on('config:init', (payload) => {
+        if (backend.isShowcaseActive) return
+        applyConfig(payload)
+      }),
       backend.on('plugin:css_injected', (payload) => {
         const pluginName = payload.plugin || 'unknown'
         const id = `plugin-css-${pluginName}`
@@ -145,15 +151,26 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
 
   async function loadInitialConfig(): Promise<void> {
     const result = await backend.config.getMany(['launcher', 'game', 'download', 'ui'])
-    if (result.success && result.data) applyConfig(result.data as unknown as BackendEvents['config:init'])
+    if (result.success && result.data) {
+      applyConfig(result.data as unknown as BackendEvents['config:init'])
+    }
   }
 
   async function start(): Promise<void> {
     if (started || !backend.runtime.isAvailable) return
     started = true
+
+    // 必须在 registerBackendEvents 之前检查展示模式，
+    // 否则 notifyFrontendReady 后后端发送的 config:init 事件会先于 swap 被处理
+    const launcherResult = await backend.config.get('launcher')
+    if (launcherResult.success && (launcherResult.data as Record<string, any>)?.showcase) {
+      backend.swapToShowcase()
+    }
+
     registerBackendEvents()
     cleanupCallbacks.push(installDesktopInteractionPolicy(readonly(isDevMode)))
     initPluginBridge(options.router)
+    await backend.waitForEventListeners()
     await notifyFrontendReady()
     await loadInitialConfig()
   }
@@ -178,6 +195,9 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
     errorMessage: readonly(errorMessage),
     errorDetail: readonly(errorDetail),
     errorId: readonly(errorId),
+    activePopup: popupQueue.activePopup,
+    popupVisible: popupQueue.popupVisible,
+    dismissActivePopup: popupQueue.dismissActivePopup,
     start,
     stop,
   }

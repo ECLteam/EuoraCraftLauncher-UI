@@ -6,36 +6,38 @@
     wrapperClass="version-detail-modal"
     bodyClass="version-detail-body"
   >
-    <div class="vdm-container">
-      <!-- 左侧导航 -->
-      <div class="vdm-nav">
-        <div class="vdm-nav-header">
-          <div class="vdm-version-badge">
-            <UiIcon :name="getLoaderIcon(version?.primaryLoader || 'vanilla')" :size="20" />
-            <span class="vdm-version-name">{{ version?.versionId || '...' }}</span>
+    <div class="vdm-shell">
+      <header class="vdm-header ecl-surface">
+        <div class="vdm-version-identity">
+          <div class="vdm-version-icon">
+            <UiIcon :name="getLoaderIcon(version?.primaryLoader || 'vanilla')" :size="22" />
           </div>
+          <div class="vdm-version-copy">
+            <strong>{{ version?.versionId || '...' }}</strong>
+            <span>{{ getLoaderName(version?.primaryLoader || 'vanilla') }}</span>
+          </div>
+          <NTag size="small" :bordered="false" :type="version?.isBroken ? 'error' : 'success'">
+            {{ version?.isBroken ? t('versions.detail.broken') : t('versions.detail.available') }}
+          </NTag>
         </div>
-        <div class="vdm-nav-list">
+
+        <nav class="vdm-tabs">
           <button
             v-for="tab in tabs"
             :key="tab.id"
-            :class="['vdm-nav-item', { active: activeTab === tab.id }]"
+            :class="['vdm-tab-button', { active: activeTab === tab.id }]"
             @click="activeTab = tab.id"
           >
-            <span class="nav-indicator" />
-            <UiIcon :name="tab.icon" :size="17" />
-            <span class="vdm-nav-label">{{ tab.label }}</span>
+            <UiIcon :name="tab.icon" :size="15" />
+            <span>{{ tab.label }}</span>
           </button>
-        </div>
+        </nav>
         <div id="plugin-slot-version-detail-tab" class="plugin-slot-container"></div>
-      </div>
+      </header>
 
-      <!-- 右侧内容 -->
       <div class="vdm-content">
-        <!-- 总览 -->
-        <div v-if="activeTab === 'overview'" class="vdm-tab">
-          <div class="settings-section">
-            <div class="section-label">{{ t('versions.detail.versionInfo') }}</div>
+        <div v-if="activeTab === 'overview'" class="vdm-page overview-page">
+          <SettingSection :title="t('versions.detail.versionInfo')">
             <div class="info-grid">
               <div class="info-item">
                 <span class="info-label">{{ t('versions.detail.versionId') }}</span>
@@ -51,224 +53,175 @@
               </div>
               <div class="info-item">
                 <span class="info-label">{{ t('versions.detail.status') }}</span>
-                <span :class="['badge', version?.isBroken ? 'badge-error' : 'badge-success']">
+                <span :class="['status-text', version?.isBroken ? 'is-error' : 'is-success']">
                   {{ version?.isBroken ? t('versions.detail.broken') : t('versions.detail.available') }}
                 </span>
               </div>
             </div>
-          </div>
+          </SettingSection>
 
-          <div class="settings-section">
-            <div class="section-label">{{ t('versions.detail.quickActions') }}</div>
-            <div class="quick-actions">
-              <button class="btn-action-card" @click="handleLaunch">
-                <UiIcon name="play" :size="20" />
-                <span>{{ t('versions.detail.launch') }}</span>
-              </button>
-              <button class="btn-action-card" @click="handleOpenFolder">
-                <UiIcon name="folder" :size="20" />
-                <span>{{ t('versions.detail.openFolder') }}</span>
-              </button>
-              <button class="btn-action-card" @click="handleDelete">
-                <UiIcon name="trash" :size="20" />
-                <span>{{ t('versions.detail.delete') }}</span>
-              </button>
+          <SettingSection :title="t('versions.detail.quickActions')">
+            <div class="overview-actions">
+              <NButton type="primary" secondary @click="handleLaunch">
+                <template #icon><UiIcon name="play" :size="15" /></template>
+                {{ t('versions.detail.launch') }}
+              </NButton>
+              <NButton secondary @click="handleOpenFolder">
+                <template #icon><UiIcon name="folder" :size="15" /></template>
+                {{ t('versions.detail.openFolder') }}
+              </NButton>
+              <NButton type="error" secondary @click="handleDelete">
+                <template #icon><UiIcon name="trash" :size="15" /></template>
+                {{ t('versions.detail.delete') }}
+              </NButton>
             </div>
-          </div>
+          </SettingSection>
         </div>
 
-        <!-- Mod 管理 -->
-        <div v-if="activeTab === 'mods'" class="vdm-tab">
-          <div class="settings-section">
-            <div class="section-label">{{ t('versions.detail.mods') }}</div>
-            <p class="placeholder-text">{{ t('versions.detail.placeholder') }}</p>
-          </div>
+        <div v-if="activeTab === 'mods'" class="vdm-page empty-page">
+          <NEmpty :description="t('versions.detail.placeholder')" />
         </div>
 
-        <!-- 版本设置 -->
-        <div v-if="activeTab === 'settings'" class="vdm-tab settings-tab">
+        <div v-if="activeTab === 'settings'" class="vdm-page version-settings-page">
           <div v-if="settingsLoading" class="settings-loading-state">
-            <span class="settings-loading-spinner" />
+            <NSpin size="small" />
             <span>{{ t('versions.detail.loadingSettings') }}</span>
           </div>
           <template v-else>
             <div class="settings-summary">
               <div class="settings-summary-copy">
-                <strong>{{ t('versions.detail.settings') }}</strong>
-                <span class="settings-summary-status">{{
+                <strong>{{
                   isCustomized ? t('versions.detail.customizedSettings') : t('versions.detail.usingGlobalSettings')
-                }}</span>
+                }}</strong>
+                <span>{{ t('versions.detail.settings') }} · {{ version?.versionId || '-' }}</span>
               </div>
-              <button class="btn-reset-settings" :disabled="settingsSaving || !isCustomized" @click="resetSettings">
+              <NButton
+                size="small"
+                secondary
+                :disabled="settingsSaving || !isCustomized"
+                :loading="settingsSaving"
+                @click="resetSettings"
+              >
                 {{ t('versions.detail.inheritGlobal') }}
-              </button>
+              </NButton>
             </div>
 
-            <div class="settings-section">
-              <div class="section-label">{{ t('versions.detail.launchOptions') }}</div>
-              <div class="setting-item">
-                <div class="setting-info">
-                  <div class="setting-label">{{ t('versions.detail.isolated') }}</div>
-                  <div class="setting-desc">{{ t('versions.detail.isolatedDesc') }}</div>
-                </div>
-                <div class="setting-control">
-                  <button
-                    :class="['toggle-switch', { active: versionSettings.isolated }]"
-                    role="switch"
-                    :aria-checked="versionSettings.isolated"
-                    @click="versionSettings.isolated = !versionSettings.isolated"
-                  >
-                    <span class="toggle-knob" />
-                  </button>
-                </div>
-              </div>
-            </div>
+            <SettingSection :title="t('versions.detail.launchOptions')">
+              <SettingRow :label="t('versions.detail.isolated')" :description="t('versions.detail.isolatedDesc')">
+                <NSwitch v-model:value="versionSettings.isolated" />
+              </SettingRow>
+            </SettingSection>
 
-            <div class="settings-section">
-              <div class="section-label">{{ t('versions.detail.memoryAllocation') }}</div>
-              <div class="setting-item">
-                <div class="setting-info">
-                  <div class="setting-label">{{ t('versions.detail.customMemory') }}</div>
-                  <div class="setting-desc">{{ t('versions.detail.customMemoryDesc') }}</div>
-                </div>
-                <div class="setting-control">
-                  <button
-                    :class="['toggle-switch', { active: versionSettings.customMemory }]"
-                    role="switch"
-                    :aria-checked="versionSettings.customMemory"
-                    @click="versionSettings.customMemory = !versionSettings.customMemory"
-                  >
-                    <span class="toggle-knob" />
-                  </button>
-                </div>
-              </div>
-              <div v-if="versionSettings.customMemory" class="setting-item setting-detail">
-                <div class="setting-info">
-                  <div class="setting-label">{{ t('versions.detail.memorySize') }}</div>
-                </div>
-                <div class="setting-control">
-                  <div class="number-input-wrap">
-                    <input
-                      v-model.number="versionSettings.memory"
-                      type="number"
-                      min="512"
-                      max="65536"
-                      step="256"
-                      class="text-input memory-input"
-                    />
-                    <span class="input-suffix">MB</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <SettingSection :title="t('versions.detail.memoryAllocation')">
+              <SettingRow
+                :label="t('versions.detail.customMemory')"
+                :description="t('versions.detail.customMemoryDesc')"
+              >
+                <NSwitch v-model:value="versionSettings.customMemory" />
+              </SettingRow>
+              <SettingRow v-if="versionSettings.customMemory" :label="t('versions.detail.memorySize')">
+                <NInputNumber
+                  v-model:value="versionSettings.memory"
+                  class="memory-number-input"
+                  :min="512"
+                  :max="65536"
+                  :step="256"
+                  :showButton="false"
+                >
+                  <template #suffix>MB</template>
+                </NInputNumber>
+              </SettingRow>
+            </SettingSection>
 
-            <div class="settings-section">
-              <div class="section-label">{{ t('versions.detail.javaRuntime') }}</div>
-              <div class="setting-item">
-                <div class="setting-info">
-                  <div class="setting-label">{{ t('versions.detail.customJava') }}</div>
-                  <div class="setting-desc">{{ t('versions.detail.customJavaDesc') }}</div>
-                </div>
-                <div class="setting-control">
-                  <button
-                    :class="['toggle-switch', { active: versionSettings.customJava }]"
-                    role="switch"
-                    :aria-checked="versionSettings.customJava"
-                    @click="versionSettings.customJava = !versionSettings.customJava"
-                  >
-                    <span class="toggle-knob" />
-                  </button>
-                </div>
-              </div>
-              <div v-if="versionSettings.customJava" class="setting-item setting-detail">
-                <div class="setting-info">
-                  <div class="setting-label">{{ t('versions.detail.javaPath') }}</div>
-                </div>
-                <div class="setting-control setting-control-wide">
-                  <input
-                    v-model="versionSettings.javaPath"
-                    type="text"
-                    class="text-input java-path-input"
+            <SettingSection :title="t('versions.detail.javaRuntime')">
+              <SettingRow
+                :label="t('versions.detail.customJava')"
+                :description="t('versions.detail.customJavaDesc')"
+              >
+                <NSwitch v-model:value="versionSettings.customJava" />
+              </SettingRow>
+              <SettingRow v-if="versionSettings.customJava" :label="t('versions.detail.javaPath')">
+                <NInputGroup class="java-path-control">
+                  <NInput
+                    v-model:value="versionSettings.javaPath"
                     :placeholder="t('versions.detail.javaPathPlaceholder')"
                   />
-                  <button class="btn-ghost java-browse-btn" :disabled="javaSelecting" @click="selectJava">
+                  <NButton :loading="javaSelecting" @click="selectJava">
                     {{ t('common.browse') }}
-                  </button>
-                </div>
-              </div>
-            </div>
+                  </NButton>
+                </NInputGroup>
+              </SettingRow>
+            </SettingSection>
 
-            <div class="settings-section">
-              <div class="section-label">{{ t('versions.detail.jvmArgs') }}</div>
-              <div class="setting-item setting-item-copy">
-                <div class="setting-info">
-                  <div class="setting-label">{{ t('versions.detail.customJvmArgs') }}</div>
-                  <div class="setting-desc">{{ t('versions.detail.customJvmArgsDesc') }}</div>
-                </div>
-              </div>
-              <textarea
-                v-model="versionSettings.jvmArgs"
-                class="text-input args-textarea"
-                :placeholder="t('versions.detail.jvmArgsPlaceholder')"
-              />
-            </div>
+            <SettingSection :title="t('versions.detail.jvmArgs')">
+              <SettingRow
+                :label="t('versions.detail.customJvmArgs')"
+                :description="t('versions.detail.customJvmArgsDesc')"
+              >
+                <NInput
+                  v-model:value="versionSettings.jvmArgs"
+                  class="argument-input"
+                  type="textarea"
+                  :autosize="{ minRows: 2, maxRows: 5 }"
+                  :placeholder="t('versions.detail.jvmArgsPlaceholder')"
+                />
+              </SettingRow>
+            </SettingSection>
 
-            <div class="settings-section">
-              <div class="section-label">{{ t('versions.detail.gameArgs') }}</div>
-              <div class="setting-item setting-item-copy">
-                <div class="setting-info">
-                  <div class="setting-label">{{ t('versions.detail.customGameArgs') }}</div>
-                  <div class="setting-desc">{{ t('versions.detail.customGameArgsDesc') }}</div>
-                </div>
-              </div>
-              <textarea
-                v-model="versionSettings.gameArgs"
-                class="text-input args-textarea"
-                :placeholder="t('versions.detail.gameArgsPlaceholder')"
-              />
-            </div>
+            <SettingSection :title="t('versions.detail.gameArgs')">
+              <SettingRow
+                :label="t('versions.detail.customGameArgs')"
+                :description="t('versions.detail.customGameArgsDesc')"
+              >
+                <NInput
+                  v-model:value="versionSettings.gameArgs"
+                  class="argument-input"
+                  type="textarea"
+                  :autosize="{ minRows: 2, maxRows: 5 }"
+                  :placeholder="t('versions.detail.gameArgsPlaceholder')"
+                />
+              </SettingRow>
+            </SettingSection>
           </template>
         </div>
 
-        <!-- 存档管理 -->
-        <div v-if="activeTab === 'saves'" class="vdm-tab">
-          <div class="settings-section">
-            <div class="section-label">{{ t('versions.detail.saves') }}</div>
-            <p class="placeholder-text">{{ t('versions.detail.placeholder') }}</p>
-          </div>
+        <div v-if="activeTab === 'saves'" class="vdm-page empty-page">
+          <NEmpty :description="t('versions.detail.placeholder')" />
         </div>
       </div>
-    </div>
 
-    <div id="plugin-slot-version-detail-footer" class="plugin-slot-container"></div>
+      <div id="plugin-slot-version-detail-footer" class="plugin-slot-container"></div>
+    </div>
 
     <template #footer>
       <div class="vdm-footer-status">
         <span v-if="activeTab === 'settings' && settingsDirty">{{ t('versions.detail.unsavedChanges') }}</span>
       </div>
-      <UiButton variant="secondary" :disabled="settingsSaving" @click="visible = false">
+      <NButton :disabled="settingsSaving" @click="visible = false">
         {{ t('common.close') }}
-      </UiButton>
-      <UiButton
+      </NButton>
+      <NButton
         v-if="activeTab === 'settings'"
-        variant="primary"
+        type="primary"
         :loading="settingsSaving"
         :disabled="settingsLoading || !settingsDirty"
         @click="saveSettings"
       >
         {{ t('versions.detail.saveSettings') }}
-      </UiButton>
+      </NButton>
     </template>
   </FullscreenModal>
 </template>
 
 <script setup lang="ts">
+import { NButton, NEmpty, NInput, NInputGroup, NInputNumber, NSpin, NSwitch, NTag } from 'naive-ui'
 import { ref, reactive, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
-import UiButton from '@/components/ui/Button.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useGlassMessage } from '@/composables/useGlassMessage'
+import SettingRow from '@/features/settings/components/SettingRow.vue'
+import SettingSection from '@/features/settings/components/SettingSection.vue'
 import { versionInstallApi } from '@/features/versions/api/versionInstallApi'
 import { versionSettingsApi } from '@/features/versions/api/versionSettingsApi'
 import { createDefaultVersionSettings, type VersionSettingsTarget } from '@/features/versions/model/versionSettings'
@@ -278,9 +231,14 @@ import { getLoaderIcon, getLoaderName } from '@/utils/loader'
 interface Props {
   visible: boolean
   version: ScannedVersion | null
+  initialTab?: DetailTab
 }
 
-const props = defineProps<Props>()
+type DetailTab = 'overview' | 'mods' | 'settings' | 'saves'
+
+const props = withDefaults(defineProps<Props>(), {
+  initialTab: 'overview',
+})
 const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void
   (e: 'launch', version: ScannedVersion): void
@@ -297,7 +255,7 @@ const visible = computed({
 
 const title = computed(() => props.version?.versionId || t('versions.detail.settings'))
 
-const activeTab = ref<'overview' | 'mods' | 'settings' | 'saves'>('overview')
+const activeTab = ref<DetailTab>('overview')
 
 const tabs = computed(() => [
   { id: 'overview' as const, icon: 'info', label: t('versions.detail.overview') },
@@ -345,10 +303,11 @@ watch(
   () => props.visible,
   (val) => {
     if (val) {
-      activeTab.value = 'overview'
+      activeTab.value = props.initialTab
       void loadSettings()
     }
-  }
+  },
+  { immediate: true }
 )
 
 async function saveSettings() {

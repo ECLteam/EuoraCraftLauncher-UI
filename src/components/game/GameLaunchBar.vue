@@ -1,36 +1,58 @@
 <template>
   <div class="game-launch-bar">
     <div id="plugin-slot-game-launch-before" class="plugin-slot-container"></div>
-    <NSpace :size="8" :wrap="false">
+    <div class="launch-action-row">
       <NButton
         v-if="versionsCount > 0"
-        class="fab-launch-btn launch-button"
+        class="fab-launch-btn launch-main-button"
         type="primary"
         size="large"
         :disabled="launching || !selectedVersion || !hasAccount"
         @click="emit('launch')"
       >
         <template #icon><UiIcon name="play" :size="16" /></template>
-        {{ launching ? t('game.launching') : t('game.launch') }}
-        <span class="launch-version">{{ selectedVersion }}</span>
+        <span class="launch-main-content">
+          <span class="launch-main-label">{{ launching ? t('game.launching') : t('game.launch') }}</span>
+          <span class="launch-version">{{ selectedVersion }}</span>
+        </span>
       </NButton>
-      <NButton v-else class="fab-launch-btn no-version launch-button" size="large" @click="emit('manageVersions')">
+      <NButton
+        v-else
+        class="fab-launch-btn no-version launch-main-button"
+        type="primary"
+        size="large"
+        @click="emit('manageVersions')"
+      >
         <template #icon><UiIcon name="download" :size="16" /></template>
-        {{ t('game.noVersionInstall') }}
+        <span class="launch-main-label">{{ t('game.noVersionInstall') }}</span>
       </NButton>
-      <NButton size="large" :title="t('versions.title')" @click="emit('manageVersions')">
-        <template #icon><UiIcon name="grid" :size="16" /></template>
+      <NButton
+        class="launch-manage-button"
+        type="primary"
+        secondary
+        size="large"
+        :title="t('versions.title')"
+        :aria-label="t('versions.title')"
+        @click="emit('manageVersions')"
+      >
+        <template #icon><UiIcon name="list" :size="17" /></template>
       </NButton>
-    </NSpace>
-    <NButton v-if="versionsCount > 0" block @click="emit('settings')">
-      <template #icon><UiIcon name="settings" :size="16" /></template>
-      {{ t('settings.gameSettings') }}
+    </div>
+    <NButton
+      class="launch-settings-button"
+      secondary
+      block
+      :disabled="!selectedVersion"
+      @click="emit('versionSettings')"
+    >
+      <template #icon><UiIcon name="settings" :size="15" /></template>
+      {{ t('game.versionSettings') }}
     </NButton>
   </div>
 </template>
 
 <script setup lang="ts">
-import { NButton, NSpace } from 'naive-ui'
+import { NButton } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
 
@@ -44,7 +66,7 @@ defineProps<{
 const emit = defineEmits<{
   launch: []
   manageVersions: []
-  settings: []
+  versionSettings: []
 }>()
 
 const { t } = useI18n()
@@ -56,29 +78,63 @@ const { t } = useI18n()
   width: 100%;
   margin-top: auto;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
-.launch-button {
+.launch-action-row {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) 48px;
+  gap: 10px;
+}
+
+.launch-main-button {
+  width: 100%;
+  height: 48px;
   min-width: 0;
-  flex: 1;
+  border-radius: var(--r-md);
+}
+
+.launch-main-button :deep(.n-button__content) {
+  min-width: 0;
+}
+
+.launch-main-content {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.launch-main-label {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.launch-manage-button {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border-radius: var(--r-md);
 }
 
 .launch-version {
   overflow: hidden;
-  max-width: 110px;
-  margin-left: 12px;
-  opacity: 0.72;
+  max-width: 105px;
+  padding-left: 10px;
+  color: color-mix(in srgb, var(--text-on-primary) 72%, transparent);
+  font-size: 11px;
+  font-weight: 500;
+  border-left: 1px solid color-mix(in srgb, var(--text-on-primary) 26%, transparent);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-:deep(.n-space) {
-  width: 100%;
-}
-
-:deep(.n-space > div:first-child) {
-  min-width: 0;
-  flex: 1;
+.launch-settings-button {
+  height: 34px;
+  border-radius: var(--r-md);
+  color: var(--text-secondary);
+  font-size: 11px;
 }
 </style>

@@ -244,6 +244,7 @@ export function useVersionManager(t: (key: string, ...args: unknown[]) => string
   return reactive({
     versions,
     selectedVersion,
+    currentGamePath,
     loading,
     launching,
     statusMsg,

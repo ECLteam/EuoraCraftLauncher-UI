@@ -108,6 +108,20 @@ export function createShowcaseTransport(): BackendTransport {
         return success({ status: 'ok', message: 'Showcase Transport 已连接' })
       case 'frontend_ready':
         return success()
+      case 'debug_reset_launcher_data':
+        return success({
+          action: 'reset_launcher_data',
+          restart_required: true,
+          targets: ['setting.json', 'accounts', 'info_card.json'],
+          backup_root: 'Showcase/ECL_data/backups',
+        })
+      case 'debug_clear_plugins':
+        return success({
+          action: 'clear_plugins',
+          restart_required: true,
+          targets: ['plugins', 'plugin_config'],
+          backup_root: 'Showcase/ECL_data/backups',
+        })
       case 'config_get':
         return success(structuredClone(config[String(payload.section)]))
       case 'config_set':
@@ -165,7 +179,11 @@ export function createShowcaseTransport(): BackendTransport {
       case 'accounts_current':
         return success(structuredClone(accounts.current))
       case 'accounts_add_offline': {
-        const account = createShowcaseAccount(String(payload.username || 'ShowcasePlayer'))
+        const account = createShowcaseAccount(
+          String(payload.username || 'ShowcasePlayer'),
+          'offline',
+          typeof payload.uuid === 'string' && payload.uuid ? payload.uuid : undefined
+        )
         accounts.accounts.push(account)
         setCurrentAccount(account.id)
         return success(structuredClone(account))
@@ -189,6 +207,7 @@ export function createShowcaseTransport(): BackendTransport {
       case 'accounts_refresh_profile':
         return success()
       case 'accounts_start_microsoft_login':
+        setTimeout(() => emit('accounts_microsoft_login_status', { status: 'ready' }), 2000)
         return success({
           status: 'pending',
           userCode: 'ECL-DEMO',
@@ -198,6 +217,10 @@ export function createShowcaseTransport(): BackendTransport {
         })
       case 'accounts_poll_microsoft_login':
         return success({ status: 'ready', message: '展示授权已完成' })
+      case 'accounts_microsoft_login_config':
+        return success({ available: false, needs_client_id: false })
+      case 'accounts_cancel_microsoft_login':
+        return success({ cancelled: true })
       case 'accounts_complete_microsoft_login':
         return success({
           status: 'completed',

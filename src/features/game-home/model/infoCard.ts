@@ -11,13 +11,17 @@ export const EMPTY_INFO_CARD: InfoCardData = {
 }
 
 export function normalizeInfoCard(data?: Partial<InfoCardData> | null): InfoCardData {
-  return {
+  const normalized: InfoCardData = {
     mode: data?.mode ?? EMPTY_INFO_CARD.mode,
     tips: data?.tips ?? [],
     announcements: data?.announcements ?? [],
     welcome: data?.welcome ?? null,
     interval: data?.interval ?? EMPTY_INFO_CARD.interval,
   }
+
+  if (data?.tip_title) normalized.tip_title = data.tip_title
+  if (data?.announcement_title) normalized.announcement_title = data.announcement_title
+  return normalized
 }
 
 export function resolveInitialInfoCardView(

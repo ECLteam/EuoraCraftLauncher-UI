@@ -27,6 +27,8 @@ export interface LauncherConfig {
   version: string
   version_type: 'dev' | 'beta' | 'release'
   debug: boolean
+  /** 由 ECL_CONFIG_launcher_showcase 环境变量控制，启用后使用 mock 数据替代真实后端 */
+  showcase?: boolean
 }
 
 export interface BackgroundConfig {
@@ -194,10 +196,20 @@ export interface MicrosoftLoginData {
   interval?: number
 }
 
+export interface MicrosoftLoginConfigData {
+  available: boolean
+  needs_client_id: boolean
+}
+
 export interface MicrosoftPollData {
   status: 'pending' | 'ready' | 'error'
   message?: string
   retry_after?: number
+}
+
+export interface MicrosoftLoginStatusEvent {
+  status: 'ready' | 'error' | 'cancelled'
+  message?: string
 }
 
 export interface MicrosoftCompleteData {
@@ -233,6 +245,13 @@ export interface LauncherInfo {
   debug: boolean
 }
 
+export interface DebugMaintenanceResult {
+  action: 'reset_launcher_data' | 'clear_plugins'
+  restart_required: boolean
+  targets: string[]
+  backup_root: string
+}
+
 // ═══════════════════════════════════════════════════════════════════
 //  游戏页信息卡
 // ═══════════════════════════════════════════════════════════════════
@@ -240,6 +259,7 @@ export interface LauncherInfo {
 export type InfoCardMode = 'auto' | 'rotate' | 'announcement_first' | 'tip_only' | 'announcement_only'
 
 export interface InfoCardAnnouncement {
+  id?: string
   title: string
   date: string
   content: string
@@ -252,6 +272,8 @@ export interface InfoCardWelcome {
 
 export interface InfoCardData {
   mode: InfoCardMode
+  tip_title?: string
+  announcement_title?: string
   tips: string[]
   announcements: InfoCardAnnouncement[]
   welcome?: InfoCardWelcome | null
@@ -483,6 +505,19 @@ export interface LaunchProgress {
 //  事件映射
 // ═══════════════════════════════════════════════════════════════════
 
+export type LauncherPopupLevel = 'info' | 'warning' | 'critical'
+
+export interface LauncherPopupEvent {
+  id: string
+  title: string
+  content: string
+  level?: LauncherPopupLevel
+  dismissible?: boolean
+  cacheable?: boolean
+  /** @deprecated 使用 cacheable；保留用于兼容已有后端事件。 */
+  once?: boolean
+}
+
 export interface BackendEvents {
   'config:init': {
     launcher: LauncherConfig
@@ -505,9 +540,11 @@ export interface BackendEvents {
     message: string
     detail?: string
   }
+  'launcher:popup': LauncherPopupEvent
   'game:install_progress': InstallProgress
   'game:launch_progress': LaunchProgress
   accounts_changed: AccountListData
+  accounts_microsoft_login_status: MicrosoftLoginStatusEvent
   'plugin:status_changed': { name: string; action: string; result: string }
   'plugin:installed': { name: string }
   'plugin:css_injected': { plugin: string; css: string }
@@ -584,14 +621,16 @@ export interface CommandPayloadMap {
   // 账户
   accounts_list: undefined
   accounts_current: undefined
-  accounts_add_offline: { username: string }
+  accounts_add_offline: { username: string; uuid?: string }
   accounts_add_authlib: {
     server_url: string
     email: string
     password: string
   }
+  accounts_microsoft_login_config: undefined
   accounts_start_microsoft_login: undefined
   accounts_poll_microsoft_login: undefined
+  accounts_cancel_microsoft_login: undefined
   accounts_complete_microsoft_login: undefined
   accounts_switch: { account_id: string }
   accounts_remove: { account_id: string }
@@ -710,6 +749,8 @@ export interface CommandPayloadMap {
   launcher_info: undefined
   info_card_get: undefined
   list_sections: undefined
+  debug_reset_launcher_data: undefined
+  debug_clear_plugins: undefined
   frontend_ready: undefined
 
   // 批量配置
@@ -756,8 +797,10 @@ export interface CommandResponseMap {
   accounts_current: MinecraftAccount | null
   accounts_add_offline: MinecraftAccount
   accounts_add_authlib: MinecraftAccount
+  accounts_microsoft_login_config: MicrosoftLoginConfigData
   accounts_start_microsoft_login: MicrosoftLoginData
   accounts_poll_microsoft_login: MicrosoftPollData
+  accounts_cancel_microsoft_login: void
   accounts_complete_microsoft_login: MicrosoftCompleteData
   accounts_switch: void
   accounts_remove: void
@@ -828,6 +871,8 @@ export interface CommandResponseMap {
   launcher_info: LauncherInfo
   info_card_get: InfoCardData
   list_sections: string[]
+  debug_reset_launcher_data: DebugMaintenanceResult
+  debug_clear_plugins: DebugMaintenanceResult
   frontend_ready: void
 
   config_get_all: Record<string, unknown>

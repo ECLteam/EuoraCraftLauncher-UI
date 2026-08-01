@@ -24,6 +24,7 @@ import type {
   PathInfo,
 } from '@/types/api'
 import { createBackendTransport } from './transport'
+import { createShowcaseTransport } from './transport/showcase'
 
 const CONFIG = {
   DEBUG: import.meta.env.DEV,
@@ -41,7 +42,7 @@ class Logger {
   }
 }
 
-const transport = createBackendTransport()
+let transport = createBackendTransport()
 
 function checkEnv(): boolean {
   return transport.available
@@ -92,6 +93,7 @@ async function call<T = unknown>(command: string, payload: unknown = {}): Promis
 // ── 事件侦听 ──────────────────────────────────────────────────────
 
 const _eventCleanups = new Map<string, Map<(payload: unknown) => void, () => void>>()
+const _pendingEventRegistrations = new Set<Promise<void>>()
 
 /**
  * 注册单次事件监听器。
@@ -141,7 +143,7 @@ function subscribeEvent<T>(event: string, cb: (payload: T) => void): () => void 
   let unlistened = false
   const trackedCallback = cb as (payload: unknown) => void
 
-  onEvent<T>(event, cb)
+  const registration = onEvent<T>(event, cb)
     .then((fn) => {
       if (unlistened) {
         fn()
@@ -164,6 +166,10 @@ function subscribeEvent<T>(event: string, cb: (payload: T) => void): () => void 
     .catch((err) => {
       Logger.error(`[on] 注册事件 ${event} 失败:`, err)
     })
+    .finally(() => {
+      _pendingEventRegistrations.delete(registration)
+    })
+  _pendingEventRegistrations.add(registration)
 
   return () => {
     unlistened = true
@@ -171,6 +177,12 @@ function subscribeEvent<T>(event: string, cb: (payload: T) => void): () => void 
       unlisten()
       unlisten = null
     }
+  }
+}
+
+async function waitForEventListeners(): Promise<void> {
+  while (_pendingEventRegistrations.size > 0) {
+    await Promise.all(Array.from(_pendingEventRegistrations))
   }
 }
 
@@ -192,13 +204,22 @@ async function resolveFileUrl(path: string): Promise<string | null> {
 //  导出
 // ═══════════════════════════════════════════════════════════════════
 
+let showcaseActive = false
+
+function swapToShowcase(): void {
+  const showcase = createShowcaseTransport()
+  // 保持 desktop 模式，确保窗口控制按钮正常显示
+  transport = { ...showcase, mode: 'desktop' }
+  showcaseActive = true
+}
+
 export const backend = {
   /** 当前应用运行环境。业务代码不应再直接检测 window.__TAURI__。 */
   runtime: {
-    mode: transport.mode,
-    isAvailable: transport.available,
-    isDesktop: transport.mode === 'desktop',
-    isShowcase: transport.mode === 'showcase',
+    get mode() { return transport.mode },
+    get isAvailable() { return transport.available },
+    get isDesktop() { return transport.mode === 'desktop' },
+    get isShowcase() { return showcaseActive || transport.mode === 'showcase' },
   },
 
   /** 配置存取 — 前端定义结构，后端只持久化 */
@@ -255,6 +276,9 @@ export const backend = {
     offEvent(event, cb as ((payload: unknown) => void) | undefined)
   },
 
+  /** 等待所有异步 Tauri 事件监听器完成注册。 */
+  waitForEventListeners,
+
   /** 文件系统 */
   fs: {
     readDir(path: string) {
@@ -280,6 +304,10 @@ export const backend = {
       return call<{ path: string }>('file_resolve', { path })
     },
   },
+
+  /** 切换到展示模式 mock 数据（由 ECL_CONFIG_launcher_showcase 环境变量触发） */
+  swapToShowcase,
+  get isShowcaseActive() { return showcaseActive },
 }
 
 export default backend

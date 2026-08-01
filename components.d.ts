@@ -20,7 +20,9 @@ declare module 'vue' {
     Icon: typeof import('./src/components/ui/Icon.vue')['default']
     Input: typeof import('./src/components/ui/Input.vue')['default']
     InstalledVersionList: typeof import('./src/components/versions/InstalledVersionList.vue')['default']
+    LauncherPopupModal: typeof import('./src/components/modals/LauncherPopupModal.vue')['default']
     LaunchProgressCard: typeof import('./src/components/game/LaunchProgressCard.vue')['default']
+    MarkdownContent: typeof import('./src/components/ui/MarkdownContent.vue')['default']
     Modal: typeof import('./src/components/modals/Modal.vue')['default']
     PageHeader: typeof import('./src/components/layout/PageHeader.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
@@ -32,6 +34,7 @@ declare module 'vue' {
     TaskQueuePanel: typeof import('./src/components/panels/TaskQueuePanel.vue')['default']
     TitleBar: typeof import('./src/components/layout/TitleBar.vue')['default']
     TitleBarTray: typeof import('./src/components/layout/TitleBarTray.vue')['default']
+    VersionInstallModal: typeof import('./src/components/versions/VersionInstallModal.vue')['default']
     VersionPathSidebar: typeof import('./src/components/versions/VersionPathSidebar.vue')['default']
   }
 }

@@ -70,6 +70,50 @@
       </div>
     </div>
 
+    <div class="section danger-section">
+      <div class="danger-section-heading">
+        <div>
+          <h2>{{ t('dev.dangerZone') }}</h2>
+          <p>{{ t('dev.dangerZoneDesc') }}</p>
+        </div>
+        <span class="debug-only-badge">{{ t('dev.debugOnly') }}</span>
+      </div>
+
+      <div class="danger-action-grid">
+        <article class="danger-action-card">
+          <div>
+            <h3>{{ t('dev.resetData') }}</h3>
+            <p>{{ t('dev.resetDataDesc') }}</p>
+            <small>{{ t('dev.resetDataScope') }}</small>
+          </div>
+          <UiButton
+            variant="danger"
+            :loading="processingAction === 'reset'"
+            :disabled="processingAction !== null && processingAction !== 'reset'"
+            @click="requestDangerAction('reset')"
+          >
+            {{ t('dev.resetData') }}
+          </UiButton>
+        </article>
+
+        <article class="danger-action-card">
+          <div>
+            <h3>{{ t('dev.clearPlugins') }}</h3>
+            <p>{{ t('dev.clearPluginsDesc') }}</p>
+            <small>{{ t('dev.clearPluginsScope') }}</small>
+          </div>
+          <UiButton
+            variant="danger"
+            :loading="processingAction === 'plugins'"
+            :disabled="processingAction !== null && processingAction !== 'plugins'"
+            @click="requestDangerAction('plugins')"
+          >
+            {{ t('dev.clearPlugins') }}
+          </UiButton>
+        </article>
+      </div>
+    </div>
+
     <!-- 普通弹窗 -->
     <Modal v-model:visible="showNormalModal" :title="t('dev.normalModalTest')">
       <p>{{ t('dev.normalModalDesc') }}</p>
@@ -107,18 +151,31 @@
         </UiButton>
       </template>
     </Modal>
+
+    <ConfirmDialog
+      v-model:visible="showDangerConfirm"
+      :title="dangerActionTitle"
+      :content="dangerActionContent"
+      :confirmText="t('dev.confirmDangerAction')"
+      :loading="processingAction !== null"
+      :closeOnConfirm="false"
+      danger
+      @confirm="confirmDangerAction"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import Modal from '@/components/modals/Modal.vue'
 import UiButton from '@/components/ui/Button.vue'
 import UiCard from '@/components/ui/Card.vue'
 import UiInput from '@/components/ui/Input.vue'
 import { useGlassMessage } from '@/composables/useGlassMessage'
+import { debugToolsApi } from '@/features/settings/api/debugToolsApi'
 
 const { t } = useI18n()
 const message = useGlassMessage()
@@ -127,6 +184,16 @@ const showNormalModal = ref(false)
 const showFullscreenModal = ref(false)
 const showNestedModal = ref(false)
 const inputValue = ref('')
+const showDangerConfirm = ref(false)
+const pendingAction = ref<'reset' | 'plugins' | null>(null)
+const processingAction = ref<'reset' | 'plugins' | null>(null)
+
+const dangerActionTitle = computed(() =>
+  pendingAction.value === 'plugins' ? t('dev.clearPluginsConfirmTitle') : t('dev.resetDataConfirmTitle')
+)
+const dangerActionContent = computed(() =>
+  pendingAction.value === 'plugins' ? t('dev.clearPluginsConfirmContent') : t('dev.resetDataConfirmContent')
+)
 
 const showMsg = (type: 'info' | 'success' | 'warning' | 'error') => {
   const messages: Record<string, string> = {
@@ -136,6 +203,30 @@ const showMsg = (type: 'info' | 'success' | 'warning' | 'error') => {
     error: t('common.error'),
   }
   message[type](messages[type] ?? '')
+}
+
+function requestDangerAction(action: 'reset' | 'plugins'): void {
+  if (processingAction.value) return
+  pendingAction.value = action
+  showDangerConfirm.value = true
+}
+
+async function confirmDangerAction(): Promise<void> {
+  const action = pendingAction.value
+  if (!action || processingAction.value) return
+  processingAction.value = action
+
+  try {
+    const result = action === 'reset' ? await debugToolsApi.resetLauncherData() : await debugToolsApi.clearPlugins()
+    showDangerConfirm.value = false
+    pendingAction.value = null
+    message.success(t('dev.maintenanceScheduled', { path: result.backup_root }), 10000)
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : t('common.error')
+    message.error(t('dev.maintenanceFailed', { detail }), 10000)
+  } finally {
+    processingAction.value = null
+  }
 }
 </script>
 

@@ -1,3 +1,4 @@
+import type { TaskItem } from '@/composables/useTaskQueue'
 import type {
   AccountListData,
   AuthlibServer,
@@ -9,7 +10,6 @@ import type {
   ScannedVersion,
   VersionCatalogItem,
 } from '@/types/api'
-import type { TaskItem } from '@/composables/useTaskQueue'
 
 export const showcaseConfig: Record<string, unknown> = {
   launcher: {
@@ -20,7 +20,7 @@ export const showcaseConfig: Record<string, unknown> = {
   game: {
     minecraft_paths: [
       {
-        name: '展示实例',
+        name: '默认路径',
         path: 'Showcase/.minecraft',
         protected: true,
       },
@@ -45,17 +45,17 @@ export const showcaseConfig: Record<string, unknown> = {
     theme: {
       mode: 'system',
       primary_color: '#6f8cff',
-      blur_amount: 18,
+      blur_amount: 0,
       sidebar_collapsed: true,
       navigation_mode: 'sidebar',
       titlebar_hidden: true,
-      background_opacity: 0.16,
+      background_opacity: 1,
     },
     background: {
       type: 'none',
       path: '',
-      opacity: 0.16,
-      blur: 18,
+      opacity: 1,
+      blur: 0,
     },
   },
 }
@@ -117,7 +117,7 @@ export const showcaseScannedVersions: ScannedVersion[] = [
     hasOptiFine: false,
     isBroken: false,
     jsonPath: 'Showcase/.minecraft/versions/1.21.5-Fabric/1.21.5-Fabric.json',
-    sourceName: '展示实例',
+    sourceName: '默认路径',
   },
   {
     id: '1.20.1-forge',
@@ -134,7 +134,7 @@ export const showcaseScannedVersions: ScannedVersion[] = [
     hasOptiFine: true,
     isBroken: false,
     jsonPath: 'Showcase/.minecraft/versions/1.20.1-Forge/1.20.1-Forge.json',
-    sourceName: '展示实例',
+    sourceName: '默认路径',
   },
   {
     id: '25w30a',
@@ -150,7 +150,7 @@ export const showcaseScannedVersions: ScannedVersion[] = [
     hasQuilt: false,
     isBroken: false,
     jsonPath: 'Showcase/.minecraft/versions/25w30a/25w30a.json',
-    sourceName: '展示实例',
+    sourceName: '默认路径',
   },
 ]
 
@@ -269,6 +269,8 @@ export const showcaseMods: ModSearchItem[] = [
 
 export const showcaseInfoCard: InfoCardData = {
   mode: 'rotate',
+  tip_title: '你知道吗',
+  announcement_title: '公告',
   tips: [
     '展示模式设置会保存在当前浏览器中，不会写入后端配置。',
     '可以在版本页体验搜索、筛选和安装流程。',
@@ -276,9 +278,10 @@ export const showcaseInfoCard: InfoCardData = {
   ],
   announcements: [
     {
+      id: 'showcase-frontend-refactor',
       title: '前端重构展示模式',
       date: '2026-07-23',
-      content: '当前界面由独立的 Showcase Transport 提供数据，可脱离 PyTauri 运行。',
+      content: '当前界面由独立的 **Showcase Transport** 提供数据，可脱离 PyTauri 运行。\n\n- 支持 Markdown 公告\n- 点击公告卡片可以查看完整内容',
     },
   ],
   welcome: {
@@ -288,12 +291,16 @@ export const showcaseInfoCard: InfoCardData = {
   interval: 8000,
 }
 
-export function createShowcaseAccount(alias: string, type: MinecraftAccount['type'] = 'offline'): MinecraftAccount {
+export function createShowcaseAccount(
+  alias: string,
+  type: MinecraftAccount['type'] = 'offline',
+  uuid?: string
+): MinecraftAccount {
   return {
     id: `showcase-${type}-${Date.now()}`,
     alias,
     type,
-    uuid: `showcase-${alias.toLowerCase().replace(/\s+/g, '-')}`,
+    uuid: uuid || `showcase-${alias.toLowerCase().replace(/\s+/g, '-')}`,
     skinUrl: `${import.meta.env.BASE_URL}img/skins/Sunny.png`,
     isCurrent: false,
   }

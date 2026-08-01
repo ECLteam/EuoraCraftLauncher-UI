@@ -17,7 +17,11 @@
         <div class="info-header">
           <UiIcon name="lightbulb" :size="16" />
           <span class="info-title">
-            {{ isWelcome ? data.welcome?.title || t('game.welcomeTitle') : t('game.didYouKnow') }}
+            {{
+              isWelcome
+                ? data.welcome?.title || t('game.welcomeTitle')
+                : data.tip_title || t('game.didYouKnow')
+            }}
           </span>
         </div>
         <p class="info-content">
@@ -28,45 +32,84 @@
       <div v-else key="announce" class="info-announce">
         <div class="info-header">
           <UiIcon name="bell" :size="16" />
-          <span class="info-title">{{ t('game.announcement') }}</span>
+          <span class="info-title">{{ data.announcement_title || t('game.announcement') }}</span>
         </div>
         <div class="announce-list">
           <div v-if="!hasAnnouncements" class="announce-empty">
             {{ t('game.noAnnouncements') }}
           </div>
           <template v-else-if="data.mode === 'rotate'">
-            <div v-if="currentAnnouncement" class="announce-item">
+            <button
+              v-if="currentAnnouncement"
+              type="button"
+              class="announce-item"
+              @click="openAnnouncement(currentAnnouncement)"
+            >
               <div class="announce-item-header">
                 <span class="announce-item-title">{{ currentAnnouncement.title }}</span>
-                <span class="announce-item-date">{{ currentAnnouncement.date }}</span>
+                <span class="announce-item-meta">
+                  <span v-if="currentAnnouncement.date" class="announce-item-date">
+                    {{ currentAnnouncement.date }}
+                  </span>
+                  <UiIcon name="arrow-right" :size="13" />
+                </span>
               </div>
               <p class="announce-item-desc">
-                {{ currentAnnouncement.content }}
+                {{ announcementPreview(currentAnnouncement.content) }}
               </p>
-            </div>
+            </button>
           </template>
           <template v-else>
-            <div v-for="(item, index) in data.announcements" :key="index" class="announce-item">
+            <button
+              v-for="(item, index) in data.announcements"
+              :key="item.id || `${item.title}-${item.date}-${index}`"
+              type="button"
+              class="announce-item"
+              @click="openAnnouncement(item)"
+            >
               <div class="announce-item-header">
                 <span class="announce-item-title">{{ item.title }}</span>
-                <span class="announce-item-date">{{ item.date }}</span>
+                <span class="announce-item-meta">
+                  <span v-if="item.date" class="announce-item-date">{{ item.date }}</span>
+                  <UiIcon name="arrow-right" :size="13" />
+                </span>
               </div>
               <p class="announce-item-desc">
-                {{ item.content }}
+                {{ announcementPreview(item.content) }}
               </p>
-            </div>
+            </button>
           </template>
         </div>
       </div>
     </Transition>
   </NCard>
+
+  <Modal
+    v-model:visible="announcementVisible"
+    :title="selectedAnnouncement?.title || t('game.announcement')"
+    :showFooter="false"
+    maskClosable
+    width="min(680px, calc(100vw - 32px))"
+  >
+    <article v-if="selectedAnnouncement" class="announcement-detail">
+      <div v-if="selectedAnnouncement.date" class="announcement-detail-date">
+        <UiIcon name="calendar" :size="13" />
+        <span>{{ selectedAnnouncement.date }}</span>
+      </div>
+      <MarkdownContent :content="selectedAnnouncement.content" />
+    </article>
+  </Modal>
 </template>
 
 <script setup lang="ts">
 import { NButton, NCard } from 'naive-ui'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
+import MarkdownContent from '@/components/ui/MarkdownContent.vue'
 import type { InfoCardData, InfoCardAnnouncement } from '@/types/api'
+import { createMarkdownExcerpt } from '@/utils/markdown'
 
 defineProps<{
   data: InfoCardData
@@ -83,6 +126,17 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const announcementVisible = ref(false)
+const selectedAnnouncement = ref<InfoCardAnnouncement | null>(null)
+
+function openAnnouncement(announcement: InfoCardAnnouncement): void {
+  selectedAnnouncement.value = announcement
+  announcementVisible.value = true
+}
+
+function announcementPreview(content: string): string {
+  return createMarkdownExcerpt(content, 48, `... ${t('game.viewAnnouncementDetails')}`)
+}
 </script>
 
 <style scoped>
@@ -141,8 +195,28 @@ const { t } = useI18n()
 }
 
 .announce-item {
-  padding-bottom: 7px;
+  width: 100%;
+  padding: 0 0 7px;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
   border-bottom: 1px solid var(--divider);
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+}
+
+.announce-item:hover,
+.announce-item:focus-visible {
+  transform: translateX(2px);
+}
+
+.announce-item:focus-visible {
+  outline: 2px solid var(--primary-alpha);
+  outline-offset: 3px;
+  border-radius: var(--r-xs);
 }
 
 .announce-item:last-child {
@@ -169,10 +243,37 @@ const { t } = useI18n()
   font-size: 10px;
 }
 
+.announce-item-meta {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-tertiary);
+}
+
 .announce-item-desc {
+  display: -webkit-box;
   margin: 0;
+  overflow: hidden;
   color: var(--text-secondary);
   font-size: 11px;
   line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.announcement-detail {
+  min-height: 120px;
+}
+
+.announcement-detail-date {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 13px;
+  padding-bottom: 10px;
+  color: var(--text-tertiary);
+  font-size: 11px;
+  border-bottom: 1px solid var(--divider);
 }
 </style>

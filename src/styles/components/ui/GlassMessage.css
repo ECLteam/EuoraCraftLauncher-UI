@@ -18,7 +18,7 @@
 }
 
 .notification-center.is-flush-left {
-  left: 0;
+  left: var(--s-lg);
 }
 
 .notification-list {
@@ -199,6 +199,10 @@
   }
 
   .notification-center:not(.is-flush-left) {
+    left: var(--s-sm);
+  }
+
+  .notification-center.is-flush-left {
     left: var(--s-sm);
   }
 }

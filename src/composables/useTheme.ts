@@ -214,12 +214,13 @@ function createThemeOverrides(isDark: boolean, primary: string): GlobalThemeOver
 // 状态
 let systemThemeListenerInitialized = false
 let initThemePromise: Promise<void> | null = null
+let currentBgObjectUrl: string | null = null
 
 const themeMode = ref<ThemeMode>('system')
 const primaryColor = ref('')
 const backgroundImage = ref('')
 const backgroundImagePath = ref('')
-const backgroundOpacity = ref(0)
+const backgroundOpacity = ref(1)
 const blurAmount = ref(0)
 const transparentBg = ref(false)
 const sidebarCollapsed = ref(true)
@@ -269,6 +270,7 @@ function updateTheme() {
   }
 
   const primaryScale = createPrimaryScale(primaryColor.value)
+  const bgImageValue = backgroundImage.value ? `url("${backgroundImage.value}")` : 'none'
 
   document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
   document.documentElement.style.setProperty('--primary', primaryScale.primary)
@@ -276,10 +278,7 @@ function updateTheme() {
   document.documentElement.style.setProperty('--primary-hover', primaryScale.primaryHover)
   document.documentElement.style.setProperty('--primary-active', primaryScale.primaryPressed)
   document.documentElement.style.setProperty('--primary-alpha', primaryScale.primaryLight)
-  document.documentElement.style.setProperty(
-    '--bg-image',
-    backgroundImage.value ? `url("${backgroundImage.value}")` : 'none'
-  )
+  document.documentElement.style.setProperty('--bg-image', bgImageValue)
   document.documentElement.style.setProperty('--bg-opacity', String(backgroundOpacity.value))
   document.documentElement.style.setProperty('--bg-app', transparentBg.value ? 'transparent' : '')
   document.documentElement.style.setProperty('--bg-blur', `${blurAmount.value}px`)
@@ -288,6 +287,11 @@ function updateTheme() {
   document.documentElement.setAttribute('data-sidebar-collapsed', sidebarCollapsed.value ? '1' : '0')
   document.documentElement.setAttribute('data-navigation-mode', navigationMode.value)
   document.documentElement.setAttribute('data-titlebar-hidden', titlebarHidden.value ? '1' : '0')
+
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line no-console
+    console.log('[updateTheme] --bg-image:', bgImageValue, 'backgroundImage.length:', backgroundImage.value?.length ?? 0)
+  }
 }
 
 function setThemeMode(mode: ThemeMode, persist = true) {
@@ -302,8 +306,35 @@ function setPrimaryColor(color: string, persist = true) {
   if (persist) saveThemeConfig()
 }
 
+function dataUrlToBlobUrl(dataUrl: string): string {
+  if (currentBgObjectUrl) {
+    URL.revokeObjectURL(currentBgObjectUrl)
+    currentBgObjectUrl = null
+  }
+  const [header, base64] = dataUrl.split(',')
+  const mimeMatch = header?.match(/:(.*?);/)
+  const mime = mimeMatch?.[1] || 'image/png'
+  const binary = atob(base64 || '')
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i)
+  }
+  const blob = new Blob([bytes], { type: mime })
+  currentBgObjectUrl = URL.createObjectURL(blob)
+  return currentBgObjectUrl
+}
+
+function resolveImageUrl(url: string): string {
+  // 超大的 data URL 直接写入 CSS 变量容易触发渲染/长度问题，转为 blob URL
+  return url && url.startsWith('data:') && url.length > 100 * 1024 ? dataUrlToBlobUrl(url) : url
+}
+
 function setBackgroundImage(url: string, path?: string, persist = true) {
-  backgroundImage.value = url
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line no-console
+    console.log('[setBackgroundImage] url.length:', url?.length ?? 0, 'path:', path, 'persist:', persist)
+  }
+  backgroundImage.value = resolveImageUrl(url)
   if (path !== undefined) backgroundImagePath.value = path
   updateTheme()
   if (persist) saveThemeConfig()
@@ -419,16 +450,12 @@ export async function initTheme(uiConfig?: unknown): Promise<void> {
       backgroundImagePath.value = bgData.path ?? ''
 
       if (bgData.image_base64) {
-        backgroundImage.value = bgData.image_base64
+        backgroundImage.value = resolveImageUrl(bgData.image_base64)
       } else if (settingsApi.isShowcase && bgData.path?.startsWith('http')) {
         backgroundImage.value = bgData.path
       } else if (bgData.path && bgData.type !== 'default') {
         const imageUrl = await settingsApi.readImage(bgData.path)
-        if (imageUrl) {
-          backgroundImage.value = imageUrl
-        } else {
-          backgroundImage.value = ''
-        }
+        backgroundImage.value = imageUrl ? resolveImageUrl(imageUrl) : ''
       } else {
         backgroundImage.value = ''
       }

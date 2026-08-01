@@ -81,6 +81,9 @@
                     :errorId="errorId"
                   />
 
+                  <!-- 后端主动推送的全局弹窗 -->
+                  <LauncherPopupModal :visible="popupVisible" :popup="activePopup" @dismiss="dismissActivePopup" />
+
                   <!-- 用户协议弹窗 -->
                   <Modal
                     :visible="showAgreementModal"
@@ -131,12 +134,14 @@ import {
 import { computed, onMounted, onUnmounted, provide, readonly, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { loadShowcaseTasks } from '@/api/transport/showcase/fixtures'
 import { desktopWindow } from '@/app/runtime/desktopWindow'
 import { useAppRuntime } from '@/app/runtime/useAppRuntime'
 import SideBar from '@/components/layout/SideBar.vue'
 import TitleBar from '@/components/layout/TitleBar.vue'
 import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import ErrorModal from '@/components/modals/ErrorModal.vue'
+import LauncherPopupModal from '@/components/modals/LauncherPopupModal.vue'
 import Modal from '@/components/modals/Modal.vue'
 import TaskQueuePanel from '@/components/panels/TaskQueuePanel.vue'
 import GlassMessage from '@/components/ui/GlassMessage.vue'
@@ -146,7 +151,6 @@ import { globalTaskQueue } from '@/composables/useTaskQueue'
 import { useTheme } from '@/composables/useTheme'
 import { useUserAgreement } from '@/composables/useUserAgreement'
 import { openExternalUrl } from '@/utils/openExternal'
-import { loadShowcaseTasks } from '@/api/transport/showcase/fixtures'
 
 const router = useRouter()
 const { naiveTheme, themeOverrides } = useTheme()
@@ -174,7 +178,16 @@ const appRuntime = useAppRuntime({
   showAgreementModal,
 })
 
-const { showErrorModal, errorTitle, errorMessage, errorDetail, errorId } = appRuntime
+const {
+  showErrorModal,
+  errorTitle,
+  errorMessage,
+  errorDetail,
+  errorId,
+  activePopup,
+  popupVisible,
+  dismissActivePopup,
+} = appRuntime
 
 provide('devMode', appRuntime.isDevMode)
 provide('launcherVersion', appRuntime.launcherVersion)

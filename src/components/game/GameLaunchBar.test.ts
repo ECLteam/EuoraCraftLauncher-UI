@@ -41,6 +41,31 @@ describe('GameLaunchBar', () => {
     expect(wrapper.emitted('launch')).toHaveLength(1)
   })
 
+  it('版本管理按钮与启动按钮使用独立布局并保持可操作', async () => {
+    const wrapper = mountLaunchBar()
+
+    expect(wrapper.find('.launch-action-row').exists()).toBe(true)
+    expect(wrapper.get('.launch-version').text()).toBe('1.21.1')
+    expect(wrapper.find('.launch-manage-button .icon-list').exists()).toBe(true)
+    await wrapper.get('.launch-manage-button').trigger('click')
+
+    expect(wrapper.emitted('manageVersions')).toHaveLength(1)
+  })
+
+  it('未选择版本时禁用版本设置按钮', () => {
+    const wrapper = mountLaunchBar({ selectedVersion: '' })
+
+    expect(wrapper.get<HTMLButtonElement>('.launch-settings-button').element.disabled).toBe(true)
+  })
+
+  it('选择版本后可以打开版本设置', async () => {
+    const wrapper = mountLaunchBar()
+
+    await wrapper.get('.launch-settings-button').trigger('click')
+
+    expect(wrapper.emitted('versionSettings')).toHaveLength(1)
+  })
+
   it('缺少账户时禁用启动按钮', () => {
     const wrapper = mountLaunchBar({ hasAccount: false })
 

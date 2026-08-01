@@ -106,66 +106,24 @@
       </div>
     </div>
 
-    <!-- 安装弹窗 -->
-    <Modal v-model:visible="showInstallDialog" :title="t('versions.download.installTitle')">
-      <div class="form-group">
-        <label>{{ t('versions.download.mcVersion') }} <span class="required">*</span></label>
-        <div class="version-display">
-          {{ installForm.mcVersion }}
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>{{ t('versions.download.versionName') }}</label>
-        <UiInput v-model="installForm.versionName" :placeholder="defaultVersionName" />
-        <p class="form-hint">
-          {{ t('versions.download.versionNameHint') }}
-        </p>
-      </div>
-
-      <div class="form-group">
-        <label>{{ t('versions.download.loaderType') }}</label>
-        <div class="loader-options">
-          <button
-            v-for="loader in loaders"
-            :key="loader.value"
-            class="loader-btn"
-            :class="{ active: installForm.loader === loader.value }"
-            @click="selectLoader(loader.value)"
-          >
-            <UiIcon :name="loader.icon" />
-            <span>{{ loader.label }}</span>
-          </button>
-        </div>
-      </div>
-
-      <div v-if="installForm.loader && installForm.loader !== 'vanilla'" class="form-group">
-        <label>{{ t('versions.download.loaderVersion') }}</label>
-        <UiSelect
-          v-model="installForm.loaderVersion"
-          :options="getLoaderVersionOptions(installForm.loader)"
-          :placeholder="loaderVersionsLoading ? '加载中...' : '最新版本'"
-        />
-      </div>
-
-      <div class="form-group">
-        <label>{{ t('versions.download.gameDir') }}</label>
-        <UiSelect
-          v-model="installForm.gamePath"
-          :options="gamePaths"
-          :placeholder="t('instances.gamePathPlaceholder')"
-        />
-      </div>
-
-      <template #footer>
-        <UiButton variant="ghost" @click="showInstallDialog = false">
-          {{ t('versions.download.cancel') }}
-        </UiButton>
-        <UiButton variant="primary" :loading="isInstalling" @click="startInstall">
-          {{ isInstalling ? t('versions.download.installing') : t('versions.download.startInstall') }}
-        </UiButton>
-      </template>
-    </Modal>
+    <VersionInstallModal
+      v-model:visible="showInstallDialog"
+      v-model:versionName="installForm.versionName"
+      v-model:loaderVersion="installForm.loaderVersion"
+      v-model:gamePath="installForm.gamePath"
+      :mcVersion="installForm.mcVersion"
+      :versionTypeLabel="installVersionTypeLabel"
+      :versionImage="installVersionImage"
+      :defaultVersionName="defaultVersionName"
+      :loader="installForm.loader"
+      :loaderVersionOptions="getLoaderVersionOptions(installForm.loader)"
+      :loaderVersionsLoading="loaderVersionsLoading"
+      :gamePaths="gamePaths"
+      :loaders="loaders"
+      :isInstalling="isInstalling"
+      @selectLoader="selectLoader"
+      @install="startInstall"
+    />
   </div>
 </template>
 
@@ -174,11 +132,9 @@ import { storeToRefs } from 'pinia'
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAutoRefreshCache, CACHE_KEYS, CACHE_GROUPS } from '@/cache/composable'
-import Modal from '@/components/modals/Modal.vue'
-import UiButton from '@/components/ui/Button.vue'
 import UiIcon from '@/components/ui/Icon.vue'
-import UiInput from '@/components/ui/Input.vue'
 import UiSelect from '@/components/ui/Select.vue'
+import VersionInstallModal from '@/components/versions/VersionInstallModal.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
@@ -294,6 +250,7 @@ const loaders = INSTALLABLE_LOADERS.map((l) => ({
   value: l.value,
   label: l.label,
   icon: l.icon,
+  image: l.image || (l.value === 'vanilla' ? '/img/item/grass.png' : ''),
 }))
 
 function getCategoryCount(categoryId: string): number {
@@ -320,6 +277,10 @@ const versionTypeMap = computed(() => {
   }
   return map
 })
+
+const installVersionType = computed(() => versionTypeMap.value.get(installForm.value.mcVersion) || 'release')
+const installVersionTypeLabel = computed(() => getVersionTypeLabel(installVersionType.value))
+const installVersionImage = computed(() => getVersionImage(installVersionType.value) || '/img/item/grass.png')
 
 const filteredVersions = computed(() => {
   const catalog = versionCatalog.value
@@ -402,7 +363,9 @@ async function loadDefaultGamePath() {
   const paths = data.minecraft_paths || []
   gamePaths.value = paths.map((p: MinecraftPathEntry) => {
     const pathStr = typeof p === 'string' ? p : p.path || ''
-    const name = typeof p === 'object' ? p.name || pathStr : pathStr
+    const name = typeof p === 'object' && p.name
+      ? p.name
+      : pathStr.split(/[\\/]/).pop() || t('versions.manage.gamePath')
     return { value: pathStr, label: name }
   })
 
@@ -510,7 +473,7 @@ async function doInstall() {
     }
 
     await installStore.install(versionId, params)
-    glassMessage.success(t('versions.download.installSuccess', { version: versionId }))
+    glassMessage.success(t('versions.download.installQueued', { version: versionId }))
     saveLastInstallPath(gamePath)
   } catch (e: unknown) {
     globalTaskQueue.updateTask(taskId, {
