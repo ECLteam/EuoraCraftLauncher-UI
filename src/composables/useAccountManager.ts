@@ -1,10 +1,17 @@
 import { storeToRefs } from 'pinia'
 import { ref, computed, reactive } from 'vue'
 import { useAccountStore } from '@/features/accounts/stores/accountStore'
-import type { MinecraftAccount, MicrosoftLoginData, MicrosoftLoginStatusEvent } from '@/types/api'
+import type {
+  AuthlibProfile,
+  MinecraftAccount,
+  MicrosoftLoginData,
+  MicrosoftLoginStage,
+  MicrosoftLoginStatusEvent,
+} from '@/types/api'
 import { openExternalUrl } from '@/utils/openExternal'
 import { useClipboard } from './useClipboard'
 import { useGlassMessage } from './useGlassMessage'
+import type { AutoCompleteOption } from 'naive-ui'
 
 export type Account = MinecraftAccount
 const OFFLINE_UUID_PATTERN =
@@ -39,18 +46,36 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
   const authlibEmail = ref('')
   const authlibPassword = ref('')
   const addingAuthlib = ref(false)
+  const authlibProfiles = ref<AuthlibProfile[]>([])
+  const pendingAuthlibAccountId = ref('')
+  const selectedAuthlibProfileIds = ref<string[]>([])
+  const selectingAuthlibProfiles = ref(false)
   const authlibServerOptions = computed(() =>
     authlibServers.value.map((server) => ({
       value: server.url,
-      label: server.name || server.url,
+      label: server.url,
+      email: server.email,
       desc: server.description || server.url,
     }))
   )
+
+  function renderAuthlibServerOption(option: AutoCompleteOption) {
+    const label = String(option.label ?? option.value ?? '')
+    return option.email ? `${label} · ${option.email}` : label
+  }
+
+  function prepareAuthlibProfileSelection(account: MinecraftAccount) {
+    if (!account.profile_selection_required || !account.available_profiles?.length) return
+    pendingAuthlibAccountId.value = account.id
+    authlibProfiles.value = account.available_profiles
+    selectedAuthlibProfileIds.value = []
+  }
 
   const showMicrosoftLoginModal = ref(false)
   const startingMicrosoftLogin = ref(false)
   const completingMicrosoftLogin = ref(false)
   const microsoftLoginStatus = ref<'pending' | 'loading' | 'error'>('pending')
+  const microsoftLoginStage = ref<MicrosoftLoginStage>('waiting_authorization')
   const microsoftLoginData = ref<Pick<MicrosoftLoginData, 'userCode' | 'verificationUri'>>({
     userCode: '',
     verificationUri: '',
@@ -81,6 +106,10 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
   async function loadAccounts() {
     try {
       await accountStore.load()
+      const pendingAccount = accounts.value.find(
+        (account) => account.profile_selection_required && account.available_profiles?.length
+      )
+      if (pendingAccount) prepareAuthlibProfileSelection(pendingAccount)
     } catch {
       message.error(t('game.status.accountLoadFailed'))
     }
@@ -165,9 +194,17 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
   async function loadAuthlibServers() {
     try {
       await accountStore.loadAuthlibServers()
+      const recentLogin = authlibServers.value[0]
+      if (!authlibServerUrl.value && recentLogin) authlibServerUrl.value = recentLogin.url
+      if (!authlibEmail.value && recentLogin?.email) authlibEmail.value = recentLogin.email
     } catch {
       // 可选服务器列表失败时仍允许用户手动填写地址。
     }
+  }
+
+  function selectAuthlibServer(serverUrl: string) {
+    const server = authlibServers.value.find((item) => item.url === serverUrl)
+    if (server) authlibEmail.value = server.email
   }
 
   function toggleAuthlibForm() {
@@ -197,11 +234,13 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
 
     addingAuthlib.value = true
     try {
-      await accountStore.addAuthlib(serverUrl, email, password)
-      message.success(t('game.status.accountAdded'))
-      authlibServerUrl.value = ''
-      authlibEmail.value = ''
+      const account = await accountStore.addAuthlib(serverUrl, email, password)
+      if (account.profile_selection_required && account.available_profiles?.length) {
+        prepareAuthlibProfileSelection(account)
+        return
+      }
       authlibPassword.value = ''
+      message.success(t('game.status.accountAdded'))
       showAuthlibForm.value = false
     } catch (reason) {
       message.error(reason instanceof Error ? reason.message : t('game.status.accountAddFailed'))
@@ -210,9 +249,35 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     }
   }
 
+  async function selectAuthlibProfiles() {
+    if (!pendingAuthlibAccountId.value || selectedAuthlibProfileIds.value.length === 0) {
+      message.error(t('auth.profileRequired'))
+      return
+    }
+    selectingAuthlibProfiles.value = true
+    try {
+      await accountStore.selectAuthlibProfiles(
+        pendingAuthlibAccountId.value,
+        selectedAuthlibProfileIds.value,
+        authlibPassword.value || undefined
+      )
+      message.success(t('game.status.accountAdded'))
+      pendingAuthlibAccountId.value = ''
+      authlibProfiles.value = []
+      selectedAuthlibProfileIds.value = []
+      authlibPassword.value = ''
+      showAuthlibForm.value = false
+    } catch (reason) {
+      message.error(reason instanceof Error ? reason.message : t('auth.profileSelectFailed'))
+    } finally {
+      selectingAuthlibProfiles.value = false
+    }
+  }
+
   async function startMicrosoftLogin() {
     if (!microsoftLoginConfig.value.available) return
     startingMicrosoftLogin.value = true
+    microsoftLoginStage.value = 'waiting_authorization'
     let result: MicrosoftLoginData
     try {
       result = await accountStore.startMicrosoftLogin()
@@ -237,6 +302,7 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
         verificationUri: result.verificationUri || '',
       }
       microsoftLoginStatus.value = 'pending'
+      microsoftLoginStage.value = 'waiting_authorization'
       microsoftLoginError.value = ''
       showMicrosoftLoginModal.value = true
       void openMicrosoftLoginPage()
@@ -270,6 +336,7 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
   async function cancelMicrosoftLogin() {
     showMicrosoftLoginModal.value = false
     microsoftLoginStatus.value = 'pending'
+    microsoftLoginStage.value = 'waiting_authorization'
     microsoftLoginError.value = ''
     try {
       await accountStore.cancelMicrosoftLogin()
@@ -301,6 +368,7 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
       showMicrosoftLoginModal.value = false
       microsoftLoginStatus.value = 'pending'
       microsoftLoginError.value = ''
+      microsoftLoginStage.value = 'waiting_authorization'
       return
     }
     if (!showMicrosoftLoginModal.value) return
@@ -310,7 +378,13 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
       message.error(microsoftLoginError.value)
       return
     }
+    if (event.status === 'progress' && event.stage) {
+      microsoftLoginStage.value = event.stage
+      microsoftLoginStatus.value = 'loading'
+      return
+    }
     if (event.status === 'ready' && !completingFromEvent) {
+      microsoftLoginStage.value = 'completed'
       completingFromEvent = true
       try {
         await completeMicrosoftLogin()
@@ -350,17 +424,26 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     authlibEmail,
     authlibPassword,
     addingAuthlib,
+    authlibProfiles,
+    pendingAuthlibAccountId,
+    selectedAuthlibProfileIds,
+    selectingAuthlibProfiles,
     authlibServers,
     authlibServerOptions,
+    renderAuthlibServerOption,
+    prepareAuthlibProfileSelection,
     authlibServersLoading,
     loadAuthlibServers,
+    selectAuthlibServer,
     toggleAuthlibForm,
     addAuthlibAccount,
+    selectAuthlibProfiles,
     // Microsoft
     showMicrosoftLoginModal,
     startingMicrosoftLogin,
     completingMicrosoftLogin,
     microsoftLoginStatus,
+    microsoftLoginStage,
     microsoftLoginData,
     microsoftLoginError,
     microsoftLoginConfig,

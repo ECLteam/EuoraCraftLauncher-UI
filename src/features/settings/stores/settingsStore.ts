@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import backend from '@/api/client'
 import { settingsApi } from '@/features/settings/api/settingsApi'
 import type { DownloadConfig, GameConfig, UiConfig } from '@/types/api'
 
@@ -14,7 +15,12 @@ const DEFAULT_GAME_CONFIG: GameConfig = {
 
 const DEFAULT_DOWNLOAD_CONFIG: DownloadConfig = {
   mirror_source: 'official',
-  download_threads: 8,
+}
+
+async function resolveLocalImageUrl(path: string): Promise<string | null> {
+  const fileUrl = await backend.file.toUrl(path).catch(() => null)
+  if (fileUrl) return fileUrl
+  return settingsApi.readImage(path)
 }
 
 export const useSettingsStore = defineStore('settings', () => {
@@ -86,15 +92,24 @@ export const useSettingsStore = defineStore('settings', () => {
   async function chooseBackgroundImage(): Promise<{ path: string; imageUrl: string | null } | null> {
     const path = await settingsApi.selectImage()
     if (!path) return null
-    await patchUiBackground({ type: 'custom', path })
-    return { path, imageUrl: await settingsApi.readImage(path) }
+    await patchUiBackground({ type: 'custom', path, mode: 'single' })
+    return { path, imageUrl: await resolveLocalImageUrl(path) }
+  }
+
+  async function chooseBackgroundFolder(): Promise<{ path: string; files: string[]; firstImageUrl: string | null } | null> {
+    const path = await settingsApi.selectDirectory()
+    if (!path) return null
+    const files = await settingsApi.listBackgroundImages(path)
+    const firstImageUrl = files[0] ? await resolveLocalImageUrl(files[0]) : null
+    await patchUiBackground({ type: 'custom', path, mode: 'carousel', interval: 10 })
+    return { path, files, firstImageUrl }
   }
 
   async function saveRemoteBackground(url: string): Promise<{ path: string; imageUrl: string | null } | null> {
-    const path = await settingsApi.saveImageUrl(url)
-    if (!path) return null
-    await patchUiBackground({ type: 'custom', path })
-    return { path, imageUrl: await settingsApi.readImage(path) }
+    const result = await settingsApi.saveImageUrl(url)
+    if (!result) return null
+    await patchUiBackground({ type: 'custom', path: result.url, mode: 'single', image_base64: result.dataUrl })
+    return { path: result.url, imageUrl: result.dataUrl }
   }
 
   return {
@@ -111,6 +126,7 @@ export const useSettingsStore = defineStore('settings', () => {
     patchGame,
     patchDownload,
     chooseBackgroundImage,
+    chooseBackgroundFolder,
     saveRemoteBackground,
   }
 })

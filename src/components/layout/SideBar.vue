@@ -20,7 +20,7 @@
     <!-- 导航区域 -->
     <nav class="sidebar-nav" @mouseleave="handleMouseLeave">
       <!-- 插件：侧边栏顶部插槽 -->
-      <div id="plugin-slot-sidebar-top" class="plugin-slot-container"></div>
+      <div id="plugin-slot-sidebar-top" class="plugin-slot-container sidebar-plugin-slot"></div>
       <div v-if="!isCollapsed" ref="activeBgRef" class="sidebar-active-bg"></div>
       <div v-if="!isCollapsed" ref="indicatorRef" class="sidebar-active-indicator"></div>
 
@@ -80,7 +80,7 @@
 
       <!-- 插件注册的导航项 -->
       <template v-if="!isCollapsed">
-        <div v-for="pRoute in pluginRoutesList" :key="pRoute.path" class="sidebar-plugin-divider"></div>
+        <div v-if="pluginRoutesList.length" class="sidebar-plugin-divider"></div>
         <button
           v-for="pRoute in pluginRoutesList"
           :key="'btn-' + pRoute.path"
@@ -96,6 +96,9 @@
         </button>
       </template>
     </nav>
+
+    <!-- 插件：侧边栏底部插槽 -->
+    <div id="plugin-slot-sidebar-bottom" class="plugin-slot-container sidebar-plugin-slot"></div>
 
     <!-- 底部 -->
     <div class="sidebar-footer">
@@ -138,9 +141,11 @@ import { useGlassMessage } from '@/composables/useGlassMessage'
 import { pluginRoutes } from '@/composables/usePluginBridge'
 import { useTheme } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
-import { openExternalUrl } from '@/utils/openExternal'
 import { URLS } from '@/config/urls'
 import { MENU_ITEMS } from '@/constants/menu'
+import { pluginHostApi } from '@/features/plugins/api/pluginHostApi'
+import { setSidebarState } from '@/plugin-sdk/state'
+import { openExternalUrl } from '@/utils/openExternal'
 
 defineOptions({ name: 'SideBar', inheritAttrs: false })
 
@@ -167,6 +172,17 @@ const agreementAccepted = inject(
 )
 const injectedDevMode = inject<Readonly<Ref<boolean>>>('devMode')
 const isDevMode = computed(() => injectedDevMode?.value ?? false)
+
+watch(
+  isCollapsed,
+  (collapsed) => {
+    setSidebarState(collapsed)
+    void pluginHostApi.notifySidebarState(collapsed).catch((error) => {
+      console.error('[SideBar] 通知插件侧栏状态失败:', error)
+    })
+  },
+  { immediate: true }
+)
 
 const menuItems = computed(() =>
   MENU_ITEMS.map((item) => ({

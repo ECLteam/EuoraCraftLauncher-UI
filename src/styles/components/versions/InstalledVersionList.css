@@ -243,11 +243,6 @@
   width: 64px;
 }
 
-.col-status {
-  flex-shrink: 0;
-  width: 56px;
-}
-
 .col-actions {
   display: flex;
   flex-shrink: 0;

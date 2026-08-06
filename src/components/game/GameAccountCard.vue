@@ -1,5 +1,5 @@
 <template>
-  <NCard class="account-card" contentStyle="padding: 14px 16px;">
+  <NCard class="account-card ecl-surface" contentStyle="padding: 14px 16px;">
     <div class="account-info">
       <AvatarRenderer
         v-if="account"
@@ -8,6 +8,7 @@
         :username="account.alias"
         :typeName="account.type"
         :skinUrl="account.skinUrl"
+        :accountId="account.id"
         :size="40"
       />
       <div v-else class="account-avatar-placeholder">
@@ -82,6 +83,13 @@ function selectAccount(accountId: string | number) {
 </script>
 
 <style scoped>
+.account-card {
+  background: var(--ecl-surface);
+  border: 1px solid var(--ecl-border);
+  border-radius: var(--ecl-radius-card);
+  box-shadow: var(--ecl-shadow-surface);
+}
+
 .account-info {
   display: flex;
   align-items: center;

@@ -9,6 +9,7 @@ import type {
   FsEntry,
   ImageDataUrl,
   ImageSelection,
+  InstallVersionResult,
   JavaInstallation,
   JsonDict,
   MinecraftAccount,
@@ -103,6 +104,7 @@ export function scanGameVersions(path?: string | string[]): Promise<ApiResponse<
 /**
  * 安装游戏版本。
  * @param params - 安装参数，包括版本 ID、加载器、任务 ID 等
+ * @returns 已创建的安装任务信息
  */
 export function installGameVersion(params: {
   version_id: string
@@ -117,8 +119,7 @@ export function installGameVersion(params: {
   optifine_patch?: string
   quilt_version?: string
   game_path?: string
-  download_threads?: number
-}): Promise<ApiResponse<void>> {
+}): Promise<ApiResponse<InstallVersionResult>> {
   return backend.command('install_version', params)
 }
 

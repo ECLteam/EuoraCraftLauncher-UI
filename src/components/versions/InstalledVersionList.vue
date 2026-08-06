@@ -62,7 +62,6 @@
           <span class="col-icon" />
           <span class="col-name">{{ t('versions.manage.versionName') }}</span>
           <span class="col-type">{{ t('versions.manage.loaderType') }}</span>
-          <span class="col-status">{{ t('versions.manage.status') }}</span>
           <span class="col-actions" />
         </div>
 
@@ -86,11 +85,6 @@
             <div class="col-type">
               <span :class="['badge', 'badge-' + getLoaderClass(version.primaryLoader)]">
                 {{ loaderDisplayName(version.primaryLoader) }}
-              </span>
-            </div>
-            <div class="col-status">
-              <span :class="['badge', version.isBroken ? 'badge-error' : 'badge-success']">
-                {{ version.isBroken ? t('versions.manage.statusBroken') : t('versions.manage.statusAvailable') }}
               </span>
             </div>
             <div class="col-actions">
@@ -179,6 +173,7 @@ function loaderDisplayName(loaderType: string | null): string {
 }
 
 function versionImage(version: ScannedVersion): string {
+  if (version.hasOptiFine) return getLoaderImage('optifine')
   return getLoaderImage(version.primaryLoader) || getVersionImage(version.versionType)
 }
 </script>

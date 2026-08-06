@@ -25,7 +25,6 @@ const plugin = {
   status: 'enabled',
   error: null,
   dependencies: {},
-  events: {},
   services: [],
   is_system: false,
 }

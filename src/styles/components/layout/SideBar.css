@@ -326,3 +326,20 @@
   background: var(--divider);
   margin: 5px 14px;
 }
+
+.sidebar-plugin-slot {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.sidebar-plugin-slot:empty {
+  display: none;
+}
+
+.sidebar-plugin-slot :deep(.plugin-slot-item),
+.sidebar-plugin-slot :deep(.plugin-vue-slot-item) {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}

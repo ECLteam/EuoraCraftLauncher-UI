@@ -329,6 +329,18 @@ function resolveImageUrl(url: string): string {
   return url && url.startsWith('data:') && url.length > 100 * 1024 ? dataUrlToBlobUrl(url) : url
 }
 
+function preloadBackgroundImage(url: string): Promise<void> {
+  return new Promise((resolve) => {
+    const image = new Image()
+    image.onload = () => resolve()
+    image.onerror = () => {
+      console.warn('[Theme] 背景图片加载失败:', url)
+      resolve()
+    }
+    image.src = url
+  })
+}
+
 function setBackgroundImage(url: string, path?: string, persist = true) {
   if (import.meta.env.DEV) {
     // eslint-disable-next-line no-console
@@ -425,6 +437,7 @@ export async function initTheme(uiConfig?: unknown): Promise<void> {
   const payload = uiConfig as ThemeInitPayload | undefined
 
   const promise = (async () => {
+    let backgroundChanged = false
     if (payload?.theme) {
       const themeData = payload.theme
       if (themeData.mode) {
@@ -446,6 +459,7 @@ export async function initTheme(uiConfig?: unknown): Promise<void> {
     }
 
     if (payload?.background) {
+      backgroundChanged = true
       const bgData = payload.background
       backgroundImagePath.value = bgData.path ?? ''
 
@@ -463,6 +477,10 @@ export async function initTheme(uiConfig?: unknown): Promise<void> {
       if (typeof bgData.opacity === 'number') {
         backgroundOpacity.value = bgData.opacity
       }
+    }
+
+    if (backgroundChanged && backgroundImage.value) {
+      await preloadBackgroundImage(backgroundImage.value)
     }
 
     if (!systemThemeListenerInitialized) {

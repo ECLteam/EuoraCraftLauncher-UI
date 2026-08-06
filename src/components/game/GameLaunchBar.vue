@@ -42,6 +42,8 @@
       class="launch-settings-button"
       secondary
       block
+      :title="t('game.versionSettings')"
+      :aria-label="t('game.versionSettings')"
       :disabled="!selectedVersion"
       @click="emit('versionSettings')"
     >
@@ -117,6 +119,17 @@ const { t } = useI18n()
   height: 48px;
   padding: 0;
   border-radius: var(--r-md);
+  border: 1px solid var(--primary) !important;
+  background: var(--primary-alpha-strong) !important;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+}
+
+.launch-manage-button:hover:not(:disabled) {
+  filter: brightness(0.92);
+  transform: translateY(-1px);
 }
 
 .launch-version {
@@ -134,7 +147,27 @@ const { t } = useI18n()
 .launch-settings-button {
   height: 34px;
   border-radius: var(--r-md);
-  color: var(--text-secondary);
+  color: var(--text-primary) !important;
   font-size: 11px;
+  font-weight: 600;
+  border: 1px solid var(--border-strong) !important;
+  background: var(--bg-elevated) !important;
+  box-shadow: var(--shadow-xs);
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+}
+
+.launch-settings-button:hover:not(:disabled) {
+  color: var(--primary) !important;
+  background: var(--bg-hover) !important;
+  border-color: var(--border-hover) !important;
+  transform: translateY(-1px);
+}
+
+.launch-settings-button:disabled {
+  opacity: 0.45;
 }
 </style>

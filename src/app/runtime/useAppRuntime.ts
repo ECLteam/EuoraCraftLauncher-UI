@@ -1,10 +1,11 @@
 import { readonly, ref, type Ref } from 'vue'
 import backend from '@/api/client'
-import { initPluginBridge, destroyPluginBridge } from '@/composables/usePluginBridge'
+import { initPluginBridge, destroyPluginBridge, scopePluginCss } from '@/composables/usePluginBridge'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
 import { initTheme } from '@/composables/useTheme'
 import { i18n, supportedLocales } from '@/i18n'
 import type { BackendEvents, DownloadConfig, GameConfig, InstallProgress } from '@/types/api'
+import { getErrorMessage } from '@/utils/error'
 import { installDesktopInteractionPolicy } from './interactionPolicy'
 import { useLauncherPopupQueue } from './useLauncherPopupQueue'
 import type { Router } from 'vue-router'
@@ -39,7 +40,7 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
   const cleanupCallbacks: Array<() => void> = []
   let started = false
 
-  function applyConfig(payload: BackendEvents['config:init']): void {
+  async function applyConfig(payload: BackendEvents['config:init']): Promise<void> {
     const launcher = payload.launcher
     if (launcher) {
       isDevMode.value = launcher.debug === true
@@ -59,7 +60,11 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
         document.documentElement.setAttribute('lang', locale)
       }
     }
-    void initTheme(ui)
+    try {
+      await initTheme(ui)
+    } catch (error) {
+      options.message.warning(`界面配置加载失败：${getErrorMessage(error)}`, 10000)
+    }
   }
 
   function getSubtaskLabel(subtask: string): string {
@@ -124,11 +129,13 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
       backend.on('launcher:popup', popupQueue.enqueuePopup),
       backend.on('config:init', (payload) => {
         if (backend.isShowcaseActive) return
-        applyConfig(payload)
+        void applyConfig(payload)
       }),
       backend.on('plugin:css_injected', (payload) => {
         const pluginName = payload.plugin || 'unknown'
-        const id = `plugin-css-${pluginName}`
+        const styleKey =
+          payload.key !== null && payload.key !== undefined ? encodeURIComponent(payload.key) : crypto.randomUUID()
+        const id = `plugin-css-${pluginName}-${styleKey}`
         let styleElement = document.getElementById(id) as HTMLStyleElement | null
         if (!styleElement) {
           styleElement = document.createElement('style')
@@ -136,7 +143,7 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
           styleElement.setAttribute('data-plugin', pluginName)
           document.head.appendChild(styleElement)
         }
-        styleElement.textContent = payload.css || ''
+        styleElement.textContent = scopePluginCss(pluginName, payload.css || '')
       }),
       backend.on('game:install_progress', handleInstallProgress)
     )
@@ -152,7 +159,9 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
   async function loadInitialConfig(): Promise<void> {
     const result = await backend.config.getMany(['launcher', 'game', 'download', 'ui'])
     if (result.success && result.data) {
-      applyConfig(result.data as unknown as BackendEvents['config:init'])
+      await applyConfig(result.data as unknown as BackendEvents['config:init'])
+    } else if (!result.success) {
+      options.message.warning(result.message || '读取启动器配置失败', 10000)
     }
   }
 
@@ -171,8 +180,8 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
     cleanupCallbacks.push(installDesktopInteractionPolicy(readonly(isDevMode)))
     initPluginBridge(options.router)
     await backend.waitForEventListeners()
-    await notifyFrontendReady()
     await loadInitialConfig()
+    await notifyFrontendReady()
   }
 
   function stop(): void {

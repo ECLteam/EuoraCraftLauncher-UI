@@ -57,6 +57,15 @@ export function useGameInfoCard() {
 
   const { pause, resume } = useIntervalFn(rotate, () => infoCardData.value.interval ?? 8000)
 
+  function pauseRotation(): void {
+    pause()
+  }
+
+  function resumeRotation(): void {
+    if (infoCardData.value.mode === 'tip_only' || infoCardData.value.mode === 'announcement_only') return
+    resume()
+  }
+
   async function start(): Promise<void> {
     await store.load()
     infoCardMode.value = resolveInitialInfoCardView(infoCardData.value.mode, hasTips.value, hasAnnouncements.value)
@@ -97,5 +106,7 @@ export function useGameInfoCard() {
     start,
     stop,
     toggle,
+    pauseRotation,
+    resumeRotation,
   }
 }

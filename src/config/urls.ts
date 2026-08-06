@@ -14,7 +14,7 @@ export const URLS = {
   githubOrg: 'https://github.com/ECLteam',
 
   /** 头像服务 */
-  avatarApi: 'https://crafatar.com/avatars',
+  avatarApi: 'https://api.mcheads.org/head',
 
   /** 镜像源 */
   bmclapi: 'https://bmclapi2.bangbang93.com',
@@ -51,5 +51,5 @@ export const URLS = {
 /** 头像 URL 构建 */
 export function getAvatarUrl(uuid: string, size = 64): string {
   const cleanUuid = uuid.replace(/-/g, '')
-  return `${URLS.avatarApi}/${cleanUuid}?size=${size}&overlay=true&default=MHF_Steve`
+  return `${URLS.avatarApi}/${cleanUuid}/${size}`
 }

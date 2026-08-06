@@ -29,6 +29,9 @@
           <span class="path-location" :title="item.path">{{ item.path }}</span>
         </div>
         <div v-if="!item.protected" class="path-actions">
+          <button class="path-action-btn" :title="t('versions.manage.openFolder')" @click.stop="emit('open-folder', index)">
+            <UiIcon name="folder-open" :size="14" />
+          </button>
           <button class="path-action-btn" :title="t('common.edit')" @click.stop="emit('edit', index)">
             <UiIcon name="settings" :size="14" />
           </button>
@@ -65,6 +68,7 @@ const emit = defineEmits<{
   select: [index: number]
   edit: [index: number]
   remove: [index: number]
+  'open-folder': [index: number]
 }>()
 
 const { t } = useI18n()

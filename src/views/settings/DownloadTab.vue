@@ -12,20 +12,6 @@
         </template>
       </SettingRow>
 
-      <SettingRow :label="t('settings.downloadThreads')" :description="t('settings.downloadThreadsDesc')">
-        <template #default>
-          <div class="threads-control">
-            <NSlider
-              :value="localSettings.download_threads"
-              :min="1"
-              :max="16"
-              :tooltip="false"
-              @update:value="handleThreadsChange"
-            />
-            <span>{{ localSettings.download_threads }} {{ t('settings.threads') }}</span>
-          </div>
-        </template>
-      </SettingRow>
     </SettingSection>
 
     <div id="plugin-slot-settings-download-section-after" class="plugin-slot-container"></div>
@@ -33,9 +19,9 @@
 </template>
 
 <script setup lang="ts">
-import { NSelect, NSlider } from 'naive-ui'
+import { NSelect } from 'naive-ui'
 import { storeToRefs } from 'pinia'
-import { computed, onUnmounted } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { MIRROR_OPTIONS } from '@/config/version'
@@ -59,19 +45,6 @@ const downloadOptions = computed(() =>
 const handleDownloadSourceChange = async (value: 'official' | 'bmclapi') => {
   await run(async () => settingsStore.patchDownload({ mirror_source: value }))
 }
-
-let threadsSaveTimer: ReturnType<typeof setTimeout> | null = null
-const handleThreadsChange = (val: number) => {
-  localSettings.value.download_threads = val
-  if (threadsSaveTimer) clearTimeout(threadsSaveTimer)
-  threadsSaveTimer = setTimeout(() => {
-    void run(async () => settingsStore.patchDownload({ download_threads: val }))
-  }, 400)
-}
-
-onUnmounted(() => {
-  if (threadsSaveTimer) clearTimeout(threadsSaveTimer)
-})
 </script>
 
 <style scoped src="@/styles/views/settings/DownloadTab.css"></style>

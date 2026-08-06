@@ -106,6 +106,8 @@ export function createShowcaseTransport(): BackendTransport {
     switch (command) {
       case 'ping':
         return success({ status: 'ok', message: 'Showcase Transport 已连接' })
+      case 'system_memory':
+        return success({ totalMb: 32768, usedMb: 8192, freeMb: 24576, percentUsed: 25 })
       case 'frontend_ready':
         return success()
       case 'debug_reset_launcher_data':
@@ -169,9 +171,16 @@ export function createShowcaseTransport(): BackendTransport {
         return success(structuredClone(showcaseLoaderVersions[command] ?? []))
       case 'scan_versions':
         return success(structuredClone(showcaseScannedVersions))
-      case 'install_version':
-        emitInstallProgress(String(payload.task_id ?? `showcase-install-${Date.now()}`))
-        return success()
+      case 'install_version': {
+        const taskId = String(payload.task_id ?? `showcase-install-${Date.now()}`)
+        const versionId = String(payload.version_id)
+        emitInstallProgress(taskId)
+        return success({
+          taskId,
+          versionId,
+          versionName: String(payload.version_name || versionId),
+        })
+      }
       case 'uninstall_version':
         return success()
       case 'accounts_list':
@@ -195,6 +204,14 @@ export function createShowcaseTransport(): BackendTransport {
         setCurrentAccount(account.id)
         return success(structuredClone(account))
       }
+      case 'accounts_select_authlib_profiles':
+        return success(
+          structuredClone(
+            accounts.accounts.filter((account) =>
+              (payload.profile_ids as string[] | undefined)?.includes(account.uuid || '')
+            )
+          )
+        )
       case 'accounts_switch':
         setCurrentAccount(String(payload.account_id))
         return success()
@@ -206,8 +223,12 @@ export function createShowcaseTransport(): BackendTransport {
       }
       case 'accounts_refresh_profile':
         return success()
-      case 'accounts_start_microsoft_login':
-        setTimeout(() => emit('accounts_microsoft_login_status', { status: 'ready' }), 2000)
+      case 'accounts_start_microsoft_login': {
+        const stages = ['authorization_confirmed', 'minecraft_token', 'profile', 'saving'] as const
+        stages.forEach((stage, index) => {
+          setTimeout(() => emit('accounts_microsoft_login_status', { status: 'progress', stage }), 1000 + index * 500)
+        })
+        setTimeout(() => emit('accounts_microsoft_login_status', { status: 'ready' }), 3200)
         return success({
           status: 'pending',
           userCode: 'ECL-DEMO',
@@ -215,10 +236,11 @@ export function createShowcaseTransport(): BackendTransport {
           message: '展示模式不会发起真实登录',
           interval: 3,
         })
+      }
       case 'accounts_poll_microsoft_login':
         return success({ status: 'ready', message: '展示授权已完成' })
       case 'accounts_microsoft_login_config':
-        return success({ available: false, needs_client_id: false })
+        return success({ available: true, needs_client_id: false })
       case 'accounts_cancel_microsoft_login':
         return success({ cancelled: true })
       case 'accounts_complete_microsoft_login':
@@ -238,7 +260,11 @@ export function createShowcaseTransport(): BackendTransport {
         return success([])
       case 'launch_instance':
         emitLaunchProgress()
-        return success()
+        return success({
+          instanceId: 'showcase-instance',
+          versionId: String(payload.version_id),
+          gamePath: String(payload.game_path || '.minecraft'),
+        })
       case 'cancel_launch':
       case 'instance_stop':
         return success()
@@ -278,7 +304,6 @@ export function createShowcaseTransport(): BackendTransport {
           status: 'enabled',
           error: null,
           dependencies: {},
-          events: {},
           services: [],
           is_system: false,
         } satisfies PluginInfo)
@@ -354,7 +379,13 @@ export function createShowcaseTransport(): BackendTransport {
       case 'avatar_data_url':
         return success({})
       case 'image_save_url':
-        return success({ path: 'Showcase/Image.png' })
+        return success({
+          dataUrl: (payload as { url?: string }).url ?? '',
+          base64: '',
+          url: (payload as { url?: string }).url ?? '',
+        })
+      case 'image_save_as':
+        return success({ path: 'Showcase/SavedImage.png' })
       case 'export_logs':
         return success({ path: 'Showcase/ECL-logs.zip' })
       default:

@@ -162,7 +162,8 @@ export function useAvatarRenderer() {
     username: string | undefined,
     accountType: AccountType | string,
     size: number,
-    skinUrl?: string
+    skinUrl?: string,
+    accountId?: string
   ): Promise<string | null> {
     loading.value = true
     error.value = false
@@ -195,6 +196,7 @@ export function useAvatarRenderer() {
           const result = await backend.command('avatar_data_url', {
             uuid: uuidToUse,
             type_name: serverType,
+            account_id: accountId,
             size,
             use_default_skin: useDefaultSkin,
           })
@@ -216,7 +218,10 @@ export function useAvatarRenderer() {
         return renderOfflineAvatar(name, size)
       }
 
-      // 对于有UUID的玩家，尝试Crafatar
+      if (accountType.toLowerCase() === 'authlib') {
+        return renderOfflineAvatar(name, size)
+      }
+
       const cached = getCached(id, accountType, size)
       if (cached) {
         loading.value = false

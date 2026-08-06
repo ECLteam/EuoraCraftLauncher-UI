@@ -1,5 +1,13 @@
 import backend from '@/api/client'
-import type { DownloadConfig, GameConfig, JavaInstallation, UiConfig } from '@/types/api'
+import type {
+  DownloadConfig,
+  GameConfig,
+  ImageSaveAsPayload,
+  ImageSaveUrlResult,
+  JavaInstallation,
+  SystemMemoryInfo,
+  UiConfig,
+} from '@/types/api'
 
 function assertSuccess<T>(result: { success: boolean; data?: T; message?: string }, operation: string): T {
   if (!result.success) {
@@ -38,6 +46,15 @@ export const settingsApi = {
     assertSuccess(await backend.config.set('download', config), '保存下载设置')
   },
 
+  async getSystemMemory(): Promise<SystemMemoryInfo> {
+    return assertSuccess(await backend.command('system_memory'), '读取系统内存') ?? {
+      totalMb: 16384,
+      usedMb: 4096,
+      freeMb: 12288,
+      percentUsed: 25,
+    }
+  },
+
   async listJava(): Promise<JavaInstallation[]> {
     return assertSuccess(await backend.command('java_list'), '扫描 Java') ?? []
   },
@@ -54,26 +71,40 @@ export const settingsApi = {
     return result.data?.path ?? null
   },
 
-  async saveImageUrl(url: string): Promise<string | null> {
+  async selectDirectory(): Promise<string | null> {
+    const result = await backend.command('select_directory')
+    if (!result.success) throw new Error(result.message || '选择文件夹失败')
+    return result.data?.path ?? null
+  },
+
+  async listBackgroundImages(path: string): Promise<string[]> {
+    const result = await backend.command('image_list_files', { path })
+    if (!result.success) throw new Error(result.message || '读取图片列表失败')
+    return result.data?.files ?? []
+  },
+
+  async saveImageUrl(url: string): Promise<ImageSaveUrlResult | null> {
     const result = await backend.command('image_save_url', { url })
     if (!result.success) throw new Error(result.message || '保存远程图片失败')
+    return result.data ?? null
+  },
+
+  async saveImageAs(payload: ImageSaveAsPayload): Promise<string | null> {
+    const result = await backend.command('image_save_as', payload)
+    if (!result.success) throw new Error(result.message || '保存图片失败')
     return result.data?.path ?? null
   },
 
   async readImage(path: string): Promise<string | null> {
     const result = await backend.command('image_read_file', { path })
-    console.log('[readImage] raw result:', result)
     if (!result.success) throw new Error(result.message || '读取图片失败')
     const data = result.data ?? {}
     if (data.dataUrl) {
-      console.log('[readImage] resolved dataUrl length:', data.dataUrl.length)
       return data.dataUrl
     }
     if (data.base64) {
-      console.log('[readImage] resolved raw base64 length:', data.base64.length)
       return `data:image/png;base64,${data.base64}`
     }
-    console.log('[readImage] no image data returned')
     return null
   },
 }

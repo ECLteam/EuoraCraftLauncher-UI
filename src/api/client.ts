@@ -23,6 +23,7 @@ import type {
   FsEntry,
   PathInfo,
 } from '@/types/api'
+import { getErrorMessage } from '@/utils/error'
 import { createBackendTransport } from './transport'
 import { createShowcaseTransport } from './transport/showcase'
 
@@ -82,11 +83,16 @@ async function call<T = unknown>(command: string, payload: unknown = {}): Promis
     if (!raw || typeof raw !== 'object') {
       return { success: false, message: '后端返回了非对象响应', timestamp: Date.now() }
     }
-    Logger.log(`${(raw as ApiResponse).success ? 'OK' : 'ERR'} ${command} (${dur}ms)`)
-    return raw as ApiResponse<T>
+    const response = raw as ApiResponse<T>
+    if (!response.success && !response.message?.trim()) {
+      const code = response.errorCode ? ` (${response.errorCode})` : ''
+      response.message = `${command} 执行失败${code}`
+    }
+    Logger.log(`${response.success ? 'OK' : 'ERR'} ${command} (${dur}ms)`)
+    return response
   } catch (e) {
     Logger.error(`${command}:`, e)
-    return { success: false, message: (e as Error)?.message || '未知错误', timestamp: Date.now() }
+    return { success: false, message: getErrorMessage(e), timestamp: Date.now() }
   }
 }
 

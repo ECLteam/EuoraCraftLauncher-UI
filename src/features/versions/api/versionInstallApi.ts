@@ -1,5 +1,11 @@
 import backend from '@/api/client'
-import type { CommandPayloadMap, MinecraftVersionCatalog, ScannedVersion, SelectResult } from '@/types/api'
+import type {
+  CommandPayloadMap,
+  InstallVersionResult,
+  MinecraftVersionCatalog,
+  ScannedVersion,
+  SelectResult,
+} from '@/types/api'
 
 export type InstallableLoader = 'fabric' | 'forge' | 'neoforge' | 'quilt'
 
@@ -32,8 +38,8 @@ export const versionInstallApi = {
     return assertSuccess(result, '检查版本目录').exists
   },
 
-  async install(params: CommandPayloadMap['install_version']): Promise<void> {
-    assertSuccess(await backend.command('install_version', params), '安装版本')
+  async install(params: CommandPayloadMap['install_version']): Promise<InstallVersionResult> {
+    return assertSuccess(await backend.command('install_version', params), '安装版本')
   },
 
   async uninstall(versionId: string, gamePath?: string): Promise<void> {

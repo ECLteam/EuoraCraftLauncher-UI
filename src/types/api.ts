@@ -37,6 +37,10 @@ export interface BackgroundConfig {
   opacity: number
   blur: number
   image_base64?: string
+  mode?: 'single' | 'carousel' | 'random'
+  interval?: number
+  /** URL 轮播/随机模式下的图片地址列表 */
+  urls?: string[]
 }
 
 export type MinecraftPathEntry = string | { name: string; path: string; protected?: boolean }
@@ -54,6 +58,13 @@ export interface GameConfig {
   last_install_path?: string
 }
 
+export interface SystemMemoryInfo {
+  totalMb: number
+  usedMb: number
+  freeMb: number
+  percentUsed: number
+}
+
 export interface ThemeConfig {
   mode: 'light' | 'dark' | 'system'
   primary_color: string
@@ -69,7 +80,6 @@ export type NavigationMode = 'sidebar' | 'top'
 
 export interface DownloadConfig {
   mirror_source: 'official' | 'bmclapi'
-  download_threads: number
 }
 
 export interface LocaleConfig {
@@ -136,7 +146,9 @@ export interface ScannedVersion {
   path?: string
   displayName: string
   primaryLoader: string
+  loaderVersion?: string
   vanillaName: string
+  requiredJava?: number | null
   hasForge: boolean
   hasNeoForge: boolean
   hasFabric: boolean
@@ -165,6 +177,18 @@ export interface GameInstance {
   version?: string
 }
 
+export interface InstallVersionResult {
+  taskId: string
+  versionId: string
+  versionName: string
+}
+
+export interface LaunchInstanceResult {
+  instanceId: string
+  versionId: string
+  gamePath: string
+}
+
 // ═══════════════════════════════════════════════════════════════════
 //  账户
 // ═══════════════════════════════════════════════════════════════════
@@ -180,6 +204,8 @@ export interface MinecraftAccount {
   isCurrent?: boolean
   skinUrl?: string
   auth_server?: string
+  available_profiles?: AuthlibProfile[]
+  profile_selection_required?: boolean
 }
 
 export interface AccountListData {
@@ -187,8 +213,12 @@ export interface AccountListData {
   current: MinecraftAccount | null
 }
 
+export type MicrosoftLoginStage =
+  'waiting_authorization' | 'authorization_confirmed' | 'minecraft_token' | 'profile' | 'saving' | 'completed'
+
 export interface MicrosoftLoginData {
-  status?: 'pending' | 'completed' | 'error'
+  status?: 'pending' | 'progress' | 'completed' | 'error'
+  stage?: MicrosoftLoginStage
   needs_client_id?: boolean
   userCode?: string
   verificationUri?: string
@@ -202,18 +232,22 @@ export interface MicrosoftLoginConfigData {
 }
 
 export interface MicrosoftPollData {
-  status: 'pending' | 'ready' | 'error'
+  status: 'pending' | 'progress' | 'ready' | 'error'
+  stage?: MicrosoftLoginStage
   message?: string
   retry_after?: number
 }
 
 export interface MicrosoftLoginStatusEvent {
-  status: 'ready' | 'error' | 'cancelled'
+  status: 'progress' | 'ready' | 'error' | 'cancelled'
+  stage?: MicrosoftLoginStage
+  focus?: boolean
   message?: string
 }
 
 export interface MicrosoftCompleteData {
   status?: 'pending' | 'completed'
+  stage?: MicrosoftLoginStage
   success?: boolean
   account?: MinecraftAccount
   message?: string
@@ -223,7 +257,13 @@ export interface MicrosoftCompleteData {
 export interface AuthlibServer {
   name: string
   url: string
+  email: string
   description: string
+}
+
+export interface AuthlibProfile {
+  id: string
+  name: string
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -298,8 +338,25 @@ export interface ImageDataUrl {
   base64?: string
 }
 
+export interface ImageSaveUrlResult {
+  dataUrl: string
+  base64: string
+  url: string
+}
+
+export interface ImageSaveAsPayload {
+  data_url?: string
+  url?: string
+  path?: string
+}
+
+export interface ImageListResult {
+  files: string[]
+}
+
 export interface AvatarOptions {
   uuid: string
+  account_id?: string
   type_name?: string
   custom_server?: string
   size?: number
@@ -417,7 +474,6 @@ export interface PluginInfo {
   status: string
   error: string | null
   dependencies: Record<string, string>
-  events: Record<string, unknown>
   services: string[]
   settings?: PluginSettingSchema[]
   is_system: boolean
@@ -433,6 +489,7 @@ export interface PluginRoute {
 export interface PluginSlotItem {
   plugin: string
   html: string
+  key?: string
   priority?: number
 }
 
@@ -476,6 +533,7 @@ export interface InstallProgress {
   total?: number
   message: string
   subtask?: string
+  errorCode?: string
 }
 
 export type DownloadProgress = InstallProgress
@@ -499,6 +557,7 @@ export interface LaunchProgress {
   percent?: number
   done?: number
   total?: number
+  errorCode?: string
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -547,10 +606,10 @@ export interface BackendEvents {
   accounts_microsoft_login_status: MicrosoftLoginStatusEvent
   'plugin:status_changed': { name: string; action: string; result: string }
   'plugin:installed': { name: string }
-  'plugin:css_injected': { plugin: string; css: string }
+  'plugin:css_injected': { plugin: string; css: string; key?: string | null }
   'plugin:script_injected': { plugin: string; script: string }
   'plugin:typescript_injected': { plugin: string; script: string }
-  'plugin:html_injected': { plugin: string; slot: string; html: string; priority?: number }
+  'plugin:html_injected': { plugin: string; slot: string; html: string; key?: string | null; priority?: number }
   'config:updated': { section: string; data: unknown }
   'plugin:route_registered': { plugin: string; path: string; title: string; icon?: string }
   'plugin:vue_route_registered': {
@@ -588,6 +647,9 @@ export interface CommandPayloadMap {
   config_set: { section: ConfigSection; data: unknown }
   config_list: undefined
 
+  // 系统信息
+  system_memory: undefined
+
   // Java
   java_scan: undefined
   java_list: undefined
@@ -614,7 +676,6 @@ export interface CommandPayloadMap {
     optifine_patch?: string
     quilt_version?: string
     game_path?: string
-    download_threads?: number
   }
   uninstall_version: { version_id: string; game_path?: string }
 
@@ -626,6 +687,11 @@ export interface CommandPayloadMap {
     server_url: string
     email: string
     password: string
+  }
+  accounts_select_authlib_profiles: {
+    account_id: string
+    profile_ids: string[]
+    password?: string
   }
   accounts_microsoft_login_config: undefined
   accounts_start_microsoft_login: undefined
@@ -643,11 +709,12 @@ export interface CommandPayloadMap {
   user_agreement_get: undefined
   user_agreement_save: { accepted: boolean; uuid: string }
   user_agreement_clear: undefined
-
-  // 图片
+  // 文件 / 图片
   image_fetch_data_url: { url: string }
   image_save_url: { url: string }
+  image_save_as: ImageSaveAsPayload
   image_read_file: { path: string }
+  image_list_files: { path: string }
   avatar_data_url: AvatarOptions
 
   // 文件选择
@@ -670,7 +737,6 @@ export interface CommandPayloadMap {
     jvm_args?: string[]
     game_args?: string[]
     version_isolation?: boolean
-    download_threads?: number
   }
   cancel_launch: undefined
   instance_stop: { instance_id: string }
@@ -692,6 +758,7 @@ export interface CommandPayloadMap {
   plugin_call_command: { command: string; params?: Record<string, unknown> }
   plugin_get_settings: { plugin_name: string }
   plugin_update_setting: { plugin_name: string; key: string; value: unknown }
+  plugin_notify_sidebar_state: { collapsed: boolean }
 
   // Mod 管理（主框架）
   get_mods: { game_path?: string }
@@ -706,7 +773,6 @@ export interface CommandPayloadMap {
     file_path: string
     game_path?: string
     version_name?: string
-    download_threads?: number
   }
   export_modpack: {
     game_path?: string
@@ -779,6 +845,8 @@ export interface CommandResponseMap {
   config_set: void
   config_list: string[]
 
+  system_memory: SystemMemoryInfo
+
   java_scan: JavaInstallation[]
   java_list: JavaInstallation[]
 
@@ -790,13 +858,14 @@ export interface CommandResponseMap {
   optifine_versions: VersionCatalogItem[]
   quilt_versions: VersionCatalogItem[]
   scan_versions: ScannedVersion[]
-  install_version: void
+  install_version: InstallVersionResult
   uninstall_version: void
 
   accounts_list: AccountListData
   accounts_current: MinecraftAccount | null
   accounts_add_offline: MinecraftAccount
   accounts_add_authlib: MinecraftAccount
+  accounts_select_authlib_profiles: MinecraftAccount[]
   accounts_microsoft_login_config: MicrosoftLoginConfigData
   accounts_start_microsoft_login: MicrosoftLoginData
   accounts_poll_microsoft_login: MicrosoftPollData
@@ -812,8 +881,10 @@ export interface CommandResponseMap {
   user_agreement_clear: void
 
   image_fetch_data_url: ImageDataUrl
-  image_save_url: SelectResult
+  image_save_url: ImageSaveUrlResult
+  image_save_as: SelectResult
   image_read_file: ImageDataUrl
+  image_list_files: ImageListResult
   avatar_data_url: ImageDataUrl
 
   select_directory: SelectResult
@@ -824,7 +895,7 @@ export interface CommandResponseMap {
   open_url: void
 
   instances_list: GameInstance[]
-  launch_instance: void
+  launch_instance: LaunchInstanceResult
   cancel_launch: void
   export_logs: { path: string }
   instance_stop: void
@@ -843,6 +914,7 @@ export interface CommandResponseMap {
   plugin_call_command: unknown
   plugin_get_settings: PluginSettingsData
   plugin_update_setting: void
+  plugin_notify_sidebar_state: void
 
   get_mods: ModItem[]
   toggle_mod: { enabled: boolean }

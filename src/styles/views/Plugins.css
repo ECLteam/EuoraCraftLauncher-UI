@@ -21,8 +21,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 9px;
-  padding: 7px 10px;
-  border-bottom: 1px solid var(--border-strong);
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--ecl-border);
   background: var(--ecl-surface-muted);
 }
 
@@ -47,7 +47,6 @@
   min-height: 0;
   flex: 1;
   overflow: auto;
-  background: var(--ecl-surface);
 }
 
 .plugins-spin,
@@ -63,9 +62,8 @@
   grid-template-columns: minmax(0, 1fr) 66px 72px 112px;
   align-items: center;
   gap: 8px;
-  padding: 0 10px;
+  padding: 0 12px;
   border-bottom: 1px solid var(--border-strong);
-  background: var(--ecl-surface);
   color: var(--ecl-text-secondary);
   font-size: 10px;
   font-weight: 600;
@@ -83,9 +81,8 @@
   grid-template-columns: minmax(0, 1fr) 66px 72px 112px;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--border-strong);
-  background: var(--ecl-surface);
   transition: background 0.15s ease;
 }
 
@@ -133,6 +130,16 @@
   overflow: hidden;
   margin-top: 2px;
   color: var(--ecl-text-secondary);
+  font-size: 10px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plugin-error {
+  overflow: hidden;
+  margin-top: 2px;
+  color: var(--error);
   font-size: 10px;
   line-height: 1.35;
   text-overflow: ellipsis;

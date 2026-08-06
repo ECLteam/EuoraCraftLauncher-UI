@@ -60,6 +60,7 @@ const iconMap: Record<string, string> = {
   // 文件
   'file-text': 'mdi:file-document-outline',
   'external-link': 'mdi:open-in-new',
+  'folder-open': 'mdi:folder-open-outline',
   globe: 'mdi:earth',
   archive: 'mdi:archive-outline',
   calendar: 'mdi:calendar-outline',

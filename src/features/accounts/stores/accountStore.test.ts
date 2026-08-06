@@ -9,6 +9,7 @@ vi.mock('@/features/accounts/api/accountsApi', () => ({
     current: vi.fn(),
     addOffline: vi.fn(),
     addAuthlib: vi.fn(),
+    selectAuthlibProfiles: vi.fn(),
     switch: vi.fn(),
     remove: vi.fn(),
     refresh: vi.fn(),
@@ -86,10 +87,21 @@ describe('accountStore', () => {
 
     await store.addOffline('Alex', '01234567-89ab-cdef-0123-456789abcdef')
 
-    expect(accountsApi.addOffline).toHaveBeenCalledWith(
-      'Alex',
-      '01234567-89ab-cdef-0123-456789abcdef'
+    expect(accountsApi.addOffline).toHaveBeenCalledWith('Alex', '01234567-89ab-cdef-0123-456789abcdef')
+  })
+
+  it('批量提交外置登录角色并刷新账户列表', async () => {
+    vi.mocked(accountsApi.selectAuthlibProfiles).mockResolvedValue([])
+    const store = useAccountStore()
+
+    await store.selectAuthlibProfiles('pending-account', ['profile-one', 'profile-two'], 'secret-password')
+
+    expect(accountsApi.selectAuthlibProfiles).toHaveBeenCalledWith(
+      'pending-account',
+      ['profile-one', 'profile-two'],
+      'secret-password'
     )
+    expect(accountsApi.list).toHaveBeenCalledOnce()
   })
 
   it('将微软登录取消请求转发到后端', async () => {

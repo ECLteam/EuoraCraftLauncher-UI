@@ -11,29 +11,14 @@
         :description="t('settings.javaPathDesc')"
       >
         <div class="java-selector">
-          <div ref="javaSelectRef" class="custom-select" :class="{ open: isJavaOpen }">
-            <div class="select-trigger" @click="toggleJavaOpen">
-              <span class="selected-text">{{ selectedJavaLabel || t('settings.javaPathPlaceholder') }}</span>
-              <UiIcon name="chevron-down" class="select-arrow" :class="{ rotated: isJavaOpen }" :size="14" />
-            </div>
-            <Transition name="select-dropdown">
-              <div v-show="isJavaOpen" class="select-dropdown">
-                <div
-                  v-for="java in javaList"
-                  :key="java.path"
-                  class="select-option"
-                  :class="{ active: localSettings.java_path === java.path }"
-                  @click="selectJava(java)"
-                >
-                  <div class="option-content">
-                    <span class="option-label">Java {{ java.major_version }} ({{ java.java_type }})</span>
-                    <span class="option-desc">{{ java.version }} - {{ java.arch }}</span>
-                  </div>
-                  <UiIcon v-if="localSettings.java_path === java.path" name="check" :size="14" class="check-icon" />
-                </div>
-              </div>
-            </Transition>
-          </div>
+          <NSelect
+            class="java-path-select"
+            :value="localSettings.java_path"
+            :options="javaOptions"
+            :placeholder="t('settings.javaPathPlaceholder')"
+            filterable
+            @update:value="handleJavaPathChange"
+          />
           <NButton size="small" @click="browseJava">
             {{ t('common.browse') }}
           </NButton>
@@ -61,7 +46,10 @@
               {{ t('settings.memorySizeDesc') }}
             </div>
           </div>
-          <output class="memory-current-value" :class="{ 'is-auto': localSettings.memory_auto }">
+          <output
+            class="memory-current-value"
+            :class="{ 'is-auto': localSettings.memory_auto, 'is-over-recommended': isOverRecommended }"
+          >
             {{ formatMemory(safeMemorySize) }}
           </output>
         </div>
@@ -81,7 +69,16 @@
           />
           <div class="memory-slider-scale">
             <span>1 GB</span>
-            <span>{{ formatMemory(maxMemory) }}</span>
+            <span>
+              {{ formatMemory(maxMemory) }}
+              <span class="memory-total-hint">({{ t('settings.systemMemory') }})</span>
+            </span>
+          </div>
+          <div v-if="!localSettings.memory_auto" class="memory-recommended-hint">
+            {{ t('settings.memoryRecommendedMax') }}: {{ formatMemory(recommendedMaxMemory) }}
+            <span v-if="isOverRecommended" class="memory-over-recommended-text">
+              — {{ t('settings.memoryOverRecommended') }}
+            </span>
           </div>
         </div>
 
@@ -117,6 +114,9 @@
               {{ t('settings.memoryRemaining') }} {{ formatMemory(remainingMemory) }}
             </span>
           </div>
+          <div v-if="systemMemoryError" class="memory-error-hint">
+            无法读取真实内存信息，当前为默认占位值。请重启后端或检查控制台日志。
+          </div>
         </div>
       </div>
     </SettingSection>
@@ -132,28 +132,19 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NSwitch } from 'naive-ui'
+import { NButton, NSelect, NSwitch } from 'naive-ui'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
-import { useClickOutside } from '@/composables/useClickOutside'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { settingsApi } from '@/features/settings/api/settingsApi'
 import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
-import type { JavaInstallation } from '@/types/api'
+import type { JavaInstallation, SystemMemoryInfo } from '@/types/api'
 
 type JavaInfo = JavaInstallation
-
-interface SystemMemoryInfo {
-  totalMb: number
-  usedMb: number
-  freeMb: number
-  percentUsed: number
-}
 
 const { t } = useI18n()
 const message = useGlassMessage()
@@ -169,8 +160,7 @@ const systemMemory = ref<SystemMemoryInfo>({
 })
 
 const javaList = ref<JavaInfo[]>([])
-const isJavaOpen = ref(false)
-const javaSelectRef = ref<HTMLElement | null>(null)
+const systemMemoryError = ref(false)
 
 const javaAutoDesc = computed(() => {
   return localSettings.value.java_auto ? t('settings.javaSelectionAutoDesc') : t('settings.javaSelectionManualDesc')
@@ -183,9 +173,29 @@ const memoryAutoDesc = computed(() => {
 })
 
 const maxMemory = computed(() => {
+  return Math.max(systemMemory.value.totalMb, 2048)
+})
+
+const recommendedMaxMemory = computed(() => {
   const maxAlloc = Math.floor(systemMemory.value.totalMb * 0.8)
   return Math.max(maxAlloc, 2048)
 })
+
+const isOverRecommended = computed(() => {
+  return safeMemorySize.value > recommendedMaxMemory.value
+})
+
+const autoMemorySize = computed(() => {
+  const step = 256
+  const raw = Math.round((systemMemory.value.totalMb * 0.25) / step) * step
+  return Math.min(Math.max(raw, 2048), 8192)
+})
+
+const clampMemorySize = (value: number): number => {
+  const min = 1024
+  const max = maxMemory.value
+  return Math.min(Math.max(value, min), max)
+}
 
 const sliderValuePosition = computed(() => {
   const min = 1024
@@ -197,9 +207,9 @@ const sliderValuePosition = computed(() => {
 })
 
 const safeMemorySize = computed({
-  get: () => localSettings.value.memory_size ?? 1024,
+  get: () => clampMemorySize(localSettings.value.memory_size ?? 1024),
   set: (value: number) => {
-    localSettings.value.memory_size = value
+    localSettings.value.memory_size = clampMemorySize(value)
   },
 })
 
@@ -209,17 +219,35 @@ const remainingMemory = computed(() => {
 
 const memoryBarSegments = computed(() => {
   const total = systemMemory.value.totalMb || 1
-  const usedPct = Math.round((systemMemory.value.usedMb / total) * 100)
-  const allocatedPct = Math.round((safeMemorySize.value / total) * 100)
+  const usedPct = (systemMemory.value.usedMb / total) * 100
+  const allocatedPct = (safeMemorySize.value / total) * 100
   const remainingPct = Math.max(0, 100 - usedPct - allocatedPct)
-  return { systemUsedPct: usedPct, gameAllocatedPct: allocatedPct, remainingPct }
+  if (usedPct + allocatedPct <= 100) {
+    return {
+      systemUsedPct: Math.round(usedPct),
+      gameAllocatedPct: Math.round(allocatedPct),
+      remainingPct: Math.round(remainingPct),
+    }
+  }
+  // 分配值超过当前可用空间时按比例归一化，避免进度条溢出容器
+  const scale = 100 / (usedPct + allocatedPct)
+  return {
+    systemUsedPct: Math.round(usedPct * scale),
+    gameAllocatedPct: Math.round(allocatedPct * scale),
+    remainingPct: 0,
+  }
 })
 
-const selectedJavaLabel = computed(() => {
-  if (!localSettings.value.java_path) return ''
-  const java = javaList.value.find((j) => j.path === localSettings.value.java_path)
-  if (!java) return localSettings.value.java_path
-  return `Java ${java.major_version} (${java.java_type})`
+const javaOptions = computed(() => {
+  const options = javaList.value.map((java) => ({
+    value: java.path,
+    label: `Java ${java.major_version} (${java.java_type}) · ${java.version} · ${java.arch}`,
+  }))
+  const selectedPath = localSettings.value.java_path
+  if (selectedPath && !options.some((option) => option.value === selectedPath)) {
+    options.unshift({ value: selectedPath, label: selectedPath })
+  }
+  return options
 })
 
 const formatMemory = (mb: number): string => {
@@ -234,6 +262,24 @@ const loadJavaList = async () => {
 
 const loadGameConfig = async () => {
   await run(async () => settingsStore.load())
+}
+
+const loadSystemMemory = async () => {
+  systemMemoryError.value = false
+  const result = await run(async () => settingsApi.getSystemMemory())
+  if (!result) {
+    systemMemoryError.value = true
+    console.error('[GameTab] 读取系统内存失败，将使用默认占位数据')
+    return
+  }
+  systemMemory.value = result
+  if (localSettings.value.memory_auto) {
+    localSettings.value.memory_size = autoMemorySize.value
+    saveConfig()
+  } else if ((localSettings.value.memory_size ?? 1024) > maxMemory.value) {
+    localSettings.value.memory_size = maxMemory.value
+    saveConfig()
+  }
 }
 
 const saveConfig = async () => {
@@ -268,7 +314,7 @@ const handleJavaAutoToggle = (value: boolean) => {
 const handleMemoryAutoToggle = (value: boolean) => {
   localSettings.value.memory_auto = value
   if (value) {
-    localSettings.value.memory_size = 4096
+    localSettings.value.memory_size = autoMemorySize.value
   }
   saveConfig()
 }
@@ -278,13 +324,8 @@ const handleFullscreenToggle = (value: boolean) => {
   saveConfig()
 }
 
-const toggleJavaOpen = () => {
-  isJavaOpen.value = !isJavaOpen.value
-}
-
-const selectJava = (java: JavaInfo) => {
-  localSettings.value.java_path = java.path
-  isJavaOpen.value = false
+const handleJavaPathChange = (path: string) => {
+  localSettings.value.java_path = path
   saveConfig()
 }
 
@@ -296,13 +337,9 @@ const browseJava = async () => {
   message.success(t('common.success'))
 }
 
-useClickOutside(javaSelectRef, () => {
-  isJavaOpen.value = false
-})
-
 onMounted(() => {
   loadJavaList()
-  loadGameConfig()
+  loadGameConfig().then(() => loadSystemMemory())
 })
 
 onUnmounted(() => {

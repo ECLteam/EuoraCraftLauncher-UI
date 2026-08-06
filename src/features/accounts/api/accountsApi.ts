@@ -39,6 +39,17 @@ export const accountsApi = {
     )
   },
 
+  async selectAuthlibProfiles(accountId: string, profileIds: string[], password?: string): Promise<MinecraftAccount[]> {
+    return assertSuccess(
+      await backend.command('accounts_select_authlib_profiles', {
+        account_id: accountId,
+        profile_ids: profileIds,
+        password,
+      }),
+      '登录外置账户角色'
+    )
+  },
+
   async switch(accountId: string): Promise<void> {
     assertSuccess(await backend.command('accounts_switch', { account_id: accountId }), '切换账户')
   },

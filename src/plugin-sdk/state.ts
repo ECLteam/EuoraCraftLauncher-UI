@@ -3,7 +3,7 @@
 import { ref, readonly, watch, type DeepReadonly, type Ref } from 'vue'
 import backend from '@/api/client'
 import type { AccountListData, LauncherConfig } from '@/types/api'
-import type { AccountState, LauncherState, ThemeState } from './types'
+import type { AccountState, LauncherState, SidebarState, ThemeState } from './types'
 
 // ---- 工厂：统一 ref + readonly + watch + refresh 模板 ----
 
@@ -102,6 +102,8 @@ const accountSlice = createStateSlice<AccountState>(
   }
 )
 
+const sidebarSlice = createStateSlice<SidebarState>({ collapsed: false })
+
 // ---- 初始化 ----
 
 let initialized = false
@@ -151,6 +153,10 @@ export function getAccountState(): DeepReadonly<Ref<AccountState>> {
   return accountSlice.getReadonly()
 }
 
+export function getSidebarState(): DeepReadonly<Ref<SidebarState>> {
+  return sidebarSlice.getReadonly()
+}
+
 export function watchTheme(cb: (state: ThemeState) => void): () => void {
   return themeSlice.watch(cb)
 }
@@ -161,6 +167,14 @@ export function watchLauncher(cb: (state: LauncherState) => void): () => void {
 
 export function watchAccount(cb: (state: AccountState) => void): () => void {
   return accountSlice.watch(cb)
+}
+
+export function watchSidebar(cb: (state: SidebarState) => void): () => void {
+  return sidebarSlice.watch(cb)
+}
+
+export function setSidebarState(collapsed: boolean): void {
+  sidebarSlice.state.value.collapsed = collapsed
 }
 
 export function refreshTheme(): Promise<void> {

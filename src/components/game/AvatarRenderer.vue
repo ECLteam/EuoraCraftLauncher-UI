@@ -24,6 +24,7 @@ const props = withDefaults(defineProps<Props>(), {
   username: '',
   typeName: 'Mojang',
   skinUrl: '',
+  accountId: '',
   size: 64,
 })
 
@@ -32,6 +33,7 @@ interface Props {
   username?: string
   typeName?: string
   skinUrl?: string
+  accountId?: string
   size?: number
 }
 
@@ -50,7 +52,14 @@ const fallbackLabel = computed(() => (props.username.trim().charAt(0) || '?').to
 
 async function updateAvatar() {
   const request = ++renderRequest
-  const url = await renderAvatar(props.uuid, props.username, props.typeName, props.size, props.skinUrl)
+  const url = await renderAvatar(
+    props.uuid,
+    props.username,
+    props.typeName,
+    props.size,
+    props.skinUrl,
+    props.accountId
+  )
   if (request !== renderRequest) return
   avatarUrl.value = url || ''
 }
@@ -64,7 +73,14 @@ onMounted(() => {
 })
 
 watch(
-  [() => props.uuid, () => props.username, () => props.typeName, () => props.skinUrl, () => props.size],
+  [
+    () => props.uuid,
+    () => props.username,
+    () => props.typeName,
+    () => props.skinUrl,
+    () => props.accountId,
+    () => props.size,
+  ],
   updateAvatar
 )
 </script>

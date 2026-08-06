@@ -33,6 +33,10 @@ export interface AccountState {
   list: MinecraftAccount[]
 }
 
+export interface SidebarState {
+  collapsed: boolean
+}
+
 // 统一从 @/types/api 重新导出常用数据类型，避免维护两份定义
 export type {
   ApiResponse,

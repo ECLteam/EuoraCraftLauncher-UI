@@ -9,16 +9,14 @@
     <div class="vdm-shell">
       <header class="vdm-header ecl-surface">
         <div class="vdm-version-identity">
-          <div class="vdm-version-icon">
-            <UiIcon :name="getLoaderIcon(version?.primaryLoader || 'vanilla')" :size="22" />
+          <div class="vdm-version-icon" :class="{ 'has-image': Boolean(versionImage) }">
+            <img v-if="versionImage" :src="versionImage" alt="" class="vdm-version-icon-img" />
+            <UiIcon v-else :name="getLoaderIcon(version?.primaryLoader || 'vanilla')" :size="22" />
           </div>
           <div class="vdm-version-copy">
             <strong>{{ version?.versionId || '...' }}</strong>
             <span>{{ getLoaderName(version?.primaryLoader || 'vanilla') }}</span>
           </div>
-          <NTag size="small" :bordered="false" :type="version?.isBroken ? 'error' : 'success'">
-            {{ version?.isBroken ? t('versions.detail.broken') : t('versions.detail.available') }}
-          </NTag>
         </div>
 
         <nav class="vdm-tabs">
@@ -50,12 +48,6 @@
               <div class="info-item">
                 <span class="info-label">{{ t('versions.detail.vanillaVersion') }}</span>
                 <span class="info-value">{{ version?.vanillaName || '-' }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">{{ t('versions.detail.status') }}</span>
-                <span :class="['status-text', version?.isBroken ? 'is-error' : 'is-success']">
-                  {{ version?.isBroken ? t('versions.detail.broken') : t('versions.detail.available') }}
-                </span>
               </div>
             </div>
           </SettingSection>
@@ -214,19 +206,20 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NEmpty, NInput, NInputGroup, NInputNumber, NSpin, NSwitch, NTag } from 'naive-ui'
+import { NButton, NEmpty, NInput, NInputGroup, NInputNumber, NSpin, NSwitch } from 'naive-ui'
 import { ref, reactive, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useGlassMessage } from '@/composables/useGlassMessage'
+import { getVersionImage } from '@/config/version'
 import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
 import { versionInstallApi } from '@/features/versions/api/versionInstallApi'
 import { versionSettingsApi } from '@/features/versions/api/versionSettingsApi'
 import { createDefaultVersionSettings, type VersionSettingsTarget } from '@/features/versions/model/versionSettings'
 import type { ScannedVersion } from '@/types/api'
-import { getLoaderIcon, getLoaderName } from '@/utils/loader'
+import { getLoaderIcon, getLoaderImage, getLoaderName } from '@/utils/loader'
 
 interface Props {
   visible: boolean
@@ -254,6 +247,13 @@ const visible = computed({
 })
 
 const title = computed(() => props.version?.versionId || t('versions.detail.settings'))
+
+const versionImage = computed(() => {
+  const version = props.version
+  if (!version) return ''
+  if (version.hasOptiFine) return getLoaderImage('optifine')
+  return getLoaderImage(version.primaryLoader) || getVersionImage(version.versionType)
+})
 
 const activeTab = ref<DetailTab>('overview')
 

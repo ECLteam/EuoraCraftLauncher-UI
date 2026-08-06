@@ -20,6 +20,7 @@ vi.mock('@/features/accounts/api/accountsApi', () => ({
     current: vi.fn(),
     addOffline: vi.fn(),
     addAuthlib: vi.fn(),
+    selectAuthlibProfiles: vi.fn(),
     switch: vi.fn(),
     remove: vi.fn(),
     refresh: vi.fn(),
@@ -57,6 +58,7 @@ describe('useAccountManager Microsoft login', () => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
     vi.mocked(accountsApi.list).mockResolvedValue({ accounts: [], current: null })
+    vi.mocked(accountsApi.listAuthlibServers).mockResolvedValue([])
     vi.mocked(accountsApi.getMicrosoftLoginConfig).mockResolvedValue({
       available: true,
       needs_client_id: false,
@@ -114,10 +116,7 @@ describe('useAccountManager Microsoft login', () => {
 
     await account.addOfflineAccount()
 
-    expect(accountsApi.addOffline).toHaveBeenCalledWith(
-      'CustomPlayer',
-      '0123456789abcdef0123456789abcdef'
-    )
+    expect(accountsApi.addOffline).toHaveBeenCalledWith('CustomPlayer', '0123456789abcdef0123456789abcdef')
     expect(account.newOfflineUuid).toBe('')
   })
 
@@ -151,6 +150,147 @@ describe('useAccountManager Microsoft login', () => {
     await vi.waitFor(() => expect(account.showMicrosoftLoginModal).toBe(false))
 
     expect(accountsApi.pollMicrosoftLogin).not.toHaveBeenCalled()
+  })
+
+  it('shows the Microsoft login stage pushed by the backend', async () => {
+    const account = useAccountManager((key) => key)
+    account.showMicrosoftLoginModal = true
+
+    microsoftLoginStatusHandler?.({
+      status: 'progress',
+      stage: 'minecraft_token',
+      focus: false,
+    })
+    await Promise.resolve()
+
+    expect(account.microsoftLoginStatus).toBe('loading')
+    expect(account.microsoftLoginStage).toBe('minecraft_token')
+    expect(accountsApi.completeMicrosoftLogin).not.toHaveBeenCalled()
+  })
+
+  it('submits the Authlib form through the account store', async () => {
+    vi.mocked(accountsApi.addAuthlib).mockResolvedValue({
+      id: 'authlib-account',
+      alias: 'AuthlibPlayer',
+      type: 'authlib',
+      auth_server: 'https://skin.example.com/api/yggdrasil',
+    })
+    const account = useAccountManager((key) => key)
+    account.authlibServerUrl = 'https://skin.example.com/api/yggdrasil'
+    account.authlibEmail = 'player@example.com'
+    account.authlibPassword = 'secret-password'
+
+    await account.addAuthlibAccount()
+
+    expect(accountsApi.addAuthlib).toHaveBeenCalledWith(
+      'https://skin.example.com/api/yggdrasil',
+      'player@example.com',
+      'secret-password'
+    )
+    expect(account.authlibPassword).toBe('')
+    expect(account.authlibServerUrl).toBe('https://skin.example.com/api/yggdrasil')
+    expect(account.authlibEmail).toBe('player@example.com')
+  })
+
+  it('fills the Authlib form with the most recent saved login', async () => {
+    vi.mocked(accountsApi.listAuthlibServers).mockResolvedValue([
+      {
+        name: 'skin.example.com',
+        url: 'https://skin.example.com/api/yggdrasil/',
+        email: 'player@example.com',
+        description: 'https://skin.example.com/api/yggdrasil/',
+      },
+      {
+        name: 'another.example.com',
+        url: 'https://another.example.com/yggdrasil',
+        email: 'another@example.com',
+        description: 'https://another.example.com/yggdrasil',
+      },
+    ])
+    const account = useAccountManager((key) => key)
+
+    await account.loadAuthlibServers()
+
+    expect(account.authlibServerUrl).toBe('https://skin.example.com/api/yggdrasil/')
+    expect(account.authlibEmail).toBe('player@example.com')
+    expect(account.authlibServerOptions[0]).toMatchObject({
+      value: 'https://skin.example.com/api/yggdrasil/',
+      label: 'https://skin.example.com/api/yggdrasil/',
+      email: 'player@example.com',
+    })
+    expect(account.renderAuthlibServerOption(account.authlibServerOptions[0]!)).toBe(
+      'https://skin.example.com/api/yggdrasil/ · player@example.com'
+    )
+
+    account.selectAuthlibServer('https://another.example.com/yggdrasil')
+    expect(account.authlibEmail).toBe('another@example.com')
+  })
+
+  it('selects a profile when an Authlib account has multiple profiles', async () => {
+    vi.mocked(accountsApi.addAuthlib).mockResolvedValue({
+      id: 'authlib-account',
+      alias: '未选择角色',
+      type: 'authlib',
+      profile_selection_required: true,
+      available_profiles: [
+        { id: 'profile-one', name: 'PlayerOne' },
+        { id: 'profile-two', name: 'PlayerTwo' },
+      ],
+    })
+    vi.mocked(accountsApi.selectAuthlibProfiles).mockResolvedValue([
+      {
+        id: 'authlib-account',
+        alias: 'PlayerOne',
+        type: 'authlib',
+        uuid: 'profile-one',
+      },
+      {
+        id: 'authlib-account-two',
+        alias: 'PlayerTwo',
+        type: 'authlib',
+        uuid: 'profile-two',
+      },
+    ])
+    const account = useAccountManager((key) => key)
+    account.authlibServerUrl = 'https://skin.example.com/api/yggdrasil'
+    account.authlibEmail = 'player@example.com'
+    account.authlibPassword = 'secret-password'
+
+    await account.addAuthlibAccount()
+    account.selectedAuthlibProfileIds = ['profile-one', 'profile-two']
+    await account.selectAuthlibProfiles()
+
+    expect(accountsApi.selectAuthlibProfiles).toHaveBeenCalledWith(
+      'authlib-account',
+      ['profile-one', 'profile-two'],
+      'secret-password'
+    )
+    expect(account.pendingAuthlibAccountId).toBe('')
+    expect(account.authlibPassword).toBe('')
+  })
+
+  it('restores profile selection for an existing unselected Authlib account', async () => {
+    vi.mocked(accountsApi.list).mockResolvedValue({
+      accounts: [
+        {
+          id: 'pending-account',
+          alias: '未选择角色',
+          type: 'authlib',
+          profile_selection_required: true,
+          available_profiles: [
+            { id: 'profile-one', name: 'PlayerOne' },
+            { id: 'profile-two', name: 'PlayerTwo' },
+          ],
+        },
+      ],
+      current: null,
+    })
+    const account = useAccountManager((key) => key)
+
+    await account.loadAccounts()
+
+    expect(account.pendingAuthlibAccountId).toBe('pending-account')
+    expect(account.selectedAuthlibProfileIds).toEqual([])
   })
 
   it('cancels the backend login flow when the login window closes', async () => {

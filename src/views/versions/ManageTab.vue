@@ -11,6 +11,7 @@
         @select="selectPath"
         @edit="editPath"
         @remove="removePath"
+        @open-folder="openPathFolder"
       />
 
       <!-- 分隔线 -->
@@ -145,6 +146,7 @@ import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import { versionInstallApi } from '@/features/versions/api/versionInstallApi'
 import type { GamePath } from '@/features/versions/model/gamePath'
 import type { LaunchProgress, MinecraftPathEntry, ScannedVersion } from '@/types/api'
+import { getErrorMessage } from '@/utils/error'
 import VersionDetailModal from '@/views/versions/VersionDetailModal.vue'
 
 const { t } = useI18n()
@@ -309,6 +311,17 @@ const editPath = (index: number) => {
   showPathModal.value = true
 }
 
+const openPathFolder = async (index: number) => {
+  const path = gamePaths.value[index]
+  if (!path?.path) return
+  try {
+    await versionInstallApi.openFolder(path.path)
+  } catch (error) {
+    console.error(t('versions.manage.openFolderFailed'), error)
+    message.error(t('versions.manage.openFolderFailed'))
+  }
+}
+
 const browseForPath = async () => {
   try {
     const result = await versionInstallApi.selectDirectory()
@@ -467,8 +480,9 @@ const handleLaunch = async (version: ScannedVersion) => {
   } catch (e) {
     console.error('启动失败:', e)
     if (!globalLaunchProgress.progress.value.canceled) {
-      setLaunchProgress(0, 'error', '启动过程中发生错误')
-      message.error('启动过程中发生错误')
+      const reason = getErrorMessage(e, '启动失败')
+      setLaunchProgress(0, 'error', reason)
+      message.error(reason)
     }
     setTimeout(hideLaunchProgress, 2000)
   } finally {

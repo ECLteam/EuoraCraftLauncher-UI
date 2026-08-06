@@ -150,6 +150,7 @@ import { setMessageRef, useGlassMessage } from '@/composables/useGlassMessage'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
 import { useTheme } from '@/composables/useTheme'
 import { useUserAgreement } from '@/composables/useUserAgreement'
+import { getErrorMessage } from '@/utils/error'
 import { openExternalUrl } from '@/utils/openExternal'
 
 const router = useRouter()
@@ -231,6 +232,7 @@ onMounted(async () => {
     await appRuntime.start()
   } catch (error) {
     console.error('[App] 应用运行层初始化失败:', error)
+    message.error(getErrorMessage(error, '应用初始化失败'), 10000)
   }
 
   // 演示模式下加载示例任务数据

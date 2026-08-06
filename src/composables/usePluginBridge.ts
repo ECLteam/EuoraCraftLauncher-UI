@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { compile, createApp, defineComponent, h, ref } from 'vue'
 import { pluginHostApi } from '@/features/plugins/api/pluginHostApi'
 import * as api from '@/plugin-sdk/api'
 import * as component from '@/plugin-sdk/component'
@@ -13,19 +13,21 @@ import {
   getThemeState,
   getLauncherState,
   getAccountState,
+  getSidebarState,
   refreshTheme,
   refreshLauncher,
   refreshAccounts,
   watchTheme,
   watchLauncher,
   watchAccount,
+  watchSidebar,
 } from '@/plugin-sdk/state'
 import { getToken, watchToken, getMode, watchMode } from '@/plugin-sdk/theme'
 import { transpileTS } from '@/plugin-sdk/transpile'
 import type { PluginSdkContext } from '@/plugin-sdk/types'
 import * as ui from '@/plugin-sdk/ui'
 import * as widgets from '@/plugin-sdk/widgets'
-import type { PluginRoute, PluginSlotItem } from '@/types/api'
+import type { PluginRoute, PluginSlotItem, VueComponentDef, VueSlotItem } from '@/types/api'
 import type { useRouter } from 'vue-router'
 
 interface PluginSdkGlobal {
@@ -51,9 +53,11 @@ interface PluginSdkInstance {
     theme: ReturnType<typeof getThemeState>
     launcher: ReturnType<typeof getLauncherState>
     account: ReturnType<typeof getAccountState>
+    sidebar: ReturnType<typeof getSidebarState>
     watchTheme: typeof watchTheme
     watchLauncher: typeof watchLauncher
     watchAccount: typeof watchAccount
+    watchSidebar: typeof watchSidebar
     refreshTheme: typeof refreshTheme
     refreshLauncher: typeof refreshLauncher
     refreshAccounts: typeof refreshAccounts
@@ -71,6 +75,11 @@ interface PluginSdkInstance {
 }
 
 const sdkCache = new Map<string, PluginSdkInstance>()
+
+export function scopePluginCss(plugin: string, css: string): string {
+  const escapedPlugin = plugin.replaceAll('\\', '\\\\').replaceAll('"', '\\"')
+  return `@scope ([data-plugin="${escapedPlugin}"]) {\n${css}\n}`
+}
 
 function reportPluginError(plugin: string, err: unknown): void {
   console.error(`[PluginBridge] 插件执行失败 [${plugin}]:`, err)
@@ -91,9 +100,11 @@ function createPluginSdk(pluginName: string, version = ''): PluginSdkInstance {
       theme: getThemeState(),
       launcher: getLauncherState(),
       account: getAccountState(),
+      sidebar: getSidebarState(),
       watchTheme,
       watchLauncher,
       watchAccount,
+      watchSidebar,
       refreshTheme,
       refreshLauncher,
       refreshAccounts,
@@ -119,6 +130,17 @@ function getPluginSdk(pluginName: string): PluginSdkInstance {
 
 const pluginRoutes = ref<PluginRoute[]>([])
 const pluginSlots = ref<Record<string, PluginSlotItem[]>>({})
+const pluginVueSlots = ref<Record<string, VueSlotItem[]>>({})
+const vueComponentRegistry = ref<Record<string, VueComponentDef>>({})
+
+// 已挂载的 Vue 插槽应用，用于禁用/重载时清理
+interface VueSlotApp {
+  slotId: string
+  plugin: string
+  componentName: string
+  app: ReturnType<typeof createApp>
+}
+const vueSlotApps: VueSlotApp[] = []
 
 // ── SlotRegistry ──
 
@@ -163,6 +185,7 @@ function renderSlot(slot: string) {
     const wrapper = document.createElement('div')
     wrapper.className = 'plugin-slot-item'
     wrapper.setAttribute('data-plugin', entry.plugin)
+    if (entry.key !== undefined) wrapper.setAttribute('data-injection-key', entry.key)
     wrapper.innerHTML = sanitizeHtml(entry.html)
     el.appendChild(wrapper)
   }
@@ -284,6 +307,166 @@ function cleanupScripts() {
   _injectedScripts.clear()
 }
 
+// ── Vue SFC 动态编译 ──
+
+function looksLikeTypeScript(script: string): boolean {
+  return (
+    /<script\s+[^>]*\blang\s*=\s*["']ts["'][^>]*>/i.test(script) ||
+    /:\s*(string|number|boolean|any|unknown)\b/.test(script)
+  )
+}
+
+function evaluateVueScript(script: string, plugin: string): Record<string, unknown> {
+  if (!script.trim()) return {}
+  let code = script
+  if (looksLikeTypeScript(code)) {
+    try {
+      code = transpileTS(code)
+    } catch (e) {
+      console.error(`[PluginBridge] Vue 组件 TS 转译失败 [${plugin}]:`, e)
+      return {}
+    }
+  }
+  // 用 module shim 执行 export default / CommonJS，返回组件选项对象
+  const wrapped = `
+    var exports = {};
+    var module = { exports: exports };
+    ${code};
+    return module.exports.default || module.exports;
+  `
+  try {
+    const fn = new Function(wrapped)
+    const result = fn()
+    return result && typeof result === 'object' ? (result as Record<string, unknown>) : {}
+  } catch (e) {
+    console.error(`[PluginBridge] Vue 组件脚本执行失败 [${plugin}]:`, e)
+    return {}
+  }
+}
+
+function compileVueTemplate(template: string, plugin: string) {
+  try {
+    return compile(template)
+  } catch (e) {
+    console.error(`[PluginBridge] Vue 模板编译失败 [${plugin}]:`, e)
+    return () => h('div', { class: 'plugin-vue-error' }, 'Vue 组件渲染失败')
+  }
+}
+
+function createVueComponent(componentName: string, def: VueComponentDef, plugin: string) {
+  const options = evaluateVueScript(def.script, plugin)
+  const render = compileVueTemplate(def.template, plugin)
+  return defineComponent({
+    ...options,
+    name: componentName,
+    render,
+  })
+}
+
+function injectComponentStyle(componentName: string, plugin: string, style: string) {
+  if (!style.trim()) return
+  const id = `plugin-vue-style-${componentName}`
+  let styleEl = document.getElementById(id)
+  if (!styleEl) {
+    styleEl = document.createElement('style')
+    styleEl.id = id
+    styleEl.setAttribute('data-plugin-vue-style', componentName)
+    document.head.appendChild(styleEl)
+  }
+  styleEl.textContent = scopePluginCss(plugin, style)
+}
+
+function removeComponentStyle(componentName: string) {
+  const id = `plugin-vue-style-${componentName}`
+  const styleEl = document.getElementById(id)
+  if (styleEl) styleEl.remove()
+}
+
+function createVueRouteComponent(componentName: string, def: VueComponentDef, plugin: string) {
+  const baseComponent = createVueComponent(componentName, def, plugin)
+  return defineComponent({
+    name: `${componentName}-route`,
+    render() {
+      return h('div', { class: 'plugin-vue-route', 'data-plugin': plugin }, [h(baseComponent)])
+    },
+    mounted() {
+      injectComponentStyle(componentName, plugin, def.style || '')
+    },
+    unmounted() {
+      removeComponentStyle(componentName)
+    },
+  })
+}
+
+function renderVueSlot(slotId: string) {
+  const container = document.getElementById(`plugin-slot-${slotId}`)
+  if (!container) return
+  container.innerHTML = ''
+  // 清理该插槽已挂载的 Vue 应用
+  const toRemove = vueSlotApps.filter((a) => a.slotId === slotId)
+  for (const item of toRemove) {
+    try {
+      item.app.unmount()
+    } catch {
+      /* ignore */
+    }
+    removeComponentStyle(item.componentName)
+  }
+  const remaining = vueSlotApps.filter((a) => a.slotId !== slotId)
+  vueSlotApps.length = 0
+  vueSlotApps.push(...remaining)
+
+  const entries = pluginVueSlots.value[slotId] || []
+  for (const entry of entries) {
+    const def = vueComponentRegistry.value[entry.component_name] || entry
+    if (!def || !def.template) continue
+    const el = document.createElement('div')
+    el.className = 'plugin-vue-slot-item'
+    el.setAttribute('data-plugin', entry.plugin)
+    container.appendChild(el)
+    try {
+      const component = createVueComponent(entry.component_name, def as VueComponentDef, entry.plugin)
+      const app = createApp(component)
+      app.mount(el)
+      injectComponentStyle(entry.component_name, entry.plugin, def.style || '')
+      vueSlotApps.push({
+        slotId,
+        plugin: entry.plugin,
+        componentName: entry.component_name,
+        app,
+      })
+    } catch (e) {
+      console.error(`[PluginBridge] Vue 插槽组件挂载失败 [${entry.plugin}]:`, e)
+    }
+  }
+}
+
+function clearPluginVueSlots(pluginName: string) {
+  for (const [slotId, entries] of Object.entries(pluginVueSlots.value)) {
+    if (!entries.some((entry) => entry.plugin === pluginName)) continue
+
+    const remaining = entries.filter((entry) => entry.plugin !== pluginName)
+    if (remaining.length) {
+      pluginVueSlots.value[slotId] = remaining
+    } else {
+      delete pluginVueSlots.value[slotId]
+    }
+    renderVueSlot(slotId)
+  }
+}
+
+function clearVueSlots() {
+  for (const item of vueSlotApps) {
+    try {
+      item.app.unmount()
+    } catch {
+      /* ignore */
+    }
+    removeComponentStyle(item.componentName)
+  }
+  vueSlotApps.length = 0
+}
+
 function setupRoutes(router: ReturnType<typeof useRouter>) {
   const existing = router.getRoutes().filter((r) => r.meta?.pluginRoute)
   for (const route of existing) {
@@ -293,16 +476,27 @@ function setupRoutes(router: ReturnType<typeof useRouter>) {
   for (const route of pluginRoutes.value) {
     const pluginName = route.plugin
     const path = `/plugin/${pluginName}${route.path}`
+    const routeMeta = route as unknown as Record<string, unknown>
+    const isVueRoute = routeMeta.type === 'vue'
+    const componentName = typeof routeMeta.component === 'string' ? routeMeta.component : undefined
 
-    router.addRoute({
-      path,
-      name: `plugin-${pluginName}-${route.path}`,
-      component: {
+    let routeComponent
+    if (isVueRoute && componentName && vueComponentRegistry.value[componentName]) {
+      const def = vueComponentRegistry.value[componentName]
+      routeComponent = createVueRouteComponent(componentName, def, pluginName)
+    } else {
+      routeComponent = {
         template: `<div class="plugin-page" data-plugin="${pluginName}"><div id="plugin-slot-plugin-${pluginName}"></div></div>`,
         mounted() {
           setTimeout(() => renderSlot(`plugin-${pluginName}`), 50)
         },
-      },
+      }
+    }
+
+    router.addRoute({
+      path,
+      name: `plugin-${pluginName}-${route.path}`,
+      component: routeComponent,
       meta: { pluginRoute: true, pluginName, title: route.title },
     })
   }
@@ -317,6 +511,12 @@ function cleanupPlugin(pluginName: string) {
   if (styleEl) styleEl.remove()
 
   document.querySelectorAll(`style[data-plugin="${pluginName}"]`).forEach((el) => el.remove())
+  document.querySelectorAll(`style[data-plugin-vue-style]`).forEach((el) => {
+    const componentName = el.getAttribute('data-plugin-vue-style')
+    if (componentName && vueComponentRegistry.value[componentName]?.plugin === pluginName) {
+      el.remove()
+    }
+  })
   document.querySelectorAll(`[data-plugin="${pluginName}"]`).forEach((el) => {
     if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return
     if (el.id && el.id.startsWith('plugin-slot-')) return
@@ -326,16 +526,38 @@ function cleanupPlugin(pluginName: string) {
   runPluginCleanup(pluginName)
 }
 
-function fullCleanupPlugin(pluginName: string) {
+async function fullCleanupPlugin(pluginName: string, appRouter: ReturnType<typeof useRouter>) {
+  const wasViewingPlugin = appRouter.currentRoute.value.meta?.pluginName === pluginName
   cleanupPlugin(pluginName)
   clearPluginSlots(pluginName)
+  clearPluginVueSlots(pluginName)
   sdkCache.delete(pluginName)
+  // 移除组件注册表中属于该插件的条目，避免重载后使用旧定义
+  for (const [name, def] of Object.entries(vueComponentRegistry.value)) {
+    if (def.plugin === pluginName) {
+      delete vueComponentRegistry.value[name]
+    }
+  }
+
+  pluginRoutes.value = pluginRoutes.value.filter((route) => route.plugin !== pluginName)
+  for (const route of appRouter.getRoutes()) {
+    if (route.meta?.pluginName === pluginName && route.name) {
+      appRouter.removeRoute(route.name)
+    }
+  }
+  if (wasViewingPlugin) {
+    await appRouter.replace('/')
+  }
 }
 
 async function refreshRoutes(router: ReturnType<typeof useRouter>) {
   try {
+    const currentRoute = router.currentRoute.value
     pluginRoutes.value = await pluginHostApi.getRoutes()
     setupRoutes(router)
+    if (currentRoute.meta.pluginRoute) {
+      await router.replace({ path: currentRoute.fullPath, force: true })
+    }
   } catch {
     pluginRoutes.value = []
   }
@@ -351,14 +573,63 @@ export function initPluginBridge(router: ReturnType<typeof useRouter>) {
     pluginHostApi.subscribe('plugin:html_injected', (payload) => {
       const slot = payload.slot
       const priority = payload.priority ?? 0
-      const entries = pluginSlots.value[slot] || []
-      entries.push({ plugin: payload.plugin, html: payload.html, priority } as unknown as PluginSlotItem)
+      const entries = [...(pluginSlots.value[slot] || [])]
+      const entry: PluginSlotItem = {
+        plugin: payload.plugin,
+        html: payload.html,
+        priority,
+        ...(payload.key !== null && payload.key !== undefined ? { key: payload.key } : {}),
+      }
+      const index =
+        payload.key !== null && payload.key !== undefined
+          ? entries.findIndex((item) => item.plugin === payload.plugin && item.key === payload.key)
+          : -1
+      if (index === -1) entries.push(entry)
+      else entries[index] = entry
       pluginSlots.value[slot] = entries
       renderSlot(slot)
     })
   )
 
   unlistenFns.push(pluginHostApi.subscribe('plugin:route_registered', () => refreshRoutes(router)))
+
+  unlistenFns.push(
+    pluginHostApi.subscribe('plugin:vue_route_registered', (payload) => {
+      vueComponentRegistry.value[payload.component_name] = {
+        plugin: payload.plugin,
+        template: payload.template,
+        script: payload.script,
+        style: payload.style,
+      }
+      refreshRoutes(router)
+    })
+  )
+
+  unlistenFns.push(
+    pluginHostApi.subscribe('plugin:vue_slot_registered', (payload) => {
+      vueComponentRegistry.value[payload.component_name] = {
+        plugin: payload.plugin,
+        template: payload.template,
+        script: payload.script,
+        style: payload.style,
+      }
+      const entries = [...(pluginVueSlots.value[payload.slot] || [])]
+      const index = entries.findIndex(
+        (entry) => entry.plugin === payload.plugin && entry.component_name === payload.component_name
+      )
+      const newEntry: VueSlotItem = {
+        plugin: payload.plugin,
+        component_name: payload.component_name,
+        template: payload.template,
+        script: payload.script,
+        style: payload.style,
+      }
+      if (index === -1) entries.push(newEntry)
+      else entries[index] = newEntry
+      pluginVueSlots.value[payload.slot] = entries
+      renderVueSlot(payload.slot)
+    })
+  )
 
   unlistenFns.push(
     pluginHostApi.subscribe('plugin:script_injected', (payload) => {
@@ -380,25 +651,28 @@ export function initPluginBridge(router: ReturnType<typeof useRouter>) {
   unlistenFns.push(
     pluginHostApi.subscribe('plugin:status_changed', (payload) => {
       if (payload.action === 'disabled' || payload.action === 'unloaded') {
-        fullCleanupPlugin(payload.name)
+        void fullCleanupPlugin(payload.name, router)
       }
     })
   )
 
-  pluginHostApi
-    .getRoutes()
-    .then((routes) => {
+  Promise.all([
+    pluginHostApi.getRoutes(),
+    pluginHostApi.getSlots(),
+    pluginHostApi.getVueSlots(),
+    pluginHostApi.getVueComponents(),
+  ])
+    .then(([routes, slots, vueSlots, vueComponents]) => {
       pluginRoutes.value = routes
-      setupRoutes(router)
-    })
-    .catch(() => {})
-
-  pluginHostApi
-    .getSlots()
-    .then((slots) => {
       pluginSlots.value = slots
+      pluginVueSlots.value = vueSlots
+      vueComponentRegistry.value = vueComponents
+      setupRoutes(router)
       for (const slot of Object.keys(slots)) {
         renderSlot(slot)
+      }
+      for (const slotId of Object.keys(vueSlots)) {
+        renderVueSlot(slotId)
       }
     })
     .catch(() => {})
@@ -415,6 +689,7 @@ export function destroyPluginBridge() {
   unlistenFns.length = 0
   cleanupScripts()
   clearSlotElements()
+  clearVueSlots()
   for (const [slotId] of dynamicSlots) {
     removeDynamicSlot(slotId)
   }
@@ -423,6 +698,8 @@ export function destroyPluginBridge() {
     runPluginCleanup(plugin)
   }
   sdkCache.clear()
+  vueComponentRegistry.value = {}
+  pluginVueSlots.value = {}
   cleanupState?.()
   cleanupState = null
 }
@@ -434,7 +711,10 @@ export function callPluginCommand(command: string, params?: Record<string, unkno
 export {
   pluginRoutes,
   pluginSlots,
+  pluginVueSlots,
   renderSlot,
+  clearPluginVueSlots,
+  fullCleanupPlugin,
   cleanupScripts,
   clearSlotElements,
   clearPluginSlots,

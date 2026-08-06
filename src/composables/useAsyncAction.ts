@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { getErrorMessage } from '@/utils/error'
 import { useGlassMessage } from './useGlassMessage'
 
 export interface UseAsyncActionOptions {
@@ -36,7 +37,7 @@ export function useAsyncAction(options: UseAsyncActionOptions = {}) {
       }
       return result ?? null
     } catch (e) {
-      const msg = opts.errorMessage || (e instanceof Error ? e.message : String(e))
+      const msg = getErrorMessage(e, opts.errorMessage || '操作失败')
       if (opts.showError !== false) {
         message.error(msg)
       }

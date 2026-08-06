@@ -9,17 +9,3 @@
 .download-source-select {
   width: 220px;
 }
-
-.threads-control {
-  display: grid;
-  width: 310px;
-  grid-template-columns: minmax(180px, 1fr) 76px;
-  align-items: center;
-  gap: 12px;
-}
-
-.threads-control > span {
-  color: var(--ecl-text-secondary);
-  font-size: 11px;
-  text-align: right;
-}

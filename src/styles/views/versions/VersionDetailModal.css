@@ -37,6 +37,18 @@
   border-radius: var(--r-sm);
 }
 
+.vdm-version-icon.has-image {
+  background: transparent;
+}
+
+.vdm-version-icon-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
 .vdm-version-copy {
   display: flex;
   min-width: 120px;
@@ -99,9 +111,7 @@
   flex: 1;
   padding: 16px;
   overflow-y: auto;
-  background: var(--ecl-surface);
-  border: 1px solid var(--ecl-border);
-  border-radius: var(--r-sm);
+  background: transparent;
 }
 
 .vdm-page {
@@ -157,7 +167,7 @@
 
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .info-item {
@@ -171,11 +181,11 @@
   border-bottom: 1px solid var(--ecl-border);
 }
 
-.info-item:nth-child(2n) {
+.info-item:nth-child(3n) {
   border-right: 0;
 }
 
-.info-item:nth-last-child(-n + 2) {
+.info-item:nth-last-child(-n + 3) {
   border-bottom: 0;
 }
 
@@ -184,22 +194,13 @@
   font-size: 10px;
 }
 
-.info-value,
-.status-text {
+.info-value {
   overflow: hidden;
   color: var(--ecl-text);
   font-size: 12px;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.status-text.is-success {
-  color: var(--success);
-}
-
-.status-text.is-error {
-  color: var(--error);
 }
 
 .overview-actions {

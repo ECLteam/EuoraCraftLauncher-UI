@@ -1,5 +1,10 @@
 <template>
-  <NCard class="info-card" contentStyle="padding: 0;">
+  <NCard
+    class="info-card"
+    contentStyle="padding: 0;"
+    @mouseenter="emit('mouseenter')"
+    @mouseleave="emit('mouseleave')"
+  >
     <NButton
       v-if="canToggle"
       class="info-toggle-btn"
@@ -123,6 +128,8 @@ defineProps<{
 
 const emit = defineEmits<{
   toggle: []
+  mouseenter: []
+  mouseleave: []
 }>()
 
 const { t } = useI18n()

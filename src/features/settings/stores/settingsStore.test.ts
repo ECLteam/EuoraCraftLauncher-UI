@@ -26,7 +26,7 @@ describe('settingsStore', () => {
         jvm_args: ['-XX:+UseG1GC'],
         memory_size: 6144,
       },
-      download: { mirror_source: 'bmclapi', download_threads: 12 },
+      download: { mirror_source: 'bmclapi' },
     })
   })
 
@@ -37,7 +37,7 @@ describe('settingsStore', () => {
     expect(store.status).toBe('ready')
     expect(store.game.java_auto).toBe(true)
     expect(store.game.minecraft_paths).toEqual([{ name: '主目录', path: 'D:/Minecraft' }])
-    expect(store.download.download_threads).toBe(12)
+    expect(store.download.mirror_source).toBe('bmclapi')
   })
 
   it('更新局部游戏设置时不覆盖路径与 JVM 参数', async () => {

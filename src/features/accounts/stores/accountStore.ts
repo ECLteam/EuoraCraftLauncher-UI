@@ -81,9 +81,15 @@ export const useAccountStore = defineStore('accounts', () => {
     await load()
   }
 
-  async function addAuthlib(serverUrl: string, email: string, password: string): Promise<void> {
-    await accountsApi.addAuthlib(serverUrl, email, password)
+  async function addAuthlib(serverUrl: string, email: string, password: string): Promise<MinecraftAccount> {
+    const account = await accountsApi.addAuthlib(serverUrl, email, password)
     await Promise.all([load(), loadAuthlibServers(true)])
+    return account
+  }
+
+  async function selectAuthlibProfiles(accountId: string, profileIds: string[], password?: string): Promise<void> {
+    await accountsApi.selectAuthlibProfiles(accountId, profileIds, password)
+    await load()
   }
 
   async function switchAccount(accountId: string): Promise<void> {
@@ -164,6 +170,7 @@ export const useAccountStore = defineStore('accounts', () => {
     loadCurrent,
     addOffline,
     addAuthlib,
+    selectAuthlibProfiles,
     switchAccount,
     removeAccount,
     refreshAccount,

@@ -1,5 +1,12 @@
 import backend from '@/api/client'
-import type { BackendEventName, BackendEvents, PluginRoute, PluginSlotItem } from '@/types/api'
+import type {
+  BackendEventName,
+  BackendEvents,
+  PluginRoute,
+  PluginSlotItem,
+  VueComponentDef,
+  VueSlotItem,
+} from '@/types/api'
 
 export const pluginHostApi = {
   async getRoutes(): Promise<PluginRoute[]> {
@@ -14,8 +21,25 @@ export const pluginHostApi = {
     return result.data ?? {}
   },
 
+  async getVueSlots(): Promise<Record<string, VueSlotItem[]>> {
+    const result = await backend.command('plugin_get_vue_slots')
+    if (!result.success) throw new Error(result.message || '读取插件 Vue 插槽失败')
+    return result.data ?? {}
+  },
+
+  async getVueComponents(): Promise<Record<string, VueComponentDef>> {
+    const result = await backend.command('plugin_get_vue_components')
+    if (!result.success) throw new Error(result.message || '读取插件 Vue 组件失败')
+    return result.data ?? {}
+  },
+
   callCommand(command: string, params?: Record<string, unknown>) {
     return backend.command('plugin_call_command', { command, params })
+  },
+
+  async notifySidebarState(collapsed: boolean): Promise<void> {
+    const result = await backend.command('plugin_notify_sidebar_state', { collapsed })
+    if (!result.success) throw new Error(result.message || '通知插件侧栏状态失败')
   },
 
   subscribe<E extends BackendEventName>(event: E, handler: (payload: BackendEvents[E]) => void): () => void {

@@ -49,6 +49,7 @@
                 <div class="plugin-content">
                   <span class="plugin-name">{{ plugin.title || plugin.name }}</span>
                   <div class="plugin-description">{{ pluginDescription(plugin) }}</div>
+                  <div v-if="plugin.error" class="plugin-error" :title="plugin.error">{{ plugin.error }}</div>
                 </div>
               </div>
 
@@ -151,7 +152,7 @@ const filteredPlugins = computed(() => {
   if (activeFilter.value === 'enabled') {
     result = result.filter((plugin) => plugin.status === 'enabled')
   } else if (activeFilter.value === 'disabled') {
-    result = result.filter((plugin) => plugin.status === 'disabled' || plugin.status === 'error')
+    result = result.filter((plugin) => plugin.status !== 'enabled')
   }
 
   const query = searchQuery.value.trim().toLowerCase()
@@ -165,14 +166,19 @@ const filteredPlugins = computed(() => {
   )
 })
 
-function statusType(status: string): 'success' | 'error' | 'default' {
+function statusType(status: string): 'success' | 'error' | 'warning' | 'info' | 'default' {
   if (status === 'enabled') return 'success'
-  if (status === 'error') return 'error'
+  if (status === 'disabled' || status === 'permission_denied' || status === 'error') return 'error'
+  if (status === 'loading' || status === 'enabling' || status === 'disabling' || status === 'unloading') {
+    return 'warning'
+  }
+  if (status === 'loaded') return 'info'
   return 'default'
 }
 
 function pluginDescription(plugin: PluginInfo): string {
-  return [plugin.description || plugin.name, plugin.author].filter(Boolean).join(' · ')
+  const pluginId = plugin.author ? `${plugin.author}:${plugin.name}` : plugin.name
+  return [pluginId, plugin.description].filter(Boolean).join(' · ')
 }
 
 async function togglePlugin(plugin: PluginInfo) {

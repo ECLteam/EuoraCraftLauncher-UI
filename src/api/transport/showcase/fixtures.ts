@@ -37,7 +37,6 @@ export const showcaseConfig: Record<string, unknown> = {
   },
   download: {
     mirror_source: 'official',
-    download_threads: 16,
   },
   version_settings: {},
   ui: {
@@ -97,6 +96,7 @@ export const showcaseAuthlibServers: AuthlibServer[] = [
   {
     name: '示例认证服务器',
     url: 'https://example.com/api/yggdrasil',
+    email: 'player@example.com',
     description: '仅用于展示 Authlib 账户表单，不会发起真实登录。',
   },
 ]
@@ -197,7 +197,6 @@ export const showcasePlugins: PluginInfo[] = [
     status: 'enabled',
     error: null,
     dependencies: {},
-    events: { 'game:launched': true },
     services: ['dashboard'],
     is_system: false,
   },
@@ -211,7 +210,6 @@ export const showcasePlugins: PluginInfo[] = [
     status: 'disabled',
     error: null,
     dependencies: {},
-    events: {},
     services: ['theme'],
     is_system: false,
   },
@@ -225,7 +223,6 @@ export const showcasePlugins: PluginInfo[] = [
     status: 'enabled',
     error: null,
     dependencies: {},
-    events: {},
     services: ['system'],
     is_system: true,
   },
