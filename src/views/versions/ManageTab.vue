@@ -26,7 +26,7 @@
         :pathLocation="currentPath?.path"
         :loading="loading"
         :refreshLoading="refreshLoading"
-        :selectedVersion="versionManager.selectedVersion"
+        :selectedVersion="versionStore.selectedVersion"
         @refresh="handleRefresh"
         @install="navigateToInstall"
         @addPath="addNewPath"
@@ -134,11 +134,11 @@ import InstalledVersionList from '@/components/versions/InstalledVersionList.vue
 import VersionPathSidebar from '@/components/versions/VersionPathSidebar.vue'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { globalLaunchProgress } from '@/composables/useLaunchProgress'
-import { useVersionManager } from '@/composables/useVersionManager'
 import { LAUNCH_PROGRESS, LAUNCH_SUCCESS_HIDE_DELAY, LAUNCH_ERROR_HIDE_DELAY } from '@/config/game'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
-import { normalizeGamePath, versionInstallApi } from '@/features/versions/api/versionInstallApi'
+import { versionInstallApi } from '@/features/versions/api/versionInstallApi'
 import { findGamePathIndex, type GamePath } from '@/features/versions/model/gamePath'
+import { useVersionStore } from '@/features/versions/stores/versionStore'
 import type { LaunchProgress, MinecraftPathEntry, ScannedVersion } from '@/types/api'
 import { getErrorMessage } from '@/utils/error'
 import VersionDetailModal from '@/views/versions/VersionDetailModal.vue'
@@ -147,7 +147,7 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const message = useGlassMessage()
-const versionManager = useVersionManager(t)
+const versionStore = useVersionStore()
 const settingsStore = useSettingsStore()
 
 const gamePaths = ref<GamePath[]>([])
@@ -161,7 +161,6 @@ const pathForm = ref<GamePath>({ name: '', path: '' })
 const loading = ref(false)
 const refreshLoading = ref(false)
 const searchQuery = ref('')
-const scannedVersions = ref<ScannedVersion[]>([])
 
 const showConfirmModal = ref(false)
 const confirmLoading = ref(false)
@@ -213,11 +212,11 @@ const currentPathName = computed(() => currentPath.value?.name || t('versions.ma
 
 const currentPathVersions = computed(() => {
   if (!currentPath.value) return []
-  return scannedVersions.value.filter((v) => v.path === currentPath.value?.path)
+  return versionStore.scannedVersions.filter((v) => v.path === currentPath.value?.path)
 })
 
 const pathVersionCounts = computed(() =>
-  scannedVersions.value.reduce<Record<string, number>>((counts, version) => {
+  versionStore.scannedVersions.reduce<Record<string, number>>((counts, version) => {
     if (version.path) {
       counts[version.path] = (counts[version.path] ?? 0) + 1
     }
@@ -225,19 +224,11 @@ const pathVersionCounts = computed(() =>
   }, {})
 )
 
-let stopWatchingVersionChanges: (() => void) | null = null
-
 onMounted(async () => {
-  stopWatchingVersionChanges = versionInstallApi.onVersionsChanged(({ gamePath }) => {
-    if (!currentPath.value || normalizeGamePath(currentPath.value.path) !== normalizeGamePath(gamePath)) return
-    void scanCurrentPath()
-  })
   await fetchGamePaths()
 })
 
 onBeforeUnmount(() => {
-  stopWatchingVersionChanges?.()
-  stopWatchingVersionChanges = null
   showPathModal.value = false
 })
 
@@ -271,7 +262,7 @@ const getPathNameFromPath = (path: string): string => {
 }
 
 const handleSelectVersion = (version: ScannedVersion) => {
-  versionManager.selectVersion(version.versionId, currentPath.value?.path)
+  versionStore.selectVersion(version.versionId, currentPath.value?.path)
 }
 
 const scanCurrentPath = async (force = false) => {
@@ -280,12 +271,7 @@ const scanCurrentPath = async (force = false) => {
   loading.value = true
   const currentPathValue = currentPath.value.path
   try {
-    const versions = await versionInstallApi.scan([currentPathValue], { force })
-    // 保留其他路径的版本，只替换当前路径的扫描结果
-    scannedVersions.value = [
-      ...scannedVersions.value.filter((v) => v.path !== currentPathValue),
-      ...versions.map((version) => ({ ...version, path: currentPathValue })),
-    ]
+    await versionStore.scanPath(currentPathValue, force)
   } catch (error) {
     console.error(t('versions.manage.scanFailed'), error)
   } finally {
@@ -411,8 +397,7 @@ const removePath = async (index: number) => {
       return
     }
 
-    scannedVersions.value = scannedVersions.value.filter((v) => v.path !== removed.path)
-    versionInstallApi.invalidateScanCache(removed.path)
+    versionStore.removePath(removed.path)
 
     if (index === selectedPathIndex.value) {
       selectedPathIndex.value = Math.min(index, gamePaths.value.length - 1)

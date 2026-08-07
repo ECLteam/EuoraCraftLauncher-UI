@@ -8,7 +8,6 @@ import type {
   ModSearchItem,
   PluginInfo,
   ScannedVersion,
-  VersionCatalogItem,
 } from '@/types/api'
 
 export const showcaseConfig: Record<string, unknown> = {
@@ -178,12 +177,12 @@ export const showcaseVersionCatalog: MinecraftVersionCatalog = {
   old_alpha: oldAlpha,
 }
 
-export const showcaseLoaderVersions: Record<string, VersionCatalogItem[]> = {
-  fabric_versions: [{ all: ['0.16.14', '0.16.13'], stable: ['0.16.14'], unstable: ['0.16.13'] }],
-  forge_versions: [{ all: ['55.0.9', '55.0.8'], stable: ['55.0.9'], unstable: ['55.0.8'] }],
-  neoforge_versions: [{ all: ['21.8.2-beta'], stable: [], unstable: ['21.8.2-beta'] }],
-  optifine_versions: [{ all: ['HD_U_J1_pre2'], stable: [], unstable: ['HD_U_J1_pre2'] }],
-  quilt_versions: [{ all: ['0.28.1'], stable: ['0.28.1'], unstable: [] }],
+export const showcaseLoaderVersions: Record<string, string[]> = {
+  fabric_versions: ['0.16.14', '0.16.13'],
+  forge_versions: ['55.0.9', '55.0.8'],
+  neoforge_versions: ['21.8.2-beta'],
+  optifine_versions: ['HD_U_J1_pre2'],
+  quilt_versions: ['0.28.1'],
 }
 
 export const showcasePlugins: PluginInfo[] = [
@@ -230,37 +229,82 @@ export const showcasePlugins: PluginInfo[] = [
 
 export const showcaseMods: ModSearchItem[] = [
   {
-    id: 'sodium',
+    id: 'modrinth:sodium',
+    projectId: 'sodium',
     slug: 'sodium',
     title: 'Sodium',
+    displayTitle: '钠',
     description: '现代化的 Minecraft 渲染优化 Mod。',
     author: 'CaffeineMC',
     downloads: 128_000_000,
     follows: 720_000,
-    date_modified: '2026-07-18T12:00:00Z',
+    dateModified: '2026-07-18T12:00:00Z',
     source: 'modrinth',
+    projectUrl: 'https://modrinth.com/mod/sodium',
+    categories: ['optimization'],
+    loaders: ['fabric', 'quilt'],
+    gameVersions: ['1.21.5'],
+    alternatives: [
+      { source: 'modrinth', projectId: 'sodium', slug: 'sodium', projectUrl: 'https://modrinth.com/mod/sodium' },
+      {
+        source: 'curseforge',
+        projectId: '394468',
+        slug: 'sodium',
+        projectUrl: 'https://www.curseforge.com/minecraft/mc-mods/sodium',
+      },
+    ],
+    wiki: {
+      id: '2785',
+      title: '钠',
+      englishName: 'Sodium',
+      summary: '现代化的 Minecraft 渲染优化模组。',
+      url: 'https://www.mcmod.cn/class/2785.html',
+    },
   },
   {
-    id: 'iris',
+    id: 'modrinth:iris',
+    projectId: 'iris',
     slug: 'iris',
     title: 'Iris Shaders',
+    displayTitle: 'Iris 光影',
     description: '支持现代光影包并与 Sodium 协同工作。',
     author: 'IrisShaders',
     downloads: 84_000_000,
     follows: 460_000,
-    date_modified: '2026-07-16T12:00:00Z',
+    dateModified: '2026-07-16T12:00:00Z',
     source: 'modrinth',
+    projectUrl: 'https://modrinth.com/mod/iris',
+    categories: ['optimization'],
+    loaders: ['fabric', 'quilt'],
+    gameVersions: ['1.21.5'],
+    alternatives: [
+      { source: 'modrinth', projectId: 'iris', slug: 'iris', projectUrl: 'https://modrinth.com/mod/iris' },
+    ],
   },
   {
-    id: 'fabric-api',
+    id: 'modrinth:fabric-api',
+    projectId: 'fabric-api',
     slug: 'fabric-api',
     title: 'Fabric API',
+    displayTitle: 'Fabric API',
     description: 'Fabric 生态常用的基础 API 集合。',
     author: 'FabricMC',
     downloads: 210_000_000,
     follows: 530_000,
-    date_modified: '2026-07-20T12:00:00Z',
+    dateModified: '2026-07-20T12:00:00Z',
     source: 'modrinth',
+    projectUrl: 'https://modrinth.com/mod/fabric-api',
+    categories: ['library'],
+    loaders: ['fabric'],
+    gameVersions: ['1.21.5'],
+    alternatives: [
+      {
+        source: 'modrinth',
+        projectId: 'fabric-api',
+        slug: 'fabric-api',
+        projectUrl: 'https://modrinth.com/mod/fabric-api',
+      },
+    ],
   },
 ]
 

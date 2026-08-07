@@ -70,8 +70,123 @@
           </SettingSection>
         </div>
 
-        <div v-if="activeTab === 'mods'" class="vdm-page empty-page">
-          <NEmpty :description="t('versions.detail.placeholder')" />
+        <div v-if="activeTab === 'mods'" class="vdm-page mods-page">
+          <div class="mods-panel ecl-surface">
+            <!-- 面板头部：工具栏 -->
+            <div class="mods-panel-header">
+              <div class="mods-panel-header-left">
+                <div class="search-box">
+                  <UiIcon name="search" :size="15" class="search-icon" />
+                  <input
+                    v-model="modSearchQuery"
+                    type="text"
+                    class="search-input"
+                    :placeholder="t('versions.mods.searchPlaceholder')"
+                  />
+                  <button v-if="modSearchQuery" class="search-clear" type="button" @click="modSearchQuery = ''">
+                    <UiIcon name="close" :size="14" />
+                  </button>
+                </div>
+                <div class="mods-filter-tabs">
+                  <button
+                    v-for="f in modFilterOptions"
+                    :key="f.value"
+                    :class="['mods-filter-btn', { active: modFilter === f.value }]"
+                    @click="modFilter = f.value"
+                  >
+                    {{ f.label }}
+                  </button>
+                </div>
+              </div>
+              <div class="mods-panel-header-right">
+                <span v-if="filteredMods.length" class="mods-count">{{ t('versions.mods.count', { count: filteredMods.length }) }}</span>
+                <NButton size="tiny" secondary @click="handleOnlineSearch">
+                  <template #icon><UiIcon name="search" :size="14" /></template>
+                  {{ t('versions.mods.onlineSearch') }}
+                </NButton>
+                <NButton size="tiny" secondary @click="handleAddMod">
+                  <template #icon><UiIcon name="add" :size="14" /></template>
+                  {{ t('versions.mods.addMod') }}
+                </NButton>
+                <NButton size="tiny" secondary @click="handleOpenModsFolder">
+                  <template #icon><UiIcon name="folder" :size="14" /></template>
+                  {{ t('versions.mods.openFolder') }}
+                </NButton>
+              </div>
+            </div>
+
+            <!-- 面板内容：模组列表 -->
+            <div class="mods-panel-content">
+              <NSpin :show="modsLoading" class="mods-spin">
+                <template v-if="filteredMods.length">
+                  <div class="mods-table">
+                    <div class="table-header">
+                      <span class="mcol-name">{{ t('versions.mods.modName') }}</span>
+                      <span class="mcol-loader">{{ t('versions.mods.loader') }}</span>
+                      <span class="mcol-version">{{ t('versions.mods.modVersion') }}</span>
+                      <span class="mcol-author">{{ t('versions.mods.author') }}</span>
+                      <span class="mcol-status">{{ t('versions.mods.enabled') }}</span>
+                      <span class="mcol-actions" />
+                    </div>
+                    <div class="mods-table-body">
+                      <div
+                        v-for="mod in filteredMods"
+                        :key="mod.filename"
+                        class="table-row"
+                      >
+                        <span class="mcol-name">
+                          <span class="mod-name">{{ mod.name || mod.filename.replace(/\.(jar|disabled)$/, '') }}</span>
+                          <span class="mod-filename">{{ mod.filename }}</span>
+                        </span>
+                        <span class="mcol-loader">
+                          <span v-if="mod.loader_type" class="badge" :class="'badge-' + mod.loader_type.toLowerCase()">
+                            {{ getLoaderName(mod.loader_type) }}
+                          </span>
+                          <span v-else class="badge badge-vanilla">{{ t('versions.manage.vanilla') }}</span>
+                        </span>
+                        <span class="mcol-version">
+                          <span class="mod-version-text">{{ mod.version || '-' }}</span>
+                        </span>
+                        <span class="mcol-author">
+                          <span class="mod-author-text">{{ mod.author || '-' }}</span>
+                        </span>
+                        <span class="mcol-status">
+                          <NSwitch
+                            :value="mod.enabled"
+                            size="small"
+                            @update:value="handleToggleMod(mod)"
+                          />
+                        </span>
+                        <span class="mcol-actions">
+                          <button
+                            class="btn-action btn-delete"
+                            :title="t('common.delete')"
+                            @click="handleDeleteMod(mod)"
+                          >
+                            <UiIcon name="trash" :size="13" />
+                          </button>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+                <div v-else-if="!modsLoading" class="mods-empty empty-state">
+                  <UiIcon name="puzzle" :size="36" class="empty-icon" />
+                  <p class="empty-text">{{ t('versions.mods.noMods') }}</p>
+                  <div class="empty-actions" style="display:flex;gap:8px;margin-top:4px">
+                    <NButton size="small" secondary @click="handleAddMod">
+                      <template #icon><UiIcon name="add" :size="14" /></template>
+                      {{ t('versions.mods.addMod') }}
+                    </NButton>
+                    <NButton size="small" secondary @click="handleOnlineSearch">
+                      <template #icon><UiIcon name="search" :size="14" /></template>
+                      {{ t('versions.mods.onlineSearch') }}
+                    </NButton>
+                  </div>
+                </div>
+              </NSpin>
+            </div>
+          </div>
         </div>
 
         <div v-if="activeTab === 'settings'" class="vdm-page version-settings-page">
@@ -206,9 +321,11 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NEmpty, NInput, NInputGroup, NInputNumber, NSpin, NSwitch } from 'naive-ui'
+import { NButton, NEmpty, NInput, NInputGroup, NInputNumber, NSpin, NSwitch, useDialog } from 'naive-ui'
 import { ref, reactive, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+import backend from '@/api/client'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useGlassMessage } from '@/composables/useGlassMessage'
@@ -218,7 +335,8 @@ import SettingSection from '@/features/settings/components/SettingSection.vue'
 import { versionInstallApi } from '@/features/versions/api/versionInstallApi'
 import { versionSettingsApi } from '@/features/versions/api/versionSettingsApi'
 import { createDefaultVersionSettings, type VersionSettingsTarget } from '@/features/versions/model/versionSettings'
-import type { ScannedVersion } from '@/types/api'
+import { localModsApi } from '@/features/versions/api/localModsApi'
+import type { ModItem, ScannedVersion } from '@/types/api'
 import { getLoaderIcon, getLoaderImage, getLoaderName } from '@/utils/loader'
 
 interface Props {
@@ -239,7 +357,9 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const router = useRouter()
 const message = useGlassMessage()
+const dialog = useDialog()
 
 const visible = computed({
   get: () => props.visible,
@@ -263,6 +383,116 @@ const tabs = computed(() => [
   { id: 'settings' as const, icon: 'settings', label: t('versions.detail.settings') },
   { id: 'saves' as const, icon: 'folder', label: t('versions.detail.saves') },
 ])
+
+// ======================== 模组管理 ========================
+
+const mods = ref<ModItem[]>([])
+const modsLoading = ref(false)
+const modSearchQuery = ref('')
+const modFilter = ref<'all' | 'enabled' | 'disabled'>('all')
+
+const modFilterOptions = computed(() => [
+  { label: t('versions.mods.filterAll'), value: 'all' as const },
+  { label: t('versions.mods.filterEnabled'), value: 'enabled' as const },
+  { label: t('versions.mods.filterDisabled'), value: 'disabled' as const },
+])
+
+const filteredMods = computed(() => {
+  let list = mods.value
+  // 筛选
+  if (modFilter.value === 'enabled') list = list.filter((m) => m.enabled)
+  else if (modFilter.value === 'disabled') list = list.filter((m) => !m.enabled)
+  // 搜索
+  const q = modSearchQuery.value.trim().toLowerCase()
+  if (q) {
+    list = list.filter(
+      (m) => m.filename.toLowerCase().includes(q) || (m.name && m.name.toLowerCase().includes(q))
+    )
+  }
+  return list
+})
+
+function getGamePath(): string | null {
+  return props.version?.path || props.version?.jsonPath || null
+}
+
+async function loadMods() {
+  const gamePath = getGamePath()
+  if (!gamePath) return
+  modsLoading.value = true
+  try {
+    mods.value = await localModsApi.list(gamePath)
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : t('versions.mods.modAddFailed'))
+  } finally {
+    modsLoading.value = false
+  }
+}
+
+async function handleToggleMod(mod: ModItem) {
+  const gamePath = getGamePath()
+  if (!gamePath) return
+  try {
+    const result = await localModsApi.toggle(gamePath, mod.filename)
+    mod.enabled = result.enabled
+    const actionText = result.enabled ? t('versions.mods.toggleEnabled') : t('versions.mods.toggleDisabled')
+    message.success(t('versions.mods.modToggled', { name: mod.name || mod.filename, action: actionText }))
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : t('versions.mods.modToggleFailed'))
+  }
+}
+
+function handleDeleteMod(mod: ModItem) {
+  const d = dialog.warning({
+    title: t('common.delete'),
+    content: t('versions.mods.deleteConfirm', { name: mod.name || mod.filename }),
+    positiveText: t('common.confirm'),
+    negativeText: t('common.cancel'),
+    onPositiveClick: async () => {
+      d.loading = true
+      const gamePath = getGamePath()
+      if (!gamePath) return
+      try {
+        await localModsApi.remove(gamePath, mod.filename)
+        mods.value = mods.value.filter((m) => m.filename !== mod.filename)
+        message.success(t('versions.mods.modDeleted'))
+      } catch (error) {
+        message.error(error instanceof Error ? error.message : t('versions.mods.modDeleteFailed'))
+      }
+    },
+  })
+}
+
+async function handleAddMod() {
+  const gamePath = getGamePath()
+  if (!gamePath) return
+  try {
+    const result = await backend.command('select_file')
+    if (!result.success || !result.data?.path) return
+    await localModsApi.add(gamePath, result.data.path)
+    message.success(t('versions.mods.modAdded'))
+    await loadMods()
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : t('versions.mods.modAddFailed'))
+  }
+}
+
+async function handleOpenModsFolder() {
+  const gamePath = getGamePath()
+  if (!gamePath) return
+  try {
+    await localModsApi.openFolder(gamePath)
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : t('versions.mods.modAddFailed'))
+  }
+}
+
+function handleOnlineSearch() {
+  visible.value = false
+  void router.push('/online-mods')
+}
+
+// ======================== 版本设置 ========================
 
 const versionSettings = reactive(createDefaultVersionSettings())
 const settingsLoading = ref(false)
@@ -305,6 +535,7 @@ watch(
     if (val) {
       activeTab.value = props.initialTab
       void loadSettings()
+      void loadMods()
     }
   },
   { immediate: true }

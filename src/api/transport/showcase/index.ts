@@ -320,14 +320,23 @@ export function createShowcaseTransport(): BackendTransport {
         return success()
       case 'search_mods': {
         const query = String(payload.query ?? '').toLowerCase()
-        return success(
-          structuredClone(
-            showcaseMods.filter(
+        const items = showcaseMods.filter(
               (item) =>
-                !query || item.title.toLowerCase().includes(query) || item.description.toLowerCase().includes(query)
+                !query ||
+                item.title.toLowerCase().includes(query) ||
+                item.displayTitle.toLowerCase().includes(query) ||
+                item.description.toLowerCase().includes(query)
             )
-          )
-        )
+        return success({
+          items: structuredClone(items),
+          sources: {
+            modrinth: { available: true, error: '', total: items.length },
+            curseforge: { available: false, error: 'Showcase 未配置 CurseForge API Key', total: 0 },
+            mcmod: { available: true, error: '', total: 1 },
+          },
+          total: items.length,
+          query,
+        })
       }
       case 'get_mods':
         return success([
@@ -344,19 +353,29 @@ export function createShowcaseTransport(): BackendTransport {
       case 'get_mod_info':
         return success({
           ...(showcaseMods.find((item) => item.id === payload.mod_id) ?? showcaseMods[0]),
+          body: 'Showcase 模组详情。',
           loaders: ['fabric', 'quilt'],
-          game_versions: ['1.21.5', '1.21.4'],
+          gameVersions: ['1.21.5', '1.21.4'],
         })
       case 'get_mod_versions':
         return success([
           {
             id: 'showcase-mod-version',
-            version_number: '1.0.0',
-            game_versions: ['1.21.5'],
+            projectId: String(payload.mod_id ?? 'sodium'),
+            name: 'Showcase 1.0.0',
+            versionNumber: '1.0.0',
+            gameVersions: ['1.21.5'],
             loaders: ['fabric'],
             filename: 'showcase-mod.jar',
+            downloads: 1024,
+            releaseType: 'release',
           },
         ])
+      case 'download_mod':
+        return success({
+          installed: [{ filename: 'showcase-mod.jar', source: String(payload.source), skipped: false }],
+          modsPath: 'Showcase/.minecraft/versions/1.21.5/mods',
+        })
       case 'fs_exists':
         return success({ exists: false, is_dir: false, is_file: false })
       case 'fs_read_dir':

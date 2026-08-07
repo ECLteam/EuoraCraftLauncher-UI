@@ -49,7 +49,7 @@ export const versionInstallApi = {
     return assertSuccess(await backend.command('minecraft_versions_classified'), '获取版本列表')
   },
 
-  async getLoaderVersions(loader: InstallableLoader, gameVersion: string): Promise<unknown> {
+  async getLoaderVersions(loader: InstallableLoader, gameVersion: string): Promise<string[]> {
     const payload = { game_version: gameVersion }
     if (loader === 'fabric') return assertSuccess(await backend.command('fabric_versions', payload), '获取 Fabric 版本')
     if (loader === 'forge') return assertSuccess(await backend.command('forge_versions', payload), '获取 Forge 版本')

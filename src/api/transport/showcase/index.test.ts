@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { reactive } from 'vue'
-import { normalizeLoaderVersions } from '@/features/versions/model/loaderVersions'
 import type { ApiResponse } from '@/types/api'
 import { SHOWCASE_CONFIG_STORAGE_KEY } from './configPersistence'
 import { createShowcaseTransport } from '.'
@@ -117,9 +116,9 @@ describe('ShowcaseTransport', () => {
     const transport = createShowcaseTransport()
     const result = (await transport.invoke(`${loader}_versions`, {
       game_version: '1.21.8',
-    })) as ApiResponse<unknown>
+    })) as ApiResponse<string[]>
 
     expect(result.success).toBe(true)
-    expect(normalizeLoaderVersions(result.data).length).toBeGreaterThan(0)
+    expect(result.data?.length).toBeGreaterThan(0)
   })
 })

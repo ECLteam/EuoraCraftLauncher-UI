@@ -144,7 +144,7 @@ export interface ScannedVersion {
   versionId: string
   /** 后端解析得到的原版版本类型，前端不再根据版本名称猜测 */
   versionType: Exclude<MinecraftVersionType, 'all'>
-  path?: string
+  path: string
   displayName: string
   primaryLoader: string
   loaderVersion?: string
@@ -158,12 +158,6 @@ export interface ScannedVersion {
   isBroken: boolean
   jsonPath: string
   sourceName?: string
-}
-
-export interface VersionCatalogItem {
-  all: string[]
-  stable: string[]
-  unstable: string[]
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -400,15 +394,52 @@ export interface ModItem {
 
 export interface ModSearchItem {
   id: string
+  projectId: string
   slug: string
   title: string
+  displayTitle: string
   description: string
   author: string
-  icon_url?: string
+  iconUrl?: string
   downloads: number
-  follows?: number
-  date_modified?: string
-  source: string
+  follows: number
+  dateModified?: string
+  source: 'modrinth' | 'curseforge'
+  projectUrl: string
+  categories: string[]
+  loaders: string[]
+  gameVersions: string[]
+  wiki?: McmodInfo
+  alternatives: ModSourceReference[]
+}
+
+export interface ModSourceReference {
+  source: 'modrinth' | 'curseforge'
+  projectId: string
+  slug: string
+  projectUrl: string
+}
+
+export interface McmodInfo {
+  id: string
+  title: string
+  englishName: string
+  summary: string
+  iconUrl?: string
+  url: string
+}
+
+export interface ModSourceStatus {
+  available: boolean
+  error: string
+  total: number
+}
+
+export interface ModSearchResult {
+  items: ModSearchItem[]
+  sources: Record<string, ModSourceStatus>
+  total: number
+  query: string
 }
 
 export interface ModInfo {
@@ -417,21 +448,30 @@ export interface ModInfo {
   title: string
   description: string
   author: string
-  icon_url?: string
-  source: string
+  body: string
+  iconUrl?: string
+  source: 'modrinth' | 'curseforge'
   loaders: string[]
-  game_versions: string[]
-  [k: string]: unknown
+  gameVersions: string[]
+  projectUrl: string
 }
 
 export interface ModVersion {
   id: string
-  version_number: string
-  game_versions: string[]
+  projectId: string
+  name: string
+  versionNumber: string
+  gameVersions: string[]
   loaders: string[]
-  download_url?: string
-  filename?: string
-  date_published?: string
+  filename: string
+  datePublished?: string
+  downloads: number
+  releaseType: 'release' | 'beta' | 'alpha'
+}
+
+export interface ModInstallResult {
+  installed: Array<{ filename: string; source: string; skipped: boolean }>
+  modsPath: string
 }
 
 export interface ResourcePack {
@@ -611,6 +651,7 @@ export interface BackendEvents {
   'game:install_progress': InstallProgress
   'game:launch_progress': LaunchProgress
   'game:versions_changed': { gamePath: string }
+  'mods:install_progress': { phase: 'resolving' | 'downloading'; projectId?: string; filename?: string }
   accounts_changed: AccountListData
   accounts_microsoft_login_status: MicrosoftLoginStatusEvent
   'plugin:status_changed': { name: string; action: string; result: string }
@@ -811,10 +852,12 @@ export interface CommandPayloadMap {
   get_mod_versions: { mod_id: string; source: string; game_version?: string; loader_type?: string }
   download_mod: {
     mod_id: string
-    source: string
-    version_id: string
+    source: 'modrinth' | 'curseforge'
+    file_id: string
     game_path: string
-    filename?: string
+    instance_id: string
+    game_version?: string
+    loader_type?: string
   }
 
   // 启动器信息 / 游戏页信息卡
@@ -858,11 +901,11 @@ export interface CommandResponseMap {
 
   minecraft_versions: MinecraftVersion[]
   minecraft_versions_classified: MinecraftVersionCatalog
-  fabric_versions: VersionCatalogItem[]
-  forge_versions: VersionCatalogItem[]
-  neoforge_versions: VersionCatalogItem[]
-  optifine_versions: VersionCatalogItem[]
-  quilt_versions: VersionCatalogItem[]
+  fabric_versions: string[]
+  forge_versions: string[]
+  neoforge_versions: string[]
+  optifine_versions: string[]
+  quilt_versions: string[]
   scan_versions: ScannedVersion[]
   install_version: InstallVersionResult
   uninstall_version: void
@@ -942,10 +985,10 @@ export interface CommandResponseMap {
   open_shaderpacks_folder: void
   open_saves_folder: void
 
-  search_mods: ModSearchItem[]
+  search_mods: ModSearchResult
   get_mod_info: ModInfo
   get_mod_versions: ModVersion[]
-  download_mod: void
+  download_mod: ModInstallResult
 
   launcher_info: LauncherInfo
   info_card_get: InfoCardData

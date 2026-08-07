@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, reactive, ref } from 'vue'
 import { versionInstallApi, type InstallableLoader } from '@/features/versions/api/versionInstallApi'
-import { normalizeLoaderVersions } from '@/features/versions/model/loaderVersions'
 import type { CommandPayloadMap } from '@/types/api'
 
 export const useVersionInstallStore = defineStore('version-install', () => {
@@ -25,10 +24,7 @@ export const useVersionInstallStore = defineStore('version-install', () => {
     const requestId = ++loaderRequestId
     loaderVersionsLoading.value = true
     try {
-      const result = normalizeLoaderVersions(await versionInstallApi.getLoaderVersions(loader, gameVersion)).slice(
-        0,
-        20
-      )
+      const result = (await versionInstallApi.getLoaderVersions(loader, gameVersion)).slice(0, 20)
       if (requestId === loaderRequestId) loaderVersions[loader] = result
       return result
     } finally {
