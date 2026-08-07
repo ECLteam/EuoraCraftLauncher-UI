@@ -51,23 +51,6 @@ function checkEnv(): boolean {
 
 // ── IPC 调用 ──────────────────────────────────────────────────────
 
-const IPC_TIMEOUT_MS = 30000
-
-/**
- * 带超时的 IPC 调用。
- * @param command - 独立的后端命令名
- * @param payload - 传递给命令的参数对象
- * @returns 后端返回的原始数据
- * @throws 当 Tauri 环境未就绪或调用超时时抛出错误
- */
-async function invokeWithTimeout(command: string, payload: unknown = {}): Promise<unknown> {
-  if (!transport.available) throw new Error('后端 Transport 未就绪')
-  const timeoutPromise = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error(`IPC 调用超时 (${IPC_TIMEOUT_MS / 1000}s): ${command}`)), IPC_TIMEOUT_MS)
-  )
-  return Promise.race([transport.invoke(command, payload), timeoutPromise])
-}
-
 /**
  * 统一调用后端方法并包装为 ApiResponse。
  * @param command - 独立的后端命令名
@@ -78,7 +61,7 @@ async function call<T = unknown>(command: string, payload: unknown = {}): Promis
   const start = performance.now()
   try {
     if (!checkEnv()) throw new Error('PyTauri 环境未就绪')
-    const raw = await invokeWithTimeout(command, payload)
+    const raw = await transport.invoke(command, payload)
     const dur = (performance.now() - start).toFixed(1)
     if (!raw || typeof raw !== 'object') {
       return { success: false, message: '后端返回了非对象响应', timestamp: Date.now() }

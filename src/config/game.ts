@@ -10,6 +10,12 @@ import type { LaunchPhase } from '@/types/api'
 export const LAUNCH_STAGES = {
   prepare: '准备启动...',
   preparing: '正在准备...',
+  account: '验证游戏账户...',
+  refreshing_microsoft_token: '刷新正版登录令牌...',
+  validating_authlib_token: '刷新外置登录令牌...',
+  loading_offline_account: '读取离线账户...',
+  account_ready: '登录凭据已就绪',
+  preparing_authlib: '准备外置登录组件...',
   checking_files: '检查游戏文件完整性...',
   files_checked: '文件校验完成',
   completing_files: '补全缺失文件...',
@@ -30,22 +36,25 @@ export const LAUNCH_STAGES = {
 
 export const LAUNCH_PROGRESS: Partial<Record<LaunchPhase, number>> = {
   preparing: 3,
-  checking: 5,
-  files_checked: 50,
-  building_args: 65,
-  args_built: 75,
-  natives_done: 85,
-  about_to_launch: 92,
-  launching: 95,
+  account: 7,
+  microsoft_token: 7,
+  authlib_token: 7,
+  offline_account: 7,
+  account_ready: 17,
+  authlib: 20,
+  checking: 25,
+  files_checked: 55,
+  building_args: 72,
+  args_built: 84,
+  natives_done: 90,
+  about_to_launch: 94,
+  launching: 97,
 }
-
-/** 下载阶段的基础进度 */
-export const DOWNLOAD_BASE_PROGRESS = 10
-/** 下载阶段的缩放系数 */
-export const DOWNLOAD_PROGRESS_SCALE = 0.38
 
 // ---- 延迟/超时 ----
 
+/** 启动进度从 0% 匀速走到 100% 的最短时长 (ms) */
+export const LAUNCH_MIN_PROGRESS_DURATION = 5000
 /** 启动成功后关闭进度面板的延迟 (ms) */
 export const LAUNCH_SUCCESS_HIDE_DELAY = 1500
 /** 启动失败后关闭进度面板的延迟 (ms) */

@@ -666,19 +666,17 @@
     "searchSavedServer": "搜索皮肤站链接...",
     "noSavedServers": "暂无已添加的链接",
     "serverUrlPlaceholder": "https://example.com/api/yggdrasil",
-    "serverUrlHint": "会记住此链接和邮箱，密码不会保存",
+    "serverUrlHint": "会记住此链接和登录名，密码不会保存；多角色账户可在登录后选择角色",
     "serverUrlRequired": "请输入服务器地址",
-    "emailRequired": "请输入邮箱",
+    "emailRequired": "请输入角色名或邮箱",
     "passwordRequired": "请输入密码",
-    "emailPlaceholder": "邮箱",
+    "emailPlaceholder": "角色名或邮箱",
     "passwordPlaceholder": "密码",
-    "selectProfile": "选择游戏角色",
-    "selectProfiles": "选择要登录的角色",
-    "selectProfilesHint": "该邮箱下有多个角色，可勾选一个或多个；每个角色会保存为独立账户。",
-    "selectedProfileCount": "已选择 {count} 个角色",
-    "loginSelectedProfiles": "登录所选角色",
-    "profileRequired": "请至少选择一个角色",
-    "profileSelectFailed": "选择角色失败"
+    "selectProfileHint": "该登录名下有多个角色，请选择本次要登录的一个角色。",
+    "loginSelectedProfile": "登录所选角色",
+    "profileRequired": "请选择要登录的角色",
+    "profilePlaceholder": "选择要登录的角色",
+    "loggedIn": "已登录"
   },
   "task": {
     "subtask": {

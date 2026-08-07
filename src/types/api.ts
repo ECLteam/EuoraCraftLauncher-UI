@@ -56,6 +56,7 @@ export interface GameConfig {
   jvm_args?: string[]
   fullscreen?: boolean
   last_install_path?: string
+  last_manage_path?: string
 }
 
 export interface SystemMemoryInfo {
@@ -195,6 +196,12 @@ export interface LaunchInstanceResult {
 
 export type AccountType = 'microsoft' | 'offline' | 'authlib'
 
+export interface AuthlibProfile {
+  id: string
+  name: string
+  logged_in?: boolean
+}
+
 export interface MinecraftAccount {
   id: string
   alias: string
@@ -204,8 +211,8 @@ export interface MinecraftAccount {
   isCurrent?: boolean
   skinUrl?: string
   auth_server?: string
-  available_profiles?: AuthlibProfile[]
   profile_selection_required?: boolean
+  available_profiles?: AuthlibProfile[]
 }
 
 export interface AccountListData {
@@ -259,11 +266,6 @@ export interface AuthlibServer {
   url: string
   email: string
   description: string
-}
-
-export interface AuthlibProfile {
-  id: string
-  name: string
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -540,6 +542,12 @@ export type DownloadProgress = InstallProgress
 
 export type LaunchPhase =
   | 'preparing'
+  | 'account'
+  | 'microsoft_token'
+  | 'authlib_token'
+  | 'offline_account'
+  | 'account_ready'
+  | 'authlib'
   | 'checking'
   | 'files_checked'
   | 'building_args'
@@ -602,6 +610,7 @@ export interface BackendEvents {
   'launcher:popup': LauncherPopupEvent
   'game:install_progress': InstallProgress
   'game:launch_progress': LaunchProgress
+  'game:versions_changed': { gamePath: string }
   accounts_changed: AccountListData
   accounts_microsoft_login_status: MicrosoftLoginStatusEvent
   'plugin:status_changed': { name: string; action: string; result: string }
@@ -662,7 +671,7 @@ export interface CommandPayloadMap {
   neoforge_versions: { game_version: string }
   optifine_versions: { game_version: string }
   quilt_versions: { game_version: string }
-  scan_versions: { path?: string | string[] }
+  scan_versions: { path?: string | string[]; force?: boolean }
   install_version: {
     version_id: string
     version_name?: string
@@ -688,11 +697,8 @@ export interface CommandPayloadMap {
     email: string
     password: string
   }
-  accounts_select_authlib_profiles: {
-    account_id: string
-    profile_ids: string[]
-    password?: string
-  }
+  accounts_select_authlib_profile: { account_id: string; profile_id: string }
+  authlib_resolve_server: { server_url: string }
   accounts_microsoft_login_config: undefined
   accounts_start_microsoft_login: undefined
   accounts_poll_microsoft_login: undefined
@@ -865,7 +871,8 @@ export interface CommandResponseMap {
   accounts_current: MinecraftAccount | null
   accounts_add_offline: MinecraftAccount
   accounts_add_authlib: MinecraftAccount
-  accounts_select_authlib_profiles: MinecraftAccount[]
+  accounts_select_authlib_profile: MinecraftAccount
+  authlib_resolve_server: string
   accounts_microsoft_login_config: MicrosoftLoginConfigData
   accounts_start_microsoft_login: MicrosoftLoginData
   accounts_poll_microsoft_login: MicrosoftPollData

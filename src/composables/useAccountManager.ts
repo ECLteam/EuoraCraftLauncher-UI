@@ -46,10 +46,18 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
   const authlibEmail = ref('')
   const authlibPassword = ref('')
   const addingAuthlib = ref(false)
-  const authlibProfiles = ref<AuthlibProfile[]>([])
   const pendingAuthlibAccountId = ref('')
-  const selectedAuthlibProfileIds = ref<string[]>([])
-  const selectingAuthlibProfiles = ref(false)
+  const authlibProfiles = ref<AuthlibProfile[]>([])
+  const selectedAuthlibProfileId = ref('')
+  const selectingAuthlibProfile = ref(false)
+  const authlibProfileOptions = computed(() =>
+    authlibProfiles.value.map((profile) => ({
+      value: profile.id,
+      label: profile.name,
+      profileName: profile.name,
+      loggedIn: profile.logged_in,
+    }))
+  )
   const authlibServerOptions = computed(() =>
     authlibServers.value.map((server) => ({
       value: server.url,
@@ -62,13 +70,6 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
   function renderAuthlibServerOption(option: AutoCompleteOption) {
     const label = String(option.label ?? option.value ?? '')
     return option.email ? `${label} · ${option.email}` : label
-  }
-
-  function prepareAuthlibProfileSelection(account: MinecraftAccount) {
-    if (!account.profile_selection_required || !account.available_profiles?.length) return
-    pendingAuthlibAccountId.value = account.id
-    authlibProfiles.value = account.available_profiles
-    selectedAuthlibProfileIds.value = []
   }
 
   const showMicrosoftLoginModal = ref(false)
@@ -106,10 +107,6 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
   async function loadAccounts() {
     try {
       await accountStore.load()
-      const pendingAccount = accounts.value.find(
-        (account) => account.profile_selection_required && account.available_profiles?.length
-      )
-      if (pendingAccount) prepareAuthlibProfileSelection(pendingAccount)
     } catch {
       message.error(t('game.status.accountLoadFailed'))
     }
@@ -207,6 +204,18 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     if (server) authlibEmail.value = server.email
   }
 
+  async function resolveAuthlibServer() {
+    const inputUrl = authlibServerUrl.value.trim()
+    const serverUrl = URL.canParse(inputUrl) ? inputUrl : `https://${inputUrl}`
+    if (!URL.canParse(serverUrl)) return
+    try {
+      const resolvedUrl = await accountStore.resolveAuthlibServer(serverUrl)
+      if (authlibServerUrl.value.trim() === inputUrl) authlibServerUrl.value = resolvedUrl
+    } catch {
+      return
+    }
+  }
+
   function toggleAuthlibForm() {
     showAuthlibForm.value = !showAuthlibForm.value
     if (showAuthlibForm.value && authlibServers.value.length === 0) {
@@ -235,11 +244,14 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     addingAuthlib.value = true
     try {
       const account = await accountStore.addAuthlib(serverUrl, email, password)
+      if (account.auth_server) authlibServerUrl.value = account.auth_server
+      authlibPassword.value = ''
       if (account.profile_selection_required && account.available_profiles?.length) {
-        prepareAuthlibProfileSelection(account)
+        pendingAuthlibAccountId.value = account.id
+        authlibProfiles.value = account.available_profiles
+        selectedAuthlibProfileId.value = account.available_profiles[0]?.id ?? ''
         return
       }
-      authlibPassword.value = ''
       message.success(t('game.status.accountAdded'))
       showAuthlibForm.value = false
     } catch (reason) {
@@ -249,28 +261,23 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     }
   }
 
-  async function selectAuthlibProfiles() {
-    if (!pendingAuthlibAccountId.value || selectedAuthlibProfileIds.value.length === 0) {
+  async function selectAuthlibProfile() {
+    if (!pendingAuthlibAccountId.value || !selectedAuthlibProfileId.value) {
       message.error(t('auth.profileRequired'))
       return
     }
-    selectingAuthlibProfiles.value = true
+    selectingAuthlibProfile.value = true
     try {
-      await accountStore.selectAuthlibProfiles(
-        pendingAuthlibAccountId.value,
-        selectedAuthlibProfileIds.value,
-        authlibPassword.value || undefined
-      )
-      message.success(t('game.status.accountAdded'))
+      await accountStore.selectAuthlibProfile(pendingAuthlibAccountId.value, selectedAuthlibProfileId.value)
       pendingAuthlibAccountId.value = ''
       authlibProfiles.value = []
-      selectedAuthlibProfileIds.value = []
-      authlibPassword.value = ''
+      selectedAuthlibProfileId.value = ''
+      message.success(t('game.status.accountAdded'))
       showAuthlibForm.value = false
     } catch (reason) {
-      message.error(reason instanceof Error ? reason.message : t('auth.profileSelectFailed'))
+      message.error(reason instanceof Error ? reason.message : t('game.status.accountAddFailed'))
     } finally {
-      selectingAuthlibProfiles.value = false
+      selectingAuthlibProfile.value = false
     }
   }
 
@@ -424,20 +431,21 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     authlibEmail,
     authlibPassword,
     addingAuthlib,
-    authlibProfiles,
     pendingAuthlibAccountId,
-    selectedAuthlibProfileIds,
-    selectingAuthlibProfiles,
+    authlibProfiles,
+    authlibProfileOptions,
+    selectedAuthlibProfileId,
+    selectingAuthlibProfile,
     authlibServers,
     authlibServerOptions,
     renderAuthlibServerOption,
-    prepareAuthlibProfileSelection,
     authlibServersLoading,
     loadAuthlibServers,
     selectAuthlibServer,
+    resolveAuthlibServer,
     toggleAuthlibForm,
     addAuthlibAccount,
-    selectAuthlibProfiles,
+    selectAuthlibProfile,
     // Microsoft
     showMicrosoftLoginModal,
     startingMicrosoftLogin,

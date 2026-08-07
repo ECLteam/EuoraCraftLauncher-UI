@@ -37,7 +37,7 @@
       </div>
     </div>
 
-    <button class="lp-cancel-btn" @click="emit('cancel')">
+    <button v-if="cancelable" class="lp-cancel-btn" @click="emit('cancel')">
       <UiIcon name="close" :size="14" />
       {{ t('common.cancel') }}
     </button>
@@ -54,6 +54,7 @@ defineProps<{
   displayPercent: number
   stage: string
   message: string
+  cancelable: boolean
   visual: { image: string; icon: string }
 }>()
 

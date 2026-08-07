@@ -666,19 +666,17 @@
     "searchSavedServer": "Search saved URLs...",
     "noSavedServers": "No saved URLs",
     "serverUrlPlaceholder": "https://example.com/api/yggdrasil",
-    "serverUrlHint": "The URL and email are remembered; the password is never saved",
+    "serverUrlHint": "The URL and login name are remembered; multi-profile accounts can choose a profile after sign-in",
     "serverUrlRequired": "Server URL is required",
-    "emailRequired": "Email is required",
+    "emailRequired": "Profile name or email is required",
     "passwordRequired": "Password is required",
-    "emailPlaceholder": "Email",
+    "emailPlaceholder": "Profile name or email",
     "passwordPlaceholder": "Password",
-    "selectProfile": "Select Profile",
-    "selectProfiles": "Select profiles to sign in",
-    "selectProfilesHint": "This email has multiple profiles. Select one or more; each profile is saved as a separate account.",
-    "selectedProfileCount": "{count} profiles selected",
-    "loginSelectedProfiles": "Sign in selected profiles",
-    "profileRequired": "Select at least one profile",
-    "profileSelectFailed": "Failed to select profile"
+    "selectProfileHint": "This login has multiple profiles. Choose the one to use for this sign-in.",
+    "loginSelectedProfile": "Sign in with selected profile",
+    "profileRequired": "Choose a profile to sign in",
+    "profilePlaceholder": "Choose a profile",
+    "loggedIn": "Signed in"
   },
   "task": {
     "subtask": {

@@ -37,6 +37,7 @@
           :displayPercent="lpState.displayPercent"
           :stage="launchProgress.stage"
           :message="launchProgress.message"
+          :cancelable="launchProgress.cancelable"
           :visual="launchVersionVisual"
           @cancel="handleLaunchProgressCancel"
         />
@@ -110,16 +111,7 @@
                 </div>
 
                 <div class="account-status-cell">
-                  <NButton
-                    v-if="savedAccount.profile_selection_required"
-                    quaternary
-                    size="tiny"
-                    type="warning"
-                    @click="openAuthlibProfileSelection(savedAccount)"
-                  >
-                    {{ t('auth.selectProfile') }}
-                  </NButton>
-                  <NTag v-else-if="savedAccount.isCurrent" size="small" type="success">
+                  <NTag v-if="savedAccount.isCurrent" size="small" type="success">
                     {{ t('game.current') }}
                   </NTag>
                   <NButton v-else quaternary size="tiny" @click="account.switchAccount(savedAccount.id)">
@@ -241,20 +233,38 @@
               </NButton>
             </div>
 
+            <div v-else-if="account.pendingAuthlibAccountId" class="account-form">
+              <NAlert type="info" :showIcon="false">{{ t('auth.selectProfileHint') }}</NAlert>
+              <NSelect
+                v-model:value="account.selectedAuthlibProfileId"
+                :options="account.authlibProfileOptions"
+                :renderLabel="renderAuthlibProfileLabel"
+                :placeholder="t('auth.profilePlaceholder')"
+              />
+              <NButton
+                type="primary"
+                block
+                :loading="account.selectingAuthlibProfile"
+                :disabled="!account.selectedAuthlibProfileId"
+                @click="selectAuthlibProfileFromModal"
+              >
+                {{ t('auth.loginSelectedProfile') }}
+              </NButton>
+            </div>
+
             <div v-else class="account-form">
               <NAutoComplete
                 v-model:value="account.authlibServerUrl"
                 :options="account.authlibServerOptions"
                 :renderLabel="account.renderAuthlibServerOption"
                 :placeholder="t('auth.serverUrlPlaceholder')"
-                :disabled="!!account.pendingAuthlibAccountId"
                 clearable
                 @select="account.selectAuthlibServer"
+                @blur="account.resolveAuthlibServer"
               />
               <NInput
                 v-model:value="account.authlibEmail"
                 :placeholder="t('auth.emailPlaceholder')"
-                :disabled="!!account.pendingAuthlibAccountId"
                 @keyup.enter="addAuthlibFromModal"
               />
               <NInput
@@ -266,7 +276,6 @@
               />
               <small class="authlib-server-hint">{{ t('auth.serverUrlHint') }}</small>
               <NButton
-                v-if="!account.pendingAuthlibAccountId"
                 type="primary"
                 block
                 :loading="account.addingAuthlib"
@@ -275,37 +284,6 @@
               >
                 {{ t('auth.addAuthlibAccount') }}
               </NButton>
-
-              <Transition name="authlib-profiles">
-                <div v-if="account.pendingAuthlibAccountId" class="authlib-profile-panel">
-                  <NAlert type="info" :title="t('auth.selectProfiles')">
-                    {{ t('auth.selectProfilesHint') }}
-                  </NAlert>
-                  <NCheckboxGroup v-model:value="account.selectedAuthlibProfileIds" class="authlib-profile-list">
-                    <NCheckbox
-                      v-for="profile in account.authlibProfiles"
-                      :key="profile.id"
-                      :value="profile.id"
-                      :label="profile.name"
-                    />
-                  </NCheckboxGroup>
-                  <small class="authlib-profile-count">
-                    {{ t('auth.selectedProfileCount', { count: account.selectedAuthlibProfileIds.length }) }}
-                  </small>
-                  <NButton
-                    type="primary"
-                    block
-                    :loading="account.selectingAuthlibProfiles"
-                    :disabled="
-                      account.selectedAuthlibProfileIds.length === 0 ||
-                      (account.selectedAuthlibProfileIds.length > 1 && !account.authlibPassword)
-                    "
-                    @click="selectAuthlibProfilesFromModal"
-                  >
-                    {{ t('auth.loginSelectedProfiles') }}
-                  </NButton>
-                </div>
-              </Transition>
             </div>
           </div>
         </Modal>
@@ -374,17 +352,17 @@ import {
   NAlert,
   NAutoComplete,
   NButton,
-  NCheckbox,
-  NCheckboxGroup,
   NEmpty,
   NInput,
   NRadioButton,
   NRadioGroup,
+  NSelect,
   NSpin,
   NTag,
+  type SelectOption,
 } from 'naive-ui'
 import { storeToRefs } from 'pinia'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, h, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import backend from '@/api/client'
@@ -403,7 +381,7 @@ import { useVersionManager } from '@/composables/useVersionManager'
 import { getVersionImage } from '@/config/version'
 import { useGameInfoCard } from '@/features/game-home/composables/useGameInfoCard'
 import { useGameHomeStore } from '@/features/game-home/stores/gameHomeStore'
-import type { MinecraftAccount, MicrosoftLoginStage } from '@/types/api'
+import type { MicrosoftLoginStage } from '@/types/api'
 import { getLoaderIcon, getLoaderImage } from '@/utils/loader'
 
 const { t } = useI18n()
@@ -455,6 +433,15 @@ const microsoftLoginSteps = computed(() => {
   }))
 })
 
+function renderAuthlibProfileLabel(option: SelectOption) {
+  return h('div', { class: 'authlib-profile-option-label' }, [
+    h('span', String(option.profileName ?? option.label ?? '')),
+    option.loggedIn
+      ? h(NTag, { size: 'small', type: 'success', bordered: false }, { default: () => t('auth.loggedIn') })
+      : null,
+  ])
+}
+
 function openAddAccountModal() {
   selectedAccountType.value = account.pendingAuthlibAccountId ? 'authlib' : 'microsoft'
   showOfflineAdvanced.value = false
@@ -462,15 +449,6 @@ function openAddAccountModal() {
   showAddAccountModal.value = true
   void account.loadMicrosoftLoginConfig()
   void account.loadAuthlibServers()
-}
-
-function openAuthlibProfileSelection(savedAccount: MinecraftAccount) {
-  account.prepareAuthlibProfileSelection(savedAccount)
-  account.authlibServerUrl = savedAccount.auth_server || ''
-  account.authlibEmail = savedAccount.email || ''
-  account.authlibPassword = ''
-  selectedAccountType.value = 'authlib'
-  showAddAccountModal.value = true
 }
 
 async function startMicrosoftFromAddModal() {
@@ -487,13 +465,11 @@ async function addOfflineFromModal() {
 async function addAuthlibFromModal() {
   const accountCount = account.accounts.length
   await account.addAuthlibAccount()
-  if (account.accounts.length > accountCount && !account.pendingAuthlibAccountId) {
-    showAddAccountModal.value = false
-  }
+  if (account.accounts.length > accountCount) showAddAccountModal.value = false
 }
 
-async function selectAuthlibProfilesFromModal() {
-  await account.selectAuthlibProfiles()
+async function selectAuthlibProfileFromModal() {
+  await account.selectAuthlibProfile()
   if (!account.pendingAuthlibAccountId) showAddAccountModal.value = false
 }
 

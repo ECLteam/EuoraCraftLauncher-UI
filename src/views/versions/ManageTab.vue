@@ -11,7 +11,7 @@
         @select="selectPath"
         @edit="editPath"
         @remove="removePath"
-        @open-folder="openPathFolder"
+        @openFolder="openPathFolder"
       />
 
       <!-- 分隔线 -->
@@ -64,7 +64,7 @@
             v-model="pathForm.name"
             :placeholder="t('versions.manage.pathNamePlaceholder')"
             :disabled="pathSaving"
-            prefix-icon="folder"
+            prefixIcon="folder"
             class="path-form-input"
           />
         </div>
@@ -135,16 +135,10 @@ import VersionPathSidebar from '@/components/versions/VersionPathSidebar.vue'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { globalLaunchProgress } from '@/composables/useLaunchProgress'
 import { useVersionManager } from '@/composables/useVersionManager'
-import {
-  LAUNCH_PROGRESS,
-  DOWNLOAD_BASE_PROGRESS,
-  DOWNLOAD_PROGRESS_SCALE,
-  LAUNCH_SUCCESS_HIDE_DELAY,
-  LAUNCH_ERROR_HIDE_DELAY,
-} from '@/config/game'
+import { LAUNCH_PROGRESS, LAUNCH_SUCCESS_HIDE_DELAY, LAUNCH_ERROR_HIDE_DELAY } from '@/config/game'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
-import { versionInstallApi } from '@/features/versions/api/versionInstallApi'
-import type { GamePath } from '@/features/versions/model/gamePath'
+import { normalizeGamePath, versionInstallApi } from '@/features/versions/api/versionInstallApi'
+import { findGamePathIndex, type GamePath } from '@/features/versions/model/gamePath'
 import type { LaunchProgress, MinecraftPathEntry, ScannedVersion } from '@/types/api'
 import { getErrorMessage } from '@/utils/error'
 import VersionDetailModal from '@/views/versions/VersionDetailModal.vue'
@@ -179,6 +173,19 @@ const confirmContent = ref('')
 const confirmAction = ref<(() => void | Promise<void>) | null>(null)
 const pathSaving = ref(false)
 const pathFormError = ref('')
+let rememberPathQueue = Promise.resolve()
+
+const rememberSelectedPath = (path: string) => {
+  rememberPathQueue = rememberPathQueue
+    .then(async () => {
+      if ((settingsStore.game.last_manage_path ?? '') === path) return
+      await settingsStore.patchGame({ last_manage_path: path })
+    })
+    .catch((error) => {
+      console.error(t('versions.manage.saveFailed'), error)
+    })
+  return rememberPathQueue
+}
 
 const openConfirm = (title: string, content: string, action: () => void | Promise<void>) => {
   confirmTitle.value = title
@@ -218,11 +225,19 @@ const pathVersionCounts = computed(() =>
   }, {})
 )
 
+let stopWatchingVersionChanges: (() => void) | null = null
+
 onMounted(async () => {
+  stopWatchingVersionChanges = versionInstallApi.onVersionsChanged(({ gamePath }) => {
+    if (!currentPath.value || normalizeGamePath(currentPath.value.path) !== normalizeGamePath(gamePath)) return
+    void scanCurrentPath()
+  })
   await fetchGamePaths()
 })
 
 onBeforeUnmount(() => {
+  stopWatchingVersionChanges?.()
+  stopWatchingVersionChanges = null
   showPathModal.value = false
 })
 
@@ -238,16 +253,12 @@ const fetchGamePaths = async () => {
     })
     if (gamePaths.value.length > 0) {
       const requestedPath = typeof route.query.gamePath === 'string' ? route.query.gamePath : ''
-      const requestedPathIndex = requestedPath
-        ? gamePaths.value.findIndex((gamePath) => gamePath.path === requestedPath)
-        : -1
-      if (requestedPathIndex >= 0) {
-        selectedPathIndex.value = requestedPathIndex
-      } else if (selectedPathIndex.value === -1) {
-        selectedPathIndex.value = 0
-      }
-      await scanCurrentPath()
+      selectedPathIndex.value = findGamePathIndex(gamePaths.value, requestedPath, settingsStore.game.last_manage_path)
+      await Promise.all([scanCurrentPath(), rememberSelectedPath(currentPath.value?.path ?? '')])
       openRequestedVersionSettings()
+    } else {
+      selectedPathIndex.value = -1
+      await rememberSelectedPath('')
     }
   } catch (error) {
     console.error(t('versions.manage.fetchConfigFailed'), error)
@@ -263,13 +274,13 @@ const handleSelectVersion = (version: ScannedVersion) => {
   versionManager.selectVersion(version.versionId, currentPath.value?.path)
 }
 
-const scanCurrentPath = async () => {
+const scanCurrentPath = async (force = false) => {
   if (!currentPath.value) return
 
   loading.value = true
   const currentPathValue = currentPath.value.path
   try {
-    const versions = await versionInstallApi.scan([currentPathValue])
+    const versions = await versionInstallApi.scan([currentPathValue], { force })
     // 保留其他路径的版本，只替换当前路径的扫描结果
     scannedVersions.value = [
       ...scannedVersions.value.filter((v) => v.path !== currentPathValue),
@@ -284,13 +295,15 @@ const scanCurrentPath = async () => {
 
 const handleRefresh = async () => {
   refreshLoading.value = true
-  await scanCurrentPath()
+  await scanCurrentPath(true)
   refreshLoading.value = false
 }
 
 const selectPath = async (index: number) => {
+  const path = gamePaths.value[index]
+  if (!path) return
   selectedPathIndex.value = index
-  await scanCurrentPath()
+  await Promise.all([scanCurrentPath(), rememberSelectedPath(path.path)])
 }
 
 const addNewPath = () => {
@@ -348,6 +361,7 @@ const savePath = async () => {
   pathSaving.value = true
   pathFormError.value = ''
   try {
+    const previousPath = isEditing.value ? gamePaths.value[editingIndex.value]?.path : undefined
     const updatedPaths = [...gamePaths.value]
     if (isEditing.value && editingIndex.value >= 0) {
       updatedPaths[editingIndex.value] = { ...pathForm.value }
@@ -356,10 +370,16 @@ const savePath = async () => {
     }
     await settingsStore.patchGame({ minecraft_paths: updatedPaths })
     gamePaths.value = updatedPaths
+    if (previousPath && previousPath !== pathForm.value.path) {
+      versionInstallApi.invalidateScanCache(previousPath)
+      versionInstallApi.invalidateScanCache(pathForm.value.path)
+    }
     message.success(isEditing.value ? t('versions.manage.pathUpdated') : t('versions.manage.pathAdded'), 2000)
     if (!isEditing.value) {
       selectedPathIndex.value = updatedPaths.length - 1
-      await scanCurrentPath()
+      await Promise.all([scanCurrentPath(), rememberSelectedPath(currentPath.value?.path ?? '')])
+    } else if (editingIndex.value === selectedPathIndex.value) {
+      await Promise.all([scanCurrentPath(true), rememberSelectedPath(currentPath.value?.path ?? '')])
     }
     showPathModal.value = false
   } catch (error) {
@@ -392,10 +412,11 @@ const removePath = async (index: number) => {
     }
 
     scannedVersions.value = scannedVersions.value.filter((v) => v.path !== removed.path)
+    versionInstallApi.invalidateScanCache(removed.path)
 
     if (index === selectedPathIndex.value) {
       selectedPathIndex.value = Math.min(index, gamePaths.value.length - 1)
-      await scanCurrentPath()
+      await Promise.all([scanCurrentPath(), rememberSelectedPath(currentPath.value?.path ?? '')])
     } else if (index < selectedPathIndex.value) {
       selectedPathIndex.value--
     }
@@ -434,20 +455,42 @@ const handleLaunch = async (version: ScannedVersion) => {
       setLaunchProgress(0, 'error', msg)
       setTimeout(hideLaunchProgress, LAUNCH_ERROR_HIDE_DELAY)
       unlisten()
+    } else if (phase === 'preparing') {
+      setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.preparing!, 'preparing', msg)
+    } else if (phase === 'account') {
+      setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.account!, 'account', msg)
+    } else if (phase === 'microsoft_token') {
+      setLaunchProgress(
+        typeof pct === 'number' ? pct : LAUNCH_PROGRESS.microsoft_token!,
+        'refreshing_microsoft_token',
+        msg
+      )
+    } else if (phase === 'authlib_token') {
+      setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.authlib_token!, 'validating_authlib_token', msg)
+    } else if (phase === 'offline_account') {
+      setLaunchProgress(
+        typeof pct === 'number' ? pct : LAUNCH_PROGRESS.offline_account!,
+        'loading_offline_account',
+        msg
+      )
+    } else if (phase === 'account_ready') {
+      setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.account_ready!, 'account_ready', msg)
+    } else if (phase === 'authlib') {
+      setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.authlib!, 'preparing_authlib', msg)
     } else if (phase === 'downloading' && typeof pct === 'number') {
-      setLaunchProgress(DOWNLOAD_BASE_PROGRESS + pct * DOWNLOAD_PROGRESS_SCALE, 'downloading_assets', msg)
+      setLaunchProgress(pct, 'downloading_assets', msg)
     } else if (phase === 'checking') {
-      setLaunchProgress(LAUNCH_PROGRESS.checking!, 'checking_files', msg)
+      setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.checking!, 'checking_files', msg)
     } else if (phase === 'files_checked') {
-      setLaunchProgress(LAUNCH_PROGRESS.files_checked!, 'files_checked', msg)
+      setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.files_checked!, 'files_checked', msg)
     } else if (phase === 'building_args') {
       setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.building_args!, 'building_params', msg)
     } else if (phase === 'args_built') {
-      setLaunchProgress(LAUNCH_PROGRESS.args_built!, 'args_built', msg)
+      setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.args_built!, 'args_built', msg)
     } else if (phase === 'natives_done') {
       setLaunchProgress(LAUNCH_PROGRESS.natives_done!, 'natives_done', msg)
     } else if (phase === 'about_to_launch') {
-      setLaunchProgress(LAUNCH_PROGRESS.about_to_launch!, 'about_to_launch', msg)
+      setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.about_to_launch!, 'about_to_launch', msg)
     } else if (phase === 'launching') {
       setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.launching!, 'launching', msg)
     } else {
@@ -523,7 +566,7 @@ const handleDelete = async (version: ScannedVersion) => {
     try {
       await versionInstallApi.uninstall(version.versionId, gamePath)
       message.success(t('versions.manage.versionDeleted', { name: version.versionId }))
-      await scanCurrentPath()
+      await scanCurrentPath(true)
     } catch (e) {
       console.error('删除失败:', e)
       message.error(t('versions.manage.deleteFailed'))

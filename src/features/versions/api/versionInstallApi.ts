@@ -8,10 +8,40 @@ import type {
 } from '@/types/api'
 
 export type InstallableLoader = 'fabric' | 'forge' | 'neoforge' | 'quilt'
+export type VersionsChangedHandler = (payload: { gamePath: string }) => void
+
+const scanCache = new Map<string, ScannedVersion[]>()
+const versionsChangedHandlers = new Set<VersionsChangedHandler>()
+let isListeningForVersionChanges = false
 
 function assertSuccess<T>(result: { success: boolean; data?: T; message?: string }, operation: string): T {
   if (!result.success) throw new Error(result.message || `${operation}失败`)
   return result.data as T
+}
+
+export function normalizeGamePath(path: string): string {
+  return path.trim().replace(/[\\/]+/g, '/').replace(/\/$/, '').toLocaleLowerCase()
+}
+
+function cloneVersions(versions: ScannedVersion[]): ScannedVersion[] {
+  return versions.map((version) => ({ ...version }))
+}
+
+function invalidateScanCache(path?: string): void {
+  if (path) {
+    scanCache.delete(normalizeGamePath(path))
+  } else {
+    scanCache.clear()
+  }
+}
+
+function ensureVersionChangeListener(): void {
+  if (isListeningForVersionChanges) return
+  isListeningForVersionChanges = true
+  backend.on('game:versions_changed', (payload) => {
+    invalidateScanCache(payload.gamePath)
+    versionsChangedHandlers.forEach((handler) => handler(payload))
+  })
 }
 
 export const versionInstallApi = {
@@ -29,8 +59,37 @@ export const versionInstallApi = {
     return assertSuccess(await backend.command('quilt_versions', payload), '获取 Quilt 版本')
   },
 
-  async scan(paths: string[]): Promise<ScannedVersion[]> {
-    return assertSuccess(await backend.command('scan_versions', { path: paths }), '扫描本地版本') ?? []
+  async scan(paths: string[], options: { force?: boolean } = {}): Promise<ScannedVersion[]> {
+    ensureVersionChangeListener()
+    const requestedPaths = [...new Set(paths.filter((path) => path.trim()))]
+    if (options.force) requestedPaths.forEach((path) => invalidateScanCache(path))
+
+    const missingPaths = requestedPaths.filter((path) => !scanCache.has(normalizeGamePath(path)))
+    if (missingPaths.length > 0) {
+      const scanned =
+        assertSuccess(
+          await backend.command('scan_versions', { path: missingPaths, force: options.force || undefined }),
+          '扫描本地版本'
+        ) ?? []
+      const missingKeys = new Set(missingPaths.map(normalizeGamePath))
+      missingKeys.forEach((key) => scanCache.set(key, []))
+      scanned.forEach((version) => {
+        const fallbackPath = missingPaths.length === 1 ? (missingPaths[0] ?? '') : ''
+        const key = normalizeGamePath(version.path || fallbackPath)
+        if (!missingKeys.has(key)) return
+        scanCache.get(key)?.push({ ...version })
+      })
+    }
+
+    return requestedPaths.flatMap((path) => cloneVersions(scanCache.get(normalizeGamePath(path)) ?? []))
+  },
+
+  invalidateScanCache,
+
+  onVersionsChanged(handler: VersionsChangedHandler): () => void {
+    ensureVersionChangeListener()
+    versionsChangedHandlers.add(handler)
+    return () => versionsChangedHandlers.delete(handler)
   },
 
   async exists(path: string): Promise<boolean> {
@@ -39,7 +98,9 @@ export const versionInstallApi = {
   },
 
   async install(params: CommandPayloadMap['install_version']): Promise<InstallVersionResult> {
-    return assertSuccess(await backend.command('install_version', params), '安装版本')
+    const result = assertSuccess(await backend.command('install_version', params), '安装版本')
+    if (params.game_path) invalidateScanCache(params.game_path)
+    return result
   },
 
   async uninstall(versionId: string, gamePath?: string): Promise<void> {
@@ -47,6 +108,7 @@ export const versionInstallApi = {
       await backend.command('uninstall_version', { version_id: versionId, game_path: gamePath }),
       '卸载版本'
     )
+    invalidateScanCache(gamePath)
   },
 
   async selectDirectory(): Promise<SelectResult | null> {

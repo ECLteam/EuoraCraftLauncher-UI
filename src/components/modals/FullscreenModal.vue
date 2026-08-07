@@ -1,7 +1,13 @@
 <template>
   <Teleport to="body">
     <Transition name="fullscreen-modal" @afterEnter="onAfterEnter" @afterLeave="onAfterLeave">
-      <div v-show="visible" class="fullscreen-modal" role="dialog" :aria-modal="true" :aria-labelledby="titleId">
+      <div
+        v-show="visible && isActive"
+        class="fullscreen-modal"
+        role="dialog"
+        :aria-modal="true"
+        :aria-labelledby="titleId"
+      >
         <div
           ref="modalRef"
           class="fullscreen-modal-wrapper"
@@ -23,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, useId, onUnmounted } from 'vue'
+import { computed, nextTick, onUnmounted, ref, useId, watch } from 'vue'
 import { useFullscreenModal } from '@/composables/useFullscreenModal'
 
 defineOptions({ name: 'FullscreenModal' })
@@ -59,18 +65,25 @@ interface Emits {
 
 const fullscreenModal = useFullscreenModal()
 const modalRef = ref<HTMLElement | null>(null)
-const titleId = computed(() => `fullscreen-modal-title-${useId()}`)
+const instanceId = useId()
+const modalId = `fullscreen-modal-${instanceId}`
+const titleId = `fullscreen-modal-title-${instanceId}`
+const isActive = computed(() => fullscreenModal.currentId.value === modalId)
 
 const keydownHandler = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && props.visible && props.closable) {
+  if (e.key === 'Escape' && props.visible && isActive.value && props.closable) {
     close()
   }
 }
 
-const close = () => {
-  fullscreenModal.close()
+const requestClose = () => {
   emit('update:visible', false)
   emit('close')
+}
+
+const close = () => {
+  fullscreenModal.unregister(modalId)
+  requestClose()
 }
 
 const open = () => {
@@ -96,6 +109,19 @@ const togglePageContent = (isOpen: boolean) => {
   }
 }
 
+const toggleScrollLock = (isOpen: boolean) => {
+  const mainContent = document.querySelector('.main-content') as HTMLElement | null
+  if (mainContent) {
+    mainContent.style.overflow = isOpen && props.lockScroll ? 'hidden' : ''
+  }
+}
+
+const releasePageLockIfUnused = () => {
+  if (fullscreenModal.isVisible.value) return
+  toggleScrollLock(false)
+  togglePageContent(false)
+}
+
 watch(
   () => props.visible,
   (val) => {
@@ -104,41 +130,31 @@ watch(
         modalRef.value?.focus()
       })
       document.addEventListener('keydown', keydownHandler)
-      if (props.lockScroll) {
-        const mainContent = document.querySelector('.main-content') as HTMLElement | null
-        if (mainContent) {
-          mainContent.style.overflow = 'hidden'
-        }
-      }
+      toggleScrollLock(true)
       togglePageContent(true)
-      if (props.title) {
-        fullscreenModal.open(props.title, close)
-      }
+      fullscreenModal.open(modalId, props.title, requestClose)
     } else {
       document.removeEventListener('keydown', keydownHandler)
-      if (props.lockScroll) {
-        const mainContent = document.querySelector('.main-content') as HTMLElement | null
-        if (mainContent) {
-          mainContent.style.overflow = ''
-        }
-      }
-      togglePageContent(false)
-      fullscreenModal.reset()
+      fullscreenModal.unregister(modalId)
+      releasePageLockIfUnused()
     }
   },
   { immediate: true }
 )
 
-onUnmounted(() => {
-  document.removeEventListener('keydown', keydownHandler)
-  if (props.lockScroll) {
-    const mainContent = document.querySelector('.main-content') as HTMLElement | null
-    if (mainContent) {
-      mainContent.style.overflow = ''
+watch(
+  () => props.title,
+  (title) => {
+    if (props.visible && isActive.value) {
+      fullscreenModal.open(modalId, title, requestClose)
     }
   }
-  togglePageContent(false)
-  fullscreenModal.reset()
+)
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', keydownHandler)
+  fullscreenModal.unregister(modalId)
+  releasePageLockIfUnused()
 })
 
 defineExpose({ close, open })

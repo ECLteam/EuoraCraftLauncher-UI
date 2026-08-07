@@ -73,10 +73,13 @@ export function createShowcaseTransport(): BackendTransport {
 
   const emitLaunchProgress = () => {
     const steps: BackendEvents['game:launch_progress'][] = [
-      { phase: 'preparing', message: '正在准备展示实例', percent: 8 },
-      { phase: 'checking', message: '正在检查游戏文件', percent: 34 },
-      { phase: 'building_args', message: '正在生成启动参数', percent: 62 },
-      { phase: 'launching', message: '正在启动展示实例', percent: 88 },
+      { phase: 'preparing', message: '正在准备展示实例', percent: 3 },
+      { phase: 'microsoft_token', message: '正在检查正版登录令牌，过期时将自动刷新', percent: 7 },
+      { phase: 'account_ready', message: '正版登录令牌已就绪', percent: 17 },
+      { phase: 'checking', message: '正在检查游戏文件', percent: 25 },
+      { phase: 'files_checked', message: '游戏文件检查完成', percent: 55 },
+      { phase: 'building_args', message: '正在生成启动参数', percent: 72 },
+      { phase: 'launching', message: '正在启动展示实例', percent: 97 },
       { phase: 'launched', message: '展示实例已启动', percent: 100 },
     ]
     steps.forEach((step, index) => setTimeout(() => emit('game:launch_progress', step), 220 * (index + 1)))
@@ -204,14 +207,10 @@ export function createShowcaseTransport(): BackendTransport {
         setCurrentAccount(account.id)
         return success(structuredClone(account))
       }
-      case 'accounts_select_authlib_profiles':
-        return success(
-          structuredClone(
-            accounts.accounts.filter((account) =>
-              (payload.profile_ids as string[] | undefined)?.includes(account.uuid || '')
-            )
-          )
-        )
+      case 'accounts_select_authlib_profile':
+        return success(structuredClone(accounts.current))
+      case 'authlib_resolve_server':
+        return success(String(payload.server_url || ''))
       case 'accounts_switch':
         setCurrentAccount(String(payload.account_id))
         return success()

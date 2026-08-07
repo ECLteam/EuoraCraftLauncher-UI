@@ -1,53 +1,60 @@
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 
 interface FullscreenModalState {
-  visible: boolean
+  id: string
   title: string
   onClose?: () => void
 }
 
-// 使用栈来管理多个全屏弹窗状态
-const modalStack = ref<FullscreenModalState[]>([])
+// 全屏弹窗是互斥页面：新弹窗打开时关闭当前弹窗，避免多个 Teleport 层叠。
+const activeModal = ref<FullscreenModalState | null>(null)
 
 export function useFullscreenModal() {
-  // 当前顶层全屏弹窗状态
-  const currentModal = computed(() =>
-    modalStack.value.length > 0 ? modalStack.value[modalStack.value.length - 1] : null
-  )
-  const isVisible = computed(() => modalStack.value.length > 0)
-  const title = computed(() => currentModal.value?.title || '')
+  const isVisible = computed(() => activeModal.value !== null)
+  const title = computed(() => activeModal.value?.title || '')
+  const currentId = computed(() => activeModal.value?.id || null)
 
-  const open = (title: string, onClose?: () => void) => {
-    const newState: FullscreenModalState = {
-      visible: true,
-      title,
-      onClose,
+  const open = (id: string, title: string, onClose?: () => void) => {
+    const previousModal = activeModal.value
+
+    if (previousModal?.id === id) {
+      activeModal.value = { id, title, onClose }
+      return
     }
-    modalStack.value.push(newState)
+
+    // 先登记新弹窗，再通知旧弹窗关闭。旧弹窗随后注销自己时不会误关新弹窗。
+    activeModal.value = { id, title, onClose }
+    const previousOnClose = previousModal?.onClose
+    if (previousModal) previousModal.onClose = undefined
+    previousOnClose?.()
+  }
+
+  const unregister = (id: string) => {
+    if (activeModal.value?.id === id) {
+      activeModal.value = null
+    }
   }
 
   const close = () => {
-    if (modalStack.value.length === 0) return
+    const modal = activeModal.value
+    if (!modal) return
 
-    const topModal = modalStack.value.pop()!
-    const onClose = topModal.onClose
-    topModal.onClose = undefined
-    topModal.visible = false
-    topModal.title = ''
+    activeModal.value = null
+    const onClose = modal.onClose
+    modal.onClose = undefined
     onClose?.()
   }
 
   const reset = () => {
-    while (modalStack.value.length > 0) {
-      const modal = modalStack.value.pop()!
-      modal.onClose?.()
-    }
+    close()
   }
 
   return {
     isVisible,
     title,
+    currentId,
     open,
+    unregister,
     close,
     reset,
   }

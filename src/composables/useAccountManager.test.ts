@@ -20,7 +20,8 @@ vi.mock('@/features/accounts/api/accountsApi', () => ({
     current: vi.fn(),
     addOffline: vi.fn(),
     addAuthlib: vi.fn(),
-    selectAuthlibProfiles: vi.fn(),
+    selectAuthlibProfile: vi.fn(),
+    resolveAuthlibServer: vi.fn(),
     switch: vi.fn(),
     remove: vi.fn(),
     refresh: vi.fn(),
@@ -192,6 +193,47 @@ describe('useAccountManager Microsoft login', () => {
     expect(account.authlibEmail).toBe('player@example.com')
   })
 
+  it('asks for one profile and completes a multi-profile Authlib login', async () => {
+    vi.mocked(accountsApi.addAuthlib).mockResolvedValue({
+      id: 'pending-authlib-account',
+      alias: '请选择角色',
+      type: 'authlib',
+      profile_selection_required: true,
+      available_profiles: [
+        { id: 'profile-one', name: 'PlayerOne', logged_in: true },
+        { id: 'profile-two', name: 'PlayerTwo' },
+      ],
+    })
+    vi.mocked(accountsApi.selectAuthlibProfile).mockResolvedValue({
+      id: 'pending-authlib-account',
+      alias: 'PlayerTwo',
+      type: 'authlib',
+      uuid: 'profile-two',
+      isCurrent: true,
+    })
+    const account = useAccountManager((key) => key)
+    account.authlibServerUrl = 'https://skin.example.com/api/yggdrasil'
+    account.authlibEmail = 'player@example.com'
+    account.authlibPassword = 'secret-password'
+
+    await account.addAuthlibAccount()
+
+    expect(account.pendingAuthlibAccountId).toBe('pending-authlib-account')
+    expect(account.selectedAuthlibProfileId).toBe('profile-one')
+    expect(account.authlibProfileOptions[0]).toMatchObject({
+      label: 'PlayerOne',
+      loggedIn: true,
+    })
+    expect(mocks.success).not.toHaveBeenCalled()
+
+    account.selectedAuthlibProfileId = 'profile-two'
+    await account.selectAuthlibProfile()
+
+    expect(accountsApi.selectAuthlibProfile).toHaveBeenCalledWith('pending-authlib-account', 'profile-two')
+    expect(account.pendingAuthlibAccountId).toBe('')
+    expect(mocks.success).toHaveBeenCalledWith('game.status.accountAdded')
+  })
+
   it('fills the Authlib form with the most recent saved login', async () => {
     vi.mocked(accountsApi.listAuthlibServers).mockResolvedValue([
       {
@@ -226,71 +268,15 @@ describe('useAccountManager Microsoft login', () => {
     expect(account.authlibEmail).toBe('another@example.com')
   })
 
-  it('selects a profile when an Authlib account has multiple profiles', async () => {
-    vi.mocked(accountsApi.addAuthlib).mockResolvedValue({
-      id: 'authlib-account',
-      alias: '未选择角色',
-      type: 'authlib',
-      profile_selection_required: true,
-      available_profiles: [
-        { id: 'profile-one', name: 'PlayerOne' },
-        { id: 'profile-two', name: 'PlayerTwo' },
-      ],
-    })
-    vi.mocked(accountsApi.selectAuthlibProfiles).mockResolvedValue([
-      {
-        id: 'authlib-account',
-        alias: 'PlayerOne',
-        type: 'authlib',
-        uuid: 'profile-one',
-      },
-      {
-        id: 'authlib-account-two',
-        alias: 'PlayerTwo',
-        type: 'authlib',
-        uuid: 'profile-two',
-      },
-    ])
+  it('replaces a website URL with the ALI endpoint', async () => {
+    vi.mocked(accountsApi.resolveAuthlibServer).mockResolvedValue('https://skin.example.com/api/yggdrasil')
     const account = useAccountManager((key) => key)
-    account.authlibServerUrl = 'https://skin.example.com/api/yggdrasil'
-    account.authlibEmail = 'player@example.com'
-    account.authlibPassword = 'secret-password'
+    account.authlibServerUrl = 'https://skin.example.com/user/player'
 
-    await account.addAuthlibAccount()
-    account.selectedAuthlibProfileIds = ['profile-one', 'profile-two']
-    await account.selectAuthlibProfiles()
+    await account.resolveAuthlibServer()
 
-    expect(accountsApi.selectAuthlibProfiles).toHaveBeenCalledWith(
-      'authlib-account',
-      ['profile-one', 'profile-two'],
-      'secret-password'
-    )
-    expect(account.pendingAuthlibAccountId).toBe('')
-    expect(account.authlibPassword).toBe('')
-  })
-
-  it('restores profile selection for an existing unselected Authlib account', async () => {
-    vi.mocked(accountsApi.list).mockResolvedValue({
-      accounts: [
-        {
-          id: 'pending-account',
-          alias: '未选择角色',
-          type: 'authlib',
-          profile_selection_required: true,
-          available_profiles: [
-            { id: 'profile-one', name: 'PlayerOne' },
-            { id: 'profile-two', name: 'PlayerTwo' },
-          ],
-        },
-      ],
-      current: null,
-    })
-    const account = useAccountManager((key) => key)
-
-    await account.loadAccounts()
-
-    expect(account.pendingAuthlibAccountId).toBe('pending-account')
-    expect(account.selectedAuthlibProfileIds).toEqual([])
+    expect(accountsApi.resolveAuthlibServer).toHaveBeenCalledWith('https://skin.example.com/user/player')
+    expect(account.authlibServerUrl).toBe('https://skin.example.com/api/yggdrasil')
   })
 
   it('cancels the backend login flow when the login window closes', async () => {

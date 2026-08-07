@@ -3,8 +3,6 @@ import { useRouter } from 'vue-router'
 import backend from '@/api/client'
 import {
   LAUNCH_PROGRESS,
-  DOWNLOAD_BASE_PROGRESS,
-  DOWNLOAD_PROGRESS_SCALE,
   LAUNCH_SUCCESS_HIDE_DELAY,
   LAUNCH_ERROR_HIDE_DELAY,
   STATUS_MESSAGE_AUTO_HIDE,
@@ -163,21 +161,45 @@ export function useVersionManager(t: (key: string, ...args: unknown[]) => string
         setTimeout(hideLaunchProgress, LAUNCH_ERROR_HIDE_DELAY)
         unlisten()
       } else if (phase === 'preparing') {
-        setLaunchProgress(LAUNCH_PROGRESS.preparing!, 'preparing', msg)
+        setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.preparing!, 'preparing', msg)
+      } else if (phase === 'account') {
+        setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.account!, 'account', msg)
+      } else if (phase === 'microsoft_token') {
+        setLaunchProgress(
+          typeof pct === 'number' ? pct : LAUNCH_PROGRESS.microsoft_token!,
+          'refreshing_microsoft_token',
+          msg
+        )
+      } else if (phase === 'authlib_token') {
+        setLaunchProgress(
+          typeof pct === 'number' ? pct : LAUNCH_PROGRESS.authlib_token!,
+          'validating_authlib_token',
+          msg
+        )
+      } else if (phase === 'offline_account') {
+        setLaunchProgress(
+          typeof pct === 'number' ? pct : LAUNCH_PROGRESS.offline_account!,
+          'loading_offline_account',
+          msg
+        )
+      } else if (phase === 'account_ready') {
+        setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.account_ready!, 'account_ready', msg)
+      } else if (phase === 'authlib') {
+        setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.authlib!, 'preparing_authlib', msg)
       } else if (phase === 'downloading' && typeof pct === 'number') {
-        setLaunchProgress(DOWNLOAD_BASE_PROGRESS + pct * DOWNLOAD_PROGRESS_SCALE, 'downloading_assets', msg)
+        setLaunchProgress(pct, 'downloading_assets', msg)
       } else if (phase === 'checking') {
-        setLaunchProgress(LAUNCH_PROGRESS.checking!, 'checking_files', msg)
+        setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.checking!, 'checking_files', msg)
       } else if (phase === 'files_checked') {
-        setLaunchProgress(LAUNCH_PROGRESS.files_checked!, 'files_checked', msg)
+        setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.files_checked!, 'files_checked', msg)
       } else if (phase === 'building_args') {
         setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.building_args!, 'building_params', msg)
       } else if (phase === 'args_built') {
-        setLaunchProgress(LAUNCH_PROGRESS.args_built!, 'args_built', msg)
+        setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.args_built!, 'args_built', msg)
       } else if (phase === 'natives_done') {
         setLaunchProgress(LAUNCH_PROGRESS.natives_done!, 'natives_done', msg)
       } else if (phase === 'about_to_launch') {
-        setLaunchProgress(LAUNCH_PROGRESS.about_to_launch!, 'about_to_launch', msg)
+        setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.about_to_launch!, 'about_to_launch', msg)
       } else if (phase === 'launching') {
         setLaunchProgress(typeof pct === 'number' ? pct : LAUNCH_PROGRESS.launching!, 'launching', msg)
       } else {

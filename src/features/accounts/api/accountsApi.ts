@@ -39,14 +39,20 @@ export const accountsApi = {
     )
   },
 
-  async selectAuthlibProfiles(accountId: string, profileIds: string[], password?: string): Promise<MinecraftAccount[]> {
+  async selectAuthlibProfile(accountId: string, profileId: string): Promise<MinecraftAccount> {
     return assertSuccess(
-      await backend.command('accounts_select_authlib_profiles', {
+      await backend.command('accounts_select_authlib_profile', {
         account_id: accountId,
-        profile_ids: profileIds,
-        password,
+        profile_id: profileId,
       }),
-      '登录外置账户角色'
+      '选择外置登录角色'
+    )
+  },
+
+  async resolveAuthlibServer(serverUrl: string): Promise<string> {
+    return assertSuccess(
+      await backend.command('authlib_resolve_server', { server_url: serverUrl }),
+      '识别外置登录服务器'
     )
   },
 
