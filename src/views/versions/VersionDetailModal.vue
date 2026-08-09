@@ -7,7 +7,7 @@
     bodyClass="version-detail-body"
   >
     <div class="vdm-shell">
-      <header class="vdm-header ecl-surface">
+      <header class="vdm-header">
         <div class="vdm-version-identity">
           <div class="vdm-version-icon" :class="{ 'has-image': Boolean(versionImage) }">
             <img v-if="versionImage" :src="versionImage" alt="" class="vdm-version-icon-img" />
@@ -35,7 +35,8 @@
 
       <div class="vdm-content">
         <div v-if="activeTab === 'overview'" class="vdm-page overview-page">
-          <SettingSection :title="t('versions.detail.versionInfo')">
+          <div class="info-card">
+            <div class="info-card__header">{{ t('versions.detail.versionInfo') }}</div>
             <div class="info-grid">
               <div class="info-item">
                 <span class="info-label">{{ t('versions.detail.versionId') }}</span>
@@ -50,9 +51,10 @@
                 <span class="info-value">{{ version?.vanillaName || '-' }}</span>
               </div>
             </div>
-          </SettingSection>
+          </div>
 
-          <SettingSection :title="t('versions.detail.quickActions')">
+          <div class="actions-card">
+            <div class="actions-card__header">{{ t('versions.detail.quickActions') }}</div>
             <div class="overview-actions">
               <NButton type="primary" secondary @click="handleLaunch">
                 <template #icon><UiIcon name="play" :size="15" /></template>
@@ -67,12 +69,11 @@
                 {{ t('versions.detail.delete') }}
               </NButton>
             </div>
-          </SettingSection>
+          </div>
         </div>
 
         <div v-if="activeTab === 'mods'" class="vdm-page mods-page">
-          <div class="mods-panel ecl-surface">
-            <!-- 面板头部：工具栏 -->
+          <div class="mods-panel">
             <div class="mods-panel-header">
               <div class="mods-panel-header-left">
                 <div class="search-box">
@@ -115,7 +116,6 @@
               </div>
             </div>
 
-            <!-- 面板内容：模组列表 -->
             <div class="mods-panel-content">
               <NSpin :show="modsLoading" class="mods-spin">
                 <template v-if="filteredMods.length">

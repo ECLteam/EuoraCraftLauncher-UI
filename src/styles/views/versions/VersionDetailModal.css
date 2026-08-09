@@ -1,40 +1,65 @@
-.vdm-shell {
-  display: flex;
-  width: min(1040px, 100%);
-  height: 100%;
-  min-height: 0;
-  margin: 0 auto;
-  padding: 14px 16px 0;
-  flex-direction: column;
-  gap: 12px;
+/* =============================================
+   VersionDetailModal.css
+   按 page-style-guide 技能重写
+   使用项目设计系统 ecl-* token：玻璃拟态风格
+   ============================================= */
+
+/* =============================================
+   Modal wrapper 背景
+   ============================================= */
+:global(.version-detail-modal) {
+  background: var(--ecl-surface-muted);
 }
 
+:global(.version-detail-modal .fullscreen-modal-footer) {
+  background: var(--ecl-surface);
+  border-top: 1px solid var(--ecl-border);
+  padding: 12px var(--ecl-page-padding);
+}
+
+/* =============================================
+   Shell - 全宽布局容器（不是卡片）
+   ============================================= */
+.vdm-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: var(--ecl-surface-muted);
+}
+
+/* =============================================
+   Header
+   ============================================= */
 .vdm-header {
   display: flex;
-  min-height: 54px;
   flex-shrink: 0;
   align-items: center;
-  gap: 18px;
-  padding: 7px 10px 7px 12px;
+  gap: 16px;
+  min-height: 56px;
+  padding: 0 var(--ecl-page-padding);
+  background: var(--ecl-surface);
+  border-bottom: 1px solid var(--ecl-border);
 }
 
 .vdm-version-identity {
   display: flex;
-  min-width: 0;
+  flex-shrink: 0;
   align-items: center;
-  gap: 9px;
+  gap: 12px;
 }
 
 .vdm-version-icon {
   display: flex;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  color: var(--primary);
-  background: var(--primary-alpha);
-  border-radius: var(--r-sm);
+  color: var(--ecl-primary);
+  background: rgba(91, 111, 245, 0.1);
+  border-radius: var(--ecl-radius-control);
 }
 
 .vdm-version-icon.has-image {
@@ -42,8 +67,8 @@
 }
 
 .vdm-version-icon-img {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   object-fit: contain;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
@@ -51,118 +76,129 @@
 
 .vdm-version-copy {
   display: flex;
-  min-width: 120px;
   flex-direction: column;
+  min-width: 120px;
+  gap: 2px;
 }
 
 .vdm-version-copy strong {
   overflow: hidden;
-  max-width: 190px;
+  max-width: 220px;
   color: var(--ecl-text);
-  font-size: 13px;
-  font-weight: 650;
+  font-size: 16px;
+  font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
+  letter-spacing: -0.01em;
 }
 
 .vdm-version-copy span {
   color: var(--ecl-text-secondary);
-  font-size: 10px;
+  font-size: 12px;
+  font-weight: 500;
 }
 
+/* =============================================
+   Tabs
+   ============================================= */
 .vdm-tabs {
   display: flex;
   min-width: 0;
   margin-left: auto;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
 }
 
 .vdm-tab-button {
   display: inline-flex;
   height: 32px;
   align-items: center;
-  gap: 6px;
-  padding: 0 11px;
-  color: var(--text-secondary);
-  font-size: 11px;
-  font-weight: 600;
+  gap: 5px;
+  padding: 0 14px;
+  color: var(--ecl-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
   background: transparent;
   border: 0;
-  border-radius: var(--r-sm);
+  border-radius: var(--r-full);
   cursor: pointer;
-  transition:
-    color var(--duration-fast) ease-out,
-    background var(--duration-fast) ease-out;
+  transition: all var(--duration-fast) var(--ease-smooth);
 }
 
 .vdm-tab-button:hover {
-  color: var(--text-primary);
-  background: var(--bg-hover);
+  color: var(--ecl-text);
+  background: rgba(29, 36, 51, 0.05);
 }
 
 .vdm-tab-button.active {
-  color: var(--primary);
-  background: var(--primary-alpha);
+  color: var(--ecl-primary);
+  background: rgba(91, 111, 245, 0.1);
+  font-weight: 600;
 }
 
+.plugin-slot-container {
+  display: contents;
+}
+
+/* =============================================
+   Content
+   ============================================= */
 .vdm-content {
-  min-height: 0;
   flex: 1;
-  padding: 16px;
+  min-height: 0;
   overflow-y: auto;
+  padding: var(--ecl-page-padding);
   background: transparent;
+  position: relative;
+}
+
+/* 样式标记小文字 - 右下角 */
+.vdm-content::after {
+  content: 'ECL-STYLED';
+  position: absolute;
+  right: 10px;
+  bottom: 4px;
+  font-size: 8px;
+  color: rgba(91, 111, 245, 0.2);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+  user-select: none;
+  text-transform: uppercase;
 }
 
 .vdm-page {
   width: 100%;
   max-width: 820px;
   margin: 0 auto;
-}
-
-.settings-summary {
   display: flex;
-  min-height: 54px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
-  padding: 10px 14px;
-  background: var(--ecl-surface-muted);
-  border: 1px solid var(--ecl-border);
-  border-radius: var(--r-sm);
-}
-
-.settings-summary-copy {
-  display: flex;
-  min-width: 0;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--ecl-page-gap);
 }
 
-.settings-summary-copy strong {
-  color: var(--ecl-text);
-  font-size: 12px;
-  font-weight: 650;
-}
-
-.settings-summary-copy span {
-  color: var(--ecl-text-secondary);
-  font-size: 10px;
-}
-
-.settings-loading-state,
-.empty-page {
+/* =============================================
+   Overview 页面
+   ============================================= */
+.overview-page {
   display: flex;
-  min-height: 260px;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  gap: var(--ecl-page-gap);
 }
 
-.settings-loading-state {
-  gap: 9px;
-  color: var(--text-tertiary);
-  font-size: 11px;
+.info-card {
+  overflow: hidden;
+  background: var(--ecl-surface);
+  border: 1px solid var(--ecl-border);
+  border-radius: var(--ecl-radius-card);
+  box-shadow: var(--ecl-shadow-surface);
+}
+
+.info-card__header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--ecl-border);
+  color: var(--ecl-text);
+  font-size: 14px;
+  font-weight: 650;
 }
 
 .info-grid {
@@ -172,148 +208,134 @@
 
 .info-item {
   display: flex;
-  min-height: 58px;
-  padding: 11px 16px;
+  min-height: 66px;
+  padding: 14px 18px;
   flex-direction: column;
   justify-content: center;
-  gap: 3px;
+  gap: 5px;
   border-right: 1px solid var(--ecl-border);
-  border-bottom: 1px solid var(--ecl-border);
 }
 
+.info-item:last-child,
 .info-item:nth-child(3n) {
   border-right: 0;
 }
 
-.info-item:nth-last-child(-n + 3) {
-  border-bottom: 0;
-}
-
 .info-label {
   color: var(--ecl-text-secondary);
-  font-size: 10px;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .info-value {
   overflow: hidden;
   color: var(--ecl-text);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 650;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.actions-card {
+  overflow: hidden;
+  background: var(--ecl-surface);
+  border: 1px solid var(--ecl-border);
+  border-radius: var(--ecl-radius-card);
+  box-shadow: var(--ecl-shadow-surface);
+}
+
+.actions-card__header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--ecl-border);
+  color: var(--ecl-text);
+  font-size: 14px;
+  font-weight: 650;
+}
+
 .overview-actions {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  padding: 12px 16px;
+  display: flex;
+  gap: 10px;
+  padding: 16px 18px;
 }
 
-.memory-number-input {
-  width: 150px;
-}
-
-.java-path-control,
-.argument-input {
-  width: min(430px, 48vw);
-}
-
-.argument-input :deep(textarea) {
-  font-family: var(--font-mono);
-  font-size: 11px;
-}
-
-.vdm-footer-status {
-  min-width: 0;
+.overview-actions :deep(.n-button) {
   flex: 1;
-  color: var(--warning);
-  font-size: 11px;
+  height: 40px;
+  border-radius: var(--ecl-radius-control);
+  border: none !important;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all var(--duration-fast) var(--ease-smooth);
+  box-shadow: none !important;
 }
 
-@media (max-width: 820px) {
-  .vdm-shell {
-    padding-inline: 12px;
-  }
-
-  .vdm-header {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .vdm-tabs {
-    width: 100%;
-    margin-left: 0;
-  }
-
-  .vdm-tab-button {
-    min-width: 0;
-    flex: 1;
-    justify-content: center;
-  }
-
-  .java-path-control,
-  .argument-input {
-    width: min(400px, 45vw);
-  }
+.overview-actions :deep(.n-button .n-button__content) {
+  gap: 6px;
 }
 
-@media (max-width: 620px) {
-  .vdm-content {
-    padding: 12px;
-  }
-
-  .vdm-tab-button span:last-child {
-    display: none;
-  }
-
-  .overview-actions {
-    grid-template-columns: 1fr;
-  }
-
-  .java-path-control,
-  .argument-input {
-    width: 100%;
-  }
+.overview-actions :deep(.n-button:first-child) {
+  background: rgba(91, 111, 245, 0.1) !important;
+  color: var(--ecl-primary) !important;
+}
+.overview-actions :deep(.n-button:first-child:hover) {
+  background: rgba(91, 111, 245, 0.18) !important;
 }
 
-/* ======================== 模组管理 ======================== */
+.overview-actions :deep(.n-button:nth-child(2)) {
+  background: rgba(29, 36, 51, 0.05) !important;
+  color: var(--ecl-text) !important;
+}
+.overview-actions :deep(.n-button:nth-child(2):hover) {
+  background: rgba(29, 36, 51, 0.09) !important;
+}
 
+.overview-actions :deep(.n-button:last-child) {
+  background: var(--error-alpha) !important;
+  color: var(--error) !important;
+}
+.overview-actions :deep(.n-button:last-child:hover) {
+  background: rgba(229, 92, 92, 0.2) !important;
+}
+
+/* =============================================
+   Mods 页面
+   ============================================= */
 .mods-page {
   display: flex;
   flex-direction: column;
-  min-height: 0;
   height: 100%;
+  min-height: 0;
 }
 
-/* 单卡片面板 - 参考 InstalledVersionList 模式 */
 .mods-panel {
-  flex: 1;
   display: flex;
   flex-direction: column;
+  flex: 1;
   min-height: 0;
   overflow: hidden;
+  background: var(--ecl-surface);
+  border: 1px solid var(--ecl-border);
+  border-radius: var(--ecl-radius-card);
+  box-shadow: var(--ecl-shadow-surface);
 }
 
-/* 面板头部 - 参考 panel-header 模式 */
 .mods-panel-header {
   display: flex;
   flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  min-height: 43px;
+  min-height: 44px;
   padding: 0 14px;
-  border-bottom: 1px solid var(--divider);
+  border-bottom: 1px solid var(--ecl-border);
 }
 
 .mods-panel-header-left {
   display: flex;
+  flex: 1;
+  min-width: 0;
   align-items: center;
   gap: 8px;
-  min-width: 0;
-  flex: 1;
 }
 
 .mods-panel-header-right {
@@ -325,78 +347,6 @@
   min-width: 0;
 }
 
-/* 面板内容 - 参考 version-content 模式 */
-.mods-panel-content {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-
-
-/* 筛选按钮 */
-.mods-filter-tabs {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  flex-shrink: 0;
-}
-
-.mods-filter-btn {
-  display: inline-flex;
-  align-items: center;
-  height: 26px;
-  padding: 0 9px;
-  border: none;
-  border-radius: var(--r-xs);
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--duration-fast) ease-out;
-}
-
-.mods-filter-btn:hover {
-  color: var(--text-primary);
-  background: var(--bg-hover);
-}
-
-.mods-filter-btn.active {
-  color: var(--primary);
-  background: var(--primary-alpha);
-}
-
-.mods-count {
-  color: var(--text-tertiary);
-  font-size: 11px;
-  white-space: nowrap;
-}
-
-/* Spin 容器 */
-.mods-spin,
-.mods-spin :deep(.n-spin-content) {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-/* 模组表格 - 复用 table-header / table-row 模式 */
-.mods-table {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.mods-table-body {
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
-}
-
-/* 搜索框组件 - 与 InstalledVersionList 一致 */
 .search-box {
   position: relative;
   display: flex;
@@ -405,20 +355,20 @@
   width: 180px;
   min-width: 120px;
   height: 30px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--bg-elevated);
+  border: 1px solid var(--ecl-border);
+  border-radius: var(--ecl-radius-control);
+  background: var(--ecl-surface-muted);
   transition: border-color var(--duration-fast) ease-out;
 }
 
 .search-box:focus-within {
-  border-color: var(--border-hover);
+  border-color: var(--ecl-primary);
 }
 
 .search-icon {
   position: absolute;
   left: 9px;
-  color: var(--text-tertiary);
+  color: var(--ecl-text-secondary);
   pointer-events: none;
 }
 
@@ -427,15 +377,15 @@
   height: 100%;
   padding: 0 29px;
   border: none;
-  border-radius: var(--r-sm);
+  border-radius: var(--ecl-radius-control);
   outline: none;
   background: transparent;
-  color: var(--text-primary);
+  color: var(--ecl-text);
   font-size: 12px;
 }
 
 .search-input::placeholder {
-  color: var(--text-tertiary);
+  color: var(--ecl-text-secondary);
 }
 
 .search-clear {
@@ -449,17 +399,82 @@
   border: none;
   border-radius: var(--r-xs);
   background: transparent;
-  color: var(--text-tertiary);
+  color: var(--ecl-text-secondary);
   cursor: pointer;
   transition: all var(--duration-fast) ease-out;
 }
 
 .search-clear:hover {
-  background: var(--bg-hover);
-  color: var(--text-secondary);
+  background: rgba(29, 36, 51, 0.06);
+  color: var(--ecl-text);
 }
 
-/* 表头 - sticky，与 InstalledVersionList 一致 */
+.mods-filter-tabs {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 2px;
+}
+
+.mods-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  border: none;
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--ecl-text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--duration-fast) ease-out;
+}
+
+.mods-filter-btn:hover {
+  color: var(--ecl-text);
+  background: rgba(29, 36, 51, 0.05);
+}
+
+.mods-filter-btn.active {
+  color: var(--ecl-primary);
+  background: rgba(91, 111, 245, 0.1);
+}
+
+.mods-count {
+  flex-shrink: 0;
+  color: var(--ecl-text-secondary);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.mods-panel-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mods-spin,
+.mods-spin :deep(.n-spin-content) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.mods-table {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.mods-table-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .table-header {
   display: flex;
   align-items: center;
@@ -467,25 +482,24 @@
   position: sticky;
   top: 0;
   z-index: 1;
-  height: 32px;
-  padding: 0 11px;
-  border-bottom: 1px solid var(--divider);
-  background: var(--bg-elevated);
-  color: var(--text-tertiary);
+  height: 34px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--ecl-border);
+  background: var(--ecl-surface-muted);
+  color: var(--ecl-text-secondary);
   font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
-/* 行 - 与 InstalledVersionList 一致 */
 .table-row {
   display: flex;
   align-items: center;
   height: 44px;
-  padding: 0 11px;
-  border-bottom: 1px solid var(--divider);
+  padding: 0 14px;
+  border-bottom: 1px solid var(--ecl-border);
   transition: background var(--duration-fast) ease-out;
 }
 
@@ -494,10 +508,9 @@
 }
 
 .table-row:hover {
-  background: var(--bg-hover);
+  background: rgba(91, 111, 245, 0.04);
 }
 
-/* 列宽 */
 .mcol-name {
   flex: 1;
   min-width: 120px;
@@ -509,7 +522,7 @@
 
 .mod-name {
   overflow: hidden;
-  color: var(--text-primary);
+  color: var(--ecl-text);
   font-size: 12px;
   font-weight: 600;
   text-overflow: ellipsis;
@@ -518,7 +531,7 @@
 
 .mod-filename {
   overflow: hidden;
-  color: var(--text-tertiary);
+  color: var(--ecl-text-secondary);
   font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -538,7 +551,7 @@
 
 .mod-version-text {
   overflow: hidden;
-  color: var(--text-secondary);
+  color: var(--ecl-text-secondary);
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -552,7 +565,7 @@
 
 .mod-author-text {
   overflow: hidden;
-  color: var(--text-secondary);
+  color: var(--ecl-text-secondary);
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -574,75 +587,218 @@
   justify-content: center;
 }
 
-/* 加载器徽章 */
-.mods-panel .badge {
+.badge {
   display: inline-block;
-  padding: 2px 6px;
-  border-radius: var(--r-xs);
+  padding: 2px 8px;
+  border-radius: var(--r-full);
   font-size: 10px;
   font-weight: 500;
   white-space: nowrap;
 }
 
-.mods-panel .badge-vanilla {
-  background: var(--bg-base-alt);
-  color: var(--text-secondary);
+.badge-vanilla {
+  background: rgba(29, 36, 51, 0.06);
+  color: var(--ecl-text-secondary);
 }
 
-.mods-panel .badge-fabric {
+.badge-fabric {
   background: rgba(218, 190, 140, 0.15);
   color: #b8944a;
 }
 
-.mods-panel .badge-forge {
+.badge-forge {
   background: rgba(140, 130, 180, 0.15);
   color: #7a6eaa;
 }
 
-.mods-panel .badge-neoforge {
+.badge-neoforge {
   background: rgba(140, 150, 200, 0.15);
   color: #6a7eb4;
 }
 
-.mods-panel .badge-quilt {
+.badge-quilt {
   background: rgba(140, 180, 160, 0.15);
   color: #5a9a72;
 }
 
-/* 操作按钮 */
-.mods-panel .btn-action {
+.btn-action {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 25px;
-  height: 25px;
+  width: 26px;
+  height: 26px;
   border: none;
-  border-radius: var(--r-xs);
+  border-radius: var(--ecl-radius-control);
   background: transparent;
   cursor: pointer;
   opacity: 0;
   transition: all var(--duration-fast) ease-out;
 }
 
-.mods-table-row:hover .btn-action {
+.table-row:hover .btn-action {
   opacity: 1;
 }
 
-.mods-panel .btn-delete {
-  color: var(--text-tertiary);
+.btn-delete {
+  color: var(--ecl-text-secondary);
 }
 
-.mods-panel .btn-delete:hover {
+.btn-delete:hover {
   background: var(--error-alpha);
   color: var(--error);
 }
 
-/* 空状态 */
-.mods-empty {
-  min-height: 260px;
+/* =============================================
+   Settings 页面
+   ============================================= */
+.version-settings-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ecl-page-gap);
 }
 
+.settings-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 48px;
+  padding: 12px 16px;
+  background: var(--ecl-surface);
+  border: 1px solid var(--ecl-border);
+  border-radius: var(--ecl-radius-card);
+  box-shadow: var(--ecl-shadow-surface);
+}
+
+.settings-summary-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.settings-summary-copy strong {
+  color: var(--ecl-text);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.settings-summary-copy span {
+  color: var(--ecl-text-secondary);
+  font-size: 11px;
+}
+
+.settings-loading-state {
+  display: flex;
+  min-height: 200px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: var(--ecl-text-secondary);
+  font-size: 12px;
+}
+
+.memory-number-input {
+  width: 150px;
+}
+
+.java-path-control {
+  width: min(430px, 48vw);
+}
+
+.argument-input {
+  width: min(430px, 48vw);
+}
+
+.argument-input :deep(textarea) {
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+/* =============================================
+   Saves 页面
+   ============================================= */
+.empty-page {
+  display: flex;
+  min-height: 260px;
+  align-items: center;
+  justify-content: center;
+}
+
+.vdm-footer-status {
+  flex: 1;
+  min-width: 0;
+  color: var(--warning);
+  font-size: 12px;
+}
+
+.mods-empty {
+  flex: 1;
+  min-height: 200px;
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: var(--s-md);
+  height: 100%;
+}
+
+.empty-icon {
+  color: var(--ecl-text-secondary);
+}
+
+.empty-text {
+  margin: 0;
+  color: var(--ecl-text-secondary);
+  font-size: 13px;
+}
+
+/* =============================================
+   暗色模式
+   ============================================= */
+[data-theme='dark'] .vdm-content::after {
+  color: rgba(91, 111, 245, 0.15);
+}
+
+/* =============================================
+   响应式 - 820px
+   ============================================= */
 @media (max-width: 820px) {
+  .vdm-header {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 16px;
+    min-height: auto;
+  }
+
+  .vdm-tabs {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .vdm-tab-button {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+    padding: 0 8px;
+  }
+
+  .vdm-content {
+    padding: 16px;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .info-item {
+    border-right: 0;
+    min-height: 56px;
+  }
+
   .mods-panel-header {
     flex-wrap: wrap;
     gap: 8px;
@@ -667,5 +823,47 @@
   .mcol-version,
   .mcol-author {
     display: none;
+  }
+
+  .java-path-control {
+    width: min(400px, 45vw);
+  }
+
+  .argument-input {
+    width: min(400px, 45vw);
+  }
+
+  :global(.version-detail-modal .fullscreen-modal-footer) {
+    padding: 10px 16px;
+  }
+}
+
+/* =============================================
+   响应式 - 620px
+   ============================================= */
+@media (max-width: 620px) {
+  .vdm-content {
+    padding: 12px;
+  }
+
+  .vdm-tab-button span:last-child {
+    display: none;
+  }
+
+  .vdm-tab-button {
+    padding: 0 10px;
+    height: 32px;
+  }
+
+  .overview-actions {
+    flex-direction: column;
+  }
+
+  .java-path-control {
+    width: 100%;
+  }
+
+  .argument-input {
+    width: 100%;
   }
 }
