@@ -1,20 +1,45 @@
 <!-- src/components/ui/Icon.vue -->
 <template>
   <span :class="['icon', `icon-${name}`, className]" :style="style">
-    <Icon :icon="getIconName(name)" :width="size" :height="size" />
+    <!-- 品牌图标（微软登录）以内联 SVG 渲染，避免加载 brands 字体 -->
+    <svg
+      v-if="name === 'microsoft'"
+      class="icon-microsoft"
+      :width="iconSize"
+      :height="iconSize"
+      viewBox="0 0 21 21"
+      fill="none"
+      aria-hidden="true"
+    >
+      <rect x="1" y="1" width="9" height="9" fill="#F25022" />
+      <rect x="11" y="1" width="9" height="9" fill="#7FBA00" />
+      <rect x="1" y="11" width="9" height="9" fill="#00A4EF" />
+      <rect x="11" y="11" width="9" height="9" fill="#FFB900" />
+    </svg>
+    <i
+      v-else
+      :class="[
+        getIcon(name).style,
+        `fa-${getIcon(name).name}`,
+        { 'fa-spin': name === 'spinner' || name === 'loading' },
+      ]"
+      :style="{ fontSize: iconSize }"
+    />
   </span>
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { computed } from 'vue'
 
 defineOptions({ name: 'UiIcon' })
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   size: 16,
   className: '',
   style: () => ({}),
 })
+
+const iconSize = computed(() => (typeof props.size === 'number' ? `${props.size}px` : props.size))
 
 interface Props {
   name: string
@@ -23,86 +48,91 @@ interface Props {
   style?: Record<string, string>
 }
 
-// 图标名称映射（模块级常量，避免每次调用重新创建）
-const iconMap: Record<string, string> = {
-  // 导航
-  game: 'hugeicons:game',
-  cube: 'mdi:cube-outline',
-  folder: 'mdi:folder-outline',
-  settings: 'mdi:cog-outline',
-  puzzle: 'mdi:puzzle-outline',
-  plugin: 'mdi:puzzle-outline',
-  bug: 'mdi:bug-outline',
-  menu: 'mdi:menu',
-  help: 'mdi:help-circle-outline',
-
-  // 操作
-  close: 'mdi:close',
-  spinner: 'mdi:loading',
-  loading: 'mdi:loading',
-  add: 'mdi:plus',
-  delete: 'mdi:delete-outline',
-  trash: 'mdi:trash-can-outline',
-  search: 'mdi:magnify',
-  download: 'mdi:download',
-  play: 'mdi:play',
-  refresh: 'mdi:refresh',
-  check: 'mdi:check',
-  brush: 'mdi:brush',
-  list: 'mdi:format-list-bulleted',
-
-  // 方向
-  'chevron-down': 'mdi:chevron-down',
-  'chevron-up': 'mdi:chevron-up',
-  'arrow-right': 'mdi:chevron-right',
-  'arrow-left': 'mdi:chevron-left',
-
-  // 文件
-  'file-text': 'mdi:file-document-outline',
-  'external-link': 'mdi:open-in-new',
-  'folder-open': 'mdi:folder-open-outline',
-  globe: 'mdi:earth',
-  archive: 'mdi:archive-outline',
-  calendar: 'mdi:calendar-outline',
-
-  // 通知/状态
-  info: 'mdi:information-outline',
-  bell: 'mdi:bell-outline',
-  lightbulb: 'mdi:lightbulb-outline',
-
-  // 消息类型
-  success: 'mdi:check-circle-outline',
-  error: 'mdi:close-circle-outline',
-  warning: 'mdi:alert-circle-outline',
-
-  // 窗口
-  minimize: 'mdi:window-minimize',
-  moon: 'mdi:weather-night',
-  sun: 'mdi:weather-sunny',
-
-  // 加载器
-  lab: 'mdi:flask-outline',
-  fire: 'mdi:fire',
-  grid: 'mdi:grid',
-  eye: 'mdi:eye-outline',
-  happy: 'mdi:emoticon-happy-outline',
-  'cloud-download': 'mdi:cloud-download-outline',
-
-  // 账户
-  microsoft: 'mdi:microsoft',
-  user: 'mdi:account-outline',
-  'user-x': 'mdi:account-remove-outline',
-  'game-controller': 'mdi:gamepad-variant-outline',
-  shield: 'mdi:shield-outline',
-
-  // 任务
-  'x-mark': 'mdi:close',
-  circle: 'mdi:circle-small',
-  package: 'mdi:package-variant-closed',
+interface FaIcon {
+  style: string
+  name: string
 }
 
-const getIconName = (iconName: string) => {
-  return iconMap[iconName] || 'mdi:alert-box-outline'
+// 图标名称映射：将简写名映射到 Font Awesome Classic 图标
+// style: 'far' = Regular（优先使用，需 Free Regular 有对应字形），'fas' = Solid（仅用于无 Regular 变体的图标）
+const iconMap: Record<string, FaIcon> = {
+  // 导航
+  game: { style: 'fas', name: 'gamepad' },
+  cube: { style: 'fas', name: 'cube' },
+  folder: { style: 'far', name: 'folder' },
+  settings: { style: 'fas', name: 'gear' },
+  puzzle: { style: 'fas', name: 'puzzle-piece' },
+  plugin: { style: 'fas', name: 'puzzle-piece' },
+  bug: { style: 'fas', name: 'bug' },
+  menu: { style: 'fas', name: 'bars' },
+  help: { style: 'far', name: 'circle-question' },
+
+  // 操作
+  close: { style: 'fas', name: 'xmark' },
+  spinner: { style: 'fas', name: 'spinner' },
+  loading: { style: 'fas', name: 'spinner' },
+  add: { style: 'fas', name: 'plus' },
+  delete: { style: 'far', name: 'trash-can' },
+  trash: { style: 'far', name: 'trash-can' },
+  search: { style: 'fas', name: 'magnifying-glass' },
+  download: { style: 'fas', name: 'download' },
+  play: { style: 'fas', name: 'play' },
+  refresh: { style: 'fas', name: 'rotate' },
+  check: { style: 'fas', name: 'check' },
+  brush: { style: 'fas', name: 'paintbrush' },
+  list: { style: 'fas', name: 'list' },
+
+  // 方向
+  'chevron-down': { style: 'fas', name: 'chevron-down' },
+  'chevron-up': { style: 'fas', name: 'chevron-up' },
+  'arrow-right': { style: 'fas', name: 'chevron-right' },
+  'arrow-left': { style: 'fas', name: 'chevron-left' },
+
+  // 文件
+  'file-text': { style: 'far', name: 'file-lines' },
+  'external-link': { style: 'fas', name: 'up-right-from-square' },
+  'folder-open': { style: 'far', name: 'folder-open' },
+  globe: { style: 'fas', name: 'globe' },
+  archive: { style: 'fas', name: 'box-archive' },
+  calendar: { style: 'far', name: 'calendar' },
+
+  // 通知/状态
+  info: { style: 'fas', name: 'circle-info' },
+  bell: { style: 'far', name: 'bell' },
+  lightbulb: { style: 'far', name: 'lightbulb' },
+
+  // 消息类型
+  success: { style: 'far', name: 'circle-check' },
+  error: { style: 'far', name: 'circle-xmark' },
+  warning: { style: 'fas', name: 'circle-exclamation' },
+
+  // 窗口
+  minimize: { style: 'far', name: 'window-minimize' },
+  moon: { style: 'far', name: 'moon' },
+  sun: { style: 'far', name: 'sun' },
+
+  // 加载器
+  lab: { style: 'fas', name: 'flask' },
+  fire: { style: 'fas', name: 'fire' },
+  grid: { style: 'fas', name: 'table-cells' },
+  eye: { style: 'far', name: 'eye' },
+  happy: { style: 'far', name: 'face-smile' },
+  'cloud-download': { style: 'fas', name: 'cloud-arrow-down' },
+
+  // 账户（microsoft 走内联 SVG，不在此映射）
+  user: { style: 'far', name: 'user' },
+  'user-x': { style: 'fas', name: 'user-xmark' },
+  'game-controller': { style: 'fas', name: 'gamepad' },
+  shield: { style: 'fas', name: 'shield-halved' },
+
+  // 任务
+  'x-mark': { style: 'fas', name: 'xmark' },
+  circle: { style: 'far', name: 'circle' },
+  package: { style: 'fas', name: 'box' },
+}
+
+const getIcon = (iconName: string): FaIcon => {
+  return iconMap[iconName] || { style: 'far', name: 'circle-question' }
 }
 </script>
 

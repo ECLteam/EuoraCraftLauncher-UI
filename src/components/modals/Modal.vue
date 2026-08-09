@@ -20,7 +20,7 @@
             <div class="header-content">
               <slot name="header">
                 <div class="header-title">
-                  <i v-if="iconType" :class="['icon', iconType]" />
+                  <UiIcon v-if="iconType" :name="iconType" :size="18" />
                   <h3 :id="titleId" class="modal-title">
                     {{ title }}
                   </h3>
@@ -154,13 +154,13 @@ interface Emits {
 const iconType = computed(() => {
   switch (props.type) {
     case 'confirm':
-      return 'icon-help-circle'
+      return 'help'
     case 'alert':
-      return 'icon-info'
+      return 'info'
     case 'warning':
-      return 'icon-alert-triangle'
+      return 'warning'
     case 'agreement':
-      return 'icon-file-text'
+      return 'file-text'
     default:
       return ''
   }

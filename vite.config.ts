@@ -41,7 +41,6 @@ export default defineConfig({
           gsap: ['gsap'],
           'vue-vendor': ['vue', 'vue-router'],
           i18n: ['vue-i18n'],
-          icons: ['@iconify/vue'],
         },
       },
     },

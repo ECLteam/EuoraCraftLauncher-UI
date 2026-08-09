@@ -187,10 +187,10 @@
 import { computed, inject, onMounted, ref, type Ref } from 'vue'
 import type { AppRuntimeMode } from '@/app/runtime/mode'
 import UiIcon from '@/components/ui/Icon.vue'
-import { openExternalUrl } from '@/utils/openExternal'
 import { URLS } from '@/config/urls'
 import { aboutApi } from '@/features/settings/api/aboutApi'
 import type { LauncherInfo } from '@/types/api'
+import { openExternalUrl } from '@/utils/openExternal'
 
 const launcherVersion = inject<Readonly<Ref<string>>>('launcherVersion')
 const launcherVersionType = inject<Readonly<Ref<'dev' | 'beta' | 'release'>>>('launcherVersionType')
@@ -281,7 +281,7 @@ const techStack = [
       'Naive UI',
       'VueUse',
       'GSAP',
-      'Iconify',
+      'Font Awesome 6',
       'Valibot',
       'Tailwind CSS',
     ],

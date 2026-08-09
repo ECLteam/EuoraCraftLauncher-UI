@@ -3,3 +3,8 @@
   align-items: center;
   justify-content: center;
 }
+
+.icon i {
+  display: block;
+  color: inherit;
+}
