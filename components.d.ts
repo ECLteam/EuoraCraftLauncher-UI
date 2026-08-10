@@ -20,7 +20,6 @@ declare module 'vue' {
     Icon: typeof import('./src/components/ui/Icon.vue')['default']
     Input: typeof import('./src/components/ui/Input.vue')['default']
     InstalledInstanceList: typeof import('./src/components/instances/InstalledInstanceList.vue')['default']
-    InstalledVersionList: typeof import('./src/components/instances/InstalledVersionList.vue')['default']
     InstanceInstallModal: typeof import('./src/components/instances/InstanceInstallModal.vue')['default']
     InstancePathSidebar: typeof import('./src/components/instances/InstancePathSidebar.vue')['default']
     LauncherPopupModal: typeof import('./src/components/modals/LauncherPopupModal.vue')['default']
@@ -37,7 +36,5 @@ declare module 'vue' {
     TaskQueuePanel: typeof import('./src/components/panels/TaskQueuePanel.vue')['default']
     TitleBar: typeof import('./src/components/layout/TitleBar.vue')['default']
     TitleBarTray: typeof import('./src/components/layout/TitleBarTray.vue')['default']
-    VersionInstallModal: typeof import('./src/components/instances/VersionInstallModal.vue')['default']
-    VersionPathSidebar: typeof import('./src/components/instances/VersionPathSidebar.vue')['default']
   }
 }

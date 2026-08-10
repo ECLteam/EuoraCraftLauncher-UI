@@ -338,6 +338,8 @@ export interface ImageSaveUrlResult {
   dataUrl: string
   base64: string
   url: string
+  /** 后端落盘到本地数据目录后的路径（可能为空） */
+  path?: string | null
 }
 
 export interface ImageSaveAsPayload {

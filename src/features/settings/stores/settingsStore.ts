@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import backend from '@/api/client'
-import { settingsApi } from '@/features/settings/api/settingsApi'
+import { resolveLocalImageUrl, settingsApi } from '@/features/settings/api/settingsApi'
 import type { DownloadConfig, GameConfig, UiConfig } from '@/types/api'
 
 const DEFAULT_GAME_CONFIG: GameConfig = {
@@ -15,12 +14,6 @@ const DEFAULT_GAME_CONFIG: GameConfig = {
 
 const DEFAULT_DOWNLOAD_CONFIG: DownloadConfig = {
   mirror_source: 'official',
-}
-
-async function resolveLocalImageUrl(path: string): Promise<string | null> {
-  const fileUrl = await backend.file.toUrl(path).catch(() => null)
-  if (fileUrl) return fileUrl
-  return settingsApi.readImage(path)
 }
 
 export const useSettingsStore = defineStore('settings', () => {
@@ -96,7 +89,11 @@ export const useSettingsStore = defineStore('settings', () => {
     return { path, imageUrl: await resolveLocalImageUrl(path) }
   }
 
-  async function chooseBackgroundFolder(): Promise<{ path: string; files: string[]; firstImageUrl: string | null } | null> {
+  async function chooseBackgroundFolder(): Promise<{
+    path: string
+    files: string[]
+    firstImageUrl: string | null
+  } | null> {
     const path = await settingsApi.selectDirectory()
     if (!path) return null
     const files = await settingsApi.listBackgroundImages(path)
@@ -108,8 +105,10 @@ export const useSettingsStore = defineStore('settings', () => {
   async function saveRemoteBackground(url: string): Promise<{ path: string; imageUrl: string | null } | null> {
     const result = await settingsApi.saveImageUrl(url)
     if (!result) return null
-    await patchUiBackground({ type: 'custom', path: result.url, mode: 'single', image_base64: result.dataUrl })
-    return { path: result.url, imageUrl: result.dataUrl }
+    // 后端已将图片落盘到本地数据目录，配置只存路径，不再保存大体积 base64
+    const localPath = result.path || result.url
+    await patchUiBackground({ type: 'custom', path: localPath, mode: 'single', image_base64: '' })
+    return { path: localPath, imageUrl: result.dataUrl }
   }
 
   return {

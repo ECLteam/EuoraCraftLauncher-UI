@@ -1,7 +1,7 @@
 ﻿import { darkTheme, type GlobalTheme, type GlobalThemeOverrides } from 'naive-ui'
 import { ref, computed, readonly } from 'vue'
 import { PRESET_COLORS, DEFAULT_PRIMARY_COLOR, LIGHT_THEME_COLORS, DARK_THEME_COLORS } from '@/config/theme'
-import { settingsApi } from '@/features/settings/api/settingsApi'
+import { resolveLocalImageUrl, settingsApi } from '@/features/settings/api/settingsApi'
 import { resolveNavigationMode } from '@/features/settings/model/navigation'
 import type { BackgroundConfig, NavigationMode, ThemeConfig } from '@/types/api'
 
@@ -290,7 +290,12 @@ function updateTheme() {
 
   if (import.meta.env.DEV) {
     // eslint-disable-next-line no-console
-    console.log('[updateTheme] --bg-image:', bgImageValue, 'backgroundImage.length:', backgroundImage.value?.length ?? 0)
+    console.log(
+      '[updateTheme] --bg-image:',
+      bgImageValue,
+      'backgroundImage.length:',
+      backgroundImage.value?.length ?? 0
+    )
   }
 }
 
@@ -468,7 +473,8 @@ export async function initTheme(uiConfig?: unknown): Promise<void> {
       } else if (settingsApi.isShowcase && bgData.path?.startsWith('http')) {
         backgroundImage.value = bgData.path
       } else if (bgData.path && bgData.type !== 'default') {
-        const imageUrl = await settingsApi.readImage(bgData.path)
+        // 桌面端优先走文件协议（零 base64 开销），不可用时回退后端 base64 读取（带缓存）
+        const imageUrl = await resolveLocalImageUrl(bgData.path)
         backgroundImage.value = imageUrl ? resolveImageUrl(imageUrl) : ''
       } else {
         backgroundImage.value = ''

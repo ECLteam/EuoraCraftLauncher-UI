@@ -321,12 +321,12 @@ export function createShowcaseTransport(): BackendTransport {
       case 'search_mods': {
         const query = String(payload.query ?? '').toLowerCase()
         const items = showcaseMods.filter(
-              (item) =>
-                !query ||
-                item.title.toLowerCase().includes(query) ||
-                item.displayTitle.toLowerCase().includes(query) ||
-                item.description.toLowerCase().includes(query)
-            )
+          (item) =>
+            !query ||
+            item.title.toLowerCase().includes(query) ||
+            item.displayTitle.toLowerCase().includes(query) ||
+            item.description.toLowerCase().includes(query)
+        )
         return success({
           items: structuredClone(items),
           sources: {
@@ -401,6 +401,7 @@ export function createShowcaseTransport(): BackendTransport {
           dataUrl: (payload as { url?: string }).url ?? '',
           base64: '',
           url: (payload as { url?: string }).url ?? '',
+          path: (payload as { url?: string }).url ?? '',
         })
       case 'image_save_as':
         return success({ path: 'Showcase/SavedImage.png' })
