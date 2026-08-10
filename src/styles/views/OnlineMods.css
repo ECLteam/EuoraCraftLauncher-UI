@@ -1,10 +1,30 @@
+/* =============================================
+   OnlineMods.css
+   按 page-style-guide 技能重写
+   使用项目设计系统 ecl-* token：玻璃拟态风格
+   ============================================= */
+
+/* =============================================
+   Page Layout
+   ============================================= */
 .online-mods-page {
   min-height: 0;
   padding: 2px;
 }
 
-.search-card {
+/* =============================================
+   Search Toolbar
+   ============================================= */
+.mods-search-toolbar {
+  display: flex;
   flex-shrink: 0;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--ecl-border);
+  border-radius: var(--ecl-radius-card);
+  background: var(--ecl-surface);
+  box-shadow: var(--ecl-shadow-surface);
 }
 
 .search-controls {
@@ -24,37 +44,51 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  min-height: 24px;
-  margin-top: 10px;
   color: var(--ecl-text-secondary);
   font-size: 12px;
 }
 
+/* =============================================
+   Source Warnings
+   ============================================= */
 .source-warnings {
   display: grid;
   flex-shrink: 0;
   gap: 8px;
 }
 
-.results-card {
-  min-height: 0;
-  flex: 1;
-}
-
-.results-spin,
-.results-spin :deep(.n-spin-content),
-.results-scroll {
-  min-height: 100%;
-  height: 100%;
-}
-
-.result-summary {
+/* =============================================
+   Results Panel
+   ============================================= */
+.mods-results-panel {
   display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--ecl-border);
+  border-radius: var(--ecl-radius-card);
+  background: var(--ecl-surface);
+  box-shadow: var(--ecl-shadow-surface);
+}
+
+/* =============================================
+   Results Header
+   ============================================= */
+.mods-results-header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 16px 4px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--ecl-border);
   color: var(--ecl-text-secondary);
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .translated-query {
@@ -63,36 +97,63 @@
   white-space: nowrap;
 }
 
+/* =============================================
+   Results Content
+   ============================================= */
+.mods-results-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mods-results-spin,
+.mods-results-spin :deep(.n-spin-content) {
+  height: 100%;
+}
+
+.mods-results-scroll {
+  height: 100%;
+}
+
+/* =============================================
+   Mod Grid
+   ============================================= */
 .mod-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
   gap: 12px;
-  padding: 12px 16px 18px;
+  padding: 12px 14px 18px;
 }
 
+/* =============================================
+   Mod Card
+   ============================================= */
 .mod-card {
   display: flex;
   min-width: 0;
   min-height: 218px;
   flex-direction: column;
-  padding: 15px;
+  padding: 16px;
   border: 1px solid var(--ecl-border);
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--ecl-surface) 82%, transparent);
-  box-shadow: 0 8px 26px rgb(0 0 0 / 5%);
+  border-radius: var(--ecl-radius-card);
+  background: var(--ecl-surface);
+  box-shadow: var(--ecl-shadow-surface);
   cursor: pointer;
   transition:
-    transform 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease;
+    transform var(--duration-fast) var(--ease-smooth),
+    border-color var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-fast) var(--ease-smooth);
 }
 
 .mod-card:hover {
-  border-color: color-mix(in srgb, var(--ecl-primary) 48%, var(--ecl-border));
-  box-shadow: 0 12px 32px rgb(0 0 0 / 9%);
+  border-color: color-mix(in srgb, var(--ecl-primary) 40%, var(--ecl-border));
+  box-shadow: 0 8px 22px rgba(29, 36, 51, 0.08);
   transform: translateY(-2px);
 }
 
+/* =============================================
+   Mod Card Header
+   ============================================= */
 .mod-card-header {
   display: flex;
   min-width: 0;
@@ -117,7 +178,7 @@
 .detail-heading h2 {
   overflow: hidden;
   margin: 2px 0 4px;
-  color: var(--ecl-text-primary);
+  color: var(--ecl-text);
   font-size: 15px;
   font-weight: 650;
   text-overflow: ellipsis;
@@ -134,6 +195,9 @@
   white-space: nowrap;
 }
 
+/* =============================================
+   Mod Description
+   ============================================= */
 .mod-description {
   display: -webkit-box;
   min-height: 42px;
@@ -146,6 +210,9 @@
   -webkit-line-clamp: 2;
 }
 
+/* =============================================
+   Mod Tags
+   ============================================= */
 .mod-tags {
   display: flex;
   min-height: 24px;
@@ -153,6 +220,9 @@
   gap: 5px;
 }
 
+/* =============================================
+   Mod Card Footer
+   ============================================= */
 .mod-card-footer {
   display: flex;
   align-items: center;
@@ -160,7 +230,7 @@
   gap: 12px;
   margin-top: auto;
   padding-top: 13px;
-  border-top: 1px solid color-mix(in srgb, var(--ecl-border) 70%, transparent);
+  border-top: 1px solid var(--ecl-border);
 }
 
 .mod-card-footer > span {
@@ -171,18 +241,43 @@
   font-size: 12px;
 }
 
-.results-empty {
+/* =============================================
+   Empty State
+   ============================================= */
+.mods-results-empty {
   display: flex;
   min-height: 330px;
   align-items: center;
   justify-content: center;
 }
 
+.mods-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-md);
+  height: 100%;
+  color: var(--ecl-text-secondary);
+}
+
+.mods-empty-state .empty-icon {
+  color: var(--ecl-text-tertiary);
+}
+
+.mods-empty-state .empty-text {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* =============================================
+   Detail Modal
+   ============================================= */
 :deep(.mod-detail-modal) {
   width: min(680px, calc(100vw - 36px));
   border: 1px solid var(--ecl-border);
   border-radius: 16px;
-  background: color-mix(in srgb, var(--ecl-surface) 95%, transparent);
+  background: var(--ecl-surface);
   box-shadow: 0 22px 80px rgb(0 0 0 / 22%);
   backdrop-filter: blur(22px);
 }
@@ -225,14 +320,14 @@
 .version-picker {
   padding: 14px;
   border: 1px solid var(--ecl-border);
-  border-radius: 12px;
+  border-radius: var(--ecl-radius-card);
   background: var(--ecl-surface-muted);
 }
 
 .version-picker label {
   display: block;
   margin-bottom: 9px;
-  color: var(--ecl-text-primary);
+  color: var(--ecl-text);
   font-size: 12px;
   font-weight: 600;
 }
@@ -262,6 +357,9 @@
   white-space: nowrap;
 }
 
+/* =============================================
+   Responsive - 900px
+   ============================================= */
 @media (max-width: 900px) {
   .search-controls {
     grid-template-columns: 1fr 1fr;
@@ -273,6 +371,25 @@
   }
 }
 
+/* =============================================
+   Responsive - 820px
+   ============================================= */
+@media (max-width: 820px) {
+  .mods-results-header {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 12px;
+    min-height: auto;
+  }
+
+  .mod-grid {
+    padding: 10px 12px 16px;
+  }
+}
+
+/* =============================================
+   Responsive - 620px
+   ============================================= */
 @media (max-width: 620px) {
   .search-controls {
     grid-template-columns: 1fr;
@@ -285,7 +402,7 @@
 
   .mod-grid {
     grid-template-columns: 1fr;
-    padding-inline: 10px;
+    padding: 10px;
   }
 
   .detail-footer {

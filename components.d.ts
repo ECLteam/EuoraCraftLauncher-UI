@@ -26,6 +26,7 @@ declare module 'vue' {
     LaunchProgressCard: typeof import('./src/components/game/LaunchProgressCard.vue')['default']
     MarkdownContent: typeof import('./src/components/ui/MarkdownContent.vue')['default']
     Modal: typeof import('./src/components/modals/Modal.vue')['default']
+    OnlineModSearch: typeof import('./src/components/mods/OnlineModSearch.vue')['default']
     PageHeader: typeof import('./src/components/layout/PageHeader.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
