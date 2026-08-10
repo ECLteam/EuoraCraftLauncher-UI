@@ -9,7 +9,7 @@
     <div v-if="$slots.header || title" class="card-header">
       <slot name="header">
         <div class="header-content">
-          <i v-if="icon" :class="['icon', icon]" />
+          <UiIcon v-if="icon" :name="icon.replace('icon-', '')" :size="16" />
           <span class="title-text">{{ title }}</span>
         </div>
         <div v-if="$slots.actions" class="header-actions">

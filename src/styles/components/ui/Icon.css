@@ -4,7 +4,7 @@
   justify-content: center;
 }
 
-.icon i {
+.icon svg {
   display: block;
-  color: inherit;
+  color: inherit; /* Tabler 为 stroke="currentColor"，继承父级颜色 */
 }

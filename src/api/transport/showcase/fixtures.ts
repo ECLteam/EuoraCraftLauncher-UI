@@ -314,7 +314,7 @@ export const showcaseInfoCard: InfoCardData = {
   announcement_title: '公告',
   tips: [
     '展示模式设置会保存在当前浏览器中，不会写入后端配置。',
-    '可以在版本页体验搜索、筛选和安装流程。',
+    '可以在实例页体验搜索、筛选和安装流程。',
     '插件页提供启用、禁用和重载交互示例。',
   ],
   announcements: [
@@ -400,7 +400,7 @@ export const showcaseDemoTasks: DemoTaskDef[] = [
   },
   {
     type: 'download',
-    name: '删除旧版本 1.16.5',
+    name: '删除旧实例 1.16.5',
     status: 'error',
     progress: 34,
     message: '部分文件被其他进程占用，无法删除',

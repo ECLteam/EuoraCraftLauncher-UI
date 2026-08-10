@@ -203,8 +203,8 @@ import PageHeader from '@/components/layout/PageHeader.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useGlassMessage } from '@/composables/useGlassMessage'
+import { useInstanceStore } from '@/features/instances/stores/instanceStore'
 import { modApi } from '@/features/mods/api/modApi'
-import { useVersionStore } from '@/features/versions/stores/versionStore'
 import type {
   ModInfo,
   ModSearchItem,
@@ -218,7 +218,7 @@ import { formatErrors, v } from '@/utils/validate'
 
 const { t } = useI18n()
 const message = useGlassMessage()
-const versionStore = useVersionStore()
+const instanceStore = useInstanceStore()
 const { loading, run } = useAsyncAction({ showSuccess: false, showError: false })
 const query = ref('')
 const source = ref<'all' | 'modrinth' | 'curseforge'>('all')
@@ -245,7 +245,7 @@ const sourceOptions = computed(() => [
 ])
 
 const installableInstances = computed(() =>
-  versionStore.scannedVersions.filter((version) => !version.isBroken)
+  instanceStore.scannedVersions.filter((version) => !version.isBroken)
 )
 
 function instanceKey(version: ScannedVersion): string {
@@ -421,11 +421,11 @@ const stopInstallProgress = backend.on('mods:install_progress', (payload) => {
 
 onMounted(async () => {
   try {
-    await versionStore.loadAll()
+    await instanceStore.loadAll()
     const preferred =
       installableInstances.value.find(
         (version) =>
-          version.versionId === versionStore.selectedVersion && version.path === versionStore.currentGamePath
+          version.versionId === instanceStore.selectedVersion && version.path === instanceStore.currentGamePath
       ) ?? installableInstances.value[0]
     if (preferred) selectedInstanceKey.value = instanceKey(preferred)
   } catch (error) {

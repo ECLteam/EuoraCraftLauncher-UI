@@ -2,7 +2,7 @@
   <div v-if="topNavEnabled && visibleItems.length > 0" class="titlebar-tray">
     <div id="plugin-slot-titlebar-tray" class="plugin-slot-container"></div>
 
-    <div class="titlebar-tray-wrapper" ref="trayWrapperRef">
+    <div ref="trayWrapperRef" class="titlebar-tray-wrapper">
       <button
         class="titlebar-btn titlebar-tray-btn"
         :title="t('common.more')"
@@ -33,8 +33,8 @@ import { useRouter } from 'vue-router'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useTopNav } from '@/composables/useTopNav'
 import { registerTrayItem, unregisterTrayItem, useTrayItems, type TrayItem } from '@/composables/useTrayItems'
-import { openExternalUrl } from '@/utils/openExternal'
 import { URLS } from '@/config/urls'
+import { openExternalUrl } from '@/utils/openExternal'
 
 defineOptions({ name: 'TitleBarTray' })
 

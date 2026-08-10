@@ -376,8 +376,8 @@ import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAccountManager } from '@/composables/useAccountManager'
+import { useInstanceManager } from '@/composables/useInstanceManager'
 import { globalLaunchProgress } from '@/composables/useLaunchProgress'
-import { useVersionManager } from '@/composables/useVersionManager'
 import { getVersionImage } from '@/config/version'
 import { useGameInfoCard } from '@/features/game-home/composables/useGameInfoCard'
 import { useGameHomeStore } from '@/features/game-home/stores/gameHomeStore'
@@ -387,7 +387,7 @@ import { getLoaderIcon, getLoaderImage } from '@/utils/loader'
 const { t } = useI18n()
 const router = useRouter()
 const account = useAccountManager(t)
-const version = useVersionManager(t)
+const version = useInstanceManager(t)
 const { progress: launchProgress, smoothPercent } = globalLaunchProgress
 const gameHomeStore = useGameHomeStore()
 const { hasGamePath } = storeToRefs(gameHomeStore)
