@@ -304,9 +304,6 @@
       <div class="vdm-footer-status">
         <span v-if="activeTab === 'settings' && settingsDirty">{{ t('versions.detail.unsavedChanges') }}</span>
       </div>
-      <NButton :disabled="settingsSaving" @click="visible = false">
-        {{ t('common.close') }}
-      </NButton>
       <NButton
         v-if="activeTab === 'settings'"
         type="primary"

@@ -5,14 +5,14 @@
    ============================================= */
 
 /* =============================================
-   Modal wrapper 背景
+   Modal wrapper 背景（透明，露出主界面）
    ============================================= */
 :global(.version-detail-modal) {
-  background: var(--ecl-surface-muted);
+  background: transparent;
 }
 
 :global(.version-detail-modal .fullscreen-modal-footer) {
-  background: var(--ecl-surface);
+  background: transparent;
   border-top: 1px solid var(--ecl-border);
   padding: 12px var(--ecl-page-padding);
 }
@@ -26,7 +26,7 @@
   width: 100%;
   height: 100%;
   min-height: 0;
-  background: var(--ecl-surface-muted);
+  background: transparent;
 }
 
 /* =============================================
@@ -58,7 +58,7 @@
   align-items: center;
   justify-content: center;
   color: var(--ecl-primary);
-  background: rgba(91, 111, 245, 0.1);
+  background: var(--ecl-primary-alpha);
   border-radius: var(--ecl-radius-control);
 }
 
@@ -127,12 +127,12 @@
 
 .vdm-tab-button:hover {
   color: var(--ecl-text);
-  background: rgba(29, 36, 51, 0.05);
+  background: var(--ecl-hover);
 }
 
 .vdm-tab-button.active {
   color: var(--ecl-primary);
-  background: rgba(91, 111, 245, 0.1);
+  background: var(--ecl-primary-alpha);
   font-weight: 600;
 }
 
@@ -150,21 +150,6 @@
   padding: var(--ecl-page-padding);
   background: transparent;
   position: relative;
-}
-
-/* 样式标记小文字 - 右下角 */
-.vdm-content::after {
-  content: 'ECL-STYLED';
-  position: absolute;
-  right: 10px;
-  bottom: 4px;
-  font-size: 8px;
-  color: rgba(91, 111, 245, 0.2);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  pointer-events: none;
-  user-select: none;
-  text-transform: uppercase;
 }
 
 .vdm-page {
@@ -274,19 +259,19 @@
 }
 
 .overview-actions :deep(.n-button:first-child) {
-  background: rgba(91, 111, 245, 0.1) !important;
+  background: var(--ecl-primary-alpha) !important;
   color: var(--ecl-primary) !important;
 }
 .overview-actions :deep(.n-button:first-child:hover) {
-  background: rgba(91, 111, 245, 0.18) !important;
+  background: var(--ecl-primary-alpha-strong) !important;
 }
 
 .overview-actions :deep(.n-button:nth-child(2)) {
-  background: rgba(29, 36, 51, 0.05) !important;
+  background: var(--ecl-hover) !important;
   color: var(--ecl-text) !important;
 }
 .overview-actions :deep(.n-button:nth-child(2):hover) {
-  background: rgba(29, 36, 51, 0.09) !important;
+  background: var(--ecl-hover-strong) !important;
 }
 
 .overview-actions :deep(.n-button:last-child) {
@@ -294,7 +279,7 @@
   color: var(--error) !important;
 }
 .overview-actions :deep(.n-button:last-child:hover) {
-  background: rgba(229, 92, 92, 0.2) !important;
+  background: color-mix(in srgb, var(--error) 20%, transparent) !important;
 }
 
 /* =============================================
@@ -405,7 +390,7 @@
 }
 
 .search-clear:hover {
-  background: rgba(29, 36, 51, 0.06);
+  background: var(--ecl-hover);
   color: var(--ecl-text);
 }
 
@@ -433,12 +418,12 @@
 
 .mods-filter-btn:hover {
   color: var(--ecl-text);
-  background: rgba(29, 36, 51, 0.05);
+  background: var(--ecl-hover);
 }
 
 .mods-filter-btn.active {
   color: var(--ecl-primary);
-  background: rgba(91, 111, 245, 0.1);
+  background: var(--ecl-primary-alpha);
 }
 
 .mods-count {
@@ -489,7 +474,7 @@
   color: var(--ecl-text-secondary);
   font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -508,7 +493,7 @@
 }
 
 .table-row:hover {
-  background: rgba(91, 111, 245, 0.04);
+  background: var(--ecl-hover);
 }
 
 .mcol-name {
@@ -589,36 +574,36 @@
 
 .badge {
   display: inline-block;
-  padding: 2px 8px;
-  border-radius: var(--r-full);
+  padding: 2px 6px;
+  border-radius: var(--r-xs);
   font-size: 10px;
   font-weight: 500;
   white-space: nowrap;
 }
 
 .badge-vanilla {
-  background: rgba(29, 36, 51, 0.06);
+  background: var(--ecl-hover);
   color: var(--ecl-text-secondary);
 }
 
 .badge-fabric {
-  background: rgba(218, 190, 140, 0.15);
-  color: #b8944a;
+  background: color-mix(in srgb, var(--ecl-badge-fabric-fg) 15%, transparent);
+  color: var(--ecl-badge-fabric-fg);
 }
 
 .badge-forge {
-  background: rgba(140, 130, 180, 0.15);
-  color: #7a6eaa;
+  background: color-mix(in srgb, var(--ecl-badge-forge-fg) 15%, transparent);
+  color: var(--ecl-badge-forge-fg);
 }
 
 .badge-neoforge {
-  background: rgba(140, 150, 200, 0.15);
-  color: #6a7eb4;
+  background: color-mix(in srgb, var(--ecl-badge-neoforge-fg) 15%, transparent);
+  color: var(--ecl-badge-neoforge-fg);
 }
 
 .badge-quilt {
-  background: rgba(140, 180, 160, 0.15);
-  color: #5a9a72;
+  background: color-mix(in srgb, var(--ecl-badge-quilt-fg) 15%, transparent);
+  color: var(--ecl-badge-quilt-fg);
 }
 
 .btn-action {
@@ -754,13 +739,6 @@
   margin: 0;
   color: var(--ecl-text-secondary);
   font-size: 13px;
-}
-
-/* =============================================
-   暗色模式
-   ============================================= */
-[data-theme='dark'] .vdm-content::after {
-  color: rgba(91, 111, 245, 0.15);
 }
 
 /* =============================================

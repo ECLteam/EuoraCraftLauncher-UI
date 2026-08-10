@@ -1,18 +1,34 @@
 :root {
   --ecl-primary: #5b6ff5;
+  --ecl-primary-hover: #4a5fe8;
+  --ecl-primary-active: #3f53d6;
   --ecl-canvas: #f4f6fa;
   --ecl-surface: rgba(255, 255, 255, 0.88);
   --ecl-surface-muted: rgba(248, 249, 252, 0.88);
   --ecl-text: #1d2433;
   --ecl-text-secondary: #596275;
+  --ecl-text-tertiary: #8a94a8;
+  --ecl-text-primary: var(--ecl-text);
   --ecl-border: rgba(29, 36, 51, 0.1);
+  --ecl-border-strong: rgba(29, 36, 51, 0.16);
+  --ecl-primary-alpha: rgba(91, 111, 245, 0.1);
+  --ecl-primary-alpha-strong: rgba(91, 111, 245, 0.18);
+  --ecl-hover: rgba(29, 36, 51, 0.05);
+  --ecl-hover-strong: rgba(29, 36, 51, 0.09);
+  --ecl-focus-ring: 0 0 0 2px rgba(91, 111, 245, 0.28);
+  --ecl-shadow-surface: 0 1px 2px rgba(29, 36, 51, 0.04);
+  --ecl-shadow-pop: 0 8px 24px rgba(29, 36, 51, 0.1);
   --ecl-control-height: 36px;
   --ecl-radius-control: 6px;
+  --ecl-radius-sm: 6px;
   --ecl-radius-card: 8px;
   --ecl-radius-dialog: 10px;
-  --ecl-shadow-surface: 0 1px 2px rgba(29, 36, 51, 0.04);
   --ecl-page-gap: 16px;
   --ecl-page-padding: 20px;
+  --ecl-badge-fabric-fg: #b8944a;
+  --ecl-badge-forge-fg: #7a6eaa;
+  --ecl-badge-neoforge-fg: #6a7eb4;
+  --ecl-badge-quilt-fg: #5a9a72;
 }
 
 [data-theme='dark'] {
@@ -21,6 +37,20 @@
   --ecl-surface-muted: rgba(41, 46, 57, 0.88);
   --ecl-text: #f1f3f7;
   --ecl-text-secondary: #b4bbc9;
+  --ecl-text-tertiary: #8b94a5;
   --ecl-border: rgba(255, 255, 255, 0.09);
+  --ecl-border-strong: rgba(255, 255, 255, 0.16);
+  --ecl-primary-hover: #7d8df8;
+  --ecl-primary-active: #93a0fa;
+  --ecl-primary-alpha: rgba(91, 111, 245, 0.16);
+  --ecl-primary-alpha-strong: rgba(91, 111, 245, 0.26);
+  --ecl-hover: rgba(255, 255, 255, 0.06);
+  --ecl-hover-strong: rgba(255, 255, 255, 0.1);
+  --ecl-focus-ring: 0 0 0 2px rgba(91, 111, 245, 0.4);
   --ecl-shadow-surface: 0 1px 2px rgba(0, 0, 0, 0.18);
+  --ecl-shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --ecl-badge-fabric-fg: #c9a860;
+  --ecl-badge-forge-fg: #8d80c0;
+  --ecl-badge-neoforge-fg: #7f92c9;
+  --ecl-badge-quilt-fg: #6fb08a;
 }
