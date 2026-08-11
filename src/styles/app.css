@@ -201,7 +201,7 @@
 
 .agreement-link-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(74, 127, 217, 0.14);
+  box-shadow: 0 6px 24px rgba(var(--primary-rgb), 0.14);
 }
 
 .agreement-link-btn:active {

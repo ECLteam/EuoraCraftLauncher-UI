@@ -13,11 +13,11 @@
       <div class="header-right">
         <button class="btn-refresh" :disabled="refreshLoading" @click="emit('refresh')">
           <UiIcon name="refresh" :size="14" />
-          {{ t('common.refresh') }}
+          <span class="btn-text">{{ t('common.refresh') }}</span>
         </button>
         <button class="btn-install-version" @click="emit('install')">
           <UiIcon name="download" :size="14" />
-          {{ t('versions.download.installNew') }}
+          <span class="btn-text">{{ t('versions.download.installNew') }}</span>
         </button>
         <div class="search-box">
           <UiIcon name="search" :size="16" class="search-icon" />

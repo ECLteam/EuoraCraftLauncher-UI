@@ -43,5 +43,5 @@
 }
 
 [data-theme='dark'] .ui-slider-input::-webkit-slider-thumb {
-  background: #6b9eff;
+  background: var(--primary);
 }

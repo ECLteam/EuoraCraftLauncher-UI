@@ -1,7 +1,7 @@
 <template>
   <header class="titlebar" data-tauri-drag-region @mousedown="handleDragStart">
     <!-- 左侧 -->
-    <div class="titlebar-left">
+    <div class="titlebar-left" data-no-drag>
       <template v-if="isFullscreenModalVisible">
         <button class="titlebar-back-btn" :title="t('common.back')" @click="handleClose">
           <UiIcon name="arrow-left" :size="18" />

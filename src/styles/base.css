@@ -19,13 +19,14 @@
   --primary-hover: #3d6ec2;
   --primary-active: #3560a8;
   --primary-alpha: #ebf1fa;
-  --primary-alpha-strong: rgba(74, 127, 217, 0.2);
-  --primary-alpha-dark: rgba(74, 127, 217, 0.15);
+  --primary-alpha-strong: rgba(var(--primary-rgb), 0.2);
+  --primary-alpha-dark: rgba(var(--primary-rgb), 0.15);
+  --primary-rgb: 74, 127, 217;
 
-  --accent: #4a7fd9;
-  --accent-hover: #3d6ec2;
-  --accent-active: #3560a8;
-  --accent-alpha: rgba(74, 127, 217, 0.15);
+  --accent: var(--primary);
+  --accent-hover: var(--primary-hover);
+  --accent-active: var(--primary-active);
+  --accent-alpha: rgba(var(--primary-rgb), 0.15);
 
   --success: #52c41a;
   --success-alpha: rgba(82, 196, 26, 0.12);
@@ -33,8 +34,8 @@
   --warning-alpha: rgba(250, 173, 20, 0.12);
   --error: #e55c5c;
   --error-alpha: rgba(229, 92, 92, 0.12);
-  --info: #4a7fd9;
-  --info-alpha: rgba(74, 127, 217, 0.12);
+  --info: var(--primary);
+  --info-alpha: rgba(var(--primary-rgb), 0.12);
 
   --bg-base: #f3f4f6;
   --bg-base-rgb: 243, 244, 246;
@@ -43,8 +44,8 @@
   --bg-surface: rgba(255, 255, 255, 0.92);
   --bg-surface-solid: #ffffff;
   --bg-hover: #f0f1f3;
-  --bg-hover-strong: rgba(74, 127, 217, 0.06);
-  --bg-active: rgba(74, 127, 217, 0.08);
+  --bg-hover-strong: rgba(var(--primary-rgb), 0.06);
+  --bg-active: rgba(var(--primary-rgb), 0.08);
   --bg-overlay: rgba(0, 0, 0, 0.25);
   --bg-overlay-strong: rgba(0, 0, 0, 0.4);
 
@@ -53,13 +54,13 @@
   --text-tertiary: #8a8a8a;
   --text-disabled: #bfbfbf;
   --text-on-primary: #ffffff;
-  --text-link: #4a7fd9;
+  --text-link: var(--primary);
 
   --border: #e0e0e0;
   --border-strong: #d0d0d0;
-  --border-hover: rgba(74, 127, 217, 0.3);
-  --border-active: rgba(74, 127, 217, 0.5);
-  --border-focus: rgba(74, 127, 217, 0.5);
+  --border-hover: rgba(var(--primary-rgb), 0.3);
+  --border-active: rgba(var(--primary-rgb), 0.5);
+  --border-focus: rgba(var(--primary-rgb), 0.5);
   --divider: #e0e0e0;
 
   --card-bg: rgba(255, 255, 255, 0.88);
@@ -152,8 +153,8 @@
   --slider-track: var(--bg-base-alt);
   --slider-thumb: var(--primary);
 
-  --glow-focus: 0 0 0 2px rgba(74, 127, 217, 0.25);
-  --glow-focus-pink: 0 0 0 2px rgba(74, 127, 217, 0.25);
+  --glow-focus: 0 0 0 2px rgba(var(--primary-rgb), 0.25);
+  --glow-focus-pink: 0 0 0 2px rgba(var(--primary-rgb), 0.25);
   --glow-focus-error: 0 0 0 2px rgba(229, 92, 92, 0.25);
 
   --glass-bg: rgba(255, 255, 255, 0.92);
@@ -161,8 +162,11 @@
   --glass-border: #e0e0e0;
   --glass-divider: #e0e0e0;
   --glass-item-hover: #f0f1f3;
-  --glass-item-active-bg: rgba(74, 127, 217, 0.08);
-  --glass-item-collapsed-active: rgba(74, 127, 217, 0.08);
+  --glass-item-active-bg: var(--primary-alpha);
+  --glass-item-collapsed-active: var(--primary-alpha);
+  --sidebar-item-hover-bg: color-mix(in srgb, var(--primary) 10%, var(--bg-hover));
+  --sidebar-item-active-bg: color-mix(in srgb, var(--primary) 18%, var(--bg-elevated));
+  --sidebar-item-active-border: color-mix(in srgb, var(--primary) 70%, transparent);
   --window-btn-hover: rgba(0, 0, 0, 0.05);
   --window-btn-border: #e0e0e0;
   --close-btn-hover: rgba(229, 92, 92, 0.1);
@@ -183,8 +187,8 @@
   --bg-surface: rgba(35, 38, 45, 0.92);
   --bg-surface-solid: #21242b;
   --bg-hover: rgba(255, 255, 255, 0.06);
-  --bg-hover-strong: rgba(74, 127, 217, 0.12);
-  --bg-active: rgba(74, 127, 217, 0.15);
+  --bg-hover-strong: rgba(var(--primary-rgb), 0.12);
+  --bg-active: rgba(var(--primary-rgb), 0.15);
   --bg-overlay: rgba(0, 0, 0, 0.5);
   --bg-overlay-strong: rgba(0, 0, 0, 0.65);
 
@@ -193,24 +197,24 @@
   --text-tertiary: #6a6d74;
   --text-disabled: #525266;
   --text-on-primary: #ffffff;
-  --text-link: #6b9eff;
+  --text-link: var(--primary);
 
   --slider-track: #4a4d55;
-  --slider-thumb: #6b9eff;
+  --slider-thumb: var(--primary);
 
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.12);
-  --border-hover: rgba(74, 127, 217, 0.35);
-  --border-active: rgba(74, 127, 217, 0.55);
-  --border-focus: rgba(74, 127, 217, 0.55);
+  --border-hover: rgba(var(--primary-rgb), 0.35);
+  --border-active: rgba(var(--primary-rgb), 0.55);
+  --border-focus: rgba(var(--primary-rgb), 0.55);
   --divider: rgba(255, 255, 255, 0.08);
 
   --card-bg: rgba(35, 38, 45, 0.88);
   --card-border-top: 1px solid rgba(255, 255, 255, 0.08);
   --card-border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 
-  --glow-focus: 0 0 0 2px rgba(74, 127, 217, 0.35);
-  --glow-focus-pink: 0 0 0 2px rgba(74, 127, 217, 0.35);
+  --glow-focus: 0 0 0 2px rgba(var(--primary-rgb), 0.35);
+  --glow-focus-pink: 0 0 0 2px rgba(var(--primary-rgb), 0.35);
   --glow-focus-error: 0 0 0 2px rgba(229, 92, 92, 0.35);
 
   --glass-bg: rgba(35, 38, 45, 0.92);
@@ -218,8 +222,11 @@
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-divider: rgba(255, 255, 255, 0.08);
   --glass-item-hover: rgba(255, 255, 255, 0.1);
-  --glass-item-active-bg: rgba(74, 127, 217, 0.12);
-  --glass-item-collapsed-active: rgba(74, 127, 217, 0.12);
+  --glass-item-active-bg: var(--primary-alpha);
+  --glass-item-collapsed-active: var(--primary-alpha);
+  --sidebar-item-hover-bg: color-mix(in srgb, var(--primary) 14%, rgba(255, 255, 255, 0.08));
+  --sidebar-item-active-bg: color-mix(in srgb, var(--primary) 24%, rgba(255, 255, 255, 0.1));
+  --sidebar-item-active-border: color-mix(in srgb, var(--primary) 70%, transparent);
   --close-btn-hover: rgba(229, 92, 92, 0.18);
   --close-btn-border: rgba(229, 92, 92, 0.3);
   --window-btn-hover: rgba(255, 255, 255, 0.05);
@@ -324,18 +331,18 @@ p {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(74, 127, 217, 0.15);
+  background: rgba(var(--primary-rgb), 0.15);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(74, 127, 217, 0.28);
+  background: rgba(var(--primary-rgb), 0.28);
 }
 ::-webkit-scrollbar-corner {
   background: transparent;
 }
 
 ::selection {
-  background: rgba(74, 127, 217, 0.18);
+  background: rgba(var(--primary-rgb), 0.18);
   color: var(--text-primary);
 }
 
@@ -374,7 +381,7 @@ img {
 }
 
 .skeleton {
-  background: rgba(74, 127, 217, 0.08);
+  background: rgba(var(--primary-rgb), 0.08);
   border-radius: var(--r-sm);
   animation: skeleton-pulse 1.8s ease-in-out infinite;
 }
