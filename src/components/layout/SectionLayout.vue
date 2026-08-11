@@ -9,7 +9,7 @@
         class="section-layout__menu"
         :value="route.path"
         :options="menuOptions"
-        @update:value="handleNavigate"
+        @update:value="handleSelect"
       />
       <div v-if="$slots['nav-bottom']" class="section-layout__nav-bottom">
         <slot name="nav-bottom" />
@@ -33,9 +33,11 @@ import { useRoute, useRouter } from 'vue-router'
 import UiIcon from '@/components/ui/Icon.vue'
 
 export interface SectionNavigationItem {
-  path: string
+  key?: string
+  path?: string
   label: string
   icon: string
+  action?: () => void
 }
 
 const props = defineProps<{
@@ -49,14 +51,20 @@ const router = useRouter()
 
 const menuOptions = computed<MenuOption[]>(() =>
   props.items.map((item) => ({
-    key: item.path,
+    key: item.path ?? item.key ?? item.label,
     label: item.label,
     icon: () => h(UiIcon, { name: item.icon, size: 18 }),
   }))
 )
 
-function handleNavigate(path: string) {
-  if (path !== route.path) void router.push(path)
+function handleSelect(key: string) {
+  const item = props.items.find((i) => (i.path ?? i.key ?? i.label) === key)
+  if (!item) return
+  if (item.action) {
+    item.action()
+    return
+  }
+  if (item.path && item.path !== route.path) void router.push(item.path)
 }
 </script>
 

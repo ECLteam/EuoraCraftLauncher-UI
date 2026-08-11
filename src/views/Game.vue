@@ -48,6 +48,7 @@
         :versionsCount="version.versions.length"
         :launching="version.launching"
         :selectedVersion="version.selectedVersion"
+        :currentGamePath="version.currentGamePath"
         :hasAccount="Boolean(account.currentAccount)"
         :recentInstances="recentList"
         @launch="handleLaunch"
@@ -384,6 +385,7 @@ import { globalLaunchProgress } from '@/composables/useLaunchProgress'
 import { getVersionImage } from '@/config/version'
 import { useGameInfoCard } from '@/features/game-home/composables/useGameInfoCard'
 import { useGameHomeStore } from '@/features/game-home/stores/gameHomeStore'
+import { useInstanceStore } from '@/features/instances/stores/instanceStore'
 import type { MicrosoftLoginStage } from '@/types/api'
 import { getLoaderIcon, getLoaderImage } from '@/utils/loader'
 
@@ -391,6 +393,7 @@ const { t } = useI18n()
 const router = useRouter()
 const account = useAccountManager(t)
 const version = useInstanceManager(t)
+const instanceStore = useInstanceStore()
 const { recentList, recordLaunch } = useRecentInstances()
 const { progress: launchProgress, smoothPercent } = globalLaunchProgress
 const gameHomeStore = useGameHomeStore()
@@ -529,14 +532,17 @@ function openVersionSettings() {
 
 function handleLaunch() {
   if (version.selectedVersion) {
-    const v = version.versions.find((item) => item.id === version.selectedVersion)
-    recordLaunch(version.selectedVersion, v?.id || version.selectedVersion)
+    const v = version.versions.find(
+      (item) => item.id === version.selectedVersion && item.gamePath === version.currentGamePath
+    )
+    recordLaunch(version.selectedVersion, v?.id || version.selectedVersion, version.currentGamePath)
   }
   version.launchGame(account.currentAccount)
 }
 
-function handleSelectVersion(versionId: string) {
-  version.selectedVersion = versionId
+function handleSelectVersion(versionId: string, gamePath?: string) {
+  version.selectVersion(versionId, gamePath)
+  instanceStore.selectVersion(versionId, gamePath)
 }
 
 function goToInstallVersion() {

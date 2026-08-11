@@ -6,6 +6,7 @@ const MAX_ITEMS = 5
 export interface RecentInstance {
   versionId: string
   versionName: string
+  gamePath: string
   timestamp: number
 }
 
@@ -20,7 +21,8 @@ function loadFromStorage(): RecentInstance[] {
         item &&
         typeof item === 'object' &&
         typeof (item as RecentInstance).versionId === 'string' &&
-        typeof (item as RecentInstance).versionName === 'string'
+        typeof (item as RecentInstance).versionName === 'string' &&
+        typeof (item as RecentInstance).gamePath === 'string'
     )
   } catch {
     return []
@@ -35,14 +37,24 @@ function saveToStorage(list: RecentInstance[]) {
   }
 }
 
+/** 从完整路径中提取最后一段作为可读的路径名 */
+export function getPathDisplayName(gamePath: string): string {
+  const parts = gamePath.replace(/[\\/]+$/, '').split(/[\\/]/)
+  return parts[parts.length - 1] || gamePath
+}
+
 const recentList = ref<RecentInstance[]>(loadFromStorage())
 
 export function useRecentInstances() {
-  function recordLaunch(versionId: string, versionName: string) {
-    const filtered = recentList.value.filter((item) => item.versionId !== versionId)
+  function recordLaunch(versionId: string, versionName: string, gamePath: string) {
+    // 用 (versionId, gamePath) 作为唯一键，不同路径的同名版本算不同条目
+    const filtered = recentList.value.filter(
+      (item) => !(item.versionId === versionId && item.gamePath === gamePath)
+    )
     filtered.unshift({
       versionId,
       versionName,
+      gamePath,
       timestamp: Date.now(),
     })
     recentList.value = filtered.slice(0, MAX_ITEMS)

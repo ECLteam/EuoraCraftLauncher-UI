@@ -44,13 +44,14 @@
             </div>
             <button
               v-for="item in recentInstances"
-              :key="item.versionId"
+              :key="`${item.gamePath}\0${item.versionId}`"
               class="recent-instance-item"
-              :class="{ active: item.versionId === selectedVersion }"
-              @click="handleSelectVersion(item.versionId)"
+              :class="{ active: item.versionId === selectedVersion && item.gamePath === currentGamePath }"
+              @click="handleSelectRecent(item)"
             >
               <span class="recent-instance-name">{{ item.versionName }}</span>
-              <UiIcon v-if="item.versionId === selectedVersion" name="check" :size="12" />
+              <span class="recent-instance-path">{{ getPathDisplayName(item.gamePath) }}</span>
+              <UiIcon v-if="item.versionId === selectedVersion && item.gamePath === currentGamePath" name="check" :size="12" />
             </button>
           </div>
         </NPopover>
@@ -99,12 +100,13 @@
 import { NButton, NPopover } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
-import type { RecentInstance } from '@/composables/useRecentInstances'
+import { getPathDisplayName, type RecentInstance } from '@/composables/useRecentInstances'
 
 defineProps<{
   versionsCount: number
   launching: boolean
   selectedVersion: string
+  currentGamePath: string
   hasAccount: boolean
   recentInstances: RecentInstance[]
 }>()
@@ -113,11 +115,11 @@ const emit = defineEmits<{
   launch: []
   manageVersions: []
   versionSettings: []
-  selectVersion: [versionId: string]
+  selectVersion: [versionId: string, gamePath?: string]
 }>()
 
-function handleSelectVersion(versionId: string) {
-  emit('selectVersion', versionId)
+function handleSelectRecent(item: RecentInstance) {
+  emit('selectVersion', item.versionId, item.gamePath)
 }
 
 const { t } = useI18n()
@@ -291,6 +293,7 @@ const { t } = useI18n()
   font-weight: 500;
   cursor: pointer;
   text-align: left;
+  gap: 8px;
   transition: background var(--duration-fast) var(--ease-standard);
 }
 
@@ -311,6 +314,19 @@ const { t } = useI18n()
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.recent-instance-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 80px;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-tertiary);
 }
 
 /* ========== 管理按钮 ========== */

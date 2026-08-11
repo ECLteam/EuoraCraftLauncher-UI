@@ -246,6 +246,10 @@ const fetchGamePaths = async () => {
       const requestedPath = typeof route.query.gamePath === 'string' ? route.query.gamePath : ''
       selectedPathIndex.value = findGamePathIndex(gamePaths.value, requestedPath, settingsStore.game.last_manage_path)
       await Promise.all([scanCurrentPath(), rememberSelectedPath(currentPath.value?.path ?? '')])
+      // 从 ecl.json 恢复该路径的选中实例
+      if (currentPath.value) {
+        await instanceStore.switchPath(currentPath.value.path)
+      }
       openRequestedVersionSettings()
     } else {
       selectedPathIndex.value = -1
@@ -290,6 +294,8 @@ const selectPath = async (index: number) => {
   if (!path) return
   selectedPathIndex.value = index
   await Promise.all([scanCurrentPath(), rememberSelectedPath(path.path)])
+  // 扫描完成后，根据该路径的 ecl.json 恢复选中的实例
+  await instanceStore.switchPath(path.path)
 }
 
 const addNewPath = () => {

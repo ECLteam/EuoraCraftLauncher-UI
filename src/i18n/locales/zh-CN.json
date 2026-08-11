@@ -131,6 +131,11 @@
       "noGamePath": "未找到实例路径"
     }
   },
+  "download": {
+    "title": "下载",
+    "instanceDownload": "实例下载",
+    "modDownload": "MOD下载"
+  },
   "versions": {
     "title": "实例管理",
     "manageTab": "实例管理",

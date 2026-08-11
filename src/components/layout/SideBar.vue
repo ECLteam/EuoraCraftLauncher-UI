@@ -194,7 +194,6 @@ const settingsSubItems = computed(() => [
 
 const versionsSubItems = computed(() => [
   { path: '/versions/manage', label: t('versions.manageTab'), iconName: 'settings' },
-  { path: '/versions/versions', label: t('versions.versions'), iconName: 'download' },
 ])
 
 interface SubMenuItem {

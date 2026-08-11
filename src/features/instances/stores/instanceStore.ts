@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { setGlobalSelection } from '@/composables/useInstanceManager'
 import { normalizeGamePath, instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
+import { instancePathConfigApi } from '@/features/instances/api/instancePathConfigApi'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import type { ScannedVersion } from '@/types/api'
 
@@ -77,6 +79,7 @@ export const useInstanceStore = defineStore('versions', () => {
       scannedVersions.value = []
       selectedVersion.value = ''
       currentGamePath.value = ''
+      setGlobalSelection('', '')
       return
     }
 
@@ -105,10 +108,52 @@ export const useInstanceStore = defineStore('versions', () => {
     if (!selected) return
     selectedVersion.value = selected.id
     currentGamePath.value = selected.gamePath
+    setGlobalSelection(selected.id, selected.gamePath)
+    // 写入该路径下的 ecl.json（异步，不阻塞）
+    void instancePathConfigApi.setActiveVersion(selected.gamePath, selected.id).catch((error) => {
+      console.warn('[instanceStore] 写入 ecl.json activeVersion 失败:', error)
+    })
   }
 
   function setGamePath(path: string): void {
     currentGamePath.value = path
+    setGlobalSelection(selectedVersion.value, path)
+  }
+
+  /**
+   * 切换到指定游戏路径，并从该路径的 ecl.json 中读取 activeVersion
+   * 作为该路径下的选中实例；若没有则选第一个。
+   */
+  async function switchPath(gamePath: string): Promise<void> {
+    currentGamePath.value = gamePath
+    const settingsStore = useSettingsStore()
+    // 持久化全局 active_path
+    if (settingsStore.game.active_path !== gamePath) {
+      void settingsStore.patchGame({ active_path: gamePath }).catch((error) => {
+        console.warn('[instanceStore] 保存 active_path 失败:', error)
+      })
+    }
+
+    // 先尝试从 ecl.json 读取该路径下的选中版本
+    let activeVersionId: string | null = null
+    try {
+      activeVersionId = await instancePathConfigApi.getActiveVersion(gamePath)
+    } catch (error) {
+      console.warn('[instanceStore] 读取 ecl.json activeVersion 失败:', error)
+    }
+
+    const pathVersions = versions.value.filter((v) => normalizeGamePath(v.gamePath) === normalizeGamePath(gamePath))
+    const matched = activeVersionId
+      ? pathVersions.find((v) => v.id === activeVersionId)
+      : null
+    const target = matched ?? pathVersions[0]
+    if (target) {
+      selectedVersion.value = target.id
+      setGlobalSelection(target.id, target.gamePath)
+    } else {
+      selectedVersion.value = ''
+      setGlobalSelection('', gamePath)
+    }
   }
 
   function removePath(path: string): void {
@@ -119,6 +164,7 @@ export const useInstanceStore = defineStore('versions', () => {
       const next = versions.value[0]
       selectedVersion.value = next?.id ?? ''
       currentGamePath.value = next?.gamePath ?? ''
+      setGlobalSelection(next?.id ?? '', next?.gamePath ?? '')
     }
   }
 
@@ -132,6 +178,7 @@ export const useInstanceStore = defineStore('versions', () => {
     scanPath,
     selectVersion,
     setGamePath,
+    switchPath,
     removePath,
   }
 })

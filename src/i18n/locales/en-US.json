@@ -131,6 +131,11 @@
       "noGamePath": "Game path not found"
     }
   },
+  "download": {
+    "title": "Download",
+    "instanceDownload": "Instance Download",
+    "modDownload": "Mod Download"
+  },
   "versions": {
     "title": "Instance Management",
     "manageTab": "Manage Instances",
