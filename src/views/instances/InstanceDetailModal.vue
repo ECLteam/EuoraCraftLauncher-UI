@@ -189,6 +189,10 @@
           </div>
         </div>
 
+        <div v-if="activeTab === 'online-mods'" class="vdm-page online-mods-page">
+          <OnlineModSearch :instance="version" @installed="loadMods" />
+        </div>
+
         <div v-if="activeTab === 'settings'" class="vdm-page version-settings-page">
           <div v-if="settingsLoading" class="settings-loading-state">
             <NSpin size="small" />
@@ -313,9 +317,9 @@
 import { NButton, NEmpty, NInput, NInputGroup, NInputNumber, NSpin, NSwitch, useDialog } from 'naive-ui'
 import { ref, reactive, computed, watch, nextTick, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
 import backend from '@/api/client'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
+import OnlineModSearch from '@/components/mods/OnlineModSearch.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { getVersionImage } from '@/config/version'
@@ -334,7 +338,7 @@ interface Props {
   initialTab?: DetailTab
 }
 
-type DetailTab = 'overview' | 'mods' | 'settings' | 'saves'
+type DetailTab = 'overview' | 'mods' | 'online-mods' | 'settings' | 'saves'
 
 const props = withDefaults(defineProps<Props>(), {
   initialTab: 'overview',
@@ -346,7 +350,6 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const router = useRouter()
 const message = useGlassMessage()
 const dialog = useDialog()
 
@@ -369,6 +372,7 @@ const activeTab = ref<DetailTab>('overview')
 const tabs = computed(() => [
   { id: 'overview' as const, icon: 'info', label: t('versions.detail.overview') },
   { id: 'mods' as const, icon: 'puzzle', label: t('versions.detail.mods') },
+  { id: 'online-mods' as const, icon: 'cloud-download', label: t('versions.detail.onlineMods') },
   { id: 'settings' as const, icon: 'settings', label: t('versions.detail.settings') },
   { id: 'saves' as const, icon: 'folder', label: t('versions.detail.saves') },
 ])
@@ -477,8 +481,7 @@ async function handleOpenModsFolder() {
 }
 
 function handleOnlineSearch() {
-  visible.value = false
-  void router.push('/online-mods')
+  activeTab.value = 'online-mods'
 }
 
 // ======================== 版本设置 ========================

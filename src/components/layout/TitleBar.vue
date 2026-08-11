@@ -1,5 +1,5 @@
 <template>
-  <header class="titlebar" data-tauri-drag-region>
+  <header class="titlebar" data-tauri-drag-region @mousedown="handleDragStart">
     <!-- 左侧 -->
     <div class="titlebar-left">
       <template v-if="isFullscreenModalVisible">
@@ -9,7 +9,7 @@
         <span class="titlebar-modal-title">{{ fullscreenModalTitle }}</span>
       </template>
       <template v-else>
-        <div class="titlebar-brand">
+        <div class="titlebar-brand" data-no-drag>
           <img src="/favicon.ico" alt="Logo" class="titlebar-logo" />
           <span class="titlebar-app-name">{{ topNavEnabled ? 'ECL' : 'EuoraCraft Launcher' }}</span>
           <span
@@ -29,7 +29,7 @@
     <div class="titlebar-center"></div>
 
     <!-- 顶部导航菜单（横向标题栏模式，绝对定位居中） -->
-    <nav v-if="topNavEnabled && !isFullscreenModalVisible" class="titlebar-nav">
+    <nav v-if="topNavEnabled && !isFullscreenModalVisible" class="titlebar-nav" data-no-drag>
       <button
         v-for="item in menuItems"
         :key="item.path"
@@ -45,7 +45,7 @@
     </nav>
 
     <!-- 右侧窗口控制 -->
-    <div class="titlebar-right">
+    <div class="titlebar-right" data-no-drag>
       <div id="plugin-slot-titlebar-right" class="plugin-slot-container"></div>
       <TitleBarTray />
       <button
@@ -122,6 +122,14 @@ const close = async () => {
   await desktopWindow.close()
 }
 const handleClose = () => fullscreenModal.close()
+
+/** 通过 Tauri 原生 startDragging API 启动窗口拖拽，绕过 data-tauri-drag-region 在 Linux/macOS 上的兼容性问题 */
+const handleDragStart = (e: MouseEvent) => {
+  if (e.button !== 0) return
+  const target = e.target as HTMLElement
+  if (target.closest('[data-no-drag]')) return
+  desktopWindow.startDragging()
+}
 </script>
 
 <style scoped src="@/styles/components/layout/TitleBar.css"></style>
