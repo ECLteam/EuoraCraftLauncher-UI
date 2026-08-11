@@ -40,7 +40,7 @@ describe('settingsStore', () => {
     expect(store.download.mirror_source).toBe('bmclapi')
   })
 
-  it('更新局部游戏设置时不覆盖路径与 JVM 参数', async () => {
+  it('更新局部设置时不覆盖路径与 JVM 参数', async () => {
     const store = useSettingsStore()
     await store.load()
     await store.patchGame({ fullscreen: true })

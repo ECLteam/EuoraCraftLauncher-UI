@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { i18n } from '@/i18n'
 import type { ScannedVersion } from '@/types/api'
 import InstanceDetailModal from './InstanceDetailModal.vue'
+import type * as NaiveUi from 'naive-ui'
 
 const mocks = vi.hoisted(() => ({
   getSettings: vi.fn(),
@@ -20,6 +21,20 @@ vi.mock('@/features/instances/api/instanceSettingsApi', () => ({
     selectJava: mocks.selectJava,
   },
 }))
+
+// 测试环境没有挂载 n-dialog-provider，mock useDialog 避免组件 setup 抛错
+vi.mock('naive-ui', async (importOriginal) => {
+  const actual = await importOriginal<typeof NaiveUi>()
+  return {
+    ...actual,
+    useDialog: () => ({
+      warning: vi.fn(),
+      error: vi.fn(),
+      success: vi.fn(),
+      info: vi.fn(),
+    }),
+  }
+})
 
 vi.mock('@/features/instances/api/instanceInstallApi', () => ({
   instanceInstallApi: {
@@ -93,6 +108,36 @@ describe('InstanceDetailModal', () => {
     await overviewTab?.trigger('click')
 
     expect(wrapper.find('.overview-page').exists()).toBe(true)
-    expect(wrapper.findAll('.info-item')).toHaveLength(4)
+    expect(wrapper.findAll('.info-item')).toHaveLength(3)
+  })
+
+  it('user edits auto-save after 300ms debounce', async () => {
+    vi.useFakeTimers()
+    const wrapper = mountModal()
+    await flushPromises()
+    await wrapper.findAll('.n-switch')[0]!.trigger('click')
+    await vi.advanceTimersByTimeAsync(300)
+    expect(mocks.saveSettings).toHaveBeenCalledTimes(1)
+    expect(mocks.saveSettings).toHaveBeenCalledWith(
+      { versionId: '1.21.5', path: 'D:/Games/.minecraft' },
+      expect.objectContaining({ isolated: true })
+    )
+    vi.useRealTimers()
+  })
+
+  it('does not auto-save during settings load', async () => {
+    mountModal()
+    await flushPromises()
+    expect(mocks.saveSettings).not.toHaveBeenCalled()
+  })
+
+  it('flushes pending settings save when modal closes', async () => {
+    vi.useFakeTimers()
+    const wrapper = mountModal()
+    await flushPromises()
+    await wrapper.findAll('.n-switch')[0]!.trigger('click')
+    await wrapper.setProps({ visible: false })
+    expect(mocks.saveSettings).toHaveBeenCalledTimes(1)
+    vi.useRealTimers()
   })
 })

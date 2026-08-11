@@ -13,8 +13,7 @@
       :title="isCollapsed ? t('sidebar.expand') : t('sidebar.collapse')"
       @click="toggleCollapse"
     >
-      <UiIcon name="menu" :size="18" />
-      <span class="sidebar-toggle-label">{{ t('sidebar.collapse') }}</span>
+      <UiIcon :name="isCollapsed ? 'menu' : 'arrow-left'" :size="18" />
     </button>
 
     <!-- 导航区域 -->
@@ -25,12 +24,6 @@
       <div v-if="!isCollapsed" ref="indicatorRef" class="sidebar-active-indicator"></div>
 
       <template v-for="(item, index) in menuItems" :key="item.path">
-        <div v-if="!isCollapsed && index === 0" class="sidebar-section-label">
-          {{ t('sidebar.mainNavigation') }}
-        </div>
-        <div v-if="!isCollapsed && index === 3" class="sidebar-section-label sidebar-section-system">
-          {{ t('sidebar.systemNavigation') }}
-        </div>
         <button
           class="sidebar-item"
           :data-path="item.path"
@@ -120,7 +113,7 @@
         @click.prevent="handleHelpClick"
       >
         <span class="sidebar-item-icon">
-          <UiIcon name="help" :size="20" />
+          <UiIcon name="file-text" :size="20" />
         </span>
         <span class="sidebar-item-text">{{ t('sidebar.help') }}</span>
       </button>

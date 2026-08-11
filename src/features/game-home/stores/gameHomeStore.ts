@@ -22,7 +22,7 @@ export const useGameHomeStore = defineStore('game-home', () => {
       status.value = 'ready'
     } catch (reason) {
       status.value = 'error'
-      error.value = reason instanceof Error ? reason.message : '加载游戏首页失败'
+      error.value = reason instanceof Error ? reason.message : '加载首页失败'
       throw reason
     }
   }

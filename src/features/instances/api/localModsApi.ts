@@ -9,7 +9,7 @@ function requireData<T>(response: { success: boolean; data?: T; message?: string
 }
 
 export const localModsApi = {
-  /** 获取指定游戏路径下的已安装模组列表 */
+  /** 获取指定实例路径下的已安装模组列表 */
   async list(gamePath: string): Promise<ModItem[]> {
     return requireData(
       await backend.command('get_mods', { game_path: gamePath }),

@@ -161,7 +161,7 @@ export interface ScannedVersion {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  游戏实例
+//  实例
 // ═══════════════════════════════════════════════════════════════════
 
 export interface GameInstance {
@@ -289,7 +289,7 @@ export interface DebugMaintenanceResult {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  游戏页信息卡
+//  页信息卡
 // ═══════════════════════════════════════════════════════════════════
 
 export type InfoCardMode = 'auto' | 'rotate' | 'announcement_first' | 'tip_only' | 'announcement_only'
@@ -706,7 +706,7 @@ export interface CommandPayloadMap {
   java_scan: undefined
   java_list: undefined
 
-  // 游戏版本
+  // 版本
   minecraft_versions: { filter_type?: string }
   minecraft_versions_classified: undefined
   fabric_versions: { game_version: string }
@@ -774,7 +774,7 @@ export interface CommandPayloadMap {
   open_folder: { path: string }
   open_url: { url: string }
 
-  // 游戏实例
+  // 实例
   instances_list: undefined
   launch_instance: {
     version_id: string
@@ -862,7 +862,7 @@ export interface CommandPayloadMap {
     loader_type?: string
   }
 
-  // 启动器信息 / 游戏页信息卡
+  // 启动器信息 / 页信息卡
   launcher_info: undefined
   info_card_get: undefined
   list_sections: undefined

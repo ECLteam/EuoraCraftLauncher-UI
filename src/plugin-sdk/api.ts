@@ -83,7 +83,7 @@ export function setLauncherConfig(section: ConfigSection, data: JsonDict): Promi
   return backend.config.set(section, data)
 }
 
-// ── 游戏版本 ──
+// ── 版本 ──
 
 /**
  * 获取 Minecraft 版本列表。
@@ -94,15 +94,15 @@ export function getMinecraftVersions(filterType?: string): Promise<ApiResponse<M
 }
 
 /**
- * 扫描指定路径下的游戏版本。
- * @param path - 游戏路径，支持单个或多个路径
+ * 扫描指定路径下的版本。
+ * @param path - 实例路径，支持单个或多个路径
  */
 export function scanGameVersions(path?: string | string[]): Promise<ApiResponse<ScannedVersion[]>> {
   return backend.command('scan_versions', { path })
 }
 
 /**
- * 安装游戏版本。
+ * 安装版本。
  * @param params - 安装参数，包括版本 ID、加载器、任务 ID 等
  * @returns 已创建的安装任务信息
  */

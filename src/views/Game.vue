@@ -49,9 +49,11 @@
         :launching="version.launching"
         :selectedVersion="version.selectedVersion"
         :hasAccount="Boolean(account.currentAccount)"
-        @launch="version.launchGame(account.currentAccount)"
+        :recentInstances="recentList"
+        @launch="handleLaunch"
         @manageVersions="goToInstallVersion"
         @versionSettings="openVersionSettings"
+        @selectVersion="handleSelectVersion"
       />
     </div>
 
@@ -377,6 +379,7 @@ import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAccountManager } from '@/composables/useAccountManager'
 import { useInstanceManager } from '@/composables/useInstanceManager'
+import { useRecentInstances } from '@/composables/useRecentInstances'
 import { globalLaunchProgress } from '@/composables/useLaunchProgress'
 import { getVersionImage } from '@/config/version'
 import { useGameInfoCard } from '@/features/game-home/composables/useGameInfoCard'
@@ -388,6 +391,7 @@ const { t } = useI18n()
 const router = useRouter()
 const account = useAccountManager(t)
 const version = useInstanceManager(t)
+const { recentList, recordLaunch } = useRecentInstances()
 const { progress: launchProgress, smoothPercent } = globalLaunchProgress
 const gameHomeStore = useGameHomeStore()
 const { hasGamePath } = storeToRefs(gameHomeStore)
@@ -483,7 +487,7 @@ const lpState = computed(() => {
   const stage = launchProgress.value.stage
   const completed = stage.includes('启动成功') || stage.includes('completed') || stage.includes('success')
   return {
-    title: completed ? '已启动游戏' : '正在启动游戏',
+    title: completed ? '已启动' : '正在启动',
     versionName: version.selectedVersion || '',
     displayPercent: smoothPercent.value,
   }
@@ -521,6 +525,18 @@ function openVersionSettings() {
   }
   if (version.currentGamePath) query.gamePath = version.currentGamePath
   void router.push({ name: 'versions-manage', query })
+}
+
+function handleLaunch() {
+  if (version.selectedVersion) {
+    const v = version.versions.find((item) => item.id === version.selectedVersion)
+    recordLaunch(version.selectedVersion, v?.id || version.selectedVersion)
+  }
+  version.launchGame(account.currentAccount)
+}
+
+function handleSelectVersion(versionId: string) {
+  version.selectedVersion = versionId
 }
 
 function goToInstallVersion() {

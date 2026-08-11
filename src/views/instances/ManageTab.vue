@@ -415,7 +415,7 @@ const { show: showLaunchProgress, hide: hideLaunchProgress, setProgress: setLaun
 const handleLaunch = async (version: ScannedVersion) => {
   if (!currentPath.value) return
 
-  // 先跳转到游戏页面
+  // 先跳转到页面
   router.push({ name: 'game' })
 
   showLaunchProgress({ cancelable: true })
@@ -501,8 +501,8 @@ const handleLaunch = async (version: ScannedVersion) => {
     }
 
     if (!globalLaunchProgress.progress.value.canceled) {
-      setLaunchProgress(100, 'launched', `游戏 ${version.versionId} 已启动`)
-      message.success(`游戏 ${version.versionId} 已启动`)
+      setLaunchProgress(100, 'launched', ` ${version.versionId} 已启动`)
+      message.success(` ${version.versionId} 已启动`)
     }
     setTimeout(hideLaunchProgress, 1500)
   } catch (e) {
