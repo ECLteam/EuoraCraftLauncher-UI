@@ -70,6 +70,26 @@
       </div>
     </div>
 
+    <div class="section debug-settings-section">
+      <div class="debug-settings-heading">
+        <h2>{{ t('dev.debugSettings') }}</h2>
+        <span class="debug-only-badge">{{ t('dev.debugOnly') }}</span>
+      </div>
+
+      <div class="debug-setting-row">
+        <div class="debug-setting-info">
+          <div class="debug-setting-label">{{ t('dev.animationSpeed') }}</div>
+          <div class="debug-setting-desc">{{ t('dev.animationSpeedDesc') }}</div>
+        </div>
+        <div class="debug-setting-control">
+          <UiSlider v-model="animSpeed" :min="0.25" :max="2" :step="0.05" suffix="×" />
+          <UiButton size="sm" variant="outline" :disabled="animSpeed === 1" @click="resetAnimSpeed">
+            {{ t('common.reset') }}
+          </UiButton>
+        </div>
+      </div>
+    </div>
+
     <div class="section danger-section">
       <div class="danger-section-heading">
         <div>
@@ -166,7 +186,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
@@ -174,6 +194,7 @@ import Modal from '@/components/modals/Modal.vue'
 import UiButton from '@/components/ui/Button.vue'
 import UiCard from '@/components/ui/Card.vue'
 import UiInput from '@/components/ui/Input.vue'
+import UiSlider from '@/components/ui/Slider.vue'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { debugToolsApi } from '@/features/settings/api/debugToolsApi'
 
@@ -187,6 +208,37 @@ const inputValue = ref('')
 const showDangerConfirm = ref(false)
 const pendingAction = ref<'reset' | 'plugins' | null>(null)
 const processingAction = ref<'reset' | 'plugins' | null>(null)
+
+const ANIMATION_DURATIONS: Record<string, number> = {
+  '--duration-instant': 0.06,
+  '--duration-fast': 0.15,
+  '--duration-normal': 0.25,
+  '--duration-slow': 0.35,
+  '--duration-slower': 0.5,
+  '--duration-slowest': 0.7,
+}
+
+const animSpeed = ref(1)
+
+function applyAnimSpeed(speed: number): void {
+  const root = document.documentElement
+  if (speed === 1) {
+    for (const key of Object.keys(ANIMATION_DURATIONS)) {
+      root.style.removeProperty(key)
+    }
+    return
+  }
+  for (const [key, base] of Object.entries(ANIMATION_DURATIONS)) {
+    root.style.setProperty(key, `${(base / speed).toFixed(3)}s`)
+  }
+}
+
+watch(animSpeed, (speed) => applyAnimSpeed(speed), { immediate: true })
+
+function resetAnimSpeed(): void {
+  animSpeed.value = 1
+  applyAnimSpeed(1)
+}
 
 const dangerActionTitle = computed(() =>
   pendingAction.value === 'plugins' ? t('dev.clearPluginsConfirmTitle') : t('dev.resetDataConfirmTitle')
