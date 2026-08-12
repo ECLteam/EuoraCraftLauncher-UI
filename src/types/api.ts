@@ -218,9 +218,45 @@ export interface MinecraftAccount {
   uuid?: string
   isCurrent?: boolean
   skinUrl?: string
+  capes?: MicrosoftCape[]
   auth_server?: string
   profile_selection_required?: boolean
   available_profiles?: AuthlibProfile[]
+}
+
+export interface MicrosoftCape {
+  id: string
+  name?: string
+  state: string
+  url: string
+}
+
+export type WardrobeKind = 'skin' | 'cape'
+export type SkinModel = 'classic' | 'slim'
+
+export interface WardrobeItem {
+  id: string
+  kind: WardrobeKind
+  name: string
+  model: SkinModel | null
+  favorite: boolean
+  width: number
+  height: number
+  byteSize: number
+  sha256: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface WardrobeImportResult {
+  item: WardrobeItem
+  deduplicated: boolean
+}
+
+export interface AccountTextures {
+  skinUrl?: string
+  capeUrl?: string
+  skinModel?: SkinModel
 }
 
 export interface AccountListData {
@@ -364,16 +400,6 @@ export interface ImageSaveAsPayload {
 
 export interface ImageListResult {
   files: string[]
-}
-
-export interface AvatarOptions {
-  uuid: string
-  account_id?: string
-  type_name?: string
-  custom_server?: string
-  size?: number
-  use_default_skin?: boolean
-  avatar_type?: string
 }
 
 export interface FsEntry {
@@ -762,6 +788,23 @@ export interface CommandPayloadMap {
   accounts_switch: { account_id: string }
   accounts_remove: { account_id: string }
   accounts_refresh_profile: { account_id: string }
+  accounts_texture_urls: { account_id: string }
+  wardrobe_list: undefined
+  wardrobe_sync_account_skin: { account_id: string }
+  wardrobe_import: {
+    path: string
+    kind: WardrobeKind
+    name?: string
+    model?: SkinModel
+  }
+  wardrobe_update: { item_id: string; name?: string; model?: SkinModel; favorite?: boolean }
+  wardrobe_delete: { item_id: string }
+  wardrobe_texture: { item_id: string }
+  wardrobe_export: { item_id: string }
+  wardrobe_apply_skin: { item_id: string; account_id: string }
+  microsoft_reset_skin: { account_id: string }
+  microsoft_set_cape: { account_id: string; cape_id: string }
+  microsoft_reset_cape: { account_id: string }
 
   // Authlib
   authlib_servers: undefined
@@ -776,12 +819,11 @@ export interface CommandPayloadMap {
   image_save_as: ImageSaveAsPayload
   image_read_file: { path: string }
   image_list_files: { path: string }
-  avatar_data_url: AvatarOptions
 
   // 文件选择
   select_directory: undefined
   select_java: undefined
-  select_image: undefined
+  select_image: { purpose?: 'background' | 'skin' | 'cape' } | undefined
   select_file: undefined
   open_folder: { path: string }
   open_url: { url: string }
@@ -930,6 +972,18 @@ export interface CommandResponseMap {
   accounts_switch: void
   accounts_remove: void
   accounts_refresh_profile: void
+  accounts_texture_urls: AccountTextures
+  wardrobe_list: WardrobeItem[]
+  wardrobe_sync_account_skin: WardrobeImportResult
+  wardrobe_import: WardrobeImportResult
+  wardrobe_update: WardrobeItem
+  wardrobe_delete: void
+  wardrobe_texture: { dataUrl: string; mime: 'image/png' }
+  wardrobe_export: SelectResult
+  wardrobe_apply_skin: MinecraftAccount
+  microsoft_reset_skin: MinecraftAccount
+  microsoft_set_cape: MinecraftAccount
+  microsoft_reset_cape: MinecraftAccount
   authlib_servers: AuthlibServer[]
 
   user_agreement_get: UserAgreement
@@ -941,7 +995,6 @@ export interface CommandResponseMap {
   image_save_as: SelectResult
   image_read_file: ImageDataUrl
   image_list_files: ImageListResult
-  avatar_data_url: ImageDataUrl
 
   select_directory: SelectResult
   select_java: SelectResult

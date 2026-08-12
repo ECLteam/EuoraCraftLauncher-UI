@@ -1,4 +1,4 @@
-import type { ApiResponse, BackendEvents, MinecraftAccount, PluginInfo } from '@/types/api'
+import type { ApiResponse, BackendEvents, MinecraftAccount, PluginInfo, WardrobeItem } from '@/types/api'
 import { loadShowcaseConfig, persistShowcaseConfig } from './configPersistence'
 import {
   createShowcaseAccount,
@@ -42,6 +42,7 @@ export function createShowcaseTransport(): BackendTransport {
   const config = loadShowcaseConfig(showcaseConfig)
   const accounts = structuredClone(showcaseAccounts)
   const plugins = structuredClone(showcasePlugins)
+  const wardrobe: WardrobeItem[] = []
 
   const emit = <E extends keyof BackendEvents>(event: E, payload: BackendEvents[E]) => {
     for (const handler of listeners.get(event) ?? []) handler(payload)
@@ -214,6 +215,74 @@ export function createShowcaseTransport(): BackendTransport {
       }
       case 'accounts_refresh_profile':
         return success()
+      case 'accounts_texture_urls': {
+        const account = accounts.accounts.find((item) => item.id === payload.account_id)
+        return success({ skinUrl: account?.skinUrl })
+      }
+      case 'wardrobe_list':
+        return success(structuredClone(wardrobe))
+      case 'wardrobe_sync_account_skin': {
+        let item = wardrobe.find((candidate) => candidate.kind === 'skin')
+        const deduplicated = Boolean(item)
+        if (!item) {
+          item = {
+            id: 'showcase-account-skin',
+            kind: 'skin',
+            name: 'CloudMaple685 当前皮肤',
+            model: 'classic',
+            favorite: false,
+            width: 64,
+            height: 64,
+            byteSize: 1024,
+            sha256: 'showcase-account-skin',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }
+          wardrobe.unshift(item)
+        }
+        return success({ item: structuredClone(item), deduplicated })
+      }
+      case 'wardrobe_import': {
+        const kind = payload.kind === 'cape' ? 'cape' : 'skin'
+        const item: WardrobeItem = {
+          id: `showcase-${Date.now()}`,
+          kind,
+          name: kind === 'skin' ? 'Showcase Skin' : 'Showcase Cape',
+          model: kind === 'skin' ? 'classic' : null,
+          favorite: false,
+          width: 64,
+          height: kind === 'skin' ? 64 : 32,
+          byteSize: 1024,
+          sha256: 'showcase',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }
+        wardrobe.unshift(item)
+        return success({ item: structuredClone(item), deduplicated: false })
+      }
+      case 'wardrobe_update': {
+        const item = wardrobe.find((candidate) => candidate.id === payload.item_id)
+        if (item) {
+          if (typeof payload.name === 'string') item.name = payload.name
+          if (payload.model === 'classic' || payload.model === 'slim') item.model = payload.model
+          if (typeof payload.favorite === 'boolean') item.favorite = payload.favorite
+        }
+        return success(structuredClone(item))
+      }
+      case 'wardrobe_delete': {
+        const index = wardrobe.findIndex((item) => item.id === payload.item_id)
+        if (index >= 0) wardrobe.splice(index, 1)
+        return success()
+      }
+      case 'wardrobe_texture':
+        return success({ dataUrl: `${import.meta.env.BASE_URL}img/skins/Alex.png`, mime: 'image/png' as const })
+      case 'wardrobe_export':
+        return success({ path: 'C:\\Users\\Player\\skin.png' })
+      case 'wardrobe_apply_skin':
+      case 'microsoft_reset_skin':
+      case 'microsoft_set_cape':
+      case 'microsoft_reset_cape':
+        return success(structuredClone(accounts.accounts.find((item) => item.id === payload.account_id)))
       case 'accounts_start_microsoft_login': {
         const stages = ['authorization_confirmed', 'minecraft_token', 'profile', 'saving'] as const
         stages.forEach((stage, index) => {
@@ -386,7 +455,6 @@ export function createShowcaseTransport(): BackendTransport {
         return success({ path: 'Showcase/SelectedImage.png', base64: '' })
       case 'image_fetch_data_url':
       case 'image_read_file':
-      case 'avatar_data_url':
         return success({})
       case 'image_save_url':
         return success({

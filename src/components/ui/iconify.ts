@@ -31,18 +31,27 @@ export const ICON_MAP: Record<string, string> = {
   download: 'download',
   'cloud-download': 'cloud-download',
   play: 'player-play',
+  pause: 'player-pause',
   refresh: 'refresh',
   check: 'check',
   brush: 'brush',
   list: 'list',
   copy: 'copy',
   minus: 'minus',
+  edit: 'edit',
+  upload: 'upload',
+  'cloud-upload': 'cloud-upload',
+  'file-download': 'file-download',
+  star: 'star',
+  'star-filled': 'star-filled',
 
   // 方向
   'chevron-down': 'chevron-down',
   'chevron-up': 'chevron-up',
   'arrow-right': 'chevron-right',
   'arrow-left': 'chevron-left',
+  'rotate-left': 'rotate-2',
+  'rotate-right': 'rotate-clockwise-2',
 
   // 文件
   'file-text': 'file-text',
@@ -80,6 +89,8 @@ export const ICON_MAP: Record<string, string> = {
   shield: 'shield',
   circle: 'circle',
   package: 'package',
+  shirt: 'shirt',
+  wardrobe: 'hanger-2',
 }
 
 /** 短名解析，未知短名回退 help-circle（插件自定义图标名兜底，与旧行为一致） */

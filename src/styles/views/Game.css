@@ -64,6 +64,12 @@
   font-weight: 650;
 }
 
+.account-panel-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-sm);
+}
+
 .account-panel-heading {
   display: flex;
   align-items: center;

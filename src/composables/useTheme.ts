@@ -473,7 +473,7 @@ export async function initTheme(uiConfig?: unknown): Promise<void> {
       } else if (settingsApi.isShowcase && bgData.path?.startsWith('http')) {
         backgroundImage.value = bgData.path
       } else if (bgData.path && bgData.type !== 'default') {
-        // 桌面端优先走文件协议（零 base64 开销），不可用时回退后端 base64 读取（带缓存）
+        // 桌面端统一通过后端读取 Base64，并将大图转换为 Blob URL 供 CSS 使用
         const imageUrl = await resolveLocalImageUrl(bgData.path)
         backgroundImage.value = imageUrl ? resolveImageUrl(imageUrl) : ''
       } else {

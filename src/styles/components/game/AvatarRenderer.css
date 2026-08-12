@@ -1,10 +1,11 @@
 .skin-container {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-radius: inherit;
-  background: var(--bg-base-alt);
+  border-radius: 0;
+  background: transparent;
   color: var(--text-tertiary);
   image-rendering: pixelated;
   image-rendering: crisp-edges;

@@ -21,6 +21,35 @@ const IMAGE_URL_CACHE_LIMIT = 32
 const MAX_CACHED_DATA_URL_LENGTH = 2 * 1024 * 1024 // 超过 2MB 的 data URL 不缓存，防止内存膨胀
 const imageUrlCache = new Map<string, string>()
 
+function normalizeBackgroundDataUrl(dataUrl: string): Promise<string> {
+  return new Promise((resolve) => {
+    if (!dataUrl.startsWith('data:')) {
+      resolve(dataUrl)
+      return
+    }
+    const image = new Image()
+    image.onload = () => {
+      const scale = Math.min(1, 1920 / image.naturalWidth, 1080 / image.naturalHeight)
+      if (scale === 1 && dataUrl.length <= MAX_CACHED_DATA_URL_LENGTH) {
+        resolve(dataUrl)
+        return
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale))
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale))
+      const context = canvas.getContext('2d')
+      if (!context) {
+        resolve(dataUrl)
+        return
+      }
+      context.drawImage(image, 0, 0, canvas.width, canvas.height)
+      resolve(canvas.toDataURL('image/webp', 0.82))
+    }
+    image.onerror = () => resolve(dataUrl)
+    image.src = dataUrl
+  })
+}
+
 function cacheImageUrl(path: string, url: string | null): void {
   if (!url || (url.startsWith('data:') && url.length > MAX_CACHED_DATA_URL_LENGTH)) return
   if (imageUrlCache.size >= IMAGE_URL_CACHE_LIMIT) {
@@ -41,7 +70,7 @@ export async function readImageFile(path: string): Promise<string | null> {
   const data = result.data ?? {}
   let url: string | null = null
   if (data.dataUrl) {
-    url = data.dataUrl
+    url = await normalizeBackgroundDataUrl(data.dataUrl)
   } else if (data.base64) {
     url = `data:image/png;base64,${data.base64}`
   }
@@ -50,17 +79,10 @@ export async function readImageFile(path: string): Promise<string | null> {
 }
 
 /**
- * 解析本地图片的可展示 URL：优先使用桌面端文件协议（零 base64 开销），
- * 不可用时回退到后端 base64 读取；结果按路径缓存。
+ * 通过后端读取本地图片并返回可展示的 Data URL。
+ * 结果按路径缓存，避免同一运行周期重复传输。
  */
 export async function resolveLocalImageUrl(path: string): Promise<string | null> {
-  const cached = imageUrlCache.get(path)
-  if (cached) return cached
-  const fileUrl = await backend.file.toUrl(path).catch(() => null)
-  if (fileUrl) {
-    cacheImageUrl(path, fileUrl)
-    return fileUrl
-  }
   return readImageFile(path)
 }
 
@@ -136,7 +158,8 @@ export const settingsApi = {
   async saveImageUrl(url: string): Promise<ImageSaveUrlResult | null> {
     const result = await backend.command('image_save_url', { url })
     if (!result.success) throw new Error(result.message || '保存远程图片失败')
-    return result.data ?? null
+    if (!result.data) return null
+    return { ...result.data, dataUrl: await normalizeBackgroundDataUrl(result.data.dataUrl) }
   },
 
   async saveImageAs(payload: ImageSaveAsPayload): Promise<string | null> {

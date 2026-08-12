@@ -101,6 +101,9 @@ function selectAccount(accountId: string | number) {
   width: 40px;
   height: 40px;
   flex-shrink: 0;
+}
+
+.account-avatar-placeholder {
   border-radius: 7px;
 }
 

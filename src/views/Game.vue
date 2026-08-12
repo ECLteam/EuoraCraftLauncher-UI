@@ -73,10 +73,16 @@
                 {{ account.accounts.length }}
               </NTag>
             </div>
-            <NButton type="primary" size="small" @click="openAddAccountModal">
-              <template #icon><UiIcon name="add" :size="14" /></template>
-              {{ t('game.addAccount') }}
-            </NButton>
+            <div class="account-panel-actions">
+              <NButton size="small" @click="openWardrobeModal">
+                <template #icon><UiIcon name="wardrobe" :size="14" /></template>
+                {{ t('wardrobe.title') }}
+              </NButton>
+              <NButton type="primary" size="small" @click="openAddAccountModal">
+                <template #icon><UiIcon name="add" :size="14" /></template>
+                {{ t('game.addAccount') }}
+              </NButton>
+            </div>
           </div>
 
           <div class="account-table-header">
@@ -293,6 +299,14 @@
       </div>
     </FullscreenModal>
 
+    <WardrobeModal
+      v-model:visible="showWardrobeModal"
+      :accounts="account.accounts"
+      :currentAccount="account.currentAccount"
+      @back="returnToAccountManagement"
+      @accountsChanged="account.loadAccounts"
+    />
+
     <Modal
       v-model:visible="account.showMicrosoftLoginModal"
       :title="t('game.login.title')"
@@ -365,7 +379,7 @@ import {
   type SelectOption,
 } from 'naive-ui'
 import { storeToRefs } from 'pinia'
-import { computed, h, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, h, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import backend from '@/api/client'
@@ -383,6 +397,7 @@ import { useInstanceManager } from '@/composables/useInstanceManager'
 import { globalLaunchProgress } from '@/composables/useLaunchProgress'
 import { useRecentInstances } from '@/composables/useRecentInstances'
 import { getVersionImage } from '@/config/version'
+import WardrobeModal from '@/features/accounts/components/WardrobeModal.vue'
 import { useGameInfoCard } from '@/features/game-home/composables/useGameInfoCard'
 import { useGameHomeStore } from '@/features/game-home/stores/gameHomeStore'
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
@@ -416,6 +431,8 @@ const {
 type AccountType = 'microsoft' | 'offline' | 'authlib'
 
 const showAddAccountModal = ref(false)
+const showWardrobeModal = ref(false)
+let returningFromWardrobe = false
 const selectedAccountType = ref<AccountType>('microsoft')
 const showOfflineAdvanced = ref(false)
 const isShowcaseMode = backend.runtime.isShowcase
@@ -456,6 +473,20 @@ function openAddAccountModal() {
   showAddAccountModal.value = true
   void account.loadMicrosoftLoginConfig()
   void account.loadAuthlibServers()
+}
+
+function openWardrobeModal() {
+  returningFromWardrobe = false
+  showWardrobeModal.value = true
+}
+
+async function returnToAccountManagement() {
+  if (returningFromWardrobe) return
+  returningFromWardrobe = true
+  showWardrobeModal.value = false
+  await nextTick()
+  account.openAccountModal()
+  returningFromWardrobe = false
 }
 
 async function startMicrosoftFromAddModal() {

@@ -8,6 +8,11 @@ import type {
   MicrosoftLoginData,
   MicrosoftLoginStatusEvent,
   MicrosoftPollData,
+  AccountTextures,
+  SkinModel,
+  WardrobeImportResult,
+  WardrobeItem,
+  WardrobeKind,
 } from '@/types/api'
 
 function assertSuccess<T>(result: { success: boolean; data?: T; message?: string }, operation: string): T {
@@ -66,6 +71,74 @@ export const accountsApi = {
 
   async refresh(accountId: string): Promise<void> {
     assertSuccess(await backend.command('accounts_refresh_profile', { account_id: accountId }), '刷新账户')
+  },
+
+  async textureUrls(accountId: string): Promise<AccountTextures> {
+    return assertSuccess(await backend.command('accounts_texture_urls', { account_id: accountId }), '读取账户材质')
+  },
+
+  async listWardrobe(): Promise<WardrobeItem[]> {
+    return assertSuccess(await backend.command('wardrobe_list'), '读取本地衣柜') ?? []
+  },
+
+  async syncAccountSkin(accountId: string): Promise<WardrobeImportResult> {
+    return assertSuccess(
+      await backend.command('wardrobe_sync_account_skin', { account_id: accountId }),
+      '同步账户当前皮肤'
+    )
+  },
+
+  async selectWardrobeImage(kind: WardrobeKind): Promise<string | null> {
+    const result = await backend.command('select_image', { purpose: kind })
+    if (!result.success) throw new Error(result.message || '选择纹理失败')
+    return result.data?.path || null
+  },
+
+  async importWardrobe(path: string, kind: WardrobeKind, model?: SkinModel): Promise<WardrobeImportResult> {
+    return assertSuccess(await backend.command('wardrobe_import', { path, kind, model }), '导入本地纹理')
+  },
+
+  async updateWardrobe(itemId: string, name?: string, model?: SkinModel, favorite?: boolean): Promise<WardrobeItem> {
+    return assertSuccess(
+      await backend.command('wardrobe_update', { item_id: itemId, name, model, favorite }),
+      '更新衣柜条目'
+    )
+  },
+
+  async deleteWardrobe(itemId: string): Promise<void> {
+    assertSuccess(await backend.command('wardrobe_delete', { item_id: itemId }), '删除衣柜条目')
+  },
+
+  async wardrobeTexture(itemId: string): Promise<string> {
+    const data = assertSuccess(await backend.command('wardrobe_texture', { item_id: itemId }), '读取衣柜纹理')
+    return data.dataUrl
+  },
+
+  async exportWardrobe(itemId: string): Promise<string | null> {
+    const data = assertSuccess(await backend.command('wardrobe_export', { item_id: itemId }), '导出衣柜纹理')
+    return data.path || null
+  },
+
+  async applyWardrobeSkin(itemId: string, accountId: string): Promise<MinecraftAccount> {
+    return assertSuccess(
+      await backend.command('wardrobe_apply_skin', { item_id: itemId, account_id: accountId }),
+      '上传 Microsoft 皮肤'
+    )
+  },
+
+  async resetMicrosoftSkin(accountId: string): Promise<MinecraftAccount> {
+    return assertSuccess(await backend.command('microsoft_reset_skin', { account_id: accountId }), '重置皮肤')
+  },
+
+  async setMicrosoftCape(accountId: string, capeId: string): Promise<MinecraftAccount> {
+    return assertSuccess(
+      await backend.command('microsoft_set_cape', { account_id: accountId, cape_id: capeId }),
+      '切换披风'
+    )
+  },
+
+  async resetMicrosoftCape(accountId: string): Promise<MinecraftAccount> {
+    return assertSuccess(await backend.command('microsoft_reset_cape', { account_id: accountId }), '卸下披风')
   },
 
   async listAuthlibServers(): Promise<AuthlibServer[]> {
