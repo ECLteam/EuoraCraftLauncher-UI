@@ -10,6 +10,7 @@ const DEFAULT_GAME_CONFIG: GameConfig = {
   memory_auto: true,
   memory_size: 4096,
   fullscreen: false,
+  active_path: '',
 }
 
 const DEFAULT_DOWNLOAD_CONFIG: DownloadConfig = {

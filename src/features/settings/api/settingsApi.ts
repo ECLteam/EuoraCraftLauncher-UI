@@ -87,7 +87,7 @@ export const settingsApi = {
   },
 
   async saveGame(config: GameConfig): Promise<void> {
-    assertSuccess(await backend.config.set('game', config), '保存游戏设置')
+    assertSuccess(await backend.config.set('game', config), '保存设置')
   },
 
   async saveDownload(config: DownloadConfig): Promise<void> {

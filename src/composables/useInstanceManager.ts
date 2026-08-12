@@ -8,6 +8,7 @@ import {
   STATUS_MESSAGE_AUTO_HIDE,
 } from '@/config/game'
 import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
+import { instancePathConfigApi } from '@/features/instances/api/instancePathConfigApi'
 import { instanceSettingsApi } from '@/features/instances/api/instanceSettingsApi'
 import { createDefaultVersionSettings, parseLaunchArguments } from '@/features/instances/model/instanceSettings'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
@@ -25,6 +26,15 @@ export interface VersionItem {
 const globalVersions = ref<VersionItem[]>([])
 const globalSelectedVersion = ref<string>('')
 const currentGamePath = ref<string>('')
+
+/**
+ * 将实例选择同步到游戏页（供实例管理等其他模块调用）。
+ * 实例管理页选择的实例会通过此函数同步到游戏页的启动按钮。
+ */
+export function setGlobalSelection(versionId: string, gamePath?: string) {
+  globalSelectedVersion.value = versionId
+  currentGamePath.value = gamePath ?? currentGamePath.value
+}
 
 export function useInstanceManager(t: (key: string, ...args: unknown[]) => string) {
   const message = useGlassMessage()
@@ -84,7 +94,25 @@ export function useInstanceManager(t: (key: string, ...args: unknown[]) => strin
         gamePath: getVersionGamePath(v, stringPaths[0] ?? ''),
       }))
 
+    // 确定当前激活的游戏路径：优先用全局 active_path，其次用之前已选中的路径，最后用第一个
+    const activePath = settingsStore.game.active_path || currentGamePath.value || stringPaths[0] || ''
+    const pathVersions = activePath
+      ? versions.value.filter((v) => v.gamePath === activePath)
+      : []
+
+    // 尝试从该路径的 ecl.json 读取 activeVersion
+    let activeVersionId: string | null = null
+    if (activePath && pathVersions.length > 0) {
+      try {
+        activeVersionId = await instancePathConfigApi.getActiveVersion(activePath)
+      } catch (error) {
+        console.warn('[useInstanceManager] 读取 ecl.json activeVersion 失败:', error)
+      }
+    }
+
     const selected =
+      (activeVersionId && pathVersions.find((v) => v.id === activeVersionId)) ??
+      pathVersions[0] ??
       versions.value.find(
         (version) => version.id === selectedVersion.value && version.gamePath === currentGamePath.value
       ) ??
@@ -111,7 +139,14 @@ export function useInstanceManager(t: (key: string, ...args: unknown[]) => strin
     const selected = gamePath
       ? versions.value.find((version) => version.id === id && version.gamePath === gamePath)
       : versions.value.find((version) => version.id === id)
-    currentGamePath.value = selected?.gamePath || gamePath || currentGamePath.value
+    const resolvedPath = selected?.gamePath || gamePath || currentGamePath.value
+    currentGamePath.value = resolvedPath
+    // 同步写入该路径下的 ecl.json（异步，不阻塞）
+    if (id && resolvedPath) {
+      void instancePathConfigApi.setActiveVersion(resolvedPath, id).catch((error) => {
+        console.warn('[useInstanceManager] 写入 ecl.json activeVersion 失败:', error)
+      })
+    }
   }
 
   function setGamePath(path: string) {

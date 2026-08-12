@@ -12,6 +12,7 @@ function mountLaunchBar(overrides: Partial<InstanceType<typeof GameLaunchBar>['$
       versionsCount: 1,
       launching: false,
       selectedVersion: '1.21.1',
+      currentGamePath: '',
       hasAccount: true,
       ...overrides,
     },

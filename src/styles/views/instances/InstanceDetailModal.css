@@ -11,12 +11,6 @@
   background: transparent;
 }
 
-:global(.version-detail-modal .fullscreen-modal-footer) {
-  background: transparent;
-  border-top: 1px solid var(--ecl-border);
-  padding: 12px var(--ecl-page-padding);
-}
-
 /* =============================================
    Shell - 全宽布局容器（不是卡片）
    ============================================= */
@@ -683,6 +677,15 @@
   font-size: 12px;
 }
 
+.settings-subgroup__title {
+  padding: 10px 16px 2px;
+  color: var(--ecl-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .memory-number-input {
   width: 150px;
 }
@@ -748,7 +751,6 @@
   color: var(--warning);
   font-size: 12px;
 }
-
 .mods-empty {
   flex: 1;
   min-height: 200px;
@@ -841,10 +843,6 @@
 
   .argument-input {
     width: min(400px, 45vw);
-  }
-
-  :global(.version-detail-modal .fullscreen-modal-footer) {
-    padding: 10px 16px;
   }
 }
 

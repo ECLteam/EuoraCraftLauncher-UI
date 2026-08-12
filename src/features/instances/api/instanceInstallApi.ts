@@ -112,7 +112,7 @@ export const instanceInstallApi = {
   },
 
   async selectDirectory(): Promise<SelectResult | null> {
-    return assertSuccess(await backend.command('select_directory'), '选择游戏目录') ?? null
+    return assertSuccess(await backend.command('select_directory'), '选择目录') ?? null
   },
 
   async openFolder(path: string): Promise<void> {

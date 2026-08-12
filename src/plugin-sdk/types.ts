@@ -1,4 +1,4 @@
-// plugin-sdk 专属类型，游戏/启动器数据类型统一从 @/types/api 导出
+// plugin-sdk 专属类型，/启动器数据类型统一从 @/types/api 导出
 
 import type { MinecraftAccount } from '@/types/api'
 

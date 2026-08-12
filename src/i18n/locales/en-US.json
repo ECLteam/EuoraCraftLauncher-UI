@@ -8,8 +8,6 @@
     "toggle": "Toggle Sidebar",
     "collapse": "Collapse Sidebar",
     "expand": "Expand Sidebar",
-    "mainNavigation": "Game & Content",
-    "systemNavigation": "System",
     "game": "Game",
     "versions": "Instances",
     "instances": "Instances",
@@ -17,13 +15,16 @@
     "settings": "Settings",
     "debug": "Debug",
     "debugTitle": "Component Debug",
-    "help": "Help",
+    "help": "Docs",
     "helpMessage": "Help documentation is under construction..."
   },
   "game": {
     "title": "Game",
     "quickLaunch": "Quick Launch",
     "noRecentPlay": "No recent play records",
+    "recentInstances": "Recent Launches",
+    "noRecentInstances": "No recent launches",
+    "switchInstance": "Switch Instance",
     "selectVersionToStart": "Select an instance to start",
     "noGameDirectory": "No game directory added",
     "selectFolder": "Select Folder",
@@ -34,7 +35,7 @@
     "manage": "Manage",
     "gameVersion": "Game Version",
     "noVersions": "No game instances found",
-    "launch": "Launch Game",
+    "launch": "Launch Instance",
     "launching": "Launching...",
     "noVersionInstall": "No instance, please install",
     "versionSettings": "Instance Settings",
@@ -130,6 +131,11 @@
       "noGamePath": "Game path not found"
     }
   },
+  "download": {
+    "title": "Download",
+    "instanceDownload": "Instance Download",
+    "modDownload": "Mod Download"
+  },
   "versions": {
     "title": "Instance Management",
     "manageTab": "Manage Instances",
@@ -223,13 +229,11 @@
       "javaRuntime": "Java Runtime",
       "jvmArgs": "JVM Arguments",
       "gameArgs": "Game Arguments",
+      "launchConfig": "Launch Configuration",
       "loadingSettings": "Loading instance settings...",
       "usingGlobalSettings": "This instance currently inherits global launch settings",
       "customizedSettings": "Independent launch settings are enabled for this instance",
       "inheritGlobal": "Use Global Settings",
-      "unsavedChanges": "Settings have not been saved",
-      "saveSettings": "Save Instance Settings",
-      "settingsSaved": "Instance settings saved",
       "settingsReset": "Global settings restored",
       "loadSettingsFailed": "Failed to load instance settings",
       "saveSettingsFailed": "Failed to save instance settings",

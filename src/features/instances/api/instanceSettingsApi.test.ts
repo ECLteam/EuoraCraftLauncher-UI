@@ -24,7 +24,7 @@ describe('instanceSettingsApi', () => {
     backendMocks.set.mockResolvedValue({ success: true })
   })
 
-  it('按游戏路径和版本 ID 保存独立设置', async () => {
+  it('按实例路径和版本 ID 保存独立设置', async () => {
     await instanceSettingsApi.save(
       { versionId: '1.21.5', path: 'D:\\Games\\.minecraft' },
       {

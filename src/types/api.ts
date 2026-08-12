@@ -57,6 +57,20 @@ export interface GameConfig {
   fullscreen?: boolean
   last_install_path?: string
   last_manage_path?: string
+  /** 当前激活的游戏路径（用于确定启动哪个路径下的实例） */
+  active_path?: string
+}
+
+/**
+ * 实例路径下的 ecl.json 结构。
+ * 每个 .minecraft 根目录存放一个，记录该路径下的启动实例等信息。
+ */
+export interface EclPathConfig {
+  /** 当前路径下选中的启动实例 ID */
+  activeVersion?: string
+  /** 兼容旧版/别名 */
+  active_version?: string
+  [key: string]: unknown
 }
 
 export interface SystemMemoryInfo {
@@ -161,7 +175,7 @@ export interface ScannedVersion {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  游戏实例
+//  实例
 // ═══════════════════════════════════════════════════════════════════
 
 export interface GameInstance {
@@ -289,7 +303,7 @@ export interface DebugMaintenanceResult {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  游戏页信息卡
+//  页信息卡
 // ═══════════════════════════════════════════════════════════════════
 
 export type InfoCardMode = 'auto' | 'rotate' | 'announcement_first' | 'tip_only' | 'announcement_only'
@@ -706,7 +720,7 @@ export interface CommandPayloadMap {
   java_scan: undefined
   java_list: undefined
 
-  // 游戏版本
+  // 版本
   minecraft_versions: { filter_type?: string }
   minecraft_versions_classified: undefined
   fabric_versions: { game_version: string }
@@ -730,6 +744,11 @@ export interface CommandPayloadMap {
     game_path?: string
   }
   uninstall_version: { version_id: string; game_path?: string }
+
+  // 实例路径 ecl.json
+  ecl_config_get: { game_path: string }
+  ecl_config_set: { game_path: string; data: Record<string, unknown> }
+  ecl_config_patch: { game_path: string; data: Record<string, unknown> }
 
   // 账户
   accounts_list: undefined
@@ -774,7 +793,7 @@ export interface CommandPayloadMap {
   open_folder: { path: string }
   open_url: { url: string }
 
-  // 游戏实例
+  // 实例
   instances_list: undefined
   launch_instance: {
     version_id: string
@@ -862,7 +881,7 @@ export interface CommandPayloadMap {
     loader_type?: string
   }
 
-  // 启动器信息 / 游戏页信息卡
+  // 启动器信息 / 页信息卡
   launcher_info: undefined
   info_card_get: undefined
   list_sections: undefined
@@ -911,6 +930,10 @@ export interface CommandResponseMap {
   scan_versions: ScannedVersion[]
   install_version: InstallVersionResult
   uninstall_version: void
+
+  ecl_config_get: Record<string, unknown>
+  ecl_config_set: void
+  ecl_config_patch: Record<string, unknown>
 
   accounts_list: AccountListData
   accounts_current: MinecraftAccount | null
