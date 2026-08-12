@@ -63,7 +63,6 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  height: 38px;
   padding: 4px 9px 4px 11px;
   cursor: pointer;
   transition: background var(--duration-fast) ease-out;

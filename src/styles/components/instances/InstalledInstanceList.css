@@ -205,7 +205,6 @@
 .version-content {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 12px;
 }
 
 .version-table,
@@ -237,7 +236,6 @@
 }
 
 .table-row {
-  height: 38px;
   border-bottom: 1px solid var(--divider);
   transition: background var(--duration-fast) ease-out;
 }
@@ -267,7 +265,7 @@
 
 .col-type {
   flex-shrink: 0;
-  width: 64px;
+  width: 75px;
 }
 
 .col-actions {

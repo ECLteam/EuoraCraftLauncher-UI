@@ -59,7 +59,7 @@
 }
 
 .section-layout__menu :deep(.n-menu-item-content) {
-  padding-left: 10px !important;
+  padding-left: 18px !important;
 }
 
 @media (max-width: 840px) {
