@@ -18,7 +18,7 @@ describe('InstancePathSidebar', () => {
 
     expect(wrapper.text()).toContain('2 个实例')
     await wrapper.get('.path-item').trigger('click')
-    await wrapper.get('.path-action-btn').trigger('click')
+    await wrapper.findAll('.path-action-btn')[1]!.trigger('click')
 
     expect(wrapper.emitted('select')).toEqual([[0]])
     expect(wrapper.emitted('edit')).toEqual([[0]])

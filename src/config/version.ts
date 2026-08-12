@@ -4,7 +4,7 @@
 // 修改此文件即可全局生效
 // ============================================================
 
-import type { CommandName, MinecraftVersionType } from '@/types/api'
+import type { MinecraftVersionType } from '@/types/api'
 
 // ---- 版本类型 ----
 
@@ -127,17 +127,6 @@ export const LOADER_LABEL_MAP: Record<string, string> = { ...LOADER_NAME_MAP }
 
 /** 安装页面可选的加载器列表（排除 OptiFine 和 LiteLoader） */
 export const INSTALLABLE_LOADERS = LOADERS.filter((l) => !['optifine', 'liteloader'].includes(l.value))
-
-/** 加载器 -> 后端命令后缀映射 */
-export const LOADER_COMMAND_MAP: Record<
-  string,
-  Extract<CommandName, 'fabric_versions' | 'forge_versions' | 'neoforge_versions' | 'quilt_versions'>
-> = {
-  fabric: 'fabric_versions',
-  forge: 'forge_versions',
-  neoforge: 'neoforge_versions',
-  quilt: 'quilt_versions',
-}
 
 // ---- 下载源 ----
 

@@ -13,8 +13,8 @@ describe('ShowcaseTransport', () => {
     const transport = createShowcaseTransport()
     const nextUi = { locale: 'en-US', theme: { navigation_mode: 'sidebar' } }
 
-    await transport.invoke('config_set', { section: 'ui', data: nextUi })
-    const result = (await transport.invoke('config_get', { section: 'ui' })) as ApiResponse<typeof nextUi>
+    await transport.invoke('settings_set', { section: 'ui', data: nextUi })
+    const result = (await transport.invoke('settings_get', { section: 'ui' })) as ApiResponse<typeof nextUi>
 
     expect(result.success).toBe(true)
     expect(result.data).toEqual(nextUi)
@@ -24,10 +24,10 @@ describe('ShowcaseTransport', () => {
     const first = createShowcaseTransport()
     const nextGame = { memory_auto: false, memory_size: 6144 }
 
-    await first.invoke('config_set', { section: 'game', data: nextGame })
+    await first.invoke('settings_set', { section: 'game', data: nextGame })
 
     const second = createShowcaseTransport()
-    const result = (await second.invoke('config_get', { section: 'game' })) as ApiResponse<typeof nextGame>
+    const result = (await second.invoke('settings_get', { section: 'game' })) as ApiResponse<typeof nextGame>
 
     expect(result.data).toMatchObject(nextGame)
   })
@@ -44,7 +44,7 @@ describe('ShowcaseTransport', () => {
     )
 
     const transport = createShowcaseTransport()
-    const result = (await transport.invoke('config_get', { section: 'ui' })) as ApiResponse<{
+    const result = (await transport.invoke('settings_get', { section: 'ui' })) as ApiResponse<{
       locale: string
       theme: Record<string, unknown>
     }>
@@ -63,7 +63,7 @@ describe('ShowcaseTransport', () => {
     localStorage.setItem(SHOWCASE_CONFIG_STORAGE_KEY, '{invalid')
 
     const transport = createShowcaseTransport()
-    const result = (await transport.invoke('config_get', { section: 'ui' })) as ApiResponse<{
+    const result = (await transport.invoke('settings_get', { section: 'ui' })) as ApiResponse<{
       locale: string
     }>
 
@@ -78,10 +78,10 @@ describe('ShowcaseTransport', () => {
       background: { type: 'custom', path: 'Showcase/background.png' },
     })
 
-    await expect(transport.invoke('config_set', { section: 'ui', data: nextUi })).resolves.toMatchObject({
+    await expect(transport.invoke('settings_set', { section: 'ui', data: nextUi })).resolves.toMatchObject({
       success: true,
     })
-    const result = (await transport.invoke('config_get', { section: 'ui' })) as ApiResponse<typeof nextUi>
+    const result = (await transport.invoke('settings_get', { section: 'ui' })) as ApiResponse<typeof nextUi>
 
     expect(result.data).toEqual({
       locale: 'zh-CN',
@@ -114,7 +114,8 @@ describe('ShowcaseTransport', () => {
 
   it.each(['fabric', 'forge', 'neoforge', 'quilt'])('为 %s 安装流程提供可用加载器版本', async (loader) => {
     const transport = createShowcaseTransport()
-    const result = (await transport.invoke(`${loader}_versions`, {
+    const result = (await transport.invoke('game_loader_versions', {
+      loader,
       game_version: '1.21.8',
     })) as ApiResponse<string[]>
 

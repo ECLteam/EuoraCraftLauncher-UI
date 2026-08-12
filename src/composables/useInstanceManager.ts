@@ -254,7 +254,7 @@ export function useInstanceManager(t: (key: string, ...args: unknown[]) => strin
       console.warn('[VersionSettings] 读取版本独立设置失败，将使用全局设置:', error)
     }
 
-    const launchResult = await backend.command('launch_instance', {
+    const launchResult = await backend.command('game_launch', {
       version_id: selectedVersion.value,
       game_path: currentGamePath.value,
       java_path: versionSettings.customJava ? versionSettings.javaPath || undefined : undefined,

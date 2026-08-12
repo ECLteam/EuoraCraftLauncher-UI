@@ -38,8 +38,8 @@ describe('instanceInstallApi scan cache', () => {
 
     await instanceInstallApi.scan(['D:\\Minecraft'], { force: true })
     expect(backendMocks.command).toHaveBeenCalledTimes(2)
-    expect(backendMocks.command).toHaveBeenLastCalledWith('scan_versions', {
-      path: ['D:\\Minecraft'],
+    expect(backendMocks.command).toHaveBeenLastCalledWith('game_scan', {
+      paths: ['D:\\Minecraft'],
       force: true,
     })
 

@@ -18,8 +18,8 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import SectionLayout from '@/components/layout/SectionLayout.vue'
-import ManageTab from '@/views/instances/ManageTab.vue'
 import DownloadModal from '@/views/instances/DownloadModal.vue'
+import ManageTab from '@/views/instances/ManageTab.vue'
 
 const { t } = useI18n()
 

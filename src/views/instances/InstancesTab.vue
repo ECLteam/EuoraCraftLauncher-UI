@@ -430,6 +430,10 @@ async function doInstall() {
     glassMessage.warning(t('versions.download.noVersionId'))
     return
   }
+  if (!gamePath) {
+    glassMessage.warning('请选择游戏目录')
+    return
+  }
 
   // 校验版本文件夹冲突
   try {
@@ -454,22 +458,17 @@ async function doInstall() {
   // 不自动打开面板，用户通过顶部栏按钮查看
 
   try {
-    const params: CommandPayloadMap['install_version'] = {
+    const params: CommandPayloadMap['game_install'] = {
       version_id: versionId,
-      loader_type: loader,
       task_id: taskId,
+      game_path: gamePath,
     }
     if (versionName !== versionId) {
       params.version_name = versionName
     }
-    if (loaderVersion) {
-      if (loader === 'fabric') params.fabric_version = loaderVersion
-      if (loader === 'forge') params.forge_version = loaderVersion
-      if (loader === 'neoforge') params.neoforge_version = loaderVersion
-      if (loader === 'quilt') params.quilt_version = loaderVersion
-    }
-    if (gamePath) {
-      params.game_path = gamePath
+    if (loader !== 'vanilla') {
+      params.loader_type = loader as 'fabric' | 'forge' | 'neoforge' | 'quilt'
+      params.loader_version = loaderVersion
     }
 
     await installStore.install(versionId, params)

@@ -46,17 +46,14 @@ function ensureVersionChangeListener(): void {
 
 export const instanceInstallApi = {
   async getCatalog(): Promise<MinecraftVersionCatalog> {
-    return assertSuccess(await backend.command('minecraft_versions_classified'), '获取实例列表')
+    return assertSuccess(await backend.command('game_versions', { classified: true }), '获取实例列表') as MinecraftVersionCatalog
   },
 
   async getLoaderVersions(loader: InstallableLoader, gameVersion: string): Promise<string[]> {
-    const payload = { game_version: gameVersion }
-    if (loader === 'fabric') return assertSuccess(await backend.command('fabric_versions', payload), '获取 Fabric 版本')
-    if (loader === 'forge') return assertSuccess(await backend.command('forge_versions', payload), '获取 Forge 版本')
-    if (loader === 'neoforge') {
-      return assertSuccess(await backend.command('neoforge_versions', payload), '获取 NeoForge 版本')
-    }
-    return assertSuccess(await backend.command('quilt_versions', payload), '获取 Quilt 版本')
+    return assertSuccess(
+      await backend.command('game_loader_versions', { loader, game_version: gameVersion }),
+      `获取 ${loader} 版本`
+    )
   },
 
   async scan(paths: string[], options: { force?: boolean } = {}): Promise<ScannedVersion[]> {
@@ -68,7 +65,7 @@ export const instanceInstallApi = {
     if (missingPaths.length > 0) {
       const scanned =
         assertSuccess(
-          await backend.command('scan_versions', { path: missingPaths, force: options.force || undefined }),
+          await backend.command('game_scan', { paths: missingPaths, force: options.force || undefined }),
           '扫描本地实例'
         ) ?? []
       const missingKeys = new Set(missingPaths.map(normalizeGamePath))
@@ -97,15 +94,15 @@ export const instanceInstallApi = {
     return assertSuccess(result, '检查实例目录').exists
   },
 
-  async install(params: CommandPayloadMap['install_version']): Promise<InstallVersionResult> {
-    const result = assertSuccess(await backend.command('install_version', params), '安装实例')
+  async install(params: CommandPayloadMap['game_install']): Promise<InstallVersionResult> {
+    const result = assertSuccess(await backend.command('game_install', params), '安装实例')
     if (params.game_path) invalidateScanCache(params.game_path)
     return result
   },
 
-  async uninstall(versionId: string, gamePath?: string): Promise<void> {
+  async uninstall(versionId: string, gamePath: string): Promise<void> {
     assertSuccess(
-      await backend.command('uninstall_version', { version_id: versionId, game_path: gamePath }),
+      await backend.command('game_uninstall', { version_id: versionId, game_path: gamePath }),
       '卸载实例'
     )
     invalidateScanCache(gamePath)

@@ -43,7 +43,7 @@ export const useInstanceInstallStore = defineStore('version-install', () => {
     return instanceInstallApi.exists(`${gamePath}/versions/${versionName}`)
   }
 
-  async function install(versionId: string, params: CommandPayloadMap['install_version']): Promise<void> {
+  async function install(versionId: string, params: CommandPayloadMap['game_install']): Promise<void> {
     installingVersionId.value = versionId
     try {
       await instanceInstallApi.install(params)

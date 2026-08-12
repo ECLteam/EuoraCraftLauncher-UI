@@ -214,23 +214,25 @@ export const backend = {
   /** 配置存取 — 前端定义结构，后端只持久化 */
   config: {
     get<T = unknown>(section: ConfigSection) {
-      return call<T>('config_get', { section })
+      return call<T>('settings_get', { section })
     },
     set(section: ConfigSection, data: unknown) {
-      return call<void>('config_set', { section, data })
+      return call<void>('settings_set', { section, data })
     },
-    list() {
-      return call<string[]>('config_list')
+    async list(): Promise<ApiResponse<string[]>> {
+      const response = await call<Record<string, unknown>>('settings_get')
+      if (!response.success) return response as unknown as ApiResponse<string[]>
+      return { ...response, data: Object.keys(response.data ?? {}) }
     },
 
     /** 一次拉取全部配置 */
     getAll() {
-      return call<Record<string, unknown>>('config_get_all')
+      return call<Record<string, unknown>>('settings_get')
     },
 
     /** 一次拉取多个分区 */
     getMany(sections: ConfigSection[]) {
-      return call<Record<string, unknown>>('config_get_many', { sections })
+      return call<Record<string, unknown>>('settings_get', { sections })
     },
   },
 

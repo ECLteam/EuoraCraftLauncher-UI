@@ -90,7 +90,7 @@ export function setLauncherConfig(section: ConfigSection, data: JsonDict): Promi
  * @param filterType - 版本过滤类型
  */
 export function getMinecraftVersions(filterType?: string): Promise<ApiResponse<MinecraftVersion[]>> {
-  return backend.command('minecraft_versions', { filter_type: filterType })
+  return backend.command('game_versions', { filter_type: filterType }) as Promise<ApiResponse<MinecraftVersion[]>>
 }
 
 /**
@@ -98,7 +98,8 @@ export function getMinecraftVersions(filterType?: string): Promise<ApiResponse<M
  * @param path - 实例路径，支持单个或多个路径
  */
 export function scanGameVersions(path?: string | string[]): Promise<ApiResponse<ScannedVersion[]>> {
-  return backend.command('scan_versions', { path })
+  const paths = path ? (Array.isArray(path) ? path : [path]) : undefined
+  return backend.command('game_scan', { paths })
 }
 
 /**
@@ -109,18 +110,12 @@ export function scanGameVersions(path?: string | string[]): Promise<ApiResponse<
 export function installGameVersion(params: {
   version_id: string
   version_name?: string
-  loader_type?: string
+  loader_type?: 'fabric' | 'forge' | 'neoforge' | 'quilt'
+  loader_version?: string
   task_id?: string
-  fabric_version?: string
-  forge_version?: string
-  neoforge_version?: string
-  optifine_version?: string
-  optifine_type?: string
-  optifine_patch?: string
-  quilt_version?: string
-  game_path?: string
+  game_path: string
 }): Promise<ApiResponse<InstallVersionResult>> {
-  return backend.command('install_version', params)
+  return backend.command('game_install', params)
 }
 
 // ── Java ──
@@ -129,14 +124,14 @@ export function installGameVersion(params: {
  * 扫描系统中的 Java 安装。
  */
 export function scanJavaInstallations(): Promise<ApiResponse<JavaInstallation[]>> {
-  return backend.command('java_scan')
+  return backend.command('game_java_scan')
 }
 
 /**
  * 获取已记录的 Java 安装列表。
  */
 export function getJavaInstallations(): Promise<ApiResponse<JavaInstallation[]>> {
-  return backend.command('java_list')
+  return backend.command('game_java_scan')
 }
 
 // ── 账户 ──

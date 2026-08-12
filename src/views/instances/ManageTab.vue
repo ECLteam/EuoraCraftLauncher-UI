@@ -492,7 +492,7 @@ const handleLaunch = async (version: ScannedVersion) => {
   try {
     setLaunchProgress(0, 'prepare', `正在准备启动 ${version.versionId}...`)
 
-    const launchResult = await backend.command('launch_instance', {
+    const launchResult = await backend.command('game_launch', {
       version_id: version.versionId,
       game_path: currentPath.value.path,
     })

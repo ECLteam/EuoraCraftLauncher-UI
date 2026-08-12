@@ -23,7 +23,7 @@
         <NPopover
           trigger="click"
           placement="top-end"
-          :show-arrow="false"
+          :showArrow="false"
           raw
         >
           <template #trigger>

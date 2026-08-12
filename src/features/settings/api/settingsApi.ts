@@ -106,7 +106,7 @@ export const settingsApi = {
   },
 
   async listJava(): Promise<JavaInstallation[]> {
-    return assertSuccess(await backend.command('java_list'), '扫描 Java') ?? []
+    return assertSuccess(await backend.command('game_java_scan'), '扫描 Java') ?? []
   },
 
   async selectJava(): Promise<string | null> {

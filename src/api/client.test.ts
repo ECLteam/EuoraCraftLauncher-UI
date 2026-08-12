@@ -38,7 +38,7 @@ describe('backend IPC client', () => {
         })
     )
 
-    const request = backend.command('launch_instance', {
+    const request = backend.command('game_launch', {
       version_id: '1.21.1',
       game_path: 'C:\\Minecraft',
     })

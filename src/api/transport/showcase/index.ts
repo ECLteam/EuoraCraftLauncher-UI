@@ -107,7 +107,7 @@ export function createShowcaseTransport(): BackendTransport {
     const payload = getPayload(rawPayload)
 
     switch (command) {
-      case 'ping':
+      case 'system_ping':
         return success({ status: 'ok', message: 'Showcase Transport 已连接' })
       case 'system_memory':
         return success({ totalMb: 32768, usedMb: 8192, freeMb: 24576, percentUsed: 25 })
@@ -127,25 +127,22 @@ export function createShowcaseTransport(): BackendTransport {
           targets: ['plugins', 'plugin_config'],
           backup_root: 'Showcase/ECL_data/backups',
         })
-      case 'config_get':
-        return success(structuredClone(config[String(payload.section)]))
-      case 'config_set':
+      case 'settings_get': {
+        if (typeof payload.section === 'string') return success(structuredClone(config[payload.section]))
+        if (Array.isArray(payload.sections)) {
+          return success(
+            Object.fromEntries(
+              payload.sections.map((section) => [String(section), structuredClone(config[String(section)])])
+            )
+          )
+        }
+        return success(structuredClone(config))
+      }
+      case 'settings_set':
         config[String(payload.section)] = cloneConfigData(payload.data)
         persistShowcaseConfig(config)
         return success()
-      case 'config_list':
-      case 'list_sections':
-        return success(Object.keys(config))
-      case 'config_get_all':
-        return success(structuredClone(config))
-      case 'config_get_many': {
-        const sections = Array.isArray(payload.sections) ? payload.sections : []
-        return success(
-          Object.fromEntries(sections.map((section) => [String(section), structuredClone(config[String(section)])]))
-        )
-      }
-      case 'java_scan':
-      case 'java_list':
+      case 'game_java_scan':
         return success([
           {
             path: 'Showcase/Java/bin/javaw.exe',
@@ -156,7 +153,8 @@ export function createShowcaseTransport(): BackendTransport {
             sources: ['showcase'],
           },
         ])
-      case 'minecraft_versions':
+      case 'game_versions':
+        if (payload.classified) return success(structuredClone(showcaseVersionCatalog))
         return success(
           showcaseVersionCatalog.all.map((item) => ({
             ...item,
@@ -164,17 +162,11 @@ export function createShowcaseTransport(): BackendTransport {
             url: 'showcase://version',
           }))
         )
-      case 'minecraft_versions_classified':
-        return success(structuredClone(showcaseVersionCatalog))
-      case 'fabric_versions':
-      case 'forge_versions':
-      case 'neoforge_versions':
-      case 'optifine_versions':
-      case 'quilt_versions':
-        return success(structuredClone(showcaseLoaderVersions[command] ?? []))
-      case 'scan_versions':
+      case 'game_loader_versions':
+        return success(structuredClone(showcaseLoaderVersions[`${String(payload.loader)}_versions`] ?? []))
+      case 'game_scan':
         return success(structuredClone(showcaseScannedVersions))
-      case 'install_version': {
+      case 'game_install': {
         const taskId = String(payload.task_id ?? `showcase-install-${Date.now()}`)
         const versionId = String(payload.version_id)
         emitInstallProgress(taskId)
@@ -184,7 +176,7 @@ export function createShowcaseTransport(): BackendTransport {
           versionName: String(payload.version_name || versionId),
         })
       }
-      case 'uninstall_version':
+      case 'game_uninstall':
         return success()
       case 'accounts_list':
         return success(structuredClone(accounts))
@@ -255,17 +247,17 @@ export function createShowcaseTransport(): BackendTransport {
         return success({ accepted: true, uuid: 'showcase-agreement' })
       case 'user_agreement_clear':
         return success()
-      case 'instances_list':
+      case 'game_instances':
         return success([])
-      case 'launch_instance':
+      case 'game_launch':
         emitLaunchProgress()
         return success({
           instanceId: 'showcase-instance',
           versionId: String(payload.version_id),
           gamePath: String(payload.game_path || '.minecraft'),
         })
-      case 'cancel_launch':
-      case 'instance_stop':
+      case 'game_launch_cancel':
+      case 'game_instance_stop':
         return success()
       case 'info_card_get':
         return success(structuredClone(showcaseInfoCard))

@@ -11,7 +11,7 @@ function assertSuccess<T>(result: { success: boolean; data?: T; message?: string
  * 文件不存在或损坏时返回空对象。
  */
 async function readConfig(gamePath: string): Promise<EclPathConfig> {
-  const result = await backend.command('ecl_config_get', { game_path: gamePath })
+  const result = await backend.command('game_config_get', { game_path: gamePath })
   const data = assertSuccess(result, '读取 ecl.json')
   return (data ?? {}) as EclPathConfig
 }
@@ -20,7 +20,7 @@ async function readConfig(gamePath: string): Promise<EclPathConfig> {
  * 全量写入 ecl.json。
  */
 async function writeConfig(gamePath: string, data: EclPathConfig): Promise<void> {
-  const result = await backend.command('ecl_config_set', { game_path: gamePath, data })
+  const result = await backend.command('game_config_set', { game_path: gamePath, data })
   assertSuccess(result, '写入 ecl.json')
 }
 
@@ -28,7 +28,10 @@ async function writeConfig(gamePath: string, data: EclPathConfig): Promise<void>
  * 增量更新 ecl.json 中的字段，返回更新后的完整配置。
  */
 async function patchConfig(gamePath: string, patch: Partial<EclPathConfig>): Promise<EclPathConfig> {
-  const result = await backend.command('ecl_config_patch', { game_path: gamePath, data: patch as Record<string, unknown> })
+  const result = await backend.command('game_config_patch', {
+    game_path: gamePath,
+    patch: patch as Record<string, unknown>,
+  })
   const data = assertSuccess(result, '更新 ecl.json')
   return (data ?? {}) as EclPathConfig
 }

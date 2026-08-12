@@ -11,7 +11,7 @@ export const gameHomeApi = {
   },
 
   async cancelLaunch(): Promise<void> {
-    const result = await backend.command('cancel_launch')
+    const result = await backend.command('game_launch_cancel')
     if (!result.success) throw new Error(result.message || '取消启动失败')
   },
 }

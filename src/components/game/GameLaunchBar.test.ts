@@ -14,6 +14,7 @@ function mountLaunchBar(overrides: Partial<InstanceType<typeof GameLaunchBar>['$
       selectedVersion: '1.21.1',
       currentGamePath: '',
       hasAccount: true,
+      recentInstances: [],
       ...overrides,
     },
   })
@@ -34,7 +35,7 @@ describe('GameLaunchBar', () => {
 
   it('账户和版本就绪后发出启动事件', async () => {
     const wrapper = mountLaunchBar()
-    const launchButton = wrapper.get<HTMLButtonElement>('.fab-launch-btn')
+    const launchButton = wrapper.get<HTMLButtonElement>('.split-main')
 
     expect(launchButton.element.disabled).toBe(false)
     await launchButton.trigger('click')
@@ -70,6 +71,6 @@ describe('GameLaunchBar', () => {
   it('缺少账户时禁用启动按钮', () => {
     const wrapper = mountLaunchBar({ hasAccount: false })
 
-    expect(wrapper.get<HTMLButtonElement>('.fab-launch-btn').element.disabled).toBe(true)
+    expect(wrapper.get<HTMLButtonElement>('.split-main').element.disabled).toBe(true)
   })
 })

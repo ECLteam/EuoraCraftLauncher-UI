@@ -706,49 +706,42 @@ export type BackendEventName = keyof BackendEvents
 // ═══════════════════════════════════════════════════════════════════
 
 export interface CommandPayloadMap {
-  ping: undefined
+  system_ping: undefined
 
   // 配置
-  config_get: { section: ConfigSection }
-  config_set: { section: ConfigSection; data: unknown }
-  config_list: undefined
+  settings_get: { section?: ConfigSection; sections?: ConfigSection[] } | undefined
+  settings_set: { section: ConfigSection; data: unknown }
 
   // 系统信息
   system_memory: undefined
 
   // Java
-  java_scan: undefined
-  java_list: undefined
+  game_java_scan: { paths?: string[] } | undefined
 
   // 版本
-  minecraft_versions: { filter_type?: string }
-  minecraft_versions_classified: undefined
-  fabric_versions: { game_version: string }
-  forge_versions: { game_version: string }
-  neoforge_versions: { game_version: string }
-  optifine_versions: { game_version: string }
-  quilt_versions: { game_version: string }
-  scan_versions: { path?: string | string[]; force?: boolean }
-  install_version: {
+  game_versions: { filter_type?: string; classified?: boolean; source?: 'official' | 'bmclapi' } | undefined
+  game_loader_versions: {
+    loader: 'fabric' | 'forge' | 'neoforge' | 'quilt'
+    game_version: string
+    source?: 'official' | 'bmclapi'
+  }
+  game_scan: { paths?: string[]; force?: boolean }
+  game_install: {
     version_id: string
     version_name?: string
-    loader_type?: string
+    loader_type?: 'fabric' | 'forge' | 'neoforge' | 'quilt'
+    loader_version?: string
     task_id?: string
-    fabric_version?: string
-    forge_version?: string
-    neoforge_version?: string
-    optifine_version?: string
-    optifine_type?: string
-    optifine_patch?: string
-    quilt_version?: string
-    game_path?: string
+    game_path: string
+    java_path?: string
+    source?: 'official' | 'bmclapi'
   }
-  uninstall_version: { version_id: string; game_path?: string }
+  game_uninstall: { version_id: string; game_path: string }
 
   // 实例路径 ecl.json
-  ecl_config_get: { game_path: string }
-  ecl_config_set: { game_path: string; data: Record<string, unknown> }
-  ecl_config_patch: { game_path: string; data: Record<string, unknown> }
+  game_config_get: { game_path: string }
+  game_config_set: { game_path: string; data: Record<string, unknown> }
+  game_config_patch: { game_path: string; patch: Record<string, unknown> }
 
   // 账户
   accounts_list: undefined
@@ -794,10 +787,10 @@ export interface CommandPayloadMap {
   open_url: { url: string }
 
   // 实例
-  instances_list: undefined
-  launch_instance: {
+  game_instances: undefined
+  game_launch: {
     version_id: string
-    game_path?: string
+    game_path: string
     java_path?: string
     memory?: number
     width?: number
@@ -806,8 +799,8 @@ export interface CommandPayloadMap {
     game_args?: string[]
     version_isolation?: boolean
   }
-  cancel_launch: undefined
-  instance_stop: { instance_id: string }
+  game_launch_cancel: undefined
+  game_instance_stop: { instance_id: string }
 
   export_logs: { output_path?: string }
 
@@ -884,14 +877,9 @@ export interface CommandPayloadMap {
   // 启动器信息 / 页信息卡
   launcher_info: undefined
   info_card_get: undefined
-  list_sections: undefined
   debug_reset_launcher_data: undefined
   debug_clear_plugins: undefined
   frontend_ready: undefined
-
-  // 批量配置
-  config_get_all: undefined
-  config_get_many: { sections: string[] }
 
   // 文件系统
   fs_read_dir: { path: string }
@@ -909,31 +897,24 @@ export type CommandName = keyof CommandPayloadMap
 // ═══════════════════════════════════════════════════════════════════
 
 export interface CommandResponseMap {
-  ping: { status: string; message: string }
+  system_ping: { status: string; message: string }
 
-  config_get: unknown
-  config_set: void
-  config_list: string[]
+  settings_get: unknown
+  settings_set: void
 
   system_memory: SystemMemoryInfo
 
-  java_scan: JavaInstallation[]
-  java_list: JavaInstallation[]
+  game_java_scan: JavaInstallation[]
 
-  minecraft_versions: MinecraftVersion[]
-  minecraft_versions_classified: MinecraftVersionCatalog
-  fabric_versions: string[]
-  forge_versions: string[]
-  neoforge_versions: string[]
-  optifine_versions: string[]
-  quilt_versions: string[]
-  scan_versions: ScannedVersion[]
-  install_version: InstallVersionResult
-  uninstall_version: void
+  game_versions: MinecraftVersion[] | MinecraftVersionCatalog
+  game_loader_versions: string[]
+  game_scan: ScannedVersion[]
+  game_install: InstallVersionResult
+  game_uninstall: void
 
-  ecl_config_get: Record<string, unknown>
-  ecl_config_set: void
-  ecl_config_patch: Record<string, unknown>
+  game_config_get: Record<string, unknown>
+  game_config_set: void
+  game_config_patch: Record<string, unknown>
 
   accounts_list: AccountListData
   accounts_current: MinecraftAccount | null
@@ -969,11 +950,11 @@ export interface CommandResponseMap {
   open_folder: void
   open_url: void
 
-  instances_list: GameInstance[]
-  launch_instance: LaunchInstanceResult
-  cancel_launch: void
+  game_instances: GameInstance[]
+  game_launch: LaunchInstanceResult
+  game_launch_cancel: void
   export_logs: { path: string }
-  instance_stop: void
+  game_instance_stop: void
 
   plugin_list: PluginInfo[]
   plugin_info: PluginInfo
@@ -1017,13 +998,9 @@ export interface CommandResponseMap {
 
   launcher_info: LauncherInfo
   info_card_get: InfoCardData
-  list_sections: string[]
   debug_reset_launcher_data: DebugMaintenanceResult
   debug_clear_plugins: DebugMaintenanceResult
   frontend_ready: void
-
-  config_get_all: Record<string, unknown>
-  config_get_many: Record<string, unknown>
 
   fs_read_dir: FsEntry[]
   fs_read_file: FileContent
