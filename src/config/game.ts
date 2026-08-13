@@ -53,10 +53,10 @@ export const LAUNCH_PROGRESS: Partial<Record<LaunchPhase, number>> = {
 
 // ---- 延迟/超时 ----
 
-/** 启动进度从 0% 匀速走到 100% 的最短时长 (ms) */
+/** 非终止阶段的平滑进度速度参考时长 (ms)，不会延迟实际启动完成。 */
 export const LAUNCH_MIN_PROGRESS_DURATION = 5000
 /** 启动成功后关闭进度面板的延迟 (ms) */
-export const LAUNCH_SUCCESS_HIDE_DELAY = 1500
+export const LAUNCH_SUCCESS_HIDE_DELAY = 500
 /** 启动失败后关闭进度面板的延迟 (ms) */
 export const LAUNCH_ERROR_HIDE_DELAY = 2000
 /** 状态消息自动消失时间 (ms) */

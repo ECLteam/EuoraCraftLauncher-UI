@@ -17,8 +17,8 @@ vi.mock('@/features/settings/api/debugToolsApi', () => ({
   },
 }))
 
-vi.mock('@/composables/useGlassMessage', () => ({
-  useGlassMessage: () => ({
+vi.mock('@/composables/useLauncherMessage', () => ({
+  useLauncherMessage: () => ({
     info: vi.fn(),
     success: mocks.success,
     warning: vi.fn(),

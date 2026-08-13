@@ -21,8 +21,8 @@ vi.mock('@/features/instances/api/instanceRuntimeApi', () => ({
   },
 }))
 
-vi.mock('@/composables/useGlassMessage', () => ({
-  useGlassMessage: () => ({ success: mocks.success, error: mocks.error }),
+vi.mock('@/composables/useLauncherMessage', () => ({
+  useLauncherMessage: () => ({ success: mocks.success, error: mocks.error }),
 }))
 
 vi.mock('naive-ui', async (importOriginal) => {
@@ -38,8 +38,10 @@ const runningInstance = {
   name: '1.21.5 Fabric',
   type: 'Minecraft',
   isRunning: true,
+  pid: 24680,
   version: '1.21.5 Fabric',
   versionId: '1.21.5 Fabric',
+  loader: 'Fabric',
   gamePath: 'D:/Games/.minecraft',
 }
 
@@ -67,6 +69,10 @@ describe('RunningInstancesTab', () => {
     expect(mocks.list).toHaveBeenCalledTimes(1)
     expect(wrapper.text()).toContain('1.21.5 Fabric')
     expect(wrapper.text()).toContain('D:/Games/.minecraft')
+    expect(wrapper.text()).toContain('24680')
+    expect(wrapper.get('.running-version-icon img').attributes('src')).toBe('/img/item/fabric.png')
+    expect(wrapper.find('.running-instance-row').exists()).toBe(true)
+    expect(wrapper.find('.running-instance-card').exists()).toBe(false)
   })
 
   it('confirms and stops a selected instance', async () => {

@@ -88,6 +88,10 @@
                 <template #icon><UiIcon name="folder" :size="15" /></template>
                 {{ t('versions.detail.openFolder') }}
               </NButton>
+              <NButton secondary :loading="crashAnalyzing" @click="handleAnalyzeCrash">
+                <template #icon><UiIcon name="alert-triangle" :size="15" /></template>
+                {{ t('versions.detail.analyzeCrash') }}
+              </NButton>
               <NButton type="error" secondary @click="handleDelete">
                 <template #icon><UiIcon name="trash" :size="15" /></template>
                 {{ t('versions.detail.delete') }}
@@ -333,10 +337,11 @@ import { NButton, NEmpty, NInput, NInputGroup, NInputNumber, NSpin, NSwitch, use
 import { ref, reactive, computed, watch, nextTick, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import backend from '@/api/client'
+import { launcherErrorQueue } from '@/app/runtime/errorPresentation'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import OnlineModSearch from '@/components/mods/OnlineModSearch.vue'
 import UiIcon from '@/components/ui/Icon.vue'
-import { useGlassMessage } from '@/composables/useGlassMessage'
+import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { getVersionImage } from '@/config/version'
 import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
@@ -367,7 +372,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const message = useGlassMessage()
+const message = useLauncherMessage()
 const dialog = useDialog()
 
 const visible = computed({
@@ -391,6 +396,7 @@ const runStats = reactive<VersionRunStats>({
   totalRunDurationSeconds: 0,
 })
 const statsLoading = ref(false)
+const crashAnalyzing = ref(false)
 let statsRequestId = 0
 
 const tabs = computed(() => [
@@ -447,6 +453,33 @@ async function loadRunStats() {
     }
   } finally {
     if (requestId === statsRequestId) statsLoading.value = false
+  }
+}
+
+async function handleAnalyzeCrash() {
+  const version = props.version
+  const gamePath = getGamePath()
+  if (!version || !gamePath || crashAnalyzing.value) return
+  crashAnalyzing.value = true
+  try {
+    const selected = await backend.command('select_file', { purpose: 'crash-analysis' })
+    if (!selected.success) {
+      message.error(selected.message || t('versions.detail.crashAnalysisFailed'))
+      return
+    }
+    if (!selected.data?.path) return
+    const result = await instanceRuntimeApi.analyzeCrash(selected.data.path, gamePath, version.versionId || version.id)
+    launcherErrorQueue.enqueue({
+      error_id: result.reportId,
+      title: t('error.crash.title'),
+      message: t('error.crash.manualMessage', { version: result.versionId }),
+      kind: 'game_crash',
+      crash: result,
+    })
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : t('versions.detail.crashAnalysisFailed'))
+  } finally {
+    crashAnalyzing.value = false
   }
 }
 

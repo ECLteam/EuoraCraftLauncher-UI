@@ -46,8 +46,8 @@ vi.mock('./useClipboard', () => ({
   }),
 }))
 
-vi.mock('./useGlassMessage', () => ({
-  useGlassMessage: () => ({
+vi.mock('./useLauncherMessage', () => ({
+  useLauncherMessage: () => ({
     success: mocks.success,
     error: mocks.error,
     info: mocks.info,

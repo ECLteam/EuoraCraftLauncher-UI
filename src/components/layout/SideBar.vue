@@ -130,7 +130,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useFullscreenModal } from '@/composables/useFullscreenModal'
-import { useGlassMessage } from '@/composables/useGlassMessage'
+import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { pluginRoutes } from '@/composables/usePluginBridge'
 import { useTheme } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
@@ -152,7 +152,7 @@ const isExpanded = ref(false)
 const pluginRoutesList = computed(() => pluginRoutes.value)
 const route = useRoute()
 const router = useRouter()
-const message = useGlassMessage()
+const message = useLauncherMessage()
 const { t } = useI18n()
 const { topNavEnabled } = useTopNav()
 

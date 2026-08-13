@@ -16,7 +16,6 @@ declare module 'vue' {
     GameAccountCard: typeof import('./src/components/game/GameAccountCard.vue')['default']
     GameInfoCard: typeof import('./src/components/game/GameInfoCard.vue')['default']
     GameLaunchBar: typeof import('./src/components/game/GameLaunchBar.vue')['default']
-    GlassMessage: typeof import('./src/components/ui/GlassMessage.vue')['default']
     Icon: typeof import('./src/components/ui/Icon.vue')['default']
     Input: typeof import('./src/components/ui/Input.vue')['default']
     InstalledInstanceList: typeof import('./src/components/instances/InstalledInstanceList.vue')['default']

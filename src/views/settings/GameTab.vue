@@ -127,6 +127,18 @@
       </SettingRow>
     </SettingSection>
 
+    <SettingSection :title="t('settings.downloadSettings')">
+      <SettingRow :label="t('settings.downloadSource')" :description="t('settings.downloadSourceDesc')">
+        <NSelect
+          class="download-source-select"
+          :value="downloadSettings.mirror_source"
+          :options="downloadOptions"
+          @update:value="handleDownloadSourceChange"
+        />
+      </SettingRow>
+    </SettingSection>
+
+    <div id="plugin-slot-settings-download-section-after" class="plugin-slot-container"></div>
     <div id="plugin-slot-settings-game-section-after" class="plugin-slot-container"></div>
   </div>
 </template>
@@ -137,7 +149,8 @@ import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAsyncAction } from '@/composables/useAsyncAction'
-import { useGlassMessage } from '@/composables/useGlassMessage'
+import { useLauncherMessage } from '@/composables/useLauncherMessage'
+import { MIRROR_OPTIONS } from '@/config/version'
 import { settingsApi } from '@/features/settings/api/settingsApi'
 import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
@@ -147,10 +160,18 @@ import type { JavaInstallation, SystemMemoryInfo } from '@/types/api'
 type JavaInfo = JavaInstallation
 
 const { t } = useI18n()
-const message = useGlassMessage()
+const message = useLauncherMessage()
 const { run } = useAsyncAction({ showSuccess: false, showError: true, errorMessage: t('common.error') })
 const settingsStore = useSettingsStore()
-const { game: localSettings } = storeToRefs(settingsStore)
+const { game: localSettings, download: downloadSettings } = storeToRefs(settingsStore)
+
+const downloadOptions = computed(() =>
+  MIRROR_OPTIONS.map((option) => ({
+    value: option.value as 'official' | 'bmclapi',
+    label: option.label,
+    desc: option.desc,
+  }))
+)
 
 const systemMemory = ref<SystemMemoryInfo>({
   totalMb: 16384,
@@ -322,6 +343,10 @@ const handleMemoryAutoToggle = (value: boolean) => {
 const handleFullscreenToggle = (value: boolean) => {
   localSettings.value.fullscreen = value
   saveConfig()
+}
+
+const handleDownloadSourceChange = async (value: 'official' | 'bmclapi') => {
+  await run(async () => settingsStore.patchDownload({ mirror_source: value }))
 }
 
 const handleJavaPathChange = (path: string) => {

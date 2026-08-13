@@ -143,7 +143,7 @@
     "versions": "Download Instances",
     "modsTab": "Mods",
     "running": {
-      "title": "Running Instances",
+      "title": "Running Games",
       "description": "Only instances launched and still running in this launcher session are shown",
       "count": "{count} running",
       "refresh": "Refresh",
@@ -151,16 +151,20 @@
       "instanceType": "Minecraft game instance",
       "versionLabel": "Instance",
       "pathLabel": "Path",
+      "pidLabel": "PID",
+      "nameColumn": "Instance Name",
+      "processColumn": "Process",
+      "statusColumn": "Status",
       "sessionManaged": "Managed by this session",
-      "stop": "Request Exit",
-      "stopTitle": "Request Instance Exit",
-      "stopConfirm": "Ask instance “{name}” to save and exit? It will be forcibly ended if it does not respond within 3 seconds.",
-      "stopped": "Instance “{name}” exited",
+      "stop": "Stop",
+      "stopTitle": "Stop Instance",
+      "stopConfirm": "Stop instance “{name}”? The launcher will first request a normal save and exit, then force it to end if it does not respond within 3 seconds.",
+      "stopped": "Instance “{name}” stopped",
       "empty": "No instances are currently running",
       "emptyHint": "Launch a game from Home or Instance Details and it will appear here until it exits.",
       "unknownPath": "Unknown game path",
       "loadFailed": "Failed to load running instances",
-      "stopFailed": "Failed to request instance exit"
+      "stopFailed": "Failed to stop instance"
     },
     "manage": {
       "gamePath": "Game Path",
@@ -226,6 +230,8 @@
       "quickActions": "Quick Actions",
       "launch": "Launch",
       "openFolder": "Open Folder",
+      "analyzeCrash": "Analyze Crash Log",
+      "crashAnalysisFailed": "Failed to analyze crash log",
       "delete": "Delete Instance",
       "versionId": "Instance ID",
       "loader": "Loader",
@@ -580,12 +586,255 @@
     "transparentBgDesc": "Make the window background transparent, allowing desktop to show through"
   },
   "error": {
+    "id": "Error ID",
     "defaultTitle": "Critical Error",
     "detail": "Error Details",
     "close": "Close",
     "exportLogs": "Export Logs",
     "exported": "Logs exported. Please contact the developer with the log file.",
-    "contactDeveloper": "Please send the exported log file to the developer for troubleshooting."
+    "exportFailed": "Failed to export logs",
+    "contactDeveloper": "Please send the exported log file to the developer for troubleshooting.",
+    "crash": {
+      "title": "Minecraft Crash Analysis",
+      "manualMessage": "Crash log analysis completed for “{version}”",
+      "autoMessage": "Instance “{version}” exited unexpectedly with code {exitCode}",
+      "instance": "Instance",
+      "exitCode": "Exit code",
+      "unknown": "Unknown",
+      "reasonsLabel": "Possible causes",
+      "reasonIndex": "Possible cause {index}",
+      "evidence": "Log evidence",
+      "suggestions": "Recommended steps",
+      "genericSuggestion": "Export the crash report and inspect the complete logs for more context.",
+      "confidence": { "certain": "High confidence", "likely": "Likely", "possible": "Possible" },
+      "viewOutput": "View Output",
+      "hideOutput": "Hide Output",
+      "output": "Game Output",
+      "outputFailed": "Failed to read game output",
+      "exportReport": "Export Crash Report",
+      "exportFailed": "Failed to export crash report",
+      "exported": "Crash report exported to: {path}",
+      "reasons": {
+        "jvm_invalid_arguments": {
+          "title": "Invalid JVM arguments",
+          "suggestions": [
+            "Remove recently added JVM arguments.",
+            "Make sure each argument is supported by the selected Java version."
+          ]
+        },
+        "memory_out_of_memory": {
+          "title": "Not enough available memory",
+          "suggestions": [
+            "Increase game memory moderately or close memory-heavy applications.",
+            "If memory is already overallocated, lower it and inspect the mod set."
+          ]
+        },
+        "java_incompatible_version": {
+          "title": "Incompatible Java version",
+          "suggestions": [
+            "Select the Java version required by this Minecraft and loader version.",
+            "Prefer a 64-bit HotSpot/OpenJDK distribution."
+          ]
+        },
+        "java_module_access": {
+          "title": "Java module access denied",
+          "suggestions": [
+            "Switch to the Java version recommended for this instance.",
+            "Remove incompatible legacy loaders or core mods."
+          ]
+        },
+        "java_legacy_forge": {
+          "title": "Legacy Forge is incompatible with Java",
+          "suggestions": [
+            "Use a compatible Java 8 build for legacy Forge.",
+            "Update Forge or the related launch component."
+          ]
+        },
+        "java_openj9": {
+          "title": "Unsupported Java VM",
+          "suggestions": [
+            "Switch to a HotSpot-based Java distribution.",
+            "Rescan and select a compatible Java runtime."
+          ]
+        },
+        "java_32bit_heap": {
+          "title": "32-bit Java memory limit",
+          "suggestions": ["Install and select 64-bit Java.", "Temporarily lower allocated memory before switching."]
+        },
+        "java_architecture_mismatch": {
+          "title": "Java or native library architecture mismatch",
+          "suggestions": [
+            "Use matching architectures for Java, the OS, and native libraries.",
+            "Delete the instance native cache and repair game files."
+          ]
+        },
+        "graphics_opengl_unsupported": {
+          "title": "OpenGL is not supported",
+          "suggestions": [
+            "Update the graphics driver and make the game use the discrete GPU.",
+            "Avoid remote desktop sessions without hardware acceleration."
+          ]
+        },
+        "graphics_driver_crash": {
+          "title": "Graphics driver crash",
+          "suggestions": [
+            "Update or roll back to a stable graphics driver.",
+            "Temporarily disable shaders and graphics enhancement mods."
+          ]
+        },
+        "jvm_native_crash": {
+          "title": "Native Java crash",
+          "suggestions": [
+            "Inspect the problematic frame in the hs_err_pid log.",
+            "Change Java and update graphics drivers or native components."
+          ]
+        },
+        "native_library_missing": {
+          "title": "Native library missing or unloadable",
+          "suggestions": [
+            "Repair the instance files and native libraries.",
+            "Check whether security software quarantined a DLL or shared library."
+          ]
+        },
+        "files_integrity_failure": {
+          "title": "Corrupted game files",
+          "suggestions": [
+            "Repair the game and loader files.",
+            "Delete the damaged JAR named in the log and download it again."
+          ]
+        },
+        "loader_install_incomplete": {
+          "title": "Incomplete mod loader installation",
+          "suggestions": [
+            "Reinstall Forge, Fabric, NeoForge, or Quilt.",
+            "Ensure the version JSON and libraries were not modified manually."
+          ]
+        },
+        "mod_extracted_jar": {
+          "title": "A mod was extracted incorrectly",
+          "suggestions": [
+            "Remove extracted mod folders from the mods directory.",
+            "Keep only the original mod JAR files."
+          ]
+        },
+        "mod_duplicate": {
+          "title": "Duplicate mods detected",
+          "suggestions": [
+            "Remove duplicate mod copies identified by the evidence.",
+            "Check for enabled and disabled copies of the same mod."
+          ]
+        },
+        "mod_missing_dependency": {
+          "title": "Missing mod dependency",
+          "suggestions": [
+            "Install the dependency and version named in the log.",
+            "Match it to the current loader and Minecraft version."
+          ]
+        },
+        "mod_incompatible": {
+          "title": "Incompatible mod versions",
+          "suggestions": [
+            "Remove conflicting mods or install compatible versions.",
+            "Follow the solution reported by the mod loader."
+          ]
+        },
+        "mod_mixin_failure": {
+          "title": "Mixin injection failed",
+          "suggestions": [
+            "Update the associated mod and its dependencies.",
+            "Disable recently added core or optimization mods in batches."
+          ]
+        },
+        "mod_config_failure": {
+          "title": "Invalid mod configuration",
+          "suggestions": [
+            "Back up and remove the failing config so the mod can regenerate it.",
+            "Check for invalid manual edits."
+          ]
+        },
+        "mod_initialization_failure": {
+          "title": "Mod initialization failed",
+          "suggestions": [
+            "Update or temporarily remove the mod shown in the evidence.",
+            "Verify its dependencies and loader version."
+          ]
+        },
+        "mod_loader_reported": {
+          "title": "The loader reported a mod failure",
+          "suggestions": [
+            "Follow the solution reported in the loader log first.",
+            "Export the report to inspect the complete failure context."
+          ]
+        },
+        "mod_optifine_conflict": {
+          "title": "OptiFine or graphics mod conflict",
+          "suggestions": [
+            "Temporarily remove OptiFine and retry.",
+            "Use a graphics optimization option compatible with this loader."
+          ]
+        },
+        "resource_render_failure": {
+          "title": "Resource pack or render resource failure",
+          "suggestions": [
+            "Disable recently added resource packs or shaders.",
+            "Lower resource resolution and inspect VRAM usage."
+          ]
+        },
+        "world_block_failure": {
+          "title": "A block in the world caused the crash",
+          "suggestions": [
+            "Back up the save first.",
+            "Locate the block from the evidence and repair the chunk or related mod."
+          ]
+        },
+        "world_entity_failure": {
+          "title": "An entity in the world caused the crash",
+          "suggestions": ["Back up the save first.", "Locate and remove the broken entity or its related mod."]
+        },
+        "game_manual_debug_crash": {
+          "title": "A debug crash was triggered",
+          "suggestions": [
+            "Check whether the debug crash shortcut was pressed accidentally.",
+            "Inspect key mappings or automation if it was not intentional."
+          ]
+        },
+        "game_crash_report": {
+          "title": "Minecraft generated a crash report",
+          "suggestions": [
+            "Review the other possible causes and evidence.",
+            "Export the complete report for further diagnosis."
+          ]
+        },
+        "stack_suspected_mod": {
+          "title": "The stack points to a suspected mod",
+          "suggestions": [
+            "Update or temporarily remove the suspected mods.",
+            "If it persists, inspect related dependency mods in batches."
+          ]
+        },
+        "stack_suspected_component": {
+          "title": "The stack points to a third-party component",
+          "suggestions": [
+            "Match the package names to installed mods or components.",
+            "Export the report and compare it with the mod list."
+          ]
+        },
+        "unknown_no_logs": {
+          "title": "No crash logs are available",
+          "suggestions": [
+            "Launch again and wait for the crash report to finish writing.",
+            "Check log directory permissions and security software."
+          ]
+        },
+        "unknown_unclassified": {
+          "title": "The cause could not be classified",
+          "suggestions": [
+            "Export the crash report and preserve the complete logs.",
+            "Undo the most recent changes and launch again."
+          ]
+        }
+      }
+    }
   },
   "common": {
     "confirm": "Confirm",

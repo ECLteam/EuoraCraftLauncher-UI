@@ -132,7 +132,7 @@ import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import Modal from '@/components/modals/Modal.vue'
 import UiButton from '@/components/ui/Button.vue'
 import UiInput from '@/components/ui/Input.vue'
-import { useGlassMessage } from '@/composables/useGlassMessage'
+import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { globalLaunchProgress } from '@/composables/useLaunchProgress'
 import { LAUNCH_PROGRESS, LAUNCH_SUCCESS_HIDE_DELAY, LAUNCH_ERROR_HIDE_DELAY } from '@/config/game'
 import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
@@ -146,7 +146,7 @@ import InstanceDetailModal from '@/views/instances/InstanceDetailModal.vue'
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
-const message = useGlassMessage()
+const message = useLauncherMessage()
 const instanceStore = useInstanceStore()
 const settingsStore = useSettingsStore()
 
@@ -489,6 +489,9 @@ const handleLaunch = async (version: ScannedVersion) => {
     }
   })
 
+  // 等待进度监听完成注册，让动画从第一个实际后端阶段开始，而不是事后补跑。
+  await backend.waitForEventListeners()
+
   try {
     setLaunchProgress(0, 'prepare', `正在准备启动 ${version.versionId}...`)
 
@@ -510,7 +513,7 @@ const handleLaunch = async (version: ScannedVersion) => {
       setLaunchProgress(100, 'launched', ` ${version.versionId} 已启动`)
       message.success(` ${version.versionId} 已启动`)
     }
-    setTimeout(hideLaunchProgress, 1500)
+    setTimeout(hideLaunchProgress, LAUNCH_SUCCESS_HIDE_DELAY)
   } catch (e) {
     console.error('启动失败:', e)
     if (!globalLaunchProgress.progress.value.canceled) {

@@ -1,4 +1,4 @@
-import { readonly, ref, type Ref } from 'vue'
+import { computed, readonly, ref, type Ref } from 'vue'
 import backend from '@/api/client'
 import { initPluginBridge, destroyPluginBridge, scopePluginCss } from '@/composables/usePluginBridge'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
@@ -6,13 +6,15 @@ import { initTheme } from '@/composables/useTheme'
 import { i18n, supportedLocales } from '@/i18n'
 import type { BackendEvents, DownloadConfig, GameConfig, InstallProgress } from '@/types/api'
 import { getErrorMessage } from '@/utils/error'
+import { launcherErrorQueue } from './errorPresentation'
 import { installDesktopInteractionPolicy } from './interactionPolicy'
 import { useLauncherPopupQueue } from './useLauncherPopupQueue'
 import type { Router } from 'vue-router'
 
 interface MessageService {
-  warning(message: string, duration?: number): unknown
-  info(message: string, duration?: number): unknown
+  warning(message: string, options?: number | { title?: string; duration?: number }): unknown
+  info(message: string, options?: number | { title?: string; duration?: number }): unknown
+  error(message: string, options?: number | { title?: string; duration?: number }): unknown
 }
 
 interface UseAppRuntimeOptions {
@@ -30,15 +32,29 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
   const gameConfig = ref<GameConfig | null>(null)
   const downloadConfig = ref<DownloadConfig | null>(null)
 
-  const showErrorModal = ref(false)
-  const errorTitle = ref('')
-  const errorMessage = ref('')
-  const errorDetail = ref('')
-  const errorId = ref('')
   const popupQueue = useLauncherPopupQueue()
+  const showErrorModal = launcherErrorQueue.visible
+  const errorTitle = computed(() => {
+    const error = launcherErrorQueue.activeError.value
+    return error?.kind === 'game_crash' ? options.t('error.crash.title') : (error?.title ?? '')
+  })
+  const errorMessage = computed(() => {
+    const error = launcherErrorQueue.activeError.value
+    if (error?.kind !== 'game_crash' || !error.crash) return error?.message ?? ''
+    const key = error.crash.detectedBy.includes('manual') ? 'error.crash.manualMessage' : 'error.crash.autoMessage'
+    return i18n.global.t(key, {
+      version: error.crash.versionId,
+      exitCode: error.crash.exitCode ?? i18n.global.t('error.crash.unknown'),
+    })
+  })
+  const errorDetail = computed(() => launcherErrorQueue.activeError.value?.detail ?? '')
+  const errorId = computed(() => launcherErrorQueue.activeError.value?.error_id ?? '')
+  const errorKind = computed(() => launcherErrorQueue.activeError.value?.kind)
+  const crashAnalysis = computed(() => launcherErrorQueue.activeError.value?.crash)
 
   const cleanupCallbacks: Array<() => void> = []
   let started = false
+  let syncingPendingErrors = false
 
   async function applyConfig(payload: BackendEvents['config:init']): Promise<void> {
     const launcher = payload.launcher
@@ -112,19 +128,17 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
   function registerBackendEvents(): void {
     cleanupCallbacks.push(
       backend.on('launcher:notify', (payload) => {
-        if (payload.type === 'warning') options.message.warning(payload.message, 8000)
-        if (payload.type === 'info') options.message.info(payload.message, 8000)
+        const messageOptions = { title: payload.title, duration: 8000 }
+        if (payload.type === 'warning') options.message.warning(payload.message, messageOptions)
+        if (payload.type === 'info') options.message.info(payload.message, messageOptions)
+        if (payload.type === 'error') options.message.error(payload.message, messageOptions)
       }),
       backend.on('launcher:agreement_required', () => {
         options.markAgreementNotAccepted()
         options.showAgreementModal.value = true
       }),
       backend.on('launcher:error', (payload) => {
-        errorTitle.value = payload.title || ''
-        errorMessage.value = payload.message || ''
-        errorDetail.value = payload.detail || ''
-        errorId.value = payload.error_id || ''
-        showErrorModal.value = true
+        launcherErrorQueue.enqueue(payload)
       }),
       backend.on('launcher:popup', popupQueue.enqueuePopup),
       backend.on('config:init', (payload) => {
@@ -156,6 +170,25 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
     if (!result.success) console.error('[AppRuntime] 通知后端前端已就绪失败:', result.message)
   }
 
+  async function syncPendingErrors(): Promise<void> {
+    if (syncingPendingErrors || backend.isShowcaseActive) return
+    syncingPendingErrors = true
+    try {
+      const result = await backend.command('launcher_errors_pending')
+      if (!result.success || !Array.isArray(result.data) || result.data.length === 0) return
+      const errorIds: string[] = []
+      for (const error of result.data) {
+        launcherErrorQueue.enqueue(error)
+        if (error.error_id) errorIds.push(error.error_id)
+      }
+      if (errorIds.length > 0) {
+        await backend.command('launcher_errors_ack', { error_ids: errorIds })
+      }
+    } finally {
+      syncingPendingErrors = false
+    }
+  }
+
   async function loadInitialConfig(): Promise<void> {
     const result = await backend.config.getMany(['launcher', 'game', 'download', 'ui'])
     if (result.success && result.data) {
@@ -172,7 +205,7 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
     // 必须在 registerBackendEvents 之前检查展示模式，
     // 否则 notifyFrontendReady 后后端发送的 config:init 事件会先于 swap 被处理
     const launcherResult = await backend.config.get('launcher')
-    if (launcherResult.success && (launcherResult.data as Record<string, any>)?.showcase) {
+    if (launcherResult.success && (launcherResult.data as Record<string, unknown>)?.showcase === true) {
       backend.swapToShowcase()
     }
 
@@ -182,6 +215,9 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
     await backend.waitForEventListeners()
     await loadInitialConfig()
     await notifyFrontendReady()
+    await syncPendingErrors()
+    const pendingErrorTimer = window.setInterval(() => void syncPendingErrors(), 1000)
+    cleanupCallbacks.push(() => window.clearInterval(pendingErrorTimer))
   }
 
   function stop(): void {
@@ -204,6 +240,9 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
     errorMessage: readonly(errorMessage),
     errorDetail: readonly(errorDetail),
     errorId: readonly(errorId),
+    errorKind,
+    crashAnalysis,
+    dismissActiveError: launcherErrorQueue.dismissActive,
     activePopup: popupQueue.activePopup,
     popupVisible: popupQueue.popupVisible,
     dismissActivePopup: popupQueue.dismissActivePopup,

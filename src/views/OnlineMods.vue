@@ -22,19 +22,17 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PageHeader from '@/components/layout/PageHeader.vue'
 import OnlineModSearch from '@/components/mods/OnlineModSearch.vue'
-import { useGlassMessage } from '@/composables/useGlassMessage'
+import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
 import type { ScannedVersion } from '@/types/api'
 import { getErrorMessage } from '@/utils/error'
 
 const { t } = useI18n()
-const message = useGlassMessage()
+const message = useLauncherMessage()
 const instanceStore = useInstanceStore()
 const selectedInstanceKey = ref('')
 
-const installableInstances = computed(() =>
-  instanceStore.scannedVersions.filter((version) => !version.isBroken)
-)
+const installableInstances = computed(() => instanceStore.scannedVersions.filter((version) => !version.isBroken))
 
 function instanceKey(version: ScannedVersion): string {
   return `${version.path}\u0000${version.versionId}`

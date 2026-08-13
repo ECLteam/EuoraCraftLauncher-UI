@@ -1,10 +1,6 @@
 import backend from '@/api/client'
+import { unwrapResponse as assertSuccess } from '@/app/runtime/errorPresentation'
 import type { EclPathConfig } from '@/types/api'
-
-function assertSuccess<T>(result: { success: boolean; data?: T; message?: string }, operation: string): T {
-  if (!result.success) throw new Error(result.message || `${operation}失败`)
-  return result.data as T
-}
 
 /**
  * 读取指定游戏路径下的 ecl.json。
@@ -41,14 +37,42 @@ async function patchConfig(gamePath: string, patch: Partial<EclPathConfig>): Pro
  */
 async function getActiveVersion(gamePath: string): Promise<string | null> {
   const config = await readConfig(gamePath)
-  return config.activeVersion || config.active_version || null
+  const activeVersion = config.activeVersion || config.active_version || null
+  if (activeVersion) confirmedActiveVersions.set(normalizePathKey(gamePath), activeVersion)
+  return activeVersion
+}
+
+const pendingActiveVersionWrites = new Map<string, { versionId: string; promise: Promise<void> }>()
+const confirmedActiveVersions = new Map<string, string>()
+
+function normalizePathKey(gamePath: string): string {
+  return gamePath
+    .trim()
+    .replace(/[\\/]+$/, '')
+    .replace(/\\/g, '/')
+    .toLowerCase()
 }
 
 /**
  * 设置指定路径下的 activeVersion。
  */
 async function setActiveVersion(gamePath: string, versionId: string): Promise<void> {
-  await patchConfig(gamePath, { activeVersion: versionId })
+  const key = normalizePathKey(gamePath)
+  const pending = pendingActiveVersionWrites.get(key)
+  if (pending?.versionId === versionId) return pending.promise
+  if (!pending && confirmedActiveVersions.get(key) === versionId) return
+
+  const promise = (async () => {
+    if (pending) await pending.promise.catch(() => undefined)
+    await patchConfig(gamePath, { activeVersion: versionId })
+    confirmedActiveVersions.set(key, versionId)
+  })()
+  pendingActiveVersionWrites.set(key, { versionId, promise })
+  try {
+    await promise
+  } finally {
+    if (pendingActiveVersionWrites.get(key)?.promise === promise) pendingActiveVersionWrites.delete(key)
+  }
 }
 
 export const instancePathConfigApi = {

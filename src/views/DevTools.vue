@@ -195,11 +195,11 @@ import UiButton from '@/components/ui/Button.vue'
 import UiCard from '@/components/ui/Card.vue'
 import UiInput from '@/components/ui/Input.vue'
 import UiSlider from '@/components/ui/Slider.vue'
-import { useGlassMessage } from '@/composables/useGlassMessage'
+import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { debugToolsApi } from '@/features/settings/api/debugToolsApi'
 
 const { t } = useI18n()
-const message = useGlassMessage()
+const message = useLauncherMessage()
 
 const showNormalModal = ref(false)
 const showFullscreenModal = ref(false)

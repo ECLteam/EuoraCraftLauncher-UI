@@ -28,7 +28,6 @@ const settingsStore = useSettingsStore()
 
 const navItems = computed(() => [
   { path: '/settings/general', icon: 'brush', label: t('settings.general') },
-  { path: '/settings/download', icon: 'download', label: t('settings.download') },
   { path: '/settings/game', icon: 'game', label: t('settings.gameSettings') },
   { path: '/settings/about', icon: 'info', label: t('settings.about') },
 ])

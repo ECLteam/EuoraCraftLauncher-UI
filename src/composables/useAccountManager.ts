@@ -10,7 +10,7 @@ import type {
 } from '@/types/api'
 import { openExternalUrl } from '@/utils/openExternal'
 import { useClipboard } from './useClipboard'
-import { useGlassMessage } from './useGlassMessage'
+import { useLauncherMessage } from './useLauncherMessage'
 import type { AutoCompleteOption } from 'naive-ui'
 
 export type Account = MinecraftAccount
@@ -18,7 +18,7 @@ const OFFLINE_UUID_PATTERN =
   /^(?:[0-9a-fA-F]{32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$/
 
 export function useAccountManager(t: (key: string, ...args: unknown[]) => string) {
-  const message = useGlassMessage()
+  const message = useLauncherMessage()
   const { copied: copiedUserCode, copy: copyToClipboard } = useClipboard()
   const accountStore = useAccountStore()
   const {

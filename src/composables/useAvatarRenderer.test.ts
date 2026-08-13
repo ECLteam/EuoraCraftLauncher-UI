@@ -8,7 +8,7 @@ describe('renderSkinAvatar', () => {
     vi.unstubAllGlobals()
   })
 
-  it('按 PCL 比例居中绘制基础脸和帽子层', async () => {
+  it(async () => {
     class MockImage {
       naturalWidth = 64
       naturalHeight = 64

@@ -246,13 +246,14 @@
 </template>
 
 <script setup lang="ts">
-import { NAlert, NButton, NButtonGroup, NEmpty, NInput, NPopconfirm, NSelect, NSpin, NTag, useMessage } from 'naive-ui'
+import { NAlert, NButton, NButtonGroup, NEmpty, NInput, NPopconfirm, NSelect, NSpin, NTag } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { clearAvatarCache, fetchTextureDataUrl } from '@/composables/useAvatarRenderer'
+import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { accountsApi } from '@/features/accounts/api/accountsApi'
 import SkinViewer3D from '@/features/accounts/components/SkinViewer3D.vue'
 import type { MinecraftAccount, MicrosoftCape, SkinModel, WardrobeItem } from '@/types/api'
@@ -270,7 +271,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const message = useMessage()
+const message = useLauncherMessage()
 const items = ref<WardrobeItem[]>([])
 const textureUrls = ref<Record<string, string>>({})
 const officialCapeUrls = ref<Record<string, string>>({})

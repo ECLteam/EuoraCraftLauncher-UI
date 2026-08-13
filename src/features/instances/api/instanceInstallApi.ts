@@ -1,4 +1,5 @@
 import backend from '@/api/client'
+import { unwrapResponse as assertSuccess } from '@/app/runtime/errorPresentation'
 import type {
   CommandPayloadMap,
   InstallVersionResult,
@@ -14,13 +15,12 @@ const scanCache = new Map<string, ScannedVersion[]>()
 const versionsChangedHandlers = new Set<VersionsChangedHandler>()
 let isListeningForVersionChanges = false
 
-function assertSuccess<T>(result: { success: boolean; data?: T; message?: string }, operation: string): T {
-  if (!result.success) throw new Error(result.message || `${operation}失败`)
-  return result.data as T
-}
-
 export function normalizeGamePath(path: string): string {
-  return path.trim().replace(/[\\/]+/g, '/').replace(/\/$/, '').toLocaleLowerCase()
+  return path
+    .trim()
+    .replace(/[\\/]+/g, '/')
+    .replace(/\/$/, '')
+    .toLocaleLowerCase()
 }
 
 function cloneVersions(versions: ScannedVersion[]): ScannedVersion[] {
@@ -46,7 +46,10 @@ function ensureVersionChangeListener(): void {
 
 export const instanceInstallApi = {
   async getCatalog(): Promise<MinecraftVersionCatalog> {
-    return assertSuccess(await backend.command('game_versions', { classified: true }), '获取实例列表') as MinecraftVersionCatalog
+    return assertSuccess(
+      await backend.command('game_versions', { classified: true }),
+      '获取实例列表'
+    ) as MinecraftVersionCatalog
   },
 
   async getLoaderVersions(loader: InstallableLoader, gameVersion: string): Promise<string[]> {
@@ -101,10 +104,7 @@ export const instanceInstallApi = {
   },
 
   async uninstall(versionId: string, gamePath: string): Promise<void> {
-    assertSuccess(
-      await backend.command('game_uninstall', { version_id: versionId, game_path: gamePath }),
-      '卸载实例'
-    )
+    assertSuccess(await backend.command('game_uninstall', { version_id: versionId, game_path: gamePath }), '卸载实例')
     invalidateScanCache(gamePath)
   },
 

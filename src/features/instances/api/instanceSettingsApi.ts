@@ -1,4 +1,5 @@
 import backend from '@/api/client'
+import { unwrapResponse as assertSuccess } from '@/app/runtime/errorPresentation'
 import {
   createVersionSettingsKey,
   normalizeVersionSettings,
@@ -9,11 +10,6 @@ import {
 const VERSION_SETTINGS_SECTION = 'version_settings'
 
 type StoredVersionSettings = Record<string, VersionLaunchSettings>
-
-function assertSuccess<T>(result: { success: boolean; data?: T; message?: string }, operation: string): T {
-  if (!result.success) throw new Error(result.message || `${operation}失败`)
-  return result.data as T
-}
 
 async function getStoredSettings(): Promise<StoredVersionSettings> {
   const result = await backend.config.get<StoredVersionSettings>(VERSION_SETTINGS_SECTION)

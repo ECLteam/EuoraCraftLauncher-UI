@@ -97,7 +97,7 @@ import { computed, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
-import { useGlassMessage } from '@/composables/useGlassMessage'
+import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { presetColors, useTheme, type ThemeMode } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
 import { DEFAULT_PRIMARY_COLOR, THEME_MODE_OPTIONS } from '@/config/theme'
@@ -116,7 +116,7 @@ function debounce<T extends (...args: any[]) => void>(fn: T, delay: number) {
 }
 
 const { t, locale } = useI18n()
-const message = useGlassMessage()
+const message = useLauncherMessage()
 const { run } = useAsyncAction({
   showSuccess: false,
   showError: true,
@@ -286,14 +286,18 @@ function handleBgImageInput(value: string) {
       return
     }
 
-    message.loading('Loading...')
-    const result = await run(async () => settingsStore.saveRemoteBackground(value))
-    if (!result) return
-    if (result.imageUrl) {
-      setBackgroundImage(result.imageUrl, result.path, false)
-      message.success(t('common.success'))
-    } else {
-      message.error('加载背景图失败')
+    const loadingMessage = message.loading('Loading...')
+    try {
+      const result = await run(async () => settingsStore.saveRemoteBackground(value))
+      if (!result) return
+      if (result.imageUrl) {
+        setBackgroundImage(result.imageUrl, result.path, false)
+        message.success(t('common.success'))
+      } else {
+        message.error('加载背景图失败')
+      }
+    } finally {
+      loadingMessage.destroy()
     }
   }, 800)
 }

@@ -13,6 +13,14 @@ const mocks = vi.hoisted(() => ({
   openFolder: vi.fn(),
   getStats: vi.fn(),
   onStatsChanged: vi.fn(),
+  analyzeCrash: vi.fn(),
+  backendCommand: vi.fn(),
+}))
+
+vi.mock('@/api/client', () => ({
+  default: {
+    command: mocks.backendCommand,
+  },
 }))
 
 vi.mock('@/features/instances/api/instanceSettingsApi', () => ({
@@ -48,6 +56,7 @@ vi.mock('@/features/instances/api/instanceRuntimeApi', () => ({
   instanceRuntimeApi: {
     getStats: mocks.getStats,
     onChanged: mocks.onStatsChanged,
+    analyzeCrash: mocks.analyzeCrash,
   },
 }))
 
@@ -100,6 +109,16 @@ describe('InstanceDetailModal', () => {
       totalRunDurationSeconds: 3665,
     })
     mocks.onStatsChanged.mockReturnValue(vi.fn())
+    mocks.backendCommand.mockResolvedValue({ success: true, data: { path: 'D:/Logs/latest.log' } })
+    mocks.analyzeCrash.mockResolvedValue({
+      reportId: 'b'.repeat(32),
+      versionId: '1.21.5',
+      exitCode: null,
+      detectedBy: ['manual'],
+      reasons: [],
+      sourceFiles: ['latest.log'],
+      hasOutput: true,
+    })
   })
 
   it('uses horizontal tabs and opens the requested settings page', async () => {
@@ -127,6 +146,32 @@ describe('InstanceDetailModal', () => {
     expect(wrapper.text()).toContain('4 次')
     expect(wrapper.text()).toContain('1m 5s')
     expect(mocks.getStats).toHaveBeenCalledWith('D:/Games/.minecraft', '1.21.5')
+  })
+
+  it('selects and analyzes a crash log from quick actions', async () => {
+    const wrapper = mountModal('overview')
+    await flushPromises()
+    const analyzeButton = wrapper.findAll('button').find((button) => button.text().includes('分析崩溃日志'))
+
+    await analyzeButton?.trigger('click')
+    await flushPromises()
+
+    expect(mocks.backendCommand).toHaveBeenCalledWith('select_file', { purpose: 'crash-analysis' })
+    expect(mocks.analyzeCrash).toHaveBeenCalledWith('D:/Logs/latest.log', 'D:/Games/.minecraft', '1.21.5')
+  })
+
+  it('does nothing when crash log selection is cancelled', async () => {
+    mocks.backendCommand.mockImplementation(async (command: string) =>
+      command === 'select_file' ? { success: true, data: { path: '' } } : { success: true, data: [] }
+    )
+    const wrapper = mountModal('overview')
+    await flushPromises()
+    const analyzeButton = wrapper.findAll('button').find((button) => button.text().includes('分析崩溃日志'))
+
+    await analyzeButton?.trigger('click')
+    await flushPromises()
+
+    expect(mocks.analyzeCrash).not.toHaveBeenCalled()
   })
 
   it('user edits auto-save after 300ms debounce', async () => {

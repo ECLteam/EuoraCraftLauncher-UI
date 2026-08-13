@@ -23,7 +23,7 @@ const routes: RouteRecordRaw[] = [
     redirect: '/settings/general',
     children: [
       { path: 'general', name: 'settings-general', component: () => import('@/views/settings/GeneralTab.vue') },
-      { path: 'download', name: 'settings-download', component: () => import('@/views/settings/DownloadTab.vue') },
+      { path: 'download', name: 'settings-download', redirect: '/settings/game' },
       { path: 'game', name: 'settings-game', component: () => import('@/views/settings/GameTab.vue') },
       { path: 'about', name: 'settings-about', component: () => import('@/views/settings/AboutTab.vue') },
     ],

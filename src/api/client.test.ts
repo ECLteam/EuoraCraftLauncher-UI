@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { launcherErrorQueue } from '@/app/runtime/errorPresentation'
 import backend from './client'
 
 const transportMocks = vi.hoisted(() => ({
@@ -23,6 +24,7 @@ describe('backend IPC client', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     transportMocks.invoke.mockReset()
+    while (launcherErrorQueue.activeError.value) launcherErrorQueue.dismissActive()
   })
 
   afterEach(() => {
@@ -52,5 +54,25 @@ describe('backend IPC client', () => {
 
     resolveInvoke?.({ success: true, data: { instanceId: 'mc-1' } })
     await expect(request).resolves.toMatchObject({ success: true })
+  })
+
+  it('queues modal failures returned directly by the backend', async () => {
+    transportMocks.invoke.mockResolvedValueOnce({
+      success: false,
+      message: 'Unable to save data',
+      errorCode: 'SAVE_FAILED',
+      presentation: 'modal',
+      errorId: 'save-error',
+      title: 'Storage error',
+    })
+
+    await backend.command('game_instances')
+
+    expect(launcherErrorQueue.activeError.value).toEqual({
+      error_id: 'save-error',
+      message: 'Unable to save data',
+      title: 'Storage error',
+      detail: undefined,
+    })
   })
 })

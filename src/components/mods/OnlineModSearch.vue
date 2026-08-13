@@ -176,24 +176,13 @@
 </template>
 
 <script setup lang="ts">
-import {
-  NAlert,
-  NAvatar,
-  NButton,
-  NEmpty,
-  NInput,
-  NModal,
-  NScrollbar,
-  NSelect,
-  NSpin,
-  NTag,
-} from 'naive-ui'
+import { NAlert, NAvatar, NButton, NEmpty, NInput, NModal, NScrollbar, NSelect, NSpin, NTag } from 'naive-ui'
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import backend from '@/api/client'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
-import { useGlassMessage } from '@/composables/useGlassMessage'
+import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { modApi } from '@/features/mods/api/modApi'
 import type {
   ModInfo,
@@ -215,7 +204,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const message = useGlassMessage()
+const message = useLauncherMessage()
 const { loading, run } = useAsyncAction({ showSuccess: false, showError: false })
 const query = ref('')
 const source = ref<'all' | 'modrinth' | 'curseforge'>('all')

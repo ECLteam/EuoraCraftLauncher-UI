@@ -82,9 +82,6 @@ export async function fetchTextureDataUrl(url: string): Promise<string | null> {
   }
 }
 
-/**
- * 在整数像素画布上按 PCL 的 48×48 脸部与 56×56 外层比例合成头像。
- */
 export async function renderSkinAvatar(skinUrl: string, size: number): Promise<string | null> {
   const image = await loadAvatarImage(skinUrl)
   if (!image) return null

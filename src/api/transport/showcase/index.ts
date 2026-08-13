@@ -1,6 +1,7 @@
 import type {
   ApiResponse,
   BackendEvents,
+  CrashAnalysisResult,
   GameInstance,
   MinecraftAccount,
   PluginInfo,
@@ -53,6 +54,28 @@ export function createShowcaseTransport(): BackendTransport {
   const wardrobe: WardrobeItem[] = []
   const runningInstances: GameInstance[] = []
   const versionStats = new Map<string, VersionRunStats>()
+  const showcaseCrashReport: CrashAnalysisResult = {
+    reportId: '5c0a5eca5e0a4eaf8f465ad0f42d89b1',
+    versionId: 'Showcase-1.21.5-Fabric',
+    exitCode: 1,
+    detectedBy: ['exit_code', 'crash_log'],
+    reasons: [
+      {
+        code: 'mod.missing_dependency',
+        confidence: 'certain',
+        evidence: ['Mod example-addon depends on example-lib 2.0 or newer, which is missing'],
+        parameters: { files: ['example-addon.jar'] },
+      },
+      {
+        code: 'mod.mixin_failure',
+        confidence: 'likely',
+        evidence: ['Mixin apply failed example-addon.mixins.json:ClientMixin'],
+        parameters: {},
+      },
+    ],
+    sourceFiles: ['game-output.log', 'latest.log'],
+    hasOutput: true,
+  }
 
   const emit = <E extends keyof BackendEvents>(event: E, payload: BackendEvents[E]) => {
     for (const handler of listeners.get(event) ?? []) handler(payload)
@@ -340,6 +363,16 @@ export function createShowcaseTransport(): BackendTransport {
           )
         )
       }
+      case 'game_crash_analyze':
+        return success({ ...structuredClone(showcaseCrashReport), versionId: String(payload.version_id) })
+      case 'game_crash_output':
+        return success({
+          name: 'game-output.log',
+          content:
+            '[main/ERROR] Missing dependency example-lib 2.0 or newer\n[main/ERROR] Mixin apply failed example-addon.mixins.json:ClientMixin',
+        })
+      case 'game_crash_export':
+        return success({ path: 'Showcase/EuoraCraft-crash-report.zip' })
       case 'game_launch': {
         emitLaunchProgress()
         const instance: GameInstance = {
@@ -347,8 +380,10 @@ export function createShowcaseTransport(): BackendTransport {
           name: String(payload.version_id),
           type: 'Minecraft',
           isRunning: true,
+          pid: 24000 + runningInstances.length,
           version: String(payload.version_id),
           versionId: String(payload.version_id),
+          loader: 'Vanilla',
           gamePath: String(payload.game_path || '.minecraft'),
         }
         runningInstances.push(instance)

@@ -143,7 +143,7 @@
     "versions": "实例下载",
     "modsTab": "模组",
     "running": {
-      "title": "已启动实例",
+      "title": "已启动的游戏",
       "description": "这里只显示本次启动器会话启动且仍在运行的实例",
       "count": "{count} 个运行中",
       "refresh": "刷新",
@@ -151,16 +151,20 @@
       "instanceType": "Minecraft 游戏实例",
       "versionLabel": "实例",
       "pathLabel": "路径",
+      "pidLabel": "PID",
+      "nameColumn": "实例名称",
+      "processColumn": "进程信息",
+      "statusColumn": "状态",
       "sessionManaged": "由当前会话管理",
-      "stop": "通知退出",
-      "stopTitle": "通知实例退出",
-      "stopConfirm": "将通知实例“{name}”保存并退出；若 3 秒内未响应，将强制结束。是否继续？",
-      "stopped": "实例“{name}”已退出",
+      "stop": "停止",
+      "stopTitle": "停止实例",
+      "stopConfirm": "将停止实例“{name}”；启动器会先请求游戏正常保存并退出，若 3 秒内未响应则强制结束。是否继续？",
+      "stopped": "实例“{name}”已停止",
       "empty": "当前没有运行中的实例",
       "emptyHint": "从主页或实例详情启动游戏后，它会显示在这里，并在退出后自动移除。",
       "unknownPath": "未知实例路径",
       "loadFailed": "读取运行实例失败",
-      "stopFailed": "通知实例退出失败"
+      "stopFailed": "停止实例失败"
     },
     "manage": {
       "gamePath": "实例路径",
@@ -226,6 +230,8 @@
       "quickActions": "快速操作",
       "launch": "启动",
       "openFolder": "打开文件夹",
+      "analyzeCrash": "分析崩溃日志",
+      "crashAnalysisFailed": "崩溃日志分析失败",
       "delete": "删除实例",
       "versionId": "实例 ID",
       "loader": "加载器",
@@ -480,8 +486,8 @@
   "settings": {
     "title": "设置",
     "general": "通用",
-    "game": "设置",
-    "gameSettings": "设置",
+    "game": "游戏设置",
+    "gameSettings": "游戏设置",
     "about": "关于",
     "downloadSettings": "下载设置",
     "language": "语言",
@@ -580,12 +586,169 @@
     "transparentBgDesc": "启用后窗口背景变为透明，可透过窗口看到桌面"
   },
   "error": {
+    "id": "错误编号",
     "defaultTitle": "发生严重错误",
     "detail": "错误详情",
     "close": "关闭",
     "exportLogs": "导出日志",
     "exported": "日志已导出，请携带日志联系开发者",
-    "contactDeveloper": "请将导出的日志文件发送给开发者以协助排查问题"
+    "exportFailed": "日志导出失败",
+    "contactDeveloper": "请将导出的日志文件发送给开发者以协助排查问题",
+    "crash": {
+      "title": "Minecraft 崩溃分析",
+      "manualMessage": "已完成实例“{version}”的崩溃日志分析",
+      "autoMessage": "实例“{version}”异常退出，退出码：{exitCode}",
+      "instance": "实例",
+      "exitCode": "退出码",
+      "unknown": "未知",
+      "reasonsLabel": "分析到的可能原因",
+      "reasonIndex": "可能原因 {index}",
+      "evidence": "日志证据",
+      "suggestions": "建议操作",
+      "genericSuggestion": "导出崩溃报告并结合完整日志进一步排查。",
+      "confidence": {
+        "certain": "高置信度",
+        "likely": "较可能",
+        "possible": "可能"
+      },
+      "viewOutput": "查看输出",
+      "hideOutput": "收起输出",
+      "output": "游戏输出",
+      "outputFailed": "读取游戏输出失败",
+      "exportReport": "导出崩溃报告",
+      "exportFailed": "崩溃报告导出失败",
+      "exported": "崩溃报告已导出到：{path}",
+      "reasons": {
+        "jvm_invalid_arguments": {
+          "title": "JVM 参数无效",
+          "suggestions": ["移除最近添加的 JVM 参数。", "确认参数适用于当前 Java 版本。"]
+        },
+        "memory_out_of_memory": {
+          "title": "可用内存不足",
+          "suggestions": ["适当增加游戏内存，或关闭占用较高的程序。", "若已经分配过多内存，请降低分配值并检查模组。"]
+        },
+        "java_incompatible_version": {
+          "title": "Java 版本不兼容",
+          "suggestions": ["根据 Minecraft 与加载器版本选择正确的 Java。", "优先使用 64 位 HotSpot/OpenJDK 发行版。"]
+        },
+        "java_module_access": {
+          "title": "Java 模块访问受限",
+          "suggestions": ["切换到该版本推荐的 Java。", "移除不兼容的旧版加载器或核心模组。"]
+        },
+        "java_legacy_forge": {
+          "title": "旧版 Forge 与 Java 不兼容",
+          "suggestions": ["为旧版 Forge 选择兼容的 Java 8。", "更新 Forge 或相关启动组件。"]
+        },
+        "java_openj9": {
+          "title": "当前 Java 虚拟机不受支持",
+          "suggestions": ["改用 HotSpot 系列 Java。", "重新扫描并选择兼容的 Java 运行时。"]
+        },
+        "java_32bit_heap": {
+          "title": "32 位 Java 内存受限",
+          "suggestions": ["安装并选择 64 位 Java。", "在切换前临时降低内存分配。"]
+        },
+        "java_architecture_mismatch": {
+          "title": "Java 或原生库架构不匹配",
+          "suggestions": ["确保 Java、系统和原生库均为相同架构。", "删除版本的原生库缓存后重新补全文件。"]
+        },
+        "graphics_opengl_unsupported": {
+          "title": "OpenGL 不受支持",
+          "suggestions": ["更新显卡驱动并确认游戏使用独立显卡。", "避免通过不支持硬件加速的远程桌面启动。"]
+        },
+        "graphics_driver_crash": {
+          "title": "显卡驱动发生崩溃",
+          "suggestions": ["更新或回退到稳定版显卡驱动。", "暂时关闭光影、高清修复和图形增强模组。"]
+        },
+        "jvm_native_crash": {
+          "title": "Java 原生层崩溃",
+          "suggestions": ["检查 hs_err_pid 日志中的问题帧。", "更换 Java 并更新显卡驱动或相关原生组件。"]
+        },
+        "native_library_missing": {
+          "title": "原生库缺失或无法加载",
+          "suggestions": ["重新补全版本文件和原生库。", "检查安全软件是否隔离了 DLL 或动态库。"]
+        },
+        "files_integrity_failure": {
+          "title": "游戏文件损坏",
+          "suggestions": ["重新补全游戏与加载器文件。", "删除日志中指出的损坏 JAR 后重新下载。"]
+        },
+        "loader_install_incomplete": {
+          "title": "模组加载器安装不完整",
+          "suggestions": ["重新安装 Forge、Fabric、NeoForge 或 Quilt。", "确认版本 JSON 与依赖库没有被手动修改。"]
+        },
+        "mod_extracted_jar": {
+          "title": "模组被错误解压",
+          "suggestions": ["删除 mods 目录中的解压文件夹。", "仅保留原始 JAR 模组文件。"]
+        },
+        "mod_duplicate": {
+          "title": "存在重复模组",
+          "suggestions": ["根据日志证据删除重复的模组副本。", "检查同一模组是否同时存在启用和禁用版本。"]
+        },
+        "mod_missing_dependency": {
+          "title": "模组依赖缺失",
+          "suggestions": ["安装日志中列出的依赖及正确版本。", "确认依赖与当前加载器和 Minecraft 版本匹配。"]
+        },
+        "mod_incompatible": {
+          "title": "模组版本不兼容",
+          "suggestions": ["移除冲突模组或安装兼容版本。", "按加载器给出的解决方案调整模组组合。"]
+        },
+        "mod_mixin_failure": {
+          "title": "Mixin 注入失败",
+          "suggestions": ["更新证据中关联的模组及其依赖。", "逐批禁用最近添加的核心或优化模组。"]
+        },
+        "mod_config_failure": {
+          "title": "模组配置无法解析",
+          "suggestions": ["备份后删除出错的配置文件，让模组重新生成。", "检查配置是否被手动编辑为无效格式。"]
+        },
+        "mod_initialization_failure": {
+          "title": "模组初始化失败",
+          "suggestions": ["更新或暂时移除证据中涉及的模组。", "核对该模组所需的前置依赖与加载器版本。"]
+        },
+        "mod_loader_reported": {
+          "title": "加载器报告模组加载失败",
+          "suggestions": ["优先按加载器日志中的解决方案处理。", "导出报告以查看完整的加载失败上下文。"]
+        },
+        "mod_optifine_conflict": {
+          "title": "OptiFine 或图形模组冲突",
+          "suggestions": ["暂时移除 OptiFine 后重试。", "使用与当前加载器兼容的图形优化方案。"]
+        },
+        "resource_render_failure": {
+          "title": "资源包或渲染资源异常",
+          "suggestions": ["禁用最近添加的资源包或光影包。", "降低资源分辨率并检查显存占用。"]
+        },
+        "world_block_failure": {
+          "title": "世界中的方块导致崩溃",
+          "suggestions": ["先备份存档。", "根据证据定位方块，移除相关模组或使用修复工具处理区块。"]
+        },
+        "world_entity_failure": {
+          "title": "世界中的实体导致崩溃",
+          "suggestions": ["先备份存档。", "根据证据定位实体，移除相关模组或清理异常实体。"]
+        },
+        "game_manual_debug_crash": {
+          "title": "游戏触发了调试崩溃",
+          "suggestions": ["确认是否误触发了调试崩溃快捷键。", "若非主动触发，请检查键盘映射或自动化工具。"]
+        },
+        "game_crash_report": {
+          "title": "Minecraft 已生成崩溃报告",
+          "suggestions": ["查看其他可能原因与日志证据。", "导出完整报告供进一步排查。"]
+        },
+        "stack_suspected_mod": {
+          "title": "堆栈指向可疑模组",
+          "suggestions": ["更新或暂时移除列出的可疑模组。", "若问题仍存在，逐批排查相邻依赖模组。"]
+        },
+        "stack_suspected_component": {
+          "title": "堆栈指向第三方组件",
+          "suggestions": ["根据列出的包名检查对应模组或组件。", "导出报告并结合模组列表进一步定位。"]
+        },
+        "unknown_no_logs": {
+          "title": "没有可用的崩溃日志",
+          "suggestions": ["再次启动并等待崩溃报告写入完成。", "检查日志目录权限与安全软件拦截。"]
+        },
+        "unknown_unclassified": {
+          "title": "暂时无法确定原因",
+          "suggestions": ["导出崩溃报告并保留完整日志。", "尝试移除最近的改动后再次启动。"]
+        }
+      }
+    }
   },
   "common": {
     "confirm": "确认",

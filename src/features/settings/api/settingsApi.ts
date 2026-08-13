@@ -1,4 +1,5 @@
 import backend from '@/api/client'
+import { unwrapResponse as assertSuccess } from '@/app/runtime/errorPresentation'
 import type {
   DownloadConfig,
   GameConfig,
@@ -8,13 +9,6 @@ import type {
   SystemMemoryInfo,
   UiConfig,
 } from '@/types/api'
-
-function assertSuccess<T>(result: { success: boolean; data?: T; message?: string }, operation: string): T {
-  if (!result.success) {
-    throw new Error(result.message || `${operation}失败`)
-  }
-  return result.data as T
-}
 
 // 图片 URL 内存缓存：避免重复 IPC 读取与解码（按路径缓存，上限 32 条）
 const IMAGE_URL_CACHE_LIMIT = 32

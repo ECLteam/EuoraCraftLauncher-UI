@@ -136,7 +136,7 @@ import InstanceInstallModal from '@/components/instances/InstanceInstallModal.vu
 import UiIcon from '@/components/ui/Icon.vue'
 import UiSelect from '@/components/ui/Select.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
-import { useGlassMessage } from '@/composables/useGlassMessage'
+import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
 import {
   VERSION_FILTERS,
@@ -158,7 +158,7 @@ import type {
 } from '@/types/api'
 
 const { t } = useI18n()
-const glassMessage = useGlassMessage()
+const launcherMessage = useLauncherMessage()
 const { run } = useAsyncAction({ showSuccess: false, showError: false })
 const installStore = useInstanceInstallStore()
 const settingsStore = useSettingsStore()
@@ -193,7 +193,7 @@ async function loadLoaderVersions(loaderType: string, gameVersion: string) {
     const versions = await installStore.loadLoaderVersions(loaderType as InstallableLoader, gameVersion)
     if (versions.length === 0) {
       const loaderName = loaderType.charAt(0).toUpperCase() + loaderType.slice(1)
-      glassMessage.warning(t('versions.download.noLoaderVersions', { loader: loaderName }))
+      launcherMessage.warning(t('versions.download.noLoaderVersions', { loader: loaderName }))
     }
   } catch (e: unknown) {
     console.error(`获取 ${loaderType} 版本失败:`, e)
@@ -322,7 +322,7 @@ const topOffset = computed(() => visibleRange.value.start * itemHeight)
 async function fetchVersions() {
   await fetchVersionsData()
   if (versionsError.value) {
-    glassMessage.error(t('versions.download.fetchFailed'))
+    launcherMessage.error(t('versions.download.fetchFailed'))
   }
 }
 
@@ -363,9 +363,8 @@ async function loadDefaultGamePath() {
   const paths = data.minecraft_paths || []
   gamePaths.value = paths.map((p: MinecraftPathEntry) => {
     const pathStr = typeof p === 'string' ? p : p.path || ''
-    const name = typeof p === 'object' && p.name
-      ? p.name
-      : pathStr.split(/[\\/]/).pop() || t('versions.manage.gamePath')
+    const name =
+      typeof p === 'object' && p.name ? p.name : pathStr.split(/[\\/]/).pop() || t('versions.manage.gamePath')
     return { value: pathStr, label: name }
   })
 
@@ -427,11 +426,11 @@ async function doInstall() {
   const gamePath = installForm.value.gamePath || defaultGamePath.value
 
   if (!versionId) {
-    glassMessage.warning(t('versions.download.noVersionId'))
+    launcherMessage.warning(t('versions.download.noVersionId'))
     return
   }
   if (!gamePath) {
-    glassMessage.warning('请选择游戏目录')
+    launcherMessage.warning('请选择游戏目录')
     return
   }
 
@@ -439,7 +438,7 @@ async function doInstall() {
   try {
     const versionDirName = versionName
     if (await installStore.hasVersionConflict(gamePath, versionDirName)) {
-      glassMessage.error(t('versions.download.versionConflict', { version: versionDirName }))
+      launcherMessage.error(t('versions.download.versionConflict', { version: versionDirName }))
       return
     }
   } catch (e) {
@@ -472,14 +471,14 @@ async function doInstall() {
     }
 
     await installStore.install(versionId, params)
-    glassMessage.success(t('versions.download.installQueued', { version: versionId }))
+    launcherMessage.success(t('versions.download.installQueued', { version: versionId }))
     saveLastInstallPath(gamePath)
   } catch (e: unknown) {
     globalTaskQueue.updateTask(taskId, {
       status: 'error',
       message: (e instanceof Error ? e.message : String(e)) || t('versions.download.installFailed'),
     })
-    glassMessage.error((e instanceof Error ? e.message : String(e)) || t('versions.download.installFailed'))
+    launcherMessage.error((e instanceof Error ? e.message : String(e)) || t('versions.download.installFailed'))
   }
 }
 

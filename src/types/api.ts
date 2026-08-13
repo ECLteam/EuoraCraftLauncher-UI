@@ -14,6 +14,10 @@ export interface ApiResponse<T = unknown> {
   data?: T
   message?: string
   errorCode?: string
+  presentation?: 'message' | 'modal'
+  errorId?: string
+  title?: string
+  detail?: string
   timestamp?: number
 }
 
@@ -183,8 +187,10 @@ export interface GameInstance {
   name: string
   type: string
   isRunning: boolean
+  pid?: number | null
   version?: string
   versionId: string
+  loader?: string | null
   gamePath: string
 }
 
@@ -192,6 +198,25 @@ export interface VersionRunStats {
   launchCount: number
   lastRunDurationSeconds: number
   totalRunDurationSeconds: number
+}
+
+export type CrashConfidence = 'certain' | 'likely' | 'possible'
+
+export interface CrashReason {
+  code: string
+  confidence: CrashConfidence
+  evidence: string[]
+  parameters: Record<string, unknown>
+}
+
+export interface CrashAnalysisResult {
+  reportId: string
+  versionId: string
+  exitCode?: number | null
+  detectedBy: string[]
+  reasons: CrashReason[]
+  sourceFiles: string[]
+  hasOutput: boolean
 }
 
 export interface GameInstancesChangedEvent {
@@ -682,6 +707,15 @@ export interface LauncherPopupEvent {
   once?: boolean
 }
 
+export interface LauncherErrorEvent {
+  error_id: string
+  title: string
+  message: string
+  detail?: string
+  kind?: 'game_crash'
+  crash?: CrashAnalysisResult
+}
+
 export interface BackendEvents {
   'config:init': {
     launcher: LauncherConfig
@@ -698,12 +732,7 @@ export interface BackendEvents {
     message: string
   }
   'launcher:agreement_required': Record<string, never>
-  'launcher:error': {
-    error_id: string
-    title: string
-    message: string
-    detail?: string
-  }
+  'launcher:error': LauncherErrorEvent
   'launcher:popup': LauncherPopupEvent
   'game:install_progress': InstallProgress
   'game:launch_progress': LaunchProgress
@@ -749,6 +778,8 @@ export type BackendEventName = keyof BackendEvents
 
 export interface CommandPayloadMap {
   system_ping: undefined
+  launcher_errors_pending: undefined
+  launcher_errors_ack: { error_ids: string[] }
 
   // 配置
   settings_get: { section?: ConfigSection; sections?: ConfigSection[] } | undefined
@@ -840,7 +871,8 @@ export interface CommandPayloadMap {
   select_directory: undefined
   select_java: undefined
   select_image: { purpose?: 'background' | 'skin' | 'cape' } | undefined
-  select_file: undefined
+  select_file: { purpose?: 'crash-analysis' } | undefined
+  select_save_file: { purpose: 'crash-report' | 'launcher-logs' }
   open_folder: { path: string }
   open_url: { url: string }
 
@@ -860,6 +892,9 @@ export interface CommandPayloadMap {
   }
   game_launch_cancel: undefined
   game_instance_stop: { instance_id: string }
+  game_crash_analyze: { file_path: string; game_path: string; version_id: string }
+  game_crash_output: { report_id: string }
+  game_crash_export: { report_id: string; output_path?: string }
 
   export_logs: { output_path?: string }
 
@@ -957,6 +992,8 @@ export type CommandName = keyof CommandPayloadMap
 
 export interface CommandResponseMap {
   system_ping: { status: string; message: string }
+  launcher_errors_pending: LauncherErrorEvent[]
+  launcher_errors_ack: { removed: number }
 
   settings_get: unknown
   settings_set: void
@@ -1017,6 +1054,7 @@ export interface CommandResponseMap {
   select_java: SelectResult
   select_image: ImageSelection
   select_file: SelectResult
+  select_save_file: SelectResult
   open_folder: void
   open_url: void
 
@@ -1026,6 +1064,9 @@ export interface CommandResponseMap {
   game_launch_cancel: void
   export_logs: { path: string }
   game_instance_stop: void
+  game_crash_analyze: CrashAnalysisResult
+  game_crash_output: { name: string; content: string }
+  game_crash_export: { path: string }
 
   plugin_list: PluginInfo[]
   plugin_info: PluginInfo

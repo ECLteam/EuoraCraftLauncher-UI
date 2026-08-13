@@ -1,10 +1,6 @@
 import backend from '@/api/client'
-import type { GameInstance, GameInstancesChangedEvent, VersionRunStats } from '@/types/api'
-
-function assertSuccess<T>(result: { success: boolean; data?: T; message?: string }, operation: string): T {
-  if (!result.success) throw new Error(result.message || `${operation}失败`)
-  return result.data as T
-}
+import { unwrapResponse as assertSuccess } from '@/app/runtime/errorPresentation'
+import type { CrashAnalysisResult, GameInstance, GameInstancesChangedEvent, VersionRunStats } from '@/types/api'
 
 export const instanceRuntimeApi = {
   async list(): Promise<GameInstance[]> {
@@ -12,13 +8,24 @@ export const instanceRuntimeApi = {
   },
 
   async stop(instanceId: string): Promise<void> {
-    assertSuccess(await backend.command('game_instance_stop', { instance_id: instanceId }), '通知实例退出')
+    assertSuccess(await backend.command('game_instance_stop', { instance_id: instanceId }), '停止实例')
   },
 
   async getStats(gamePath: string, versionId: string): Promise<VersionRunStats> {
     return assertSuccess(
       await backend.command('game_version_stats', { game_path: gamePath, version_id: versionId }),
       '读取版本运行统计'
+    )
+  },
+
+  async analyzeCrash(filePath: string, gamePath: string, versionId: string): Promise<CrashAnalysisResult> {
+    return assertSuccess(
+      await backend.command('game_crash_analyze', {
+        file_path: filePath,
+        game_path: gamePath,
+        version_id: versionId,
+      }),
+      '分析崩溃日志'
     )
   },
 

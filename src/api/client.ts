@@ -12,6 +12,7 @@
  * 前端定义所有数据类型。社区替换前端时只需保持接口不变。
  */
 
+import { launcherErrorQueue } from '@/app/runtime/errorPresentation'
 import type {
   ApiResponse,
   BackendEvents,
@@ -70,6 +71,14 @@ async function call<T = unknown>(command: string, payload: unknown = {}): Promis
     if (!response.success && !response.message?.trim()) {
       const code = response.errorCode ? ` (${response.errorCode})` : ''
       response.message = `${command} 执行失败${code}`
+    }
+    if (!response.success && response.presentation === 'modal' && response.errorId) {
+      launcherErrorQueue.enqueue({
+        error_id: response.errorId,
+        title: response.title || '启动器发生错误',
+        message: response.message || `${command} 执行失败`,
+        detail: response.detail,
+      })
     }
     Logger.log(`${response.success ? 'OK' : 'ERR'} ${command} (${dur}ms)`)
     return response
@@ -205,10 +214,18 @@ function swapToShowcase(): void {
 export const backend = {
   /** 当前应用运行环境。业务代码不应再直接检测 window.__TAURI__。 */
   runtime: {
-    get mode() { return transport.mode },
-    get isAvailable() { return transport.available },
-    get isDesktop() { return transport.mode === 'desktop' },
-    get isShowcase() { return showcaseActive || transport.mode === 'showcase' },
+    get mode() {
+      return transport.mode
+    },
+    get isAvailable() {
+      return transport.available
+    },
+    get isDesktop() {
+      return transport.mode === 'desktop'
+    },
+    get isShowcase() {
+      return showcaseActive || transport.mode === 'showcase'
+    },
   },
 
   /** 配置存取 — 前端定义结构，后端只持久化 */
@@ -298,7 +315,9 @@ export const backend = {
 
   /** 切换到展示模式 mock 数据（由 ECL_CONFIG_launcher_showcase 环境变量触发） */
   swapToShowcase,
-  get isShowcaseActive() { return showcaseActive },
+  get isShowcaseActive() {
+    return showcaseActive
+  },
 }
 
 export default backend

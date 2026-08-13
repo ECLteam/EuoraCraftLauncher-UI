@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { getErrorMessage } from '@/utils/error'
-import { useGlassMessage } from './useGlassMessage'
+import { useLauncherMessage } from './useLauncherMessage'
 
 export interface UseAsyncActionOptions {
   successMessage?: string
@@ -15,7 +15,7 @@ export interface UseAsyncActionOptions {
  * @returns loading 状态和执行函数 run
  */
 export function useAsyncAction(options: UseAsyncActionOptions = {}) {
-  const message = useGlassMessage()
+  const message = useLauncherMessage()
   const loading = ref(false)
 
   /**

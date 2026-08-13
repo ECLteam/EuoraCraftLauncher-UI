@@ -156,6 +156,12 @@ export function useLaunchProgress() {
       _progressCeiling = clamped
       _hideRequested = false
       _applyPercent(clamped)
+    } else if (stageKey === 'completed' || stageKey === 'launched' || stageKey === 'success') {
+      // 后端已确认 Java 进程创建成功时立即收束。平滑动画只用于真实后端阶段之间，
+      // 不能为了补足固定时长让“启动成功”后的进度条继续运行。
+      _progressCeiling = 100
+      _applyPercent(100)
+      _stopAnimLoop()
     } else {
       // 后端进度只放开上限；显示值始终按固定速度前进，且不会回退。
       _progressCeiling = Math.max(_progressCeiling, _smoothPercent.value, clamped, stageCeiling ?? clamped)

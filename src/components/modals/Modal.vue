@@ -107,6 +107,7 @@ const props = withDefaults(defineProps<Props>(), {
   danger: false,
   width: '',
   transitionName: 'modal',
+  icon: '',
 })
 
 const emit = defineEmits<Emits>()
@@ -139,6 +140,7 @@ interface Props {
   lockScroll?: boolean
   width?: string
   transitionName?: string
+  icon?: string
 }
 
 interface Emits {
@@ -152,6 +154,7 @@ interface Emits {
 }
 
 const iconType = computed(() => {
+  if (props.icon) return props.icon
   switch (props.type) {
     case 'confirm':
       return 'help'

@@ -143,31 +143,41 @@ export const MIRROR_OPTIONS: MirrorOption[] = [
 
 // ---- 工具函数 ----
 
+function normalizeLoaderKey(loader: string | null | undefined): string {
+  const key =
+    loader
+      ?.trim()
+      .toLowerCase()
+      .replace(/[\s_-]+/g, '') || ''
+  if (key === 'neoforged') return 'neoforge'
+  return key
+}
+
 export function getLoaderIcon(loader: string | null | undefined): string {
-  const key = loader?.toLowerCase() || ''
+  const key = normalizeLoaderKey(loader)
   return LOADER_ICON_MAP[key] || 'cube'
 }
 
 export function getLoaderImage(loader: string | null | undefined): string {
-  const key = loader?.toLowerCase() || ''
+  const key = normalizeLoaderKey(loader)
   return LOADER_IMAGE_MAP[key] || ''
 }
 
 export function getLoaderName(loader: string | null | undefined): string {
   if (!loader) return '原版'
-  const key = loader.toLowerCase()
+  const key = normalizeLoaderKey(loader)
   if (LOADER_NAME_MAP[key]) return LOADER_NAME_MAP[key]
   return loader.charAt(0).toUpperCase() + loader.slice(1)
 }
 
 export function getLoaderLabel(loader: string | null | undefined): string {
   if (!loader) return '原版'
-  const key = loader.toLowerCase()
+  const key = normalizeLoaderKey(loader)
   return LOADER_LABEL_MAP[key] || loader
 }
 
 export function getLoaderClass(loader: string | null | undefined): string {
-  const key = loader?.toLowerCase() || ''
+  const key = normalizeLoaderKey(loader)
   return LOADER_CLASS_MAP[key] || 'vanilla'
 }
 

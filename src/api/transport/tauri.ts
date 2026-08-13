@@ -17,6 +17,15 @@ function getTauri(): TauriGlobal | undefined {
   return (window as unknown as { __TAURI__?: TauriGlobal }).__TAURI__
 }
 
+function decodeEventPayload<T>(payload: T | string): T {
+  if (typeof payload !== 'string') return payload
+  try {
+    return JSON.parse(payload) as T
+  } catch {
+    return payload as T
+  }
+}
+
 export function createTauriTransport(): BackendTransport {
   return {
     mode: 'desktop',
@@ -29,7 +38,7 @@ export function createTauriTransport(): BackendTransport {
     async listen<T>(event: string, handler: (payload: T) => void) {
       const tauri = getTauri()
       if (!tauri?.event) throw new Error('Tauri 事件系统未就绪')
-      return tauri.event.listen<T>(event, ({ payload }) => handler(payload))
+      return tauri.event.listen<T | string>(event, ({ payload }) => handler(decodeEventPayload<T>(payload)))
     },
     convertFileSrc(path) {
       try {

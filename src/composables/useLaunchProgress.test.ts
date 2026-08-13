@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { LAUNCH_MIN_PROGRESS_DURATION } from '@/config/game'
 import { globalLaunchProgress } from './useLaunchProgress'
 
 describe('useLaunchProgress', () => {
@@ -57,17 +56,14 @@ describe('useLaunchProgress', () => {
     expect(globalLaunchProgress.smoothPercent.value).toBeCloseTo(64, 5)
   })
 
-  it('启动过快时仍走满最短时长，并在完成前拒绝隐藏', () => {
+  it('后端确认启动成功时立即收束进度，不继续播放补时动画', () => {
     globalLaunchProgress.show()
     globalLaunchProgress.setProgress(100, 'success', '启动成功')
-    globalLaunchProgress.hide()
 
-    runFor(LAUNCH_MIN_PROGRESS_DURATION - 100)
-    expect(globalLaunchProgress.smoothPercent.value).toBeCloseTo(98, 5)
+    expect(globalLaunchProgress.smoothPercent.value).toBe(100)
     expect(globalLaunchProgress.progress.value.visible).toBe(true)
 
-    runFor(100)
-    expect(globalLaunchProgress.smoothPercent.value).toBe(100)
+    globalLaunchProgress.hide()
     expect(globalLaunchProgress.progress.value.visible).toBe(false)
   })
 

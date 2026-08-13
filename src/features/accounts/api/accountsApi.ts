@@ -1,4 +1,5 @@
 import backend from '@/api/client'
+import { unwrapResponse as assertSuccess } from '@/app/runtime/errorPresentation'
 import type {
   AccountListData,
   AuthlibServer,
@@ -14,11 +15,6 @@ import type {
   WardrobeItem,
   WardrobeKind,
 } from '@/types/api'
-
-function assertSuccess<T>(result: { success: boolean; data?: T; message?: string }, operation: string): T {
-  if (!result.success) throw new Error(result.message || `${operation}失败`)
-  return result.data as T
-}
 
 export const accountsApi = {
   async list(): Promise<AccountListData> {

@@ -1,86 +1,79 @@
 <template>
   <div class="running-instances-page">
-    <section class="running-instances-library ecl-surface">
+    <section class="running-instances-library">
       <header class="running-instances-toolbar">
         <div class="running-instances-heading">
-          <div class="running-instances-heading-icon">
-            <UiIcon name="game" :size="19" />
-          </div>
-          <div>
-            <strong>{{ t('versions.running.title') }}</strong>
-            <span>{{ t('versions.running.description') }}</span>
-          </div>
+          <UiIcon name="play" :size="16" />
+          <strong>{{ t('versions.running.title') }}</strong>
         </div>
         <div class="running-instances-toolbar-actions">
           <span class="running-instances-count">
             <i></i>
             {{ t('versions.running.count', { count: instances.length }) }}
           </span>
-          <NButton
-            quaternary
-            circle
-            size="small"
+          <button
+            class="running-refresh"
             :title="t('versions.running.refresh')"
-            :loading="loading"
+            :disabled="loading"
             @click="loadInstances"
           >
-            <template #icon><UiIcon name="refresh" :size="15" /></template>
-          </NButton>
+            <UiIcon name="refresh" :size="14" :className="loading ? 'spin' : ''" />
+            {{ t('versions.running.refresh') }}
+          </button>
         </div>
       </header>
 
       <NSpin :show="loading" class="running-instances-content">
-        <TransitionGroup v-if="instances.length" name="running-card" tag="div" class="running-instance-grid">
-          <article v-for="instance in instances" :key="instance.id" class="running-instance-card">
-            <div class="running-instance-visual">
-              <div class="running-instance-art">
-                <img :src="minecraftIcon" alt="" />
-              </div>
-              <span class="running-instance-status">
-                <i></i>
-                {{ t('versions.running.running') }}
-              </span>
-            </div>
+        <div v-if="instances.length" class="running-instance-table">
+          <div class="running-table-header">
+            <span class="col-icon"></span>
+            <span class="col-name">{{ t('versions.running.nameColumn') }}</span>
+            <span class="col-process">{{ t('versions.running.processColumn') }}</span>
+            <span class="col-path">{{ t('versions.running.pathLabel') }}</span>
+            <span class="col-status">{{ t('versions.running.statusColumn') }}</span>
+            <span class="col-actions"></span>
+          </div>
 
-            <div class="running-instance-body">
-              <div class="running-instance-identity">
-                <strong :title="instance.name || instance.versionId">
+          <TransitionGroup name="running-row" tag="div" class="running-table-body">
+            <div v-for="instance in instances" :key="instance.id" class="running-instance-row">
+              <div class="col-icon">
+                <div class="running-version-icon">
+                  <img :src="instanceImage(instance)" alt="" />
+                </div>
+              </div>
+              <div class="col-name">
+                <span class="running-version-name" :title="instance.name || instance.versionId">
                   {{ instance.name || instance.versionId }}
-                </strong>
-                <span>{{ t('versions.running.instanceType') }}</span>
+                </span>
+                <span class="running-version-detail">{{ instance.versionId || instance.version || '-' }}</span>
               </div>
-
-              <dl class="running-instance-metadata">
-                <div>
-                  <dt>{{ t('versions.running.versionLabel') }}</dt>
-                  <dd>{{ instance.versionId || instance.version || '-' }}</dd>
-                </div>
-                <div>
-                  <dt>{{ t('versions.running.pathLabel') }}</dt>
-                  <dd :title="instance.gamePath">{{ instance.gamePath || t('versions.running.unknownPath') }}</dd>
-                </div>
-              </dl>
+              <div class="col-process">
+                <span class="running-process-label">{{ t('versions.running.pidLabel') }}</span>
+                <span class="running-process-value">{{ instance.pid ?? '-' }}</span>
+              </div>
+              <div class="col-path" :title="instance.gamePath">
+                {{ instance.gamePath || t('versions.running.unknownPath') }}
+              </div>
+              <div class="col-status">
+                <span class="running-instance-status">
+                  <i></i>
+                  {{ t('versions.running.running') }}
+                </span>
+              </div>
+              <div class="col-actions">
+                <button
+                  class="running-stop-button"
+                  :title="t('versions.running.stop')"
+                  :disabled="stoppingIds.size > 0"
+                  @click="confirmStop(instance)"
+                >
+                  <UiIcon :name="stoppingIds.has(instance.id) ? 'spinner' : 'stop'" :size="14" />
+                  <span>{{ t('versions.running.stop') }}</span>
+                </button>
+              </div>
             </div>
-
-            <footer class="running-instance-footer">
-              <span class="running-instance-session">
-                <UiIcon name="shield" :size="13" />
-                {{ t('versions.running.sessionManaged') }}
-              </span>
-              <NButton
-                type="error"
-                secondary
-                size="small"
-                :loading="stoppingIds.has(instance.id)"
-                :disabled="stoppingIds.size > 0 && !stoppingIds.has(instance.id)"
-                @click="confirmStop(instance)"
-              >
-                <template #icon><UiIcon name="stop" :size="14" /></template>
-                {{ t('versions.running.stop') }}
-              </NButton>
-            </footer>
-          </article>
-        </TransitionGroup>
+          </TransitionGroup>
+        </div>
 
         <div v-else-if="!loading" class="running-empty">
           <div class="running-empty-icon">
@@ -103,19 +96,26 @@ import { NButton, NSpin, useDialog } from 'naive-ui'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
-import { useGlassMessage } from '@/composables/useGlassMessage'
+import { useLauncherMessage } from '@/composables/useLauncherMessage'
+import { getLoaderImage } from '@/config/version'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
 import type { GameInstance } from '@/types/api'
 
 const { t } = useI18n()
 const dialog = useDialog()
-const message = useGlassMessage()
-const minecraftIcon = '/img/item/grass.png'
+const message = useLauncherMessage()
 const instances = ref<GameInstance[]>([])
 const loading = ref(false)
 const stoppingIds = ref(new Set<string>())
 let requestId = 0
 let stopListening: (() => void) | null = null
+
+function instanceImage(instance: GameInstance): string {
+  if (instance.loader) return getLoaderImage(instance.loader) || '/img/item/grass.png'
+  const name = `${instance.name} ${instance.versionId} ${instance.version ?? ''}`.toLowerCase()
+  const loader = ['neoforge', 'fabric', 'quilt', 'optifine', 'forge'].find((candidate) => name.includes(candidate))
+  return getLoaderImage(loader) || '/img/item/grass.png'
+}
 
 async function loadInstances(): Promise<void> {
   const currentRequest = ++requestId
@@ -173,28 +173,33 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .running-instances-page {
+  display: flex;
   min-width: 0;
   height: 100%;
-  padding: var(--s-md);
   overflow: hidden;
 }
 
 .running-instances-library {
   display: flex;
+  flex: 1;
   min-width: 0;
   height: 100%;
   flex-direction: column;
   overflow: hidden;
-  border-radius: var(--r-lg);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-sm);
+  background: var(--card-bg);
 }
 
 .running-instances-toolbar {
   display: flex;
-  min-height: 58px;
+  flex: 0 0 auto;
+  height: 43px;
   align-items: center;
   justify-content: space-between;
-  gap: var(--s-md);
-  padding: 10px var(--s-md);
+  gap: 11px;
+  padding: 0 14px;
   border-bottom: 1px solid var(--divider);
 }
 
@@ -206,39 +211,14 @@ onBeforeUnmount(() => {
 
 .running-instances-heading {
   min-width: 0;
-  gap: 10px;
-}
-
-.running-instances-heading-icon {
-  display: grid;
-  flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  border-radius: var(--r-sm);
-  background: var(--primary-alpha);
+  gap: 7px;
   color: var(--primary);
-}
-
-.running-instances-heading > div:last-child {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 2px;
 }
 
 .running-instances-heading strong {
   color: var(--text-primary);
   font-size: 13px;
-  font-weight: 650;
-}
-
-.running-instances-heading span {
-  overflow: hidden;
-  color: var(--text-secondary);
-  font-size: 11px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-weight: 600;
 }
 
 .running-instances-toolbar-actions {
@@ -258,8 +238,7 @@ onBeforeUnmount(() => {
   font-weight: 600;
 }
 
-.running-instances-count i,
-.running-instance-status i {
+.running-instances-count i {
   width: 6px;
   height: 6px;
   background: currentcolor;
@@ -267,9 +246,34 @@ onBeforeUnmount(() => {
   box-shadow: 0 0 7px currentcolor;
 }
 
+.running-refresh {
+  display: inline-flex;
+  height: 29px;
+  align-items: center;
+  gap: 4px;
+  padding: 0 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 11px;
+  transition: all var(--duration-fast) ease-out;
+}
+
+.running-refresh:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.running-refresh:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
 .running-instances-content {
   flex: 1;
-  min-height: 220px;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -277,193 +281,184 @@ onBeforeUnmount(() => {
   height: 100%;
 }
 
-.running-instance-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-  align-content: start;
-  gap: var(--s-md);
+.running-instance-table {
+  display: flex;
   height: 100%;
-  padding: var(--s-md);
+  min-width: 0;
+  flex-direction: column;
+}
+
+.running-table-body {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
   overflow: auto;
 }
 
-.running-instance-card {
-  position: relative;
+.running-table-header,
+.running-instance-row {
   display: flex;
   min-width: 0;
-  flex-direction: column;
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  background: var(--bg-elevated);
-  box-shadow: var(--card-shadow);
-  overflow: hidden;
-  transition:
-    border-color var(--duration-fast) var(--ease-smooth),
-    box-shadow var(--duration-fast) var(--ease-smooth),
-    transform var(--duration-fast) var(--ease-smooth);
+  align-items: center;
+  padding: 0 11px;
 }
 
-.running-instance-card:hover {
-  border-color: var(--border-hover);
-  box-shadow: 0 8px 22px rgba(21, 31, 52, 0.09);
-  transform: translateY(-2px);
-}
-
-.running-instance-visual {
-  position: relative;
-  display: grid;
-  height: 116px;
-  place-items: center;
-  overflow: hidden;
+.running-table-header {
+  flex: 0 0 auto;
+  height: 30px;
   border-bottom: 1px solid var(--divider);
-  background:
-    radial-gradient(circle at 50% 85%, var(--primary-alpha-strong), transparent 48%),
-    linear-gradient(145deg, var(--bg-base-alt), var(--bg-elevated));
+  background: var(--bg-elevated);
+  color: var(--text-tertiary);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-.running-instance-visual::before,
-.running-instance-visual::after {
-  position: absolute;
-  width: 70px;
-  height: 70px;
-  border: 1px solid color-mix(in srgb, var(--primary) 12%, transparent);
-  border-radius: 18px;
-  content: '';
-  transform: rotate(24deg);
+.running-instance-row {
+  flex: 0 0 56px;
+  border-bottom: 1px solid var(--divider);
+  transition: background var(--duration-fast) ease-out;
 }
 
-.running-instance-visual::before {
-  top: -34px;
-  left: -18px;
+.running-instance-row:hover {
+  background: var(--bg-hover);
 }
 
-.running-instance-visual::after {
-  right: -20px;
-  bottom: -44px;
+.running-instance-row:last-child {
+  border-bottom: none;
 }
 
-.running-instance-art {
-  z-index: 1;
-  display: grid;
-  width: 76px;
-  height: 76px;
-  place-items: center;
-  border-radius: var(--r-md);
-  background: color-mix(in srgb, var(--bg-elevated) 78%, transparent);
-  box-shadow: 0 10px 26px rgba(21, 31, 52, 0.1);
+.col-icon {
+  flex: 0 0 auto;
+  width: 38px;
 }
 
-.running-instance-art img {
-  width: 58px;
-  height: 58px;
+.col-name {
+  display: flex;
+  flex: 1 1 180px;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.col-process {
+  display: flex;
+  flex: 0 0 82px;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.col-path {
+  flex: 1 1 190px;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-tertiary);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.col-status {
+  display: flex;
+  flex: 0 0 66px;
+  justify-content: center;
+}
+
+.col-actions {
+  display: flex;
+  flex: 0 0 64px;
+  justify-content: flex-end;
+}
+
+.running-version-icon {
+  display: flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+}
+
+.running-version-icon img {
+  width: 30px;
+  height: 30px;
   object-fit: contain;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
 
-.running-instance-status {
-  position: absolute;
-  z-index: 2;
-  top: 9px;
-  right: 9px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 7px;
-  border: 1px solid color-mix(in srgb, var(--success) 20%, transparent);
-  border-radius: var(--r-full);
-  background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
-  color: var(--success);
-  font-size: 10px;
-  font-weight: 600;
-  backdrop-filter: blur(8px);
-}
-
-.running-instance-body {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: var(--s-md);
-  padding: var(--s-md);
-}
-
-.running-instance-identity {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.running-instance-identity strong {
+.running-version-name {
   overflow: hidden;
   color: var(--text-primary);
-  font-size: 14px;
-  font-weight: 650;
+  font-size: 13px;
+  font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.running-instance-identity span {
-  color: var(--text-secondary);
-  font-size: 11px;
-}
-
-.running-instance-metadata {
-  display: flex;
-  min-width: 0;
-  margin: 0;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.running-instance-metadata > div {
-  display: grid;
-  min-width: 0;
-  grid-template-columns: 52px minmax(0, 1fr);
-  align-items: center;
-  gap: var(--s-sm);
-}
-
-.running-instance-metadata dt,
-.running-instance-metadata dd {
-  margin: 0;
-  font-size: 11px;
-}
-
-.running-instance-metadata dt {
-  color: var(--text-tertiary);
-}
-
-.running-instance-metadata dd {
+.running-version-detail {
   overflow: hidden;
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
+  font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.running-instance-footer {
-  display: flex;
-  min-height: 46px;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s-sm);
-  margin-top: auto;
-  padding: 8px var(--s-md);
-  border-top: 1px solid var(--divider);
-  background: color-mix(in srgb, var(--bg-base-alt) 42%, transparent);
-}
-
-.running-instance-session {
-  display: inline-flex;
-  min-width: 0;
-  align-items: center;
-  gap: 5px;
+.running-process-label {
   color: var(--text-tertiary);
   font-size: 10px;
 }
 
-.running-instance-session :deep(svg) {
-  color: var(--primary);
+.running-process-value {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.running-instance-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: var(--r-xs);
+  background: var(--success-alpha);
+  color: var(--success);
+  font-size: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.running-instance-status i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentcolor;
+}
+
+.running-stop-button {
+  display: inline-flex;
+  height: 25px;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 0 6px;
+  border: none;
+  border-radius: var(--r-xs);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 10px;
+  transition: all var(--duration-fast) ease-out;
+}
+
+.running-stop-button:hover:not(:disabled) {
+  background: var(--error-alpha);
+  color: var(--error);
+}
+
+.running-stop-button:disabled {
+  cursor: default;
+  opacity: 0.5;
 }
 
 .running-empty {
@@ -501,48 +496,40 @@ onBeforeUnmount(() => {
   line-height: 1.6;
 }
 
-.running-card-enter-active,
-.running-card-leave-active {
+.running-row-enter-active,
+.running-row-leave-active {
   transition: all var(--duration-normal) var(--ease-smooth);
 }
 
-.running-card-enter-from,
-.running-card-leave-to {
+.running-row-enter-from,
+.running-row-leave-to {
   opacity: 0;
-  transform: translateY(8px) scale(0.98);
+  transform: translateY(6px);
 }
 
 @media (max-width: 760px) {
-  .running-instances-heading span {
+  .col-path {
     display: none;
-  }
-
-  .running-instance-grid {
-    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 520px) {
-  .running-instances-page {
-    padding: var(--s-sm);
-  }
-
   .running-instances-count {
     padding: 3px 6px;
   }
 
-  .running-instance-visual {
-    height: 96px;
+  .running-refresh {
+    width: 29px;
+    padding: 0;
+    justify-content: center;
   }
 
-  .running-instance-art {
-    width: 64px;
-    height: 64px;
+  .running-refresh:not(:disabled) {
+    font-size: 0;
   }
 
-  .running-instance-art img {
-    width: 50px;
-    height: 50px;
+  .col-process {
+    display: none;
   }
 }
 </style>

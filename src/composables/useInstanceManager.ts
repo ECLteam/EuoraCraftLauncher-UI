@@ -13,7 +13,7 @@ import { instanceSettingsApi } from '@/features/instances/api/instanceSettingsAp
 import { createDefaultVersionSettings, parseLaunchArguments } from '@/features/instances/model/instanceSettings'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import type { ScannedVersion, LaunchProgress } from '@/types/api'
-import { useGlassMessage } from './useGlassMessage'
+import { useLauncherMessage } from './useLauncherMessage'
 import { globalLaunchProgress } from './useLaunchProgress'
 
 export interface VersionItem {
@@ -37,7 +37,7 @@ export function setGlobalSelection(versionId: string, gamePath?: string) {
 }
 
 export function useInstanceManager(t: (key: string, ...args: unknown[]) => string) {
-  const message = useGlassMessage()
+  const message = useLauncherMessage()
   const router = useRouter()
   const settingsStore = useSettingsStore()
   const { show: showLaunchProgress, hide: hideLaunchProgress, setProgress: setLaunchProgress } = globalLaunchProgress
@@ -96,9 +96,7 @@ export function useInstanceManager(t: (key: string, ...args: unknown[]) => strin
 
     // 确定当前激活的游戏路径：优先用全局 active_path，其次用之前已选中的路径，最后用第一个
     const activePath = settingsStore.game.active_path || currentGamePath.value || stringPaths[0] || ''
-    const pathVersions = activePath
-      ? versions.value.filter((v) => v.gamePath === activePath)
-      : []
+    const pathVersions = activePath ? versions.value.filter((v) => v.gamePath === activePath) : []
 
     // 尝试从该路径的 ecl.json 读取 activeVersion
     let activeVersionId: string | null = null
@@ -244,6 +242,9 @@ export function useInstanceManager(t: (key: string, ...args: unknown[]) => strin
       }
     })
 
+    // 确保 Tauri 事件监听已经落地，再让后端开始执行；否则启动较快时会漏掉前几个真实阶段。
+    await backend.waitForEventListeners()
+
     setLaunchProgress(0, 'prepare', `正在准备启动 ${selectedVersion.value}...`)
 
     let versionSettings = createDefaultVersionSettings()
@@ -285,7 +286,7 @@ export function useInstanceManager(t: (key: string, ...args: unknown[]) => strin
       setLaunchProgress(100, 'launched', `游戏 ${selectedVersion.value} 已启动`)
       message.success(`游戏 ${selectedVersion.value} 已启动`)
     }
-    setTimeout(hideLaunchProgress, 1500)
+    setTimeout(hideLaunchProgress, LAUNCH_SUCCESS_HIDE_DELAY)
   }
 
   let statusId = 0

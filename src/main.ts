@@ -1,12 +1,13 @@
 import { create as createNaiveUI } from 'naive-ui'
 import { createApp } from 'vue'
+import AppProviders from '@/app/AppProviders.vue'
 import { pinia } from '@/app/stores'
-import App from '@/App.vue'
 import { initTheme } from '@/composables/useTheme'
 import { i18n, getCurrentLocale, loadLocaleFromBackend } from '@/i18n'
 import router from '@/router'
 import UiIcon from './components/ui/Icon.vue'
 import '@/styles/main.css'
+import '@/styles/components/ui/LauncherMessage.css'
 
 // 快速初始化主题（从本地存储），避免白屏闪烁
 // 后端配置将在 App.vue 挂载后加载并覆盖
@@ -17,7 +18,7 @@ document.documentElement.setAttribute('lang', getCurrentLocale())
 loadLocaleFromBackend().catch(() => {})
 
 const naive = createNaiveUI()
-const app = createApp(App)
+const app = createApp(AppProviders)
 app.use(pinia)
 app.use(router)
 app.use(naive)

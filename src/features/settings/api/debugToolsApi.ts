@@ -1,16 +1,7 @@
 import backend from '@/api/client'
+import { unwrapResponse as assertSuccess } from '@/app/runtime/errorPresentation'
 import { clearLauncherPopupCache } from '@/app/runtime/useLauncherPopupQueue'
 import type { DebugMaintenanceResult } from '@/types/api'
-
-function assertSuccess(
-  result: { success: boolean; data?: DebugMaintenanceResult; message?: string },
-  operation: string
-): DebugMaintenanceResult {
-  if (!result.success || !result.data) {
-    throw new Error(result.message || `${operation}失败`)
-  }
-  return result.data
-}
 
 export const debugToolsApi = {
   async resetLauncherData(): Promise<DebugMaintenanceResult> {
