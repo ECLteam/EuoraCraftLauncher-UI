@@ -7,7 +7,11 @@
       <template #content-top>
         <div id="plugin-slot-versions-content-top" class="plugin-slot-container"></div>
       </template>
-      <ManageTab />
+      <RouterView v-slot="{ Component }">
+        <Transition name="page" mode="out-in">
+          <component :is="Component" />
+        </Transition>
+      </RouterView>
     </SectionLayout>
 
     <DownloadModal v-model:visible="showDownloadModal" />
@@ -19,7 +23,6 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import SectionLayout from '@/components/layout/SectionLayout.vue'
 import DownloadModal from '@/views/instances/DownloadModal.vue'
-import ManageTab from '@/views/instances/ManageTab.vue'
 
 const { t } = useI18n()
 
@@ -27,6 +30,7 @@ const showDownloadModal = ref(false)
 
 const navItems = computed(() => [
   { path: '/versions/manage', icon: 'settings', label: t('versions.manageTab') },
+  { path: '/versions/running', icon: 'activity', label: t('versions.runningTab') },
   {
     key: 'download',
     icon: 'download',

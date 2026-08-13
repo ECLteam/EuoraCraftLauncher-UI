@@ -135,14 +135,16 @@ export function useInstanceManager(t: (key: string, ...args: unknown[]) => strin
   }
 
   function selectVersion(id: string, gamePath?: string) {
+    const prevId = selectedVersion.value
+    const prevPath = currentGamePath.value
     selectedVersion.value = id
     const selected = gamePath
       ? versions.value.find((version) => version.id === id && version.gamePath === gamePath)
       : versions.value.find((version) => version.id === id)
     const resolvedPath = selected?.gamePath || gamePath || currentGamePath.value
     currentGamePath.value = resolvedPath
-    // 同步写入该路径下的 ecl.json（异步，不阻塞）
-    if (id && resolvedPath) {
+    // 值未变化时跳过写入，避免每次页面加载都重写 ecl.json
+    if (id && resolvedPath && (id !== prevId || resolvedPath !== prevPath)) {
       void instancePathConfigApi.setActiveVersion(resolvedPath, id).catch((error) => {
         console.warn('[useInstanceManager] 写入 ecl.json activeVersion 失败:', error)
       })

@@ -8,6 +8,11 @@ const routes: RouteRecordRaw[] = [
     redirect: '/versions/manage',
     children: [
       { path: 'manage', name: 'versions-manage', component: () => import('@/views/instances/ManageTab.vue') },
+      {
+        path: 'running',
+        name: 'versions-running',
+        component: () => import('@/views/instances/RunningInstancesTab.vue'),
+      },
     ],
   },
   { path: '/plugins', name: 'plugins', component: () => import('@/views/Plugins.vue') },

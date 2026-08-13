@@ -184,6 +184,21 @@ export interface GameInstance {
   type: string
   isRunning: boolean
   version?: string
+  versionId: string
+  gamePath: string
+}
+
+export interface VersionRunStats {
+  launchCount: number
+  lastRunDurationSeconds: number
+  totalRunDurationSeconds: number
+}
+
+export interface GameInstancesChangedEvent {
+  action: 'started' | 'exited' | 'stopped'
+  instanceId: string
+  versionId: string
+  gamePath: string
 }
 
 export interface InstallVersionResult {
@@ -693,6 +708,7 @@ export interface BackendEvents {
   'game:install_progress': InstallProgress
   'game:launch_progress': LaunchProgress
   'game:versions_changed': { gamePath: string }
+  'game:instances_changed': GameInstancesChangedEvent
   'mods:install_progress': { phase: 'resolving' | 'downloading'; projectId?: string; filename?: string }
   accounts_changed: AccountListData
   accounts_microsoft_login_status: MicrosoftLoginStatusEvent
@@ -830,6 +846,7 @@ export interface CommandPayloadMap {
 
   // 实例
   game_instances: undefined
+  game_version_stats: { game_path: string; version_id: string }
   game_launch: {
     version_id: string
     game_path: string
@@ -1004,6 +1021,7 @@ export interface CommandResponseMap {
   open_url: void
 
   game_instances: GameInstance[]
+  game_version_stats: VersionRunStats
   game_launch: LaunchInstanceResult
   game_launch_cancel: void
   export_logs: { path: string }

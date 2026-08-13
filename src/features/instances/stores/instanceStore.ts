@@ -102,6 +102,8 @@ export const useInstanceStore = defineStore('versions', () => {
   }
 
   function selectVersion(versionId: string, gamePath?: string): void {
+    const prevId = selectedVersion.value
+    const prevPath = currentGamePath.value
     const selected = gamePath
       ? versions.value.find((version) => version.id === versionId && version.gamePath === gamePath)
       : versions.value.find((version) => version.id === versionId)
@@ -109,10 +111,12 @@ export const useInstanceStore = defineStore('versions', () => {
     selectedVersion.value = selected.id
     currentGamePath.value = selected.gamePath
     setGlobalSelection(selected.id, selected.gamePath)
-    // 写入该路径下的 ecl.json（异步，不阻塞）
-    void instancePathConfigApi.setActiveVersion(selected.gamePath, selected.id).catch((error) => {
-      console.warn('[instanceStore] 写入 ecl.json activeVersion 失败:', error)
-    })
+    // 值未变化时跳过写入，避免每次页面加载都重写 ecl.json
+    if (versionId !== prevId || selected.gamePath !== prevPath) {
+      void instancePathConfigApi.setActiveVersion(selected.gamePath, selected.id).catch((error) => {
+        console.warn('[instanceStore] 写入 ecl.json activeVersion 失败:', error)
+      })
+    }
   }
 
   function setGamePath(path: string): void {

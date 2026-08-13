@@ -1,4 +1,12 @@
-import type { ApiResponse, BackendEvents, MinecraftAccount, PluginInfo, WardrobeItem } from '@/types/api'
+import type {
+  ApiResponse,
+  BackendEvents,
+  GameInstance,
+  MinecraftAccount,
+  PluginInfo,
+  VersionRunStats,
+  WardrobeItem,
+} from '@/types/api'
 import { loadShowcaseConfig, persistShowcaseConfig } from './configPersistence'
 import {
   createShowcaseAccount,
@@ -43,6 +51,8 @@ export function createShowcaseTransport(): BackendTransport {
   const accounts = structuredClone(showcaseAccounts)
   const plugins = structuredClone(showcasePlugins)
   const wardrobe: WardrobeItem[] = []
+  const runningInstances: GameInstance[] = []
+  const versionStats = new Map<string, VersionRunStats>()
 
   const emit = <E extends keyof BackendEvents>(event: E, payload: BackendEvents[E]) => {
     for (const handler of listeners.get(event) ?? []) handler(payload)
@@ -317,17 +327,65 @@ export function createShowcaseTransport(): BackendTransport {
       case 'user_agreement_clear':
         return success()
       case 'game_instances':
-        return success([])
-      case 'game_launch':
+        return success(structuredClone(runningInstances))
+      case 'game_version_stats': {
+        const key = `${String(payload.game_path)}::${String(payload.version_id)}`
+        return success(
+          structuredClone(
+            versionStats.get(key) ?? {
+              launchCount: 7,
+              lastRunDurationSeconds: 3862,
+              totalRunDurationSeconds: 28435,
+            }
+          )
+        )
+      }
+      case 'game_launch': {
         emitLaunchProgress()
-        return success({
-          instanceId: 'showcase-instance',
+        const instance: GameInstance = {
+          id: `showcase-instance-${Date.now()}`,
+          name: String(payload.version_id),
+          type: 'Minecraft',
+          isRunning: true,
+          version: String(payload.version_id),
           versionId: String(payload.version_id),
           gamePath: String(payload.game_path || '.minecraft'),
+        }
+        runningInstances.push(instance)
+        const statsKey = `${instance.gamePath}::${instance.versionId}`
+        const stats = versionStats.get(statsKey) ?? {
+          launchCount: 7,
+          lastRunDurationSeconds: 3862,
+          totalRunDurationSeconds: 28435,
+        }
+        versionStats.set(statsKey, { ...stats, launchCount: stats.launchCount + 1 })
+        emit('game:instances_changed', {
+          action: 'started',
+          instanceId: instance.id,
+          versionId: instance.versionId,
+          gamePath: instance.gamePath,
         })
+        return success({
+          instanceId: instance.id,
+          versionId: instance.versionId,
+          gamePath: instance.gamePath,
+        })
+      }
       case 'game_launch_cancel':
-      case 'game_instance_stop':
         return success()
+      case 'game_instance_stop': {
+        const index = runningInstances.findIndex((instance) => instance.id === payload.instance_id)
+        const [stopped] = index >= 0 ? runningInstances.splice(index, 1) : []
+        if (stopped) {
+          emit('game:instances_changed', {
+            action: 'stopped',
+            instanceId: stopped.id,
+            versionId: stopped.versionId,
+            gamePath: stopped.gamePath,
+          })
+        }
+        return success()
+      }
       case 'info_card_get':
         return success(structuredClone(showcaseInfoCard))
       case 'plugin_list':

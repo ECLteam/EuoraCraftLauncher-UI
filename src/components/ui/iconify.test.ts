@@ -8,4 +8,10 @@ describe('图标映射', () => {
       expect(icons.icons[tablerName], `短名 ${short} -> tabler:${tablerName} 不存在`).toBeDefined()
     }
   })
+
+  it('实例运行管理使用的图标短名均已注册', () => {
+    for (const shortName of ['activity', 'game', 'refresh', 'shield', 'stop']) {
+      expect(ICON_MAP[shortName], `实例运行管理图标 ${shortName} 未注册`).toBeDefined()
+    }
+  })
 })

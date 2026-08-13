@@ -53,6 +53,30 @@
             </div>
           </div>
 
+          <div class="info-card">
+            <div class="info-card__header">{{ t('versions.detail.runStats') }}</div>
+            <div v-if="statsLoading" class="settings-loading-state">
+              <NSpin size="small" />
+              <span>{{ t('versions.detail.loadingStats') }}</span>
+            </div>
+            <div v-else class="info-grid">
+              <div class="info-item">
+                <span class="info-label">{{ t('versions.detail.launchCount') }}</span>
+                <span class="info-value">{{
+                  t('versions.detail.launchCountValue', { count: runStats.launchCount })
+                }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">{{ t('versions.detail.lastRunDuration') }}</span>
+                <span class="info-value">{{ formatRunDuration(runStats.lastRunDurationSeconds) }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">{{ t('versions.detail.totalRunDuration') }}</span>
+                <span class="info-value">{{ formatRunDuration(runStats.totalRunDurationSeconds) }}</span>
+              </div>
+            </div>
+          </div>
+
           <div class="actions-card">
             <div class="actions-card__header">{{ t('versions.detail.quickActions') }}</div>
             <div class="overview-actions">
@@ -100,7 +124,9 @@
                 </div>
               </div>
               <div class="mods-panel-header-right">
-                <span v-if="filteredMods.length" class="mods-count">{{ t('versions.mods.count', { count: filteredMods.length }) }}</span>
+                <span v-if="filteredMods.length" class="mods-count">{{
+                  t('versions.mods.count', { count: filteredMods.length })
+                }}</span>
                 <NButton size="tiny" secondary @click="handleOnlineSearch">
                   <template #icon><UiIcon name="search" :size="14" /></template>
                   {{ t('versions.mods.onlineSearch') }}
@@ -129,11 +155,7 @@
                       <span class="mcol-actions" />
                     </div>
                     <div class="mods-table-body">
-                      <div
-                        v-for="mod in filteredMods"
-                        :key="mod.filename"
-                        class="table-row"
-                      >
+                      <div v-for="mod in filteredMods" :key="mod.filename" class="table-row">
                         <span class="mcol-name">
                           <span class="mod-name">{{ mod.name || mod.filename.replace(/\.(jar|disabled)$/, '') }}</span>
                           <span class="mod-filename">{{ mod.filename }}</span>
@@ -151,11 +173,7 @@
                           <span class="mod-author-text">{{ mod.author || '-' }}</span>
                         </span>
                         <span class="mcol-status">
-                          <NSwitch
-                            :value="mod.enabled"
-                            size="small"
-                            @update:value="handleToggleMod(mod)"
-                          />
+                          <NSwitch :value="mod.enabled" size="small" @update:value="handleToggleMod(mod)" />
                         </span>
                         <span class="mcol-actions">
                           <button
@@ -173,7 +191,7 @@
                 <div v-else-if="!modsLoading" class="mods-empty empty-state">
                   <UiIcon name="puzzle" :size="36" class="empty-icon" />
                   <p class="empty-text">{{ t('versions.mods.noMods') }}</p>
-                  <div class="empty-actions" style="display:flex;gap:8px;margin-top:4px">
+                  <div class="empty-actions" style="display: flex; gap: 8px; margin-top: 4px">
                     <NButton size="small" secondary @click="handleAddMod">
                       <template #icon><UiIcon name="add" :size="14" /></template>
                       {{ t('versions.mods.addMod') }}
@@ -249,10 +267,7 @@
 
               <div class="settings-subgroup">
                 <div class="settings-subgroup__title">{{ t('versions.detail.javaRuntime') }}</div>
-                <SettingRow
-                  :label="t('versions.detail.customJava')"
-                  :description="t('versions.detail.customJavaDesc')"
-                >
+                <SettingRow :label="t('versions.detail.customJava')" :description="t('versions.detail.customJavaDesc')">
                   <NSwitch v-model:value="versionSettings.customJava" />
                 </SettingRow>
                 <SettingRow v-if="versionSettings.customJava" :label="t('versions.detail.javaPath')">
@@ -324,12 +339,14 @@ import UiIcon from '@/components/ui/Icon.vue'
 import { useGlassMessage } from '@/composables/useGlassMessage'
 import { getVersionImage } from '@/config/version'
 import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
+import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
 import { instanceSettingsApi } from '@/features/instances/api/instanceSettingsApi'
 import { localModsApi } from '@/features/instances/api/localModsApi'
 import { createDefaultVersionSettings, type VersionSettingsTarget } from '@/features/instances/model/instanceSettings'
+import { formatRunDuration } from '@/features/instances/model/versionStats'
 import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
-import type { ModItem, ScannedVersion } from '@/types/api'
+import type { ModItem, ScannedVersion, VersionRunStats } from '@/types/api'
 import { getLoaderIcon, getLoaderImage, getLoaderName } from '@/utils/loader'
 
 interface Props {
@@ -368,6 +385,13 @@ const versionImage = computed(() => {
 })
 
 const activeTab = ref<DetailTab>('overview')
+const runStats = reactive<VersionRunStats>({
+  launchCount: 0,
+  lastRunDurationSeconds: 0,
+  totalRunDurationSeconds: 0,
+})
+const statsLoading = ref(false)
+let statsRequestId = 0
 
 const tabs = computed(() => [
   { id: 'overview' as const, icon: 'info', label: t('versions.detail.overview') },
@@ -398,15 +422,32 @@ const filteredMods = computed(() => {
   // 搜索
   const q = modSearchQuery.value.trim().toLowerCase()
   if (q) {
-    list = list.filter(
-      (m) => m.filename.toLowerCase().includes(q) || (m.name && m.name.toLowerCase().includes(q))
-    )
+    list = list.filter((m) => m.filename.toLowerCase().includes(q) || (m.name && m.name.toLowerCase().includes(q)))
   }
   return list
 })
 
 function getGamePath(): string | null {
   return props.version?.path || props.version?.jsonPath || null
+}
+
+async function loadRunStats() {
+  const version = props.version
+  const gamePath = getGamePath()
+  if (!version || !gamePath) return
+  const requestId = ++statsRequestId
+  statsLoading.value = true
+  try {
+    const stats = await instanceRuntimeApi.getStats(gamePath, version.versionId || version.id)
+    if (requestId === statsRequestId) Object.assign(runStats, stats)
+  } catch (error) {
+    if (requestId === statsRequestId) {
+      Object.assign(runStats, { launchCount: 0, lastRunDurationSeconds: 0, totalRunDurationSeconds: 0 })
+      message.error(error instanceof Error ? error.message : t('versions.detail.loadStatsFailed'))
+    }
+  } finally {
+    if (requestId === statsRequestId) statsLoading.value = false
+  }
 }
 
 async function loadMods() {
@@ -538,6 +579,7 @@ watch(
       activeTab.value = props.initialTab
       void loadSettings()
       void loadMods()
+      void loadRunStats()
     } else {
       flushSettingsSave()
     }
@@ -545,7 +587,21 @@ watch(
   { immediate: true }
 )
 
+const stopStatsListening = instanceRuntimeApi.onChanged((payload) => {
+  const version = props.version
+  if (
+    props.visible &&
+    version &&
+    payload.versionId === (version.versionId || version.id) &&
+    payload.gamePath === getGamePath()
+  ) {
+    void loadRunStats()
+  }
+})
+
 onBeforeUnmount(() => {
+  statsRequestId += 1
+  stopStatsListening()
   if (settingsSaveTimer) clearTimeout(settingsSaveTimer)
 })
 

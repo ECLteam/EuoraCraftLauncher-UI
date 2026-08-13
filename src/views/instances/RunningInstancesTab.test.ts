@@ -1,0 +1,97 @@
+import { flushPromises, mount } from '@vue/test-utils'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { i18n } from '@/i18n'
+import RunningInstancesTab from './RunningInstancesTab.vue'
+import type * as NaiveUi from 'naive-ui'
+
+const mocks = vi.hoisted(() => ({
+  list: vi.fn(),
+  stop: vi.fn(),
+  onChanged: vi.fn(),
+  warning: vi.fn(),
+  success: vi.fn(),
+  error: vi.fn(),
+}))
+
+vi.mock('@/features/instances/api/instanceRuntimeApi', () => ({
+  instanceRuntimeApi: {
+    list: mocks.list,
+    stop: mocks.stop,
+    onChanged: mocks.onChanged,
+  },
+}))
+
+vi.mock('@/composables/useGlassMessage', () => ({
+  useGlassMessage: () => ({ success: mocks.success, error: mocks.error }),
+}))
+
+vi.mock('naive-ui', async (importOriginal) => {
+  const actual = await importOriginal<typeof NaiveUi>()
+  return {
+    ...actual,
+    useDialog: () => ({ warning: mocks.warning }),
+  }
+})
+
+const runningInstance = {
+  id: 'instance-1',
+  name: '1.21.5 Fabric',
+  type: 'Minecraft',
+  isRunning: true,
+  version: '1.21.5 Fabric',
+  versionId: '1.21.5 Fabric',
+  gamePath: 'D:/Games/.minecraft',
+}
+
+function mountTab() {
+  return mount(RunningInstancesTab, {
+    global: {
+      plugins: [i18n],
+      stubs: { Teleport: true },
+    },
+  })
+}
+
+describe('RunningInstancesTab', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mocks.list.mockResolvedValue([runningInstance])
+    mocks.stop.mockResolvedValue(undefined)
+    mocks.onChanged.mockReturnValue(vi.fn())
+  })
+
+  it('loads the current in-memory running instances', async () => {
+    const wrapper = mountTab()
+    await flushPromises()
+
+    expect(mocks.list).toHaveBeenCalledTimes(1)
+    expect(wrapper.text()).toContain('1.21.5 Fabric')
+    expect(wrapper.text()).toContain('D:/Games/.minecraft')
+  })
+
+  it('confirms and stops a selected instance', async () => {
+    const wrapper = mountTab()
+    await flushPromises()
+    const exitLabel = String(i18n.global.t('versions.running.stop'))
+    const stopButton = wrapper.findAll('button').find((button) => button.text().includes(exitLabel))
+
+    await stopButton?.trigger('click')
+    const options = mocks.warning.mock.calls[0]?.[0]
+    await options.onPositiveClick()
+    await flushPromises()
+
+    expect(mocks.stop).toHaveBeenCalledWith('instance-1')
+    expect(mocks.success).toHaveBeenCalled()
+  })
+
+  it('refreshes after a backend lifecycle event', async () => {
+    mountTab()
+    await flushPromises()
+    const handler = mocks.onChanged.mock.calls[0]?.[0]
+
+    handler({ action: 'exited', instanceId: 'instance-1', versionId: '1.21.5 Fabric', gamePath: 'D:/Games' })
+    await flushPromises()
+
+    expect(mocks.list).toHaveBeenCalledTimes(2)
+  })
+})

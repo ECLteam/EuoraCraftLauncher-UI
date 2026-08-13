@@ -16,6 +16,7 @@ export const ICON_MAP: Record<string, string> = {
   puzzle: 'puzzle',
   plugin: 'puzzle',
   bug: 'bug',
+  activity: 'activity',
   menu: 'menu-2',
   help: 'help-circle',
 
@@ -32,6 +33,7 @@ export const ICON_MAP: Record<string, string> = {
   'cloud-download': 'cloud-download',
   play: 'player-play',
   pause: 'player-pause',
+  stop: 'player-stop',
   refresh: 'refresh',
   check: 'check',
   brush: 'brush',

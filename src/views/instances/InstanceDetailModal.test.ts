@@ -11,6 +11,8 @@ const mocks = vi.hoisted(() => ({
   resetSettings: vi.fn(),
   selectJava: vi.fn(),
   openFolder: vi.fn(),
+  getStats: vi.fn(),
+  onStatsChanged: vi.fn(),
 }))
 
 vi.mock('@/features/instances/api/instanceSettingsApi', () => ({
@@ -39,6 +41,13 @@ vi.mock('naive-ui', async (importOriginal) => {
 vi.mock('@/features/instances/api/instanceInstallApi', () => ({
   instanceInstallApi: {
     openFolder: mocks.openFolder,
+  },
+}))
+
+vi.mock('@/features/instances/api/instanceRuntimeApi', () => ({
+  instanceRuntimeApi: {
+    getStats: mocks.getStats,
+    onChanged: mocks.onStatsChanged,
   },
 }))
 
@@ -85,6 +94,12 @@ describe('InstanceDetailModal', () => {
       jvmArgs: '',
       gameArgs: '',
     })
+    mocks.getStats.mockResolvedValue({
+      launchCount: 4,
+      lastRunDurationSeconds: 65,
+      totalRunDurationSeconds: 3665,
+    })
+    mocks.onStatsChanged.mockReturnValue(vi.fn())
   })
 
   it('uses horizontal tabs and opens the requested settings page', async () => {
@@ -108,7 +123,10 @@ describe('InstanceDetailModal', () => {
     await overviewTab?.trigger('click')
 
     expect(wrapper.find('.overview-page').exists()).toBe(true)
-    expect(wrapper.findAll('.info-item')).toHaveLength(3)
+    expect(wrapper.findAll('.info-item')).toHaveLength(6)
+    expect(wrapper.text()).toContain('4 次')
+    expect(wrapper.text()).toContain('1m 5s')
+    expect(mocks.getStats).toHaveBeenCalledWith('D:/Games/.minecraft', '1.21.5')
   })
 
   it('user edits auto-save after 300ms debounce', async () => {
