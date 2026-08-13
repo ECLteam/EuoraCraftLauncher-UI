@@ -1,0 +1,78 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "timezone": "Asia/Shanghai",
+  "addLabels": ["renovate","dependencies"],
+  "commitMessagePrefix": "deps:",
+  "ignoreDeps": ["node","pnpm"],
+  "schedule": [
+	"on friday"
+  ],
+  "packageRules": [
+    {
+      "matchManagers":["npm"],
+      "matchUpdateTypes":["minor","patch"],
+      "groupName": "all-dependencies"
+    },
+    {
+      "matchManagers":["npm"],
+      "matchUpdateTypes":"major",
+      "minimumReleaseAge":"7 days",
+      "dependencyDashboardApproval": true
+    },
+    {
+      "matchDepTypes":["devDependencies"],
+      "matchManagers":["npm"],
+      "groupName": "dev-dependencies"
+    },
+    {
+      "matchPackageNames":["typescript"],
+      "allowedVersions": "<7.0.0"
+    },
+    {
+      "matchDepNames":["/^@types\\//"],
+      "matchManagers":["npm"],
+      "groupName": "types-dependencies",
+      "minimumReleaseAge":"1 days",
+      "automerge": true
+    },
+    {
+      "matchDepNames":["/^(@vitejs\\/|vite$|vitest$|jsdom$|)/"],
+      "matchManagers":["npm"],
+      "groupName": "vite-ecosystem",
+      "minimumReleaseAge":"3 days",
+      "labels": ["vite"]
+    },
+    {
+      "matchDepNames":["/^(vue|vue-|@vue|@vueuse|pinia|vue-router)/"],
+      "matchManagers":["npm"],
+      "groupName": "vue-ecosystem",
+      "minimumReleaseAge":"3 days",
+      "labels": ["vue"]
+    },
+    {
+      "matchDepNames":["/^(tailwindcss|@tailwindcss\\/|autoprefixer|postcss$)/"],
+      "matchManagers":["npm"],
+      "groupName": "tailwind-ecosystem",
+      "minimumReleaseAge":"3 days",
+      "labels": ["tailwind"]
+    },
+    {
+      "matchDepNames":["/^(eslint|@eslint\\/|prettier|globals|typescript-eslint)/"],
+      "matchManagers":["npm"],
+      "groupName": "lint-tools",
+      "minimumReleaseAge":"3 days",
+      "labels":["lint"]
+    },
+    {
+      "matchCategories":["ci"],
+      "matchDepTypes":["action"],
+      "matchDatasources":["github-tags"],
+      "matchUpdateTypes":"major",
+      "groupName": "action-dependencies",
+      "labels": ["github_actions"]
+    }
+  ]
+}
