@@ -48,9 +48,7 @@ const recentList = ref<RecentInstance[]>(loadFromStorage())
 export function useRecentInstances() {
   function recordLaunch(versionId: string, versionName: string, gamePath: string) {
     // 用 (versionId, gamePath) 作为唯一键，不同路径的同名版本算不同条目
-    const filtered = recentList.value.filter(
-      (item) => !(item.versionId === versionId && item.gamePath === gamePath)
-    )
+    const filtered = recentList.value.filter((item) => !(item.versionId === versionId && item.gamePath === gamePath))
     filtered.unshift({
       versionId,
       versionName,

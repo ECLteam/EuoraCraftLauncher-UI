@@ -3,19 +3,38 @@
     <div class="panel-header">
       <div class="header-left">
         <h3 class="panel-title"><UiIcon name="cube" :size="16" />{{ pathName }}</h3>
-        <span v-if="versions.length" class="version-count-badge">{{ filteredVersions.length }}/{{ versions.length }}</span>
+        <span v-if="versions.length" class="version-count-badge"
+          >{{ filteredVersions.length }}/{{ versions.length }}</span
+        >
       </div>
       <div class="header-right">
-        <button class="toolbar-button" :class="{ active: favoritesOnly }" title="只看收藏" @click="favoritesOnly = !favoritesOnly">
+        <button
+          class="toolbar-button"
+          :class="{ active: favoritesOnly }"
+          title="只看收藏"
+          @click="favoritesOnly = !favoritesOnly"
+        >
           <UiIcon name="star" :size="14" />
         </button>
-        <button class="toolbar-button" :class="{ active: pinnedOnly }" title="只看置顶" @click="pinnedOnly = !pinnedOnly">
+        <button
+          class="toolbar-button"
+          :class="{ active: pinnedOnly }"
+          title="只看置顶"
+          @click="pinnedOnly = !pinnedOnly"
+        >
           <UiIcon name="pin" :size="14" />
         </button>
-        <button class="toolbar-button" :class="{ active: showHidden }" title="显示隐藏实例" @click="showHidden = !showHidden">
+        <button
+          class="toolbar-button"
+          :class="{ active: showHidden }"
+          title="显示隐藏实例"
+          @click="showHidden = !showHidden"
+        >
           <UiIcon :name="showHidden ? 'eye' : 'eye-off'" :size="14" />
         </button>
-        <button class="toolbar-button" title="管理分类" @click="categoryManagerVisible = true"><UiIcon name="tags" :size="14" /></button>
+        <button class="toolbar-button" title="管理分类" @click="categoryManagerVisible = true">
+          <UiIcon name="tags" :size="14" />
+        </button>
         <select v-model="categoryFilter" class="toolbar-select" title="分类筛选">
           <option value="">全部分类</option>
           <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
@@ -46,7 +65,13 @@
         </button>
         <div class="search-box">
           <UiIcon name="search" :size="16" class="search-icon" />
-          <input :value="searchQuery" type="text" placeholder="搜索别名、描述、标签、版本或加载器" class="search-input" @input="updateSearchQuery" />
+          <input
+            :value="searchQuery"
+            type="text"
+            placeholder="搜索别名、描述、标签、版本或加载器"
+            class="search-input"
+            @input="updateSearchQuery"
+          />
           <button v-if="searchQuery" class="search-clear" type="button" @click="emit('update:searchQuery', '')">
             <UiIcon name="close" :size="14" />
           </button>
@@ -58,9 +83,14 @@
       <div v-if="selectedPathIndex === -1" class="empty-state">
         <UiIcon name="folder" :size="48" class="empty-icon" />
         <p class="empty-text">{{ t('versions.manage.selectPathHint') }}</p>
-        <button v-if="pathCount === 0" class="btn-primary" @click="emit('addPath')"><UiIcon name="add" :size="16" />{{ t('common.add') }}</button>
+        <button v-if="pathCount === 0" class="btn-primary" @click="emit('addPath')">
+          <UiIcon name="add" :size="16" />{{ t('common.add') }}
+        </button>
       </div>
-      <div v-else-if="loading" class="loading-state"><UiIcon name="spinner" class="spin" :size="24" /><p>{{ t('versions.manage.scanning') }}</p></div>
+      <div v-else-if="loading" class="loading-state">
+        <UiIcon name="spinner" class="spin" :size="24" />
+        <p>{{ t('versions.manage.scanning') }}</p>
+      </div>
       <div v-else-if="versions.length === 0" class="empty-state">
         <UiIcon name="cube" :size="48" class="empty-icon" />
         <p class="empty-text">{{ t('versions.manage.noVersionsFound') }}</p>
@@ -87,14 +117,22 @@
               <span>{{ version.versionId }}</span>
             </div>
             <div class="state-actions">
-              <button :class="{ active: version.pinned }" title="置顶" @click.stop="toggleFlag(version, 'pinned')"><UiIcon name="pin" :size="14" /></button>
-              <button :class="{ active: version.favorite }" title="收藏" @click.stop="toggleFlag(version, 'favorite')"><UiIcon name="star" :size="14" /></button>
+              <button :class="{ active: version.pinned }" title="置顶" @click.stop="toggleFlag(version, 'pinned')">
+                <UiIcon name="pin" :size="14" />
+              </button>
+              <button :class="{ active: version.favorite }" title="收藏" @click.stop="toggleFlag(version, 'favorite')">
+                <UiIcon name="star" :size="14" />
+              </button>
             </div>
           </div>
           <p v-if="version.description" class="card-description">{{ version.description }}</p>
           <div class="card-badges">
-            <span :class="['badge', 'badge-' + getLoaderClass(version.primaryLoader)]">{{ loaderDisplayName(version.primaryLoader) }}</span>
-            <span class="category-badge" :style="categoryStyle(version.categoryId)">{{ categoryName(version.categoryId) }}</span>
+            <span :class="['badge', 'badge-' + getLoaderClass(version.primaryLoader)]">{{
+              loaderDisplayName(version.primaryLoader)
+            }}</span>
+            <span class="category-badge" :style="categoryStyle(version.categoryId)">{{
+              categoryName(version.categoryId)
+            }}</span>
             <span v-for="tag in version.tags?.slice(0, 3)" :key="tag" class="tag-badge">#{{ tag }}</span>
           </div>
           <div class="card-stats">
@@ -103,12 +141,22 @@
             <span><UiIcon name="rocket" :size="12" />{{ version.launchCount || 0 }} 次</span>
           </div>
           <div class="card-footer">
-            <button title="隐藏实例" @click.stop="toggleFlag(version, 'hidden')"><UiIcon :name="version.hidden ? 'eye' : 'eye-off'" :size="14" /></button>
+            <button title="隐藏实例" @click.stop="toggleFlag(version, 'hidden')">
+              <UiIcon :name="version.hidden ? 'eye' : 'eye-off'" :size="14" />
+            </button>
             <span class="card-spacer" />
-            <button title="详情与个性化" @click.stop="emit('detail', version)"><UiIcon name="settings" :size="14" /></button>
-            <button title="更多操作" @click.stop="showActionMenu($event, version)"><UiIcon name="more" :size="14" /></button>
-            <button v-if="!version.isBroken" class="play-button" title="启动" @click.stop="emit('launch', version)"><UiIcon name="play" :size="14" /></button>
-            <button class="delete-button" title="删除" @click.stop="emit('remove', version)"><UiIcon name="trash" :size="14" /></button>
+            <button title="详情与个性化" @click.stop="emit('detail', version)">
+              <UiIcon name="settings" :size="14" />
+            </button>
+            <button title="更多操作" @click.stop="showActionMenu($event, version)">
+              <UiIcon name="more" :size="14" />
+            </button>
+            <button v-if="!version.isBroken" class="play-button" title="启动" @click.stop="emit('launch', version)">
+              <UiIcon name="play" :size="14" />
+            </button>
+            <button class="delete-button" title="删除" @click.stop="emit('remove', version)">
+              <UiIcon name="trash" :size="14" />
+            </button>
           </div>
         </article>
       </div>
@@ -129,20 +177,60 @@
             @contextmenu.prevent="showActionMenu($event, version)"
             @click="emit('selectVersion', version)"
           >
-            <div class="col-name name-cell"><InstanceIcon :version="version" :size="34" /><span><strong>{{ instanceName(version) }}</strong><small>{{ version.versionId }}</small></span></div>
-            <div class="col-game-version"><strong>{{ version.vanillaName || version.versionId }}</strong><small>{{ versionTypeName(version.versionType) }}</small></div>
+            <div class="col-name name-cell">
+              <InstanceIcon :version="version" :size="34" /><span
+                ><strong>{{ instanceName(version) }}</strong
+                ><small>{{ version.versionId }}</small></span
+              >
+            </div>
+            <div class="col-game-version">
+              <strong>{{ version.vanillaName || version.versionId }}</strong
+              ><small>{{ versionTypeName(version.versionType) }}</small>
+            </div>
             <div class="col-loader">
-              <span :class="['badge', 'badge-' + getLoaderClass(version.primaryLoader)]">{{ loaderDisplayName(version.primaryLoader) }}</span>
+              <span :class="['badge', 'badge-' + getLoaderClass(version.primaryLoader)]">{{
+                loaderDisplayName(version.primaryLoader)
+              }}</span>
               <small v-if="loaderVersionText(version)">{{ loaderVersionText(version) }}</small>
             </div>
-            <div class="col-category"><span class="category-badge" :style="categoryStyle(version.categoryId)">{{ categoryName(version.categoryId) }}</span><small>{{ version.tags?.map((tag) => `#${tag}`).join(' ') }}</small></div>
+            <div class="col-category">
+              <span class="category-badge" :style="categoryStyle(version.categoryId)">{{
+                categoryName(version.categoryId)
+              }}</span
+              ><small>{{ version.tags?.map((tag) => `#${tag}`).join(' ') }}</small>
+            </div>
             <div class="col-actions">
-              <button v-if="!version.isBroken" class="btn-action quick-launch-button" title="快速启动" @click.stop="emit('launch', version)"><UiIcon name="play" :size="14" /></button>
-              <button :class="['btn-action', { active: version.favorite }]" :title="version.favorite ? '取消收藏' : '收藏'" @click.stop="toggleFlag(version, 'favorite')"><UiIcon name="star" :size="13" /></button>
-              <button :class="['btn-action', { active: version.pinned }]" :title="version.pinned ? '取消置顶' : '置顶'" @click.stop="toggleFlag(version, 'pinned')"><UiIcon name="pin" :size="13" /></button>
-              <button class="btn-action" title="详情与设置" @click.stop="emit('detail', version)"><UiIcon name="settings" :size="13" /></button>
-              <button class="btn-action" title="更多操作" @click.stop="showActionMenu($event, version)"><UiIcon name="more" :size="13" /></button>
-              <button class="btn-action delete-button" title="删除版本" @click.stop="emit('remove', version)"><UiIcon name="trash" :size="13" /></button>
+              <button
+                v-if="!version.isBroken"
+                class="btn-action quick-launch-button"
+                title="快速启动"
+                @click.stop="emit('launch', version)"
+              >
+                <UiIcon name="play" :size="14" />
+              </button>
+              <button
+                :class="['btn-action', { active: version.favorite }]"
+                :title="version.favorite ? '取消收藏' : '收藏'"
+                @click.stop="toggleFlag(version, 'favorite')"
+              >
+                <UiIcon name="star" :size="13" />
+              </button>
+              <button
+                :class="['btn-action', { active: version.pinned }]"
+                :title="version.pinned ? '取消置顶' : '置顶'"
+                @click.stop="toggleFlag(version, 'pinned')"
+              >
+                <UiIcon name="pin" :size="13" />
+              </button>
+              <button class="btn-action" title="详情与设置" @click.stop="emit('detail', version)">
+                <UiIcon name="settings" :size="13" />
+              </button>
+              <button class="btn-action" title="更多操作" @click.stop="showActionMenu($event, version)">
+                <UiIcon name="more" :size="13" />
+              </button>
+              <button class="btn-action delete-button" title="删除版本" @click.stop="emit('remove', version)">
+                <UiIcon name="trash" :size="13" />
+              </button>
             </div>
           </div>
         </div>
@@ -303,7 +391,9 @@ function categoryStyle(id?: string): Record<string, string> {
 }
 
 function loaderDisplayName(loaderType: string | null): string {
-  return !loaderType || ['Unknown', 'release', 'snapshot', 'Vanilla'].includes(loaderType) ? 'Vanilla' : getLoaderName(loaderType)
+  return !loaderType || ['Unknown', 'release', 'snapshot', 'Vanilla'].includes(loaderType)
+    ? 'Vanilla'
+    : getLoaderName(loaderType)
 }
 
 function loaderVersionText(version: ScannedVersion): string {
@@ -332,7 +422,9 @@ function formatDuration(seconds?: number): string {
 function formatDate(value?: string | null): string {
   if (!value) return '从未启动'
   const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? '从未启动' : date.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  return Number.isNaN(date.getTime())
+    ? '从未启动'
+    : date.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
 function updateSearchQuery(event: Event) {
@@ -349,11 +441,13 @@ watch(
   () => props.versions.map((version) => `${instanceKey(version)}:${version.cover?.value || ''}`).join('|'),
   async () => {
     const next: Record<string, string> = {}
-    await Promise.all(props.versions.map(async (version) => {
-      if (!version.cover?.value) return
-      const url = await backend.file.toUrl(version.cover.value)
-      if (url) next[instanceKey(version)] = url
-    }))
+    await Promise.all(
+      props.versions.map(async (version) => {
+        if (!version.cover?.value) return
+        const url = await backend.file.toUrl(version.cover.value)
+        if (url) next[instanceKey(version)] = url
+      })
+    )
     coverUrls.value = next
   },
   { immediate: true }
@@ -381,7 +475,6 @@ async function toggleFlag(version: ScannedVersion, field: 'favorite' | 'pinned' 
   await instanceProfileApi.patch(targetFromVersion(version), { [field]: !version[field] })
   emit('changed')
 }
-
 </script>
 
 <style scoped src="@/styles/components/instances/InstalledInstanceList.css"></style>

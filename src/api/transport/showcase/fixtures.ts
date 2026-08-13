@@ -322,7 +322,8 @@ export const showcaseInfoCard: InfoCardData = {
       id: 'showcase-frontend-refactor',
       title: '前端重构展示模式',
       date: '2026-07-23',
-      content: '当前界面由独立的 **Showcase Transport** 提供数据，可脱离 PyTauri 运行。\n\n- 支持 Markdown 公告\n- 点击公告卡片可以查看完整内容',
+      content:
+        '当前界面由独立的 **Showcase Transport** 提供数据，可脱离 PyTauri 运行。\n\n- 支持 Markdown 公告\n- 点击公告卡片可以查看完整内容',
     },
   ],
   welcome: {
@@ -440,7 +441,10 @@ export const showcaseDemoTasks: DemoTaskDef[] = [
 export function loadShowcaseTasks(globalTaskQueue: {
   addTask: (task: { type: 'install' | 'download'; name: string; versionId: string; loaderType: string }) => string
   updateTask: (id: string, updates: Partial<Pick<TaskItem, 'status' | 'progress' | 'message' | 'subtasks'>>) => void
-  addSubtask: (id: string, subtask: { id: string; name: string; status: 'pending' | 'running' | 'completed' | 'error'; message: string }) => void
+  addSubtask: (
+    id: string,
+    subtask: { id: string; name: string; status: 'pending' | 'running' | 'completed' | 'error'; message: string }
+  ) => void
 }): void {
   for (const def of showcaseDemoTasks) {
     const taskId = globalTaskQueue.addTask({

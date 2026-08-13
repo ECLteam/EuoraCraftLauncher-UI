@@ -3,21 +3,12 @@
     <div id="plugin-slot-titlebar-tray" class="plugin-slot-container"></div>
 
     <div ref="trayWrapperRef" class="titlebar-tray-wrapper">
-      <button
-        class="titlebar-btn titlebar-tray-btn"
-        :title="t('common.more')"
-        @click.stop="onToggle"
-      >
+      <button class="titlebar-btn titlebar-tray-btn" :title="t('common.more')" @click.stop="onToggle">
         <UiIcon name="chevron-up" :size="16" />
       </button>
 
       <div v-if="showMenu" class="titlebar-tray-menu" @click.stop>
-        <button
-          v-for="item in visibleItems"
-          :key="item.id"
-          class="tray-menu-item"
-          @click="onItemClick(item)"
-        >
+        <button v-for="item in visibleItems" :key="item.id" class="tray-menu-item" @click="onItemClick(item)">
           <UiIcon :name="item.icon" :size="16" />
           <span class="tray-menu-label">{{ item.label }}</span>
         </button>
@@ -49,8 +40,14 @@ const trayWrapperRef = ref<HTMLElement | null>(null)
 // Register items immediately (avoid chicken-and-egg)
 {
   const items: TrayItem[] = []
-    items.push({ id: 'debug', icon: 'bug', label: t('sidebar.debug'), action: () => router.push('/dev'), priority: 0 })
-  items.push({ id: 'docs', icon: 'help', label: t('sidebar.help'), action: () => openExternalUrl(URLS.docs), priority: 1 })
+  items.push({ id: 'debug', icon: 'bug', label: t('sidebar.debug'), action: () => router.push('/dev'), priority: 0 })
+  items.push({
+    id: 'docs',
+    icon: 'help',
+    label: t('sidebar.help'),
+    action: () => openExternalUrl(URLS.docs),
+    priority: 1,
+  })
   for (const item of items) registerTrayItem(item)
 }
 

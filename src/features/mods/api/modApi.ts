@@ -1,11 +1,5 @@
 import backend from '@/api/client'
-import type {
-  CommandPayloadMap,
-  ModInfo,
-  ModInstallResult,
-  ModSearchResult,
-  ModVersion,
-} from '@/types/api'
+import type { CommandPayloadMap, ModInfo, ModInstallResult, ModSearchResult, ModVersion } from '@/types/api'
 
 function requireData<T>(response: { success: boolean; data?: T; message?: string }, operation: string): T {
   if (!response.success || response.data === undefined) throw new Error(response.message || `${operation}失败`)

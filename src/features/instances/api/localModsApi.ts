@@ -11,18 +11,12 @@ function requireData<T>(response: { success: boolean; data?: T; message?: string
 export const localModsApi = {
   /** 获取指定实例路径下的已安装模组列表 */
   async list(gamePath: string): Promise<ModItem[]> {
-    return requireData(
-      await backend.command('get_mods', { game_path: gamePath }),
-      '获取模组列表',
-    )
+    return requireData(await backend.command('get_mods', { game_path: gamePath }), '获取模组列表')
   },
 
   /** 启用/禁用模组 */
   async toggle(gamePath: string, filename: string): Promise<{ enabled: boolean }> {
-    return requireData(
-      await backend.command('toggle_mod', { game_path: gamePath, filename }),
-      '切换模组状态',
-    )
+    return requireData(await backend.command('toggle_mod', { game_path: gamePath, filename }), '切换模组状态')
   },
 
   /** 删除模组 */
@@ -33,10 +27,7 @@ export const localModsApi = {
 
   /** 通过文件选择器添加模组 */
   async add(gamePath: string, sourcePath: string): Promise<{ filename: string }> {
-    return requireData(
-      await backend.command('add_mod', { game_path: gamePath, source_path: sourcePath }),
-      '添加模组',
-    )
+    return requireData(await backend.command('add_mod', { game_path: gamePath, source_path: sourcePath }), '添加模组')
   },
 
   /** 打开模组文件夹 */

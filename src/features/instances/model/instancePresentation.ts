@@ -22,11 +22,7 @@ function dateValue(value?: string | null): number {
   return Number.isFinite(parsed) ? parsed : 0
 }
 
-export function compareInstances(
-  left: ScannedVersion,
-  right: ScannedVersion,
-  sort: InstanceSortOptions
-): number {
+export function compareInstances(left: ScannedVersion, right: ScannedVersion, sort: InstanceSortOptions): number {
   const leftGroup = left.pinned ? 0 : left.favorite ? 1 : 2
   const rightGroup = right.pinned ? 0 : right.favorite ? 1 : 2
   if (leftGroup !== rightGroup) return leftGroup - rightGroup
@@ -70,7 +66,11 @@ export function filterAndSortInstances(
         version.vanillaName,
         categoryName(version.categoryId),
         ...(version.tags || []),
-      ].some((value) => String(value || '').toLocaleLowerCase().includes(query))
+      ].some((value) =>
+        String(value || '')
+          .toLocaleLowerCase()
+          .includes(query)
+      )
     })
     .sort((left, right) => compareInstances(left, right, sort))
 }

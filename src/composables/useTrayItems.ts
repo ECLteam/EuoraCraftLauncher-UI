@@ -26,9 +26,7 @@ export function unregisterTrayItem(id: string) {
 }
 
 export function useTrayItems() {
-  const sortedItems = computed(() =>
-    [..._items.value].sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99))
-  )
+  const sortedItems = computed(() => [..._items.value].sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99)))
 
   const visibleItems = computed(() => sortedItems.value.filter((i) => !i.alwaysVisible))
   const pinnedItems = computed(() => sortedItems.value.filter((i) => i.alwaysVisible))

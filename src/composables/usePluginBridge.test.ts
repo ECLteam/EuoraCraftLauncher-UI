@@ -37,9 +37,7 @@ describe('plugin frontend styles', () => {
 
     clearPluginSlots('demo')
 
-    expect(pluginSlots.value['sidebar-bottom']).toEqual([
-      { plugin: 'other', html: '<span>other</span>' },
-    ])
+    expect(pluginSlots.value['sidebar-bottom']).toEqual([{ plugin: 'other', html: '<span>other</span>' }])
     expect(document.querySelector('[data-plugin="demo"]')).toBeNull()
     expect(document.querySelector('[data-plugin="other"]')?.textContent).toBe('other')
   })

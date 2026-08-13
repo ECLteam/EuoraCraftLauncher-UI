@@ -11,8 +11,8 @@
         <div class="vdm-version-identity">
           <InstanceIcon v-if="version" :version="version" :size="42" />
           <div class="vdm-version-copy">
-              <strong>{{ version?.displayName || version?.versionId || '...' }}</strong>
-              <span>{{ version?.versionId }} · {{ getLoaderName(version?.primaryLoader || 'vanilla') }}</span>
+            <strong>{{ version?.displayName || version?.versionId || '...' }}</strong>
+            <span>{{ version?.versionId }} · {{ getLoaderName(version?.primaryLoader || 'vanilla') }}</span>
           </div>
         </div>
 
@@ -104,11 +104,30 @@
               <NButton size="small" type="primary" :loading="profileSaving" @click="saveProfile">保存资料</NButton>
             </div>
             <div class="profile-form-grid">
-              <label><span>实例别名</span><NInput v-model:value="profileForm.alias" maxlength="120" /><small>磁盘目录仍为 {{ version?.versionId }}</small></label>
-              <label><span>分类</span><NSelect v-model:value="profileForm.categoryId" :options="categoryOptions" /></label>
-              <label class="profile-form-wide"><span>描述</span><NInput v-model:value="profileForm.description" type="textarea" :autosize="{ minRows: 2, maxRows: 5 }" maxlength="1000" /></label>
-              <label class="profile-form-wide"><span>标签（使用逗号分隔）</span><NInput v-model:value="profileForm.tagsText" placeholder="朋友服, 机械动力, 生存" /></label>
-              <label><span>兼容元数据来源</span><NSelect v-model:value="profileForm.preferredExternalSource" :options="sourceOptions" /></label>
+              <label
+                ><span>实例别名</span><NInput v-model:value="profileForm.alias" maxlength="120" /><small
+                  >磁盘目录仍为 {{ version?.versionId }}</small
+                ></label
+              >
+              <label
+                ><span>分类</span><NSelect v-model:value="profileForm.categoryId" :options="categoryOptions"
+              /></label>
+              <label class="profile-form-wide"
+                ><span>描述</span
+                ><NInput
+                  v-model:value="profileForm.description"
+                  type="textarea"
+                  :autosize="{ minRows: 2, maxRows: 5 }"
+                  maxlength="1000"
+              /></label>
+              <label class="profile-form-wide"
+                ><span>标签（使用逗号分隔）</span
+                ><NInput v-model:value="profileForm.tagsText" placeholder="朋友服, 机械动力, 生存"
+              /></label>
+              <label
+                ><span>兼容元数据来源</span
+                ><NSelect v-model:value="profileForm.preferredExternalSource" :options="sourceOptions"
+              /></label>
               <div class="profile-switches">
                 <span><NSwitch v-model:value="profileForm.favorite" />收藏</span>
                 <span><NSwitch v-model:value="profileForm.pinned" />置顶</span>
@@ -117,13 +136,28 @@
             </div>
           </div>
           <div class="info-card">
-            <div class="info-card__header"><span>实例图标</span><NButton size="small" secondary @click="iconPickerVisible = true">更换图标</NButton></div>
-            <div class="profile-icon-preview"><InstanceIcon v-if="version" :version="version" :size="64" /><div><strong>内置方块、加载器或本地图片</strong><span>本地图片会复制到实例的 .ecl 目录。</span></div></div>
+            <div class="info-card__header">
+              <span>实例图标</span><NButton size="small" secondary @click="iconPickerVisible = true">更换图标</NButton>
+            </div>
+            <div class="profile-icon-preview">
+              <InstanceIcon v-if="version" :version="version" :size="64" />
+              <div><strong>内置方块、加载器或本地图片</strong><span>本地图片会复制到实例的 .ecl 目录。</span></div>
+            </div>
           </div>
           <div class="info-card">
             <div class="info-card__header">字段来源与恢复</div>
             <div class="field-source-list">
-              <div v-for="field in profileFields" :key="field"><span>{{ profileFieldLabel(field) }}</span><code>{{ version?.fieldSources?.[field] || 'auto' }}</code><NButton v-if="version?.profileOverrides?.includes(field)" size="tiny" quaternary @click="resetProfileField(field)">恢复自动</NButton></div>
+              <div v-for="field in profileFields" :key="field">
+                <span>{{ profileFieldLabel(field) }}</span
+                ><code>{{ version?.fieldSources?.[field] || 'auto' }}</code
+                ><NButton
+                  v-if="version?.profileOverrides?.includes(field)"
+                  size="tiny"
+                  quaternary
+                  @click="resetProfileField(field)"
+                  >恢复自动</NButton
+                >
+              </div>
             </div>
             <p v-for="warning in version?.sourceWarnings || []" :key="warning" class="source-warning">{{ warning }}</p>
           </div>
@@ -371,7 +405,13 @@
   <Modal v-model:visible="iconPickerVisible" title="选择实例图标" width="520px">
     <div class="icon-picker-grid">
       <button @click="setProfileIcon('auto')"><UiIcon name="refresh" :size="28" /><span>自动</span></button>
-      <button v-for="icon in iconChoices" :key="`${icon.type}-${icon.value}`" @click="setProfileIcon(icon.type, icon.value)"><img :src="icon.image" alt="" /><span>{{ icon.label }}</span></button>
+      <button
+        v-for="icon in iconChoices"
+        :key="`${icon.type}-${icon.value}`"
+        @click="setProfileIcon(icon.type, icon.value)"
+      >
+        <img :src="icon.image" alt="" /><span>{{ icon.label }}</span>
+      </button>
       <button @click="chooseLocalProfileIcon"><UiIcon name="photo" :size="28" /><span>本地图片</span></button>
     </div>
   </Modal>
@@ -402,7 +442,14 @@ import { createDefaultVersionSettings, type VersionSettingsTarget } from '@/feat
 import { formatRunDuration } from '@/features/instances/model/versionStats'
 import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
-import type { InstanceCategory, InstanceExternalSource, ModItem, ScannedVersion, VersionRunStats, WorldEntry } from '@/types/api'
+import type {
+  InstanceCategory,
+  InstanceExternalSource,
+  ModItem,
+  ScannedVersion,
+  VersionRunStats,
+  WorldEntry,
+} from '@/types/api'
 import { getLoaderName } from '@/utils/loader'
 
 interface Props {
@@ -411,7 +458,17 @@ interface Props {
   initialTab?: DetailTab
 }
 
-type DetailTab = 'overview' | 'profile' | 'mods' | 'online-mods' | 'resources' | 'worlds' | 'screenshots' | 'servers' | 'settings' | 'saves'
+type DetailTab =
+  | 'overview'
+  | 'profile'
+  | 'mods'
+  | 'online-mods'
+  | 'resources'
+  | 'worlds'
+  | 'screenshots'
+  | 'servers'
+  | 'settings'
+  | 'saves'
 
 const props = withDefaults(defineProps<Props>(), {
   initialTab: 'overview',
@@ -471,7 +528,9 @@ const profileForm = reactive({
   tagsText: '',
   preferredExternalSource: 'auto' as InstanceExternalSource,
 })
-const categoryOptions = computed(() => categories.value.map((category) => ({ label: category.name, value: category.id })))
+const categoryOptions = computed(() =>
+  categories.value.map((category) => ({ label: category.name, value: category.id }))
+)
 const sourceOptions = [
   { label: '自动（最新来源）', value: 'auto' },
   { label: 'PCL / PCL-CE', value: 'pcl' },
@@ -521,7 +580,10 @@ async function saveProfile() {
       pinned: profileForm.pinned,
       hidden: profileForm.hidden,
       categoryId: profileForm.categoryId,
-      tags: profileForm.tagsText.split(/[,，]/).map((tag) => tag.trim()).filter(Boolean),
+      tags: profileForm.tagsText
+        .split(/[,，]/)
+        .map((tag) => tag.trim())
+        .filter(Boolean),
       preferredExternalSource: profileForm.preferredExternalSource,
     })
     message.success('实例资料已保存')
@@ -559,7 +621,18 @@ async function chooseLocalProfileIcon() {
 }
 
 function profileFieldLabel(field: string): string {
-  return { alias: '别名', description: '描述', favorite: '收藏', pinned: '置顶', hidden: '隐藏', categoryId: '分类', tags: '标签', icon: '图标' }[field] || field
+  return (
+    {
+      alias: '别名',
+      description: '描述',
+      favorite: '收藏',
+      pinned: '置顶',
+      hidden: '隐藏',
+      categoryId: '分类',
+      tags: '标签',
+      icon: '图标',
+    }[field] || field
+  )
 }
 
 // ======================== 模组管理 ========================

@@ -37,7 +37,8 @@ const imageUrl = computed(() => {
   const icon = props.version.icon
   if (icon?.type === 'data') return icon.value
   if (icon?.type === 'builtin') return builtInImages[icon.value] || getVersionImage(props.version.versionType)
-  if (icon?.type === 'loader') return getLoaderImage(icon.value) || (icon.value === 'vanilla' ? builtInImages.grass : '')
+  if (icon?.type === 'loader')
+    return getLoaderImage(icon.value) || (icon.value === 'vanilla' ? builtInImages.grass : '')
   if (icon?.type === 'local' || icon?.type === 'external') return localUrl.value
   return getLoaderImage(props.version.primaryLoader) || getVersionImage(props.version.versionType)
 })

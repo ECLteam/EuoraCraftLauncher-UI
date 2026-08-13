@@ -29,7 +29,11 @@
           <span class="path-location" :title="item.path">{{ item.path }}</span>
         </div>
         <div v-if="!item.protected" class="path-actions">
-          <button class="path-action-btn" :title="t('versions.manage.openFolder')" @click.stop="emit('open-folder', index)">
+          <button
+            class="path-action-btn"
+            :title="t('versions.manage.openFolder')"
+            @click.stop="emit('open-folder', index)"
+          >
             <UiIcon name="folder-open" :size="14" />
           </button>
           <button class="path-action-btn" :title="t('common.edit')" @click.stop="emit('edit', index)">

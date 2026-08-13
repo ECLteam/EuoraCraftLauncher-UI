@@ -5,12 +5,7 @@
         <UiIcon :name="icon" :size="18" />
         <span>{{ title }}</span>
       </div>
-      <NMenu
-        class="section-layout__menu"
-        :value="route.path"
-        :options="menuOptions"
-        @update:value="handleSelect"
-      />
+      <NMenu class="section-layout__menu" :value="route.path" :options="menuOptions" @update:value="handleSelect" />
       <div v-if="$slots['nav-bottom']" class="section-layout__nav-bottom">
         <slot name="nav-bottom" />
       </div>

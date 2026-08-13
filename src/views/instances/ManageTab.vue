@@ -297,7 +297,8 @@ const handleRefresh = async () => {
 const handleProfileChanged = async () => {
   await scanCurrentPath(true)
   if (detailVersion.value) {
-    detailVersion.value = currentPathVersions.value.find((version) => version.versionId === detailVersion.value?.versionId) ?? null
+    detailVersion.value =
+      currentPathVersions.value.find((version) => version.versionId === detailVersion.value?.versionId) ?? null
   }
 }
 
@@ -539,10 +540,7 @@ const handleLaunch = async (version: ScannedVersion) => {
   }
 }
 
-const handleOpenDetail = (
-  version: ScannedVersion,
-  initialTab: DetailTab = 'overview'
-) => {
+const handleOpenDetail = (version: ScannedVersion, initialTab: DetailTab = 'overview') => {
   detailVersion.value = version
   detailInitialTab.value = initialTab
   showDetailModal.value = true
@@ -584,22 +582,37 @@ async function handleInstanceAction(action: string, version: ScannedVersion) {
     return handleOpenDetail(version, action as DetailTab)
   }
   if (action.startsWith('folder-')) {
-    await instanceWorkspaceApi.folders(workspaceTarget(version), action.slice(7) as 'instance' | 'mods' | 'saves' | 'screenshots' | 'logs' | 'crash-reports')
+    await instanceWorkspaceApi.folders(
+      workspaceTarget(version),
+      action.slice(7) as 'instance' | 'mods' | 'saves' | 'screenshots' | 'logs' | 'crash-reports'
+    )
     return
   }
   if (action === 'delete') return handleDelete(version)
   if (action === 'repair') {
-    const report = (await instanceWorkspaceApi.checkFiles(workspaceTarget(version))) as { issues: unknown[]; downloadBytes: number; canRepair: boolean }
+    const report = (await instanceWorkspaceApi.checkFiles(workspaceTarget(version))) as {
+      issues: unknown[]
+      downloadBytes: number
+      canRepair: boolean
+    }
     if (!report.issues.length) return message.success('实例文件完整')
-    openConfirm('补全实例文件', `发现 ${report.issues.length} 个问题，预计下载 ${Math.ceil(report.downloadBytes / 1024 / 1024)} MiB。确认开始补全？`, async () => {
-      await instanceWorkspaceApi.repairFiles(workspaceTarget(version)); message.success('文件补全任务已创建')
-    })
+    openConfirm(
+      '补全实例文件',
+      `发现 ${report.issues.length} 个问题，预计下载 ${Math.ceil(report.downloadBytes / 1024 / 1024)} MiB。确认开始补全？`,
+      async () => {
+        await instanceWorkspaceApi.repairFiles(workspaceTarget(version))
+        message.success('文件补全任务已创建')
+      }
+    )
     return
   }
   if (action === 'clone') {
     const newId = `${version.versionId}-copy`
     openConfirm('复制实例', `将实例复制为 ${newId}。复制后会重置收藏、隐藏、置顶和运行统计。`, async () => {
-      const response = await backend.command('game_instance_clone', { ...workspaceTarget(version), new_version_id: newId })
+      const response = await backend.command('game_instance_clone', {
+        ...workspaceTarget(version),
+        new_version_id: newId,
+      })
       if (!response.success) throw new Error(response.message)
       message.success('实例复制任务已创建')
     })
@@ -608,7 +621,12 @@ async function handleInstanceAction(action: string, version: ScannedVersion) {
   if (action === 'export') {
     const selected = await backend.command('select_save_file', { purpose: 'instance-export' })
     if (!selected.success || !selected.data?.path) return
-    const response = await backend.command('game_instance_export', { ...workspaceTarget(version), output_path: selected.data.path, pack_format: 'ecl', includes: [] })
+    const response = await backend.command('game_instance_export', {
+      ...workspaceTarget(version),
+      output_path: selected.data.path,
+      pack_format: 'ecl',
+      includes: [],
+    })
     if (!response.success) throw new Error(response.message)
     message.success('实例导出任务已创建')
     return
@@ -617,7 +635,11 @@ async function handleInstanceAction(action: string, version: ScannedVersion) {
     const selected = await backend.command('select_file', { purpose: 'modpack' })
     if (!selected.success || !selected.data?.path) return
     const newId = `${version.versionId}-imported`
-    const response = await backend.command('game_instance_import', { game_path: version.path, source_path: selected.data.path, new_version_id: newId })
+    const response = await backend.command('game_instance_import', {
+      game_path: version.path,
+      source_path: selected.data.path,
+      new_version_id: newId,
+    })
     if (!response.success) throw new Error(response.message)
     message.success(`整合包导入任务已创建：${newId}`)
   }

@@ -8,11 +8,7 @@
         class="split-launch-btn"
         :class="{ disabled: launching || !selectedVersion || !hasAccount }"
       >
-        <button
-          class="split-main"
-          :disabled="launching || !selectedVersion || !hasAccount"
-          @click="emit('launch')"
-        >
+        <button class="split-main" :disabled="launching || !selectedVersion || !hasAccount" @click="emit('launch')">
           <span class="split-main-icon"><UiIcon name="play" :size="16" /></span>
           <span class="launch-main-content">
             <span class="launch-main-label">{{ launching ? t('game.launching') : t('game.launch') }}</span>
@@ -20,18 +16,9 @@
           </span>
         </button>
         <span class="split-divider"></span>
-        <NPopover
-          trigger="click"
-          placement="top-end"
-          :showArrow="false"
-          raw
-        >
+        <NPopover trigger="click" placement="top-end" :showArrow="false" raw>
           <template #trigger>
-            <button
-              class="split-arrow"
-              :disabled="launching"
-              :title="t('game.recentInstances')"
-            >
+            <button class="split-arrow" :disabled="launching" :title="t('game.recentInstances')">
               <UiIcon name="chevron-up" :size="14" />
             </button>
           </template>
@@ -51,7 +38,11 @@
             >
               <span class="recent-instance-name">{{ item.versionName }}</span>
               <span class="recent-instance-path">{{ getPathDisplayName(item.gamePath) }}</span>
-              <UiIcon v-if="item.versionId === selectedVersion && item.gamePath === currentGamePath" name="check" :size="12" />
+              <UiIcon
+                v-if="item.versionId === selectedVersion && item.gamePath === currentGamePath"
+                name="check"
+                :size="12"
+              />
             </button>
           </div>
         </NPopover>

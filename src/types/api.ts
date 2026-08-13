@@ -1024,7 +1024,9 @@ export interface CommandPayloadMap {
   select_image: { purpose?: 'background' | 'skin' | 'cape' | 'instance_icon' } | undefined
   select_file: { purpose?: 'crash-analysis' | 'modpack' | 'world-import' } | undefined
   select_files: { purpose?: 'resource-files' }
-  select_save_file: { purpose: 'crash-report' | 'launcher-logs' | 'world-export' | 'instance-export' | 'resource-manifest' | 'screenshot' }
+  select_save_file: {
+    purpose: 'crash-report' | 'launcher-logs' | 'world-export' | 'instance-export' | 'resource-manifest' | 'screenshot'
+  }
   open_folder: { path: string }
   open_url: { url: string }
 
@@ -1049,10 +1051,16 @@ export interface CommandPayloadMap {
   game_instance_categories_get: undefined
   game_instance_categories_upsert: { category_id?: string; name: string; color: string; order?: number }
   game_instance_categories_delete: { category_id: string }
-  game_instance_folder_open: InstanceTargetPayload & { folder: 'instance' | 'mods' | 'saves' | 'screenshots' | 'logs' | 'crash-reports' }
+  game_instance_folder_open: InstanceTargetPayload & {
+    folder: 'instance' | 'mods' | 'saves' | 'screenshots' | 'logs' | 'crash-reports'
+  }
   game_instance_clone: InstanceTargetPayload & { new_version_id: string }
   game_instance_import: { game_path: string; source_path: string; new_version_id: string }
-  game_instance_export: InstanceTargetPayload & { output_path: string; pack_format: 'ecl' | 'modrinth' | 'curseforge'; includes?: string[] }
+  game_instance_export: InstanceTargetPayload & {
+    output_path: string
+    pack_format: 'ecl' | 'modrinth' | 'curseforge'
+    includes?: string[]
+  }
   game_instance_files_check: InstanceTargetPayload
   game_instance_files_repair: InstanceTargetPayload
   game_instance_delete_to_trash: InstanceTargetPayload
@@ -1060,7 +1068,10 @@ export interface CommandPayloadMap {
   game_operation_cancel: { operation_id: string }
   game_world_list: InstanceTargetPayload
   game_world_detail: InstanceTargetPayload & { world_id: string }
-  game_world_patch: InstanceTargetPayload & { world_id: string; patch: { difficulty?: number; allowCommands?: boolean; difficultyLocked?: boolean } }
+  game_world_patch: InstanceTargetPayload & {
+    world_id: string
+    patch: { difficulty?: number; allowCommands?: boolean; difficultyLocked?: boolean }
+  }
   game_world_copy: InstanceTargetPayload & { world_id: string; new_world_id: string }
   game_world_import: InstanceTargetPayload & { source_path: string }
   game_world_export: InstanceTargetPayload & { world_id: string; output_path: string }
@@ -1084,14 +1095,48 @@ export interface CommandPayloadMap {
   game_server_reorder: InstanceTargetPayload & { server_ids: string[] }
   game_server_status_refresh: { addresses: string[]; timeout?: number }
   game_resource_list: InstanceTargetPayload & { resource_type: GameResourceType; world_id?: string }
-  game_resource_install: InstanceTargetPayload & { resource_type: GameResourceType; source_paths: string[]; world_id?: string }
-  game_resource_toggle: InstanceTargetPayload & { resource_type: GameResourceType; resource_id: string; enabled: boolean; world_id?: string }
-  game_resource_delete_to_trash: InstanceTargetPayload & { resource_type: GameResourceType; resource_ids: string[]; world_id?: string }
-  game_resource_manifest_export: InstanceTargetPayload & { resource_type: GameResourceType; output_path: string; output_format: 'json' | 'csv'; world_id?: string }
-  game_resource_search: { query: string; game_version: string; loader: string; source?: 'modrinth' | 'curseforge'; limit?: number }
+  game_resource_install: InstanceTargetPayload & {
+    resource_type: GameResourceType
+    source_paths: string[]
+    world_id?: string
+  }
+  game_resource_toggle: InstanceTargetPayload & {
+    resource_type: GameResourceType
+    resource_id: string
+    enabled: boolean
+    world_id?: string
+  }
+  game_resource_delete_to_trash: InstanceTargetPayload & {
+    resource_type: GameResourceType
+    resource_ids: string[]
+    world_id?: string
+  }
+  game_resource_manifest_export: InstanceTargetPayload & {
+    resource_type: GameResourceType
+    output_path: string
+    output_format: 'json' | 'csv'
+    world_id?: string
+  }
+  game_resource_search: {
+    query: string
+    game_version: string
+    loader: string
+    source?: 'modrinth' | 'curseforge'
+    limit?: number
+  }
   game_resource_identify: { sha512: string }
-  game_resource_update_check: InstanceTargetPayload & { resource_type: GameResourceType; game_version: string; loader: string; world_id?: string }
-  game_resource_update: InstanceTargetPayload & { resource_type: GameResourceType; resource_id: string; update: Record<string, unknown>; world_id?: string }
+  game_resource_update_check: InstanceTargetPayload & {
+    resource_type: GameResourceType
+    game_version: string
+    loader: string
+    world_id?: string
+  }
+  game_resource_update: InstanceTargetPayload & {
+    resource_type: GameResourceType
+    resource_id: string
+    update: Record<string, unknown>
+    world_id?: string
+  }
   game_launch: {
     version_id: string
     game_path: string
@@ -1287,7 +1332,11 @@ export interface CommandResponseMap {
   game_instance_clone: GameOperation
   game_instance_import: GameOperation
   game_instance_export: GameOperation
-  game_instance_files_check: { issues: Array<{ kind: string; path: string; size?: number; message?: string }>; downloadBytes: number; canRepair: boolean }
+  game_instance_files_check: {
+    issues: Array<{ kind: string; path: string; size?: number; message?: string }>
+    downloadBytes: number
+    canRepair: boolean
+  }
   game_instance_files_repair: GameOperation
   game_instance_delete_to_trash: void
   game_operation_get: GameOperation
@@ -1323,7 +1372,13 @@ export interface CommandResponseMap {
   game_resource_delete_to_trash: void
   game_resource_manifest_export: { path: string }
   game_resource_search: { source: string; items: unknown[] }
-  game_resource_identify: { matched: boolean; ambiguous?: boolean; source?: string; projectId?: string; versionId?: string }
+  game_resource_identify: {
+    matched: boolean
+    ambiguous?: boolean
+    source?: string
+    projectId?: string
+    versionId?: string
+  }
   game_resource_update_check: Array<Record<string, unknown>>
   game_resource_update: GameOperation
   game_launch: LaunchInstanceResult

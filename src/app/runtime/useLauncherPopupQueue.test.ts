@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  clearLauncherPopupCache,
-  DISMISSED_POPUPS_STORAGE_KEY,
-  useLauncherPopupQueue,
-} from './useLauncherPopupQueue'
+import { clearLauncherPopupCache, DISMISSED_POPUPS_STORAGE_KEY, useLauncherPopupQueue } from './useLauncherPopupQueue'
 
 describe('useLauncherPopupQueue', () => {
   it('按顺序展示弹窗并忽略相同 id 的重复事件', () => {

@@ -147,9 +147,7 @@ export const useInstanceStore = defineStore('versions', () => {
     }
 
     const pathVersions = versions.value.filter((v) => normalizeGamePath(v.gamePath) === normalizeGamePath(gamePath))
-    const matched = activeVersionId
-      ? pathVersions.find((v) => v.id === activeVersionId)
-      : null
+    const matched = activeVersionId ? pathVersions.find((v) => v.id === activeVersionId) : null
     const target = matched ?? pathVersions[0]
     if (target) {
       selectedVersion.value = target.id

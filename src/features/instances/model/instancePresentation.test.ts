@@ -39,7 +39,11 @@ describe('instancePresentation', () => {
 
   it('最近启动降序时从未启动的实例按显示名称兜底', () => {
     const result = filterAndSortInstances(
-      [version('b', { alias: '乙' }), version('a', { alias: '甲' }), version('recent', { lastLaunchedAt: '2026-08-13T12:00:00Z' })],
+      [
+        version('b', { alias: '乙' }),
+        version('a', { alias: '甲' }),
+        version('recent', { lastLaunchedAt: '2026-08-13T12:00:00Z' }),
+      ],
       { query: '', showHidden: false, favoritesOnly: false, pinnedOnly: false, categoryId: '' },
       { key: 'lastLaunchedAt', direction: 'desc' }
     )
@@ -57,7 +61,9 @@ describe('instancePresentation', () => {
 
     expect(filterAndSortInstances(values, { ...base, query: '' }, { key: 'name', direction: 'asc' })).toHaveLength(1)
     for (const query of ['朋友', '机械', '生存', 'neoforge']) {
-      expect(filterAndSortInstances(values, { ...base, query }, { key: 'name', direction: 'asc' })[0]?.versionId).toBe('factory')
+      expect(filterAndSortInstances(values, { ...base, query }, { key: 'name', direction: 'asc' })[0]?.versionId).toBe(
+        'factory'
+      )
     }
   })
 })

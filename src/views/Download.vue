@@ -5,11 +5,7 @@
         <UiIcon name="download" :size="18" />
         <span>{{ t('download.title') }}</span>
       </div>
-      <button
-        class="download-nav-item"
-        :class="{ active: activeTab === 'instances' }"
-        @click="activeTab = 'instances'"
-      >
+      <button class="download-nav-item" :class="{ active: activeTab === 'instances' }" @click="activeTab = 'instances'">
         <UiIcon name="cube" :size="18" />
         <span>{{ t('download.instanceDownload') }}</span>
       </button>

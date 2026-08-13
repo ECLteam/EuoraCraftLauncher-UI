@@ -1,10 +1,5 @@
 <template>
-  <NCard
-    class="info-card"
-    contentStyle="padding: 0;"
-    @mouseenter="emit('mouseenter')"
-    @mouseleave="emit('mouseleave')"
-  >
+  <NCard class="info-card" contentStyle="padding: 0;" @mouseenter="emit('mouseenter')" @mouseleave="emit('mouseleave')">
     <NButton
       v-if="canToggle"
       class="info-toggle-btn"
@@ -22,11 +17,7 @@
         <div class="info-header">
           <UiIcon name="lightbulb" :size="16" />
           <span class="info-title">
-            {{
-              isWelcome
-                ? data.welcome?.title || t('game.welcomeTitle')
-                : data.tip_title || t('game.didYouKnow')
-            }}
+            {{ isWelcome ? data.welcome?.title || t('game.welcomeTitle') : data.tip_title || t('game.didYouKnow') }}
           </span>
         </div>
         <p class="info-content">

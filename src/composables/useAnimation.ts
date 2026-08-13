@@ -352,13 +352,7 @@ export function useStaggeredBounce(
   const targets = unref(items) || []
   if (!targets || targets.length === 0) return
 
-  const {
-    duration = DURATION.slower,
-    stagger = STAGGER.md,
-    delay = 0,
-    from = 'start',
-    intensity = 1.7,
-  } = options
+  const { duration = DURATION.slower, stagger = STAGGER.md, delay = 0, from = 'start', intensity = 1.7 } = options
 
   gsap.from(targets, {
     opacity: 0,
@@ -385,10 +379,7 @@ export interface TiltHoverOptions {
   scale?: number
 }
 
-export function useTiltHover(
-  element: HTMLElement | Ref<HTMLElement | null>,
-  options: TiltHoverOptions = {}
-) {
+export function useTiltHover(element: HTMLElement | Ref<HTMLElement | null>, options: TiltHoverOptions = {}) {
   if (prefersReducedMotion()) return
 
   const el = unref(element)
@@ -458,10 +449,7 @@ export interface GlitchInOptions {
   intensity?: number
 }
 
-export function useGlitchIn(
-  element: string | HTMLElement | Ref<HTMLElement | null>,
-  options: GlitchInOptions = {}
-) {
+export function useGlitchIn(element: string | HTMLElement | Ref<HTMLElement | null>, options: GlitchInOptions = {}) {
   if (prefersReducedMotion()) return
 
   const el = unref(element) as HTMLElement | null
@@ -490,10 +478,7 @@ export interface SlamInOptions {
   distance?: number
 }
 
-export function useSlamIn(
-  element: string | HTMLElement | Ref<HTMLElement | null>,
-  options: SlamInOptions = {}
-) {
+export function useSlamIn(element: string | HTMLElement | Ref<HTMLElement | null>, options: SlamInOptions = {}) {
   if (prefersReducedMotion()) return
 
   const el = unref(element) as HTMLElement | null
@@ -521,10 +506,7 @@ export interface PopInOptions {
   delay?: number
 }
 
-export function usePopIn(
-  element: string | HTMLElement | Ref<HTMLElement | null>,
-  options: PopInOptions = {}
-) {
+export function usePopIn(element: string | HTMLElement | Ref<HTMLElement | null>, options: PopInOptions = {}) {
   if (prefersReducedMotion()) return
 
   const el = unref(element) as HTMLElement | null
@@ -583,10 +565,7 @@ export interface FloatOptions {
   duration?: number
 }
 
-export function useFloat(
-  element: string | HTMLElement | Ref<HTMLElement | null>,
-  options: FloatOptions = {}
-) {
+export function useFloat(element: string | HTMLElement | Ref<HTMLElement | null>, options: FloatOptions = {}) {
   if (prefersReducedMotion()) return
 
   const el = unref(element) as HTMLElement | null
@@ -612,10 +591,7 @@ export interface HeartbeatOptions {
   delay?: number
 }
 
-export function useHeartbeat(
-  element: string | HTMLElement | Ref<HTMLElement | null>,
-  options: HeartbeatOptions = {}
-) {
+export function useHeartbeat(element: string | HTMLElement | Ref<HTMLElement | null>, options: HeartbeatOptions = {}) {
   if (prefersReducedMotion()) return
 
   const el = unref(element) as HTMLElement | null
@@ -665,10 +641,7 @@ export interface ShimmerOptions {
   delay?: number
 }
 
-export function useShimmer(
-  element: string | HTMLElement | Ref<HTMLElement | null>,
-  options: ShimmerOptions = {}
-) {
+export function useShimmer(element: string | HTMLElement | Ref<HTMLElement | null>, options: ShimmerOptions = {}) {
   if (prefersReducedMotion()) return
 
   const el = unref(element) as HTMLElement | null
