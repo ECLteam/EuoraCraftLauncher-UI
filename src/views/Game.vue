@@ -2,6 +2,16 @@
   <div class="game-page">
     <div class="game-left">
       <div id="plugin-slot-game-left" class="plugin-slot-container"></div>
+      <button
+        class="running-instances-trigger"
+        :class="{ inactive: runningInstanceCount === 0 }"
+        type="button"
+        :title="t('versions.runningManagement')"
+        @click="showRunningInstances = true"
+      >
+        <UiIcon name="power" :size="20" />
+        <span>{{ t('versions.runningManagement') }}</span>
+      </button>
     </div>
 
     <div class="game-right">
@@ -57,6 +67,17 @@
         @selectVersion="handleSelectVersion"
       />
     </div>
+
+    <FullscreenModal
+      v-model:visible="showRunningInstances"
+      :title="t('versions.runningTab')"
+      :showFooter="false"
+      bodyClass="running-instances-modal-body"
+    >
+      <div class="running-instances-modal-content">
+        <RunningInstancesTab v-if="showRunningInstances" />
+      </div>
+    </FullscreenModal>
 
     <FullscreenModal
       v-model:visible="account.showAccountModal"
@@ -400,9 +421,11 @@ import { getVersionImage } from '@/config/version'
 import WardrobeModal from '@/features/accounts/components/WardrobeModal.vue'
 import { useGameInfoCard } from '@/features/game-home/composables/useGameInfoCard'
 import { useGameHomeStore } from '@/features/game-home/stores/gameHomeStore'
+import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
 import type { MicrosoftLoginStage } from '@/types/api'
 import { getLoaderIcon, getLoaderImage } from '@/utils/loader'
+import RunningInstancesTab from '@/views/instances/RunningInstancesTab.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -432,6 +455,9 @@ type AccountType = 'microsoft' | 'offline' | 'authlib'
 
 const showAddAccountModal = ref(false)
 const showWardrobeModal = ref(false)
+const showRunningInstances = ref(false)
+const runningInstanceCount = ref(0)
+let stopListeningForRunningInstances: (() => void) | null = null
 let returningFromWardrobe = false
 const selectedAccountType = ref<AccountType>('microsoft')
 const showOfflineAdvanced = ref(false)
@@ -580,9 +606,22 @@ function goToInstallVersion() {
   void router.push({ name: 'versions-manage' })
 }
 
+async function refreshRunningInstanceCount() {
+  try {
+    const instances = await instanceRuntimeApi.list()
+    runningInstanceCount.value = instances.filter((instance) => instance.isRunning).length
+  } catch (error) {
+    console.warn('[GameHome] 读取运行实例数量失败:', error)
+  }
+}
+
 onMounted(() => {
   version.loadVersions()
   account.loadAccounts()
+  stopListeningForRunningInstances = instanceRuntimeApi.onChanged(() => {
+    void refreshRunningInstanceCount()
+  })
+  void refreshRunningInstanceCount()
   startInfoCard().catch((error) => {
     console.warn('[GameHome] 加载首页数据失败:', error)
   })
@@ -591,6 +630,8 @@ onMounted(() => {
 onBeforeUnmount(() => {
   account.reset()
   stopInfoCard()
+  stopListeningForRunningInstances?.()
+  stopListeningForRunningInstances = null
   if (launchCancelTimer.value) clearTimeout(launchCancelTimer.value)
 })
 </script>

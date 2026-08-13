@@ -184,18 +184,20 @@ async function waitForEventListeners(): Promise<void> {
   }
 }
 
-// ── 文件路径转可访问 URL ──────────────────────────────────────────
+// ── 本地图片路径转安全 Data URL ────────────────────────────────────
 
 /**
- * 将本地文件路径转换为可在 DOM 中使用的 URL。
- * @param path - 本地文件路径
- * @returns 可访问的 URL，转换失败时返回 null
+ * 通过后端读取本地图片并转换为可在 DOM 中直接使用的 Data URL。
+ *
+ * 不依赖 Tauri Asset Protocol，避免未启用本地资源服务时生成无法连接的
+ * `asset.localhost` 地址，也避免扩大 WebView 可直接读取的文件路径范围。
+ *
+ * @param path - 本地图片路径
+ * @returns 图片 Data URL，读取失败时返回 null
  */
 async function resolveFileUrl(path: string): Promise<string | null> {
-  const res = await call<{ path: string }>('file_resolve', { path })
-  if (!res.success || !res.data?.path) return null
-
-  return transport.convertFileSrc(res.data.path)
+  const res = await call<{ dataUrl: string }>('image_read_file', { path })
+  return res.success && res.data?.dataUrl ? res.data.dataUrl : null
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -302,7 +304,7 @@ export const backend = {
 
   /** 文件路径工具 */
   file: {
-    /** 将本地文件路径转为可在 <img>/<video> 中直接使用的 URL */
+    /** 将本地图片路径转为可在 <img> 中直接使用的 Data URL */
     async toUrl(path: string): Promise<string | null> {
       return resolveFileUrl(path)
     },

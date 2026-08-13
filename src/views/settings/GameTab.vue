@@ -121,6 +121,23 @@
       </div>
     </SettingSection>
 
+    <SettingSection title="启动器实例兼容">
+      <SettingRow
+        label="Qomicex 实例索引"
+        description="留空时自动探测 QOMICEX_HOME 与 LocalAppData；也可手动指定 instances.json。ECL 只读取，不会修改该文件。"
+      >
+        <div class="java-selector">
+          <NInput
+            :value="localSettings.qomicex_instances_path || ''"
+            placeholder="自动探测"
+            clearable
+            @update:value="handleQomicexPathChange"
+          />
+          <NButton size="small" @click="browseQomicexIndex">{{ t('common.browse') }}</NButton>
+        </div>
+      </SettingRow>
+    </SettingSection>
+
     <SettingSection :title="t('settings.runtime')">
       <SettingRow :label="t('settings.fullscreen')" :description="t('settings.fullscreenDesc')">
         <NSwitch :value="localSettings.fullscreen" @update:value="handleFullscreenToggle" />
@@ -144,10 +161,11 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NSelect, NSwitch } from 'naive-ui'
+import { NButton, NInput, NSelect, NSwitch } from 'naive-ui'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import backend from '@/api/client'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { MIRROR_OPTIONS } from '@/config/version'
@@ -360,6 +378,17 @@ const browseJava = async () => {
   localSettings.value.java_path = path
   await saveConfig()
   message.success(t('common.success'))
+}
+
+const handleQomicexPathChange = (value: string) => {
+  localSettings.value.qomicex_instances_path = value
+  void settingsStore.patchGame({ qomicex_instances_path: value })
+}
+
+const browseQomicexIndex = async () => {
+  const response = await backend.command('select_file')
+  if (!response.success || !response.data?.path) return
+  await handleQomicexPathChange(response.data.path)
 }
 
 onMounted(() => {

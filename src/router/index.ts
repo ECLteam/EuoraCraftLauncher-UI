@@ -4,17 +4,12 @@ const routes: RouteRecordRaw[] = [
   { path: '/', name: 'game', component: () => import('@/views/Game.vue') },
   {
     path: '/versions',
+    name: 'versions-manage',
     component: () => import('@/views/Instances.vue'),
-    redirect: '/versions/manage',
-    children: [
-      { path: 'manage', name: 'versions-manage', component: () => import('@/views/instances/ManageTab.vue') },
-      {
-        path: 'running',
-        name: 'versions-running',
-        component: () => import('@/views/instances/RunningInstancesTab.vue'),
-      },
-    ],
   },
+  { path: '/versions/manage', redirect: '/versions' },
+  { path: '/versions/running', redirect: '/' },
+  { path: '/download', name: 'download', component: () => import('@/views/Download.vue') },
   { path: '/plugins', name: 'plugins', component: () => import('@/views/Plugins.vue') },
   { path: '/online-mods', name: 'online-mods', component: () => import('@/views/OnlineMods.vue') },
   {

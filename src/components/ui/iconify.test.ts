@@ -14,4 +14,22 @@ describe('图标映射', () => {
       expect(ICON_MAP[shortName], `实例运行管理图标 ${shortName} 未注册`).toBeDefined()
     }
   })
+
+  it('实例列表工具栏和卡片使用的图标短名均已注册', () => {
+    const iconNames = [
+      'pin',
+      'tags',
+      'eye-off',
+      'filter-off',
+      'sort-ascending',
+      'sort-descending',
+      'layout-grid',
+      'clock',
+      'hourglass',
+      'rocket',
+    ]
+    for (const shortName of iconNames) {
+      expect(ICON_MAP[shortName], `实例列表图标 ${shortName} 未注册`).toBeDefined()
+    }
+  })
 })

@@ -140,6 +140,7 @@
     "title": "Instance Management",
     "manageTab": "Manage Instances",
     "runningTab": "Running Instances",
+    "runningManagement": "Instance Runtime Management",
     "versions": "Download Instances",
     "modsTab": "Mods",
     "running": {

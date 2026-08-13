@@ -140,6 +140,7 @@
     "title": "实例管理",
     "manageTab": "实例管理",
     "runningTab": "已启动实例",
+    "runningManagement": "实例运行管理",
     "versions": "实例下载",
     "modsTab": "模组",
     "running": {

@@ -63,6 +63,8 @@ export interface GameConfig {
   last_manage_path?: string
   /** 当前激活的游戏路径（用于确定启动哪个路径下的实例） */
   active_path?: string
+  /** 手动指定 Qomicex instances.json；为空时由后端自动探测。 */
+  qomicex_instances_path?: string
 }
 
 /**
@@ -109,6 +111,11 @@ export interface UiConfig {
   locale?: string
   theme?: Partial<ThemeConfig> & { background_opacity?: number }
   background?: Partial<BackgroundConfig>
+  instanceManager?: {
+    viewMode?: 'card' | 'list'
+    sortKey?: InstanceSortKey
+    sortDirection?: 'asc' | 'desc'
+  }
 }
 
 export type ConfigSection = 'launcher' | 'game' | 'download' | 'ui' | 'locale' | 'background' | string
@@ -157,6 +164,38 @@ export interface MinecraftVersionCatalog {
 
 export type LoaderType = 'Vanilla' | 'Forge' | 'NeoForge' | 'Fabric' | 'Quilt' | 'OptiFine'
 
+export type InstanceExternalSource = 'auto' | 'pcl' | 'hmcl' | 'qomicex'
+export type InstanceSortKey = 'lastLaunchedAt' | 'totalRunDurationSeconds' | 'launchCount' | 'name' | 'gameVersion'
+
+export interface InstanceIconConfig {
+  type: 'builtin' | 'loader' | 'local' | 'external' | 'data'
+  value: string
+  source?: string
+}
+
+export interface InstanceCategory {
+  id: string
+  name: string
+  color: string
+  order: number
+  builtin: boolean
+}
+
+export interface InstanceProfile {
+  schemaVersion: number
+  alias?: string
+  description?: string
+  favorite?: boolean
+  pinned?: boolean
+  hidden?: boolean
+  categoryId?: string
+  tags?: string[]
+  icon?: InstanceIconConfig
+  cover?: InstanceIconConfig
+  pinOrder?: number
+  preferredExternalSource?: InstanceExternalSource
+}
+
 export interface ScannedVersion {
   id: string
   versionId: string
@@ -176,6 +215,25 @@ export interface ScannedVersion {
   isBroken: boolean
   jsonPath: string
   sourceName?: string
+  alias?: string
+  description?: string
+  favorite?: boolean
+  pinned?: boolean
+  hidden?: boolean
+  categoryId?: string
+  tags?: string[]
+  icon?: InstanceIconConfig
+  cover?: InstanceIconConfig
+  pinOrder?: number
+  fieldSources?: Record<string, string>
+  profileOverrides?: string[]
+  preferredExternalSource?: InstanceExternalSource
+  availableSources?: string[]
+  sourceWarnings?: string[]
+  launchCount?: number
+  lastRunDurationSeconds?: number
+  totalRunDurationSeconds?: number
+  lastLaunchedAt?: string | null
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -198,6 +256,98 @@ export interface VersionRunStats {
   launchCount: number
   lastRunDurationSeconds: number
   totalRunDurationSeconds: number
+  lastLaunchedAt?: string | null
+  externalSnapshots?: Record<string, Record<string, unknown>>
+}
+
+export interface InstanceTargetPayload {
+  game_path: string
+  version_id: string
+  version_isolation?: boolean
+}
+
+export interface GameOperation {
+  operationId: string
+  kind?: string
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled'
+  percent?: number
+  message?: string
+  result?: unknown
+  error?: string | null
+  errorCode?: string | null
+}
+
+export interface WorldEntry {
+  id: string
+  name: string
+  path: string
+  iconPath?: string | null
+  gameMode?: string
+  gameModeId?: number
+  difficulty?: string
+  difficultyId?: number
+  difficultyLocked?: boolean
+  allowCommands?: boolean
+  version?: string
+  seed?: string
+  lastPlayedAt?: string | null
+  modifiedAt?: string
+  createdAt?: string
+  error?: string
+}
+
+export interface ScreenshotEntry {
+  id: string
+  name: string
+  path: string
+  width: number
+  height: number
+  size: number
+  modifiedAt: string
+  dateGroup: string
+  thumbnailUrl?: string
+}
+
+export interface ServerEntry {
+  id: string
+  name: string
+  address: string
+  icon?: string | null
+  favorite: boolean
+  order: number
+}
+
+export interface ServerStatus {
+  address: string
+  online: boolean
+  latency?: number
+  playersOnline?: number
+  playersMax?: number
+  version?: string
+  protocol?: number
+  motd?: string
+  icon?: string | null
+  error?: string
+}
+
+export type GameResourceType = 'mod' | 'resourcepack' | 'shaderpack' | 'datapack' | 'schematic'
+
+export interface GameResource {
+  id: string
+  type: GameResourceType
+  path: string
+  name: string
+  version?: string
+  loader?: string
+  enabled: boolean
+  size: number
+  modifiedAt: string
+  sha512?: string | null
+  source: string
+  sourceProjectId?: string | null
+  duplicateHash?: boolean
+  duplicateProjectId?: boolean
+  missingDependencies?: string[]
 }
 
 export type CrashConfidence = 'certain' | 'likely' | 'possible'
@@ -736,6 +886,7 @@ export interface BackendEvents {
   'launcher:popup': LauncherPopupEvent
   'game:install_progress': InstallProgress
   'game:launch_progress': LaunchProgress
+  'game:operation_progress': GameOperation
   'game:versions_changed': { gamePath: string }
   'game:instances_changed': GameInstancesChangedEvent
   'mods:install_progress': { phase: 'resolving' | 'downloading'; projectId?: string; filename?: string }
@@ -870,15 +1021,77 @@ export interface CommandPayloadMap {
   // 文件选择
   select_directory: undefined
   select_java: undefined
-  select_image: { purpose?: 'background' | 'skin' | 'cape' } | undefined
-  select_file: { purpose?: 'crash-analysis' } | undefined
-  select_save_file: { purpose: 'crash-report' | 'launcher-logs' }
+  select_image: { purpose?: 'background' | 'skin' | 'cape' | 'instance_icon' } | undefined
+  select_file: { purpose?: 'crash-analysis' | 'modpack' | 'world-import' } | undefined
+  select_files: { purpose?: 'resource-files' }
+  select_save_file: { purpose: 'crash-report' | 'launcher-logs' | 'world-export' | 'instance-export' | 'resource-manifest' | 'screenshot' }
   open_folder: { path: string }
   open_url: { url: string }
 
   // 实例
   game_instances: undefined
   game_version_stats: { game_path: string; version_id: string }
+  game_instance_profile_get: { game_path: string; version_id: string }
+  game_instance_profile_patch: {
+    game_path: string
+    version_id: string
+    patch: Partial<Omit<InstanceProfile, 'schemaVersion' | 'icon'>>
+  }
+  game_instance_profile_reset: { game_path: string; version_id: string; fields: string[] }
+  game_instance_icon_set: {
+    game_path: string
+    version_id: string
+    icon_type: 'auto' | 'builtin' | 'loader' | 'local'
+    value?: string
+    source_path?: string
+  }
+  game_instance_pin_order_set: { entries: Array<{ game_path: string; version_id: string }> }
+  game_instance_categories_get: undefined
+  game_instance_categories_upsert: { category_id?: string; name: string; color: string; order?: number }
+  game_instance_categories_delete: { category_id: string }
+  game_instance_folder_open: InstanceTargetPayload & { folder: 'instance' | 'mods' | 'saves' | 'screenshots' | 'logs' | 'crash-reports' }
+  game_instance_clone: InstanceTargetPayload & { new_version_id: string }
+  game_instance_import: { game_path: string; source_path: string; new_version_id: string }
+  game_instance_export: InstanceTargetPayload & { output_path: string; pack_format: 'ecl' | 'modrinth' | 'curseforge'; includes?: string[] }
+  game_instance_files_check: InstanceTargetPayload
+  game_instance_files_repair: InstanceTargetPayload
+  game_instance_delete_to_trash: InstanceTargetPayload
+  game_operation_get: { operation_id: string }
+  game_operation_cancel: { operation_id: string }
+  game_world_list: InstanceTargetPayload
+  game_world_detail: InstanceTargetPayload & { world_id: string }
+  game_world_patch: InstanceTargetPayload & { world_id: string; patch: { difficulty?: number; allowCommands?: boolean; difficultyLocked?: boolean } }
+  game_world_copy: InstanceTargetPayload & { world_id: string; new_world_id: string }
+  game_world_import: InstanceTargetPayload & { source_path: string }
+  game_world_export: InstanceTargetPayload & { world_id: string; output_path: string }
+  game_world_icon_set: InstanceTargetPayload & { world_id: string; source_path: string }
+  game_world_delete_to_trash: InstanceTargetPayload & { world_id: string }
+  game_world_backup_list: InstanceTargetPayload & { world_id: string }
+  game_world_backup_create: InstanceTargetPayload & { world_id: string }
+  game_world_backup_restore: InstanceTargetPayload & { world_id: string; backup_id: string }
+  game_world_backup_lock: InstanceTargetPayload & { world_id: string; backup_id: string; locked: boolean }
+  game_world_backup_delete_to_trash: InstanceTargetPayload & { world_id: string; backup_id: string }
+  game_screenshot_list: InstanceTargetPayload
+  game_screenshot_thumbnail: InstanceTargetPayload & { screenshot_id: string; size?: number }
+  game_screenshot_copy: InstanceTargetPayload & { screenshot_id: string }
+  game_screenshot_save_as: InstanceTargetPayload & { screenshot_id: string; output_path: string }
+  game_screenshot_delete_to_trash: InstanceTargetPayload & { screenshot_id: string }
+  game_screenshot_set_cover: InstanceTargetPayload & { screenshot_id: string }
+  game_screenshot_set_background: InstanceTargetPayload & { screenshot_id: string }
+  game_server_list: InstanceTargetPayload
+  game_server_upsert: InstanceTargetPayload & { server_id?: string; name: string; address: string; favorite?: boolean }
+  game_server_delete: InstanceTargetPayload & { server_id: string }
+  game_server_reorder: InstanceTargetPayload & { server_ids: string[] }
+  game_server_status_refresh: { addresses: string[]; timeout?: number }
+  game_resource_list: InstanceTargetPayload & { resource_type: GameResourceType; world_id?: string }
+  game_resource_install: InstanceTargetPayload & { resource_type: GameResourceType; source_paths: string[]; world_id?: string }
+  game_resource_toggle: InstanceTargetPayload & { resource_type: GameResourceType; resource_id: string; enabled: boolean; world_id?: string }
+  game_resource_delete_to_trash: InstanceTargetPayload & { resource_type: GameResourceType; resource_ids: string[]; world_id?: string }
+  game_resource_manifest_export: InstanceTargetPayload & { resource_type: GameResourceType; output_path: string; output_format: 'json' | 'csv'; world_id?: string }
+  game_resource_search: { query: string; game_version: string; loader: string; source?: 'modrinth' | 'curseforge'; limit?: number }
+  game_resource_identify: { sha512: string }
+  game_resource_update_check: InstanceTargetPayload & { resource_type: GameResourceType; game_version: string; loader: string; world_id?: string }
+  game_resource_update: InstanceTargetPayload & { resource_type: GameResourceType; resource_id: string; update: Record<string, unknown>; world_id?: string }
   game_launch: {
     version_id: string
     game_path: string
@@ -889,6 +1102,7 @@ export interface CommandPayloadMap {
     jvm_args?: string[]
     game_args?: string[]
     version_isolation?: boolean
+    quick_target?: { type: 'world'; world_id: string } | { type: 'server'; address: string }
   }
   game_launch_cancel: undefined
   game_instance_stop: { instance_id: string }
@@ -1054,12 +1268,64 @@ export interface CommandResponseMap {
   select_java: SelectResult
   select_image: ImageSelection
   select_file: SelectResult
+  select_files: { paths: string[] }
   select_save_file: SelectResult
   open_folder: void
   open_url: void
 
   game_instances: GameInstance[]
   game_version_stats: VersionRunStats
+  game_instance_profile_get: InstanceProfile
+  game_instance_profile_patch: InstanceProfile
+  game_instance_profile_reset: InstanceProfile
+  game_instance_icon_set: InstanceProfile
+  game_instance_pin_order_set: void
+  game_instance_categories_get: InstanceCategory[]
+  game_instance_categories_upsert: InstanceCategory
+  game_instance_categories_delete: void
+  game_instance_folder_open: { path: string }
+  game_instance_clone: GameOperation
+  game_instance_import: GameOperation
+  game_instance_export: GameOperation
+  game_instance_files_check: { issues: Array<{ kind: string; path: string; size?: number; message?: string }>; downloadBytes: number; canRepair: boolean }
+  game_instance_files_repair: GameOperation
+  game_instance_delete_to_trash: void
+  game_operation_get: GameOperation
+  game_operation_cancel: boolean
+  game_world_list: WorldEntry[]
+  game_world_detail: WorldEntry
+  game_world_patch: WorldEntry
+  game_world_copy: GameOperation
+  game_world_import: GameOperation
+  game_world_export: GameOperation
+  game_world_icon_set: { path: string }
+  game_world_delete_to_trash: void
+  game_world_backup_list: Array<{ id: string; createdAt?: string; locked: boolean; automatic: boolean; size: number }>
+  game_world_backup_create: GameOperation
+  game_world_backup_restore: GameOperation
+  game_world_backup_lock: { id: string; locked: boolean }
+  game_world_backup_delete_to_trash: void
+  game_screenshot_list: ScreenshotEntry[]
+  game_screenshot_thumbnail: { path: string; sourcePath: string }
+  game_screenshot_copy: void
+  game_screenshot_save_as: { path: string }
+  game_screenshot_delete_to_trash: void
+  game_screenshot_set_cover: InstanceProfile
+  game_screenshot_set_background: { path: string }
+  game_server_list: ServerEntry[]
+  game_server_upsert: ServerEntry
+  game_server_delete: void
+  game_server_reorder: ServerEntry[]
+  game_server_status_refresh: ServerStatus[]
+  game_resource_list: GameResource[]
+  game_resource_install: GameOperation
+  game_resource_toggle: { id: string; enabled: boolean }
+  game_resource_delete_to_trash: void
+  game_resource_manifest_export: { path: string }
+  game_resource_search: { source: string; items: unknown[] }
+  game_resource_identify: { matched: boolean; ambiguous?: boolean; source?: string; projectId?: string; versionId?: string }
+  game_resource_update_check: Array<Record<string, unknown>>
+  game_resource_update: GameOperation
   game_launch: LaunchInstanceResult
   game_launch_cancel: void
   export_logs: { path: string }

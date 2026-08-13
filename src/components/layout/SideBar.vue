@@ -192,10 +192,6 @@ const settingsSubItems = computed(() => [
   { path: '/settings/about', label: t('settings.about'), iconName: 'info' },
 ])
 
-const versionsSubItems = computed(() => [
-  { path: '/versions/manage', label: t('versions.manageTab'), iconName: 'settings' },
-])
-
 interface SubMenuItem {
   path: string
   label: string
@@ -204,7 +200,6 @@ interface SubMenuItem {
 
 const subItemsMap = computed<Record<string, SubMenuItem[]>>(() => ({
   '/settings': settingsSubItems.value,
-  '/versions': versionsSubItems.value,
 }))
 
 const itemHasSubItems = (path: string) => {

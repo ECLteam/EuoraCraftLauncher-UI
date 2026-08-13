@@ -75,4 +75,18 @@ describe('backend IPC client', () => {
       detail: undefined,
     })
   })
+
+  it('reads local images as data URLs without relying on the Tauri asset protocol', async () => {
+    transportMocks.invoke.mockResolvedValueOnce({
+      success: true,
+      data: { dataUrl: 'data:image/webp;base64,UklGRg==' },
+    })
+
+    await expect(backend.file.toUrl('E:\\ECL_data\\cache\\screenshots\\thumb.webp')).resolves.toBe(
+      'data:image/webp;base64,UklGRg=='
+    )
+    expect(transportMocks.invoke).toHaveBeenCalledWith('image_read_file', {
+      path: 'E:\\ECL_data\\cache\\screenshots\\thumb.webp',
+    })
+  })
 })

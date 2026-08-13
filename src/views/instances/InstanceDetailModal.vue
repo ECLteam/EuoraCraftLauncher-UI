@@ -9,13 +9,10 @@
     <div class="vdm-shell">
       <header class="vdm-header">
         <div class="vdm-version-identity">
-          <div class="vdm-version-icon" :class="{ 'has-image': Boolean(versionImage) }">
-            <img v-if="versionImage" :src="versionImage" alt="" class="vdm-version-icon-img" />
-            <UiIcon v-else :name="getLoaderIcon(version?.primaryLoader || 'vanilla')" :size="22" />
-          </div>
+          <InstanceIcon v-if="version" :version="version" :size="42" />
           <div class="vdm-version-copy">
-            <strong>{{ version?.versionId || '...' }}</strong>
-            <span>{{ getLoaderName(version?.primaryLoader || 'vanilla') }}</span>
+              <strong>{{ version?.displayName || version?.versionId || '...' }}</strong>
+              <span>{{ version?.versionId }} · {{ getLoaderName(version?.primaryLoader || 'vanilla') }}</span>
           </div>
         </div>
 
@@ -97,6 +94,38 @@
                 {{ t('versions.detail.delete') }}
               </NButton>
             </div>
+          </div>
+        </div>
+
+        <div v-if="activeTab === 'profile'" class="vdm-page profile-page">
+          <div class="info-card profile-card">
+            <div class="info-card__header">
+              <span>个性化</span>
+              <NButton size="small" type="primary" :loading="profileSaving" @click="saveProfile">保存资料</NButton>
+            </div>
+            <div class="profile-form-grid">
+              <label><span>实例别名</span><NInput v-model:value="profileForm.alias" maxlength="120" /><small>磁盘目录仍为 {{ version?.versionId }}</small></label>
+              <label><span>分类</span><NSelect v-model:value="profileForm.categoryId" :options="categoryOptions" /></label>
+              <label class="profile-form-wide"><span>描述</span><NInput v-model:value="profileForm.description" type="textarea" :autosize="{ minRows: 2, maxRows: 5 }" maxlength="1000" /></label>
+              <label class="profile-form-wide"><span>标签（使用逗号分隔）</span><NInput v-model:value="profileForm.tagsText" placeholder="朋友服, 机械动力, 生存" /></label>
+              <label><span>兼容元数据来源</span><NSelect v-model:value="profileForm.preferredExternalSource" :options="sourceOptions" /></label>
+              <div class="profile-switches">
+                <span><NSwitch v-model:value="profileForm.favorite" />收藏</span>
+                <span><NSwitch v-model:value="profileForm.pinned" />置顶</span>
+                <span><NSwitch v-model:value="profileForm.hidden" />隐藏</span>
+              </div>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-card__header"><span>实例图标</span><NButton size="small" secondary @click="iconPickerVisible = true">更换图标</NButton></div>
+            <div class="profile-icon-preview"><InstanceIcon v-if="version" :version="version" :size="64" /><div><strong>内置方块、加载器或本地图片</strong><span>本地图片会复制到实例的 .ecl 目录。</span></div></div>
+          </div>
+          <div class="info-card">
+            <div class="info-card__header">字段来源与恢复</div>
+            <div class="field-source-list">
+              <div v-for="field in profileFields" :key="field"><span>{{ profileFieldLabel(field) }}</span><code>{{ version?.fieldSources?.[field] || 'auto' }}</code><NButton v-if="version?.profileOverrides?.includes(field)" size="tiny" quaternary @click="resetProfileField(field)">恢复自动</NButton></div>
+            </div>
+            <p v-for="warning in version?.sourceWarnings || []" :key="warning" class="source-warning">{{ warning }}</p>
           </div>
         </div>
 
@@ -322,28 +351,50 @@
           </template>
         </div>
 
-        <div v-if="activeTab === 'saves'" class="vdm-page empty-page">
-          <NEmpty :description="t('versions.detail.placeholder')" />
+        <div v-if="activeTab === 'resources' && version" class="vdm-page workspace-page">
+          <InstanceResourcesTab :version="version" :worldOptions="worldOptions" />
+        </div>
+        <div v-if="activeTab === 'worlds' && version" class="vdm-page workspace-page">
+          <InstanceWorldsTab :version="version" @changed="handleWorldsChanged" />
+        </div>
+        <div v-if="activeTab === 'screenshots' && version" class="vdm-page workspace-page">
+          <InstanceScreenshotsTab :version="version" @updated="emit('updated')" />
+        </div>
+        <div v-if="activeTab === 'servers' && version" class="vdm-page workspace-page">
+          <InstanceServersTab :version="version" />
         </div>
       </div>
 
       <div id="plugin-slot-version-detail-footer" class="plugin-slot-container"></div>
     </div>
   </FullscreenModal>
+  <Modal v-model:visible="iconPickerVisible" title="选择实例图标" width="520px">
+    <div class="icon-picker-grid">
+      <button @click="setProfileIcon('auto')"><UiIcon name="refresh" :size="28" /><span>自动</span></button>
+      <button v-for="icon in iconChoices" :key="`${icon.type}-${icon.value}`" @click="setProfileIcon(icon.type, icon.value)"><img :src="icon.image" alt="" /><span>{{ icon.label }}</span></button>
+      <button @click="chooseLocalProfileIcon"><UiIcon name="photo" :size="28" /><span>本地图片</span></button>
+    </div>
+  </Modal>
 </template>
 
 <script setup lang="ts">
-import { NButton, NEmpty, NInput, NInputGroup, NInputNumber, NSpin, NSwitch, useDialog } from 'naive-ui'
+import { NButton, NInput, NInputGroup, NInputNumber, NSelect, NSpin, NSwitch, useDialog } from 'naive-ui'
 import { ref, reactive, computed, watch, nextTick, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import backend from '@/api/client'
 import { launcherErrorQueue } from '@/app/runtime/errorPresentation'
+import InstanceIcon from '@/components/instances/InstanceIcon.vue'
+import InstanceResourcesTab from '@/components/instances/InstanceResourcesTab.vue'
+import InstanceScreenshotsTab from '@/components/instances/InstanceScreenshotsTab.vue'
+import InstanceServersTab from '@/components/instances/InstanceServersTab.vue'
+import InstanceWorldsTab from '@/components/instances/InstanceWorldsTab.vue'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
+import Modal from '@/components/modals/Modal.vue'
 import OnlineModSearch from '@/components/mods/OnlineModSearch.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
-import { getVersionImage } from '@/config/version'
 import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
+import { instanceProfileApi, targetFromVersion } from '@/features/instances/api/instanceProfileApi'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
 import { instanceSettingsApi } from '@/features/instances/api/instanceSettingsApi'
 import { localModsApi } from '@/features/instances/api/localModsApi'
@@ -351,8 +402,8 @@ import { createDefaultVersionSettings, type VersionSettingsTarget } from '@/feat
 import { formatRunDuration } from '@/features/instances/model/versionStats'
 import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
-import type { ModItem, ScannedVersion, VersionRunStats } from '@/types/api'
-import { getLoaderIcon, getLoaderImage, getLoaderName } from '@/utils/loader'
+import type { InstanceCategory, InstanceExternalSource, ModItem, ScannedVersion, VersionRunStats, WorldEntry } from '@/types/api'
+import { getLoaderName } from '@/utils/loader'
 
 interface Props {
   visible: boolean
@@ -360,7 +411,7 @@ interface Props {
   initialTab?: DetailTab
 }
 
-type DetailTab = 'overview' | 'mods' | 'online-mods' | 'settings' | 'saves'
+type DetailTab = 'overview' | 'profile' | 'mods' | 'online-mods' | 'resources' | 'worlds' | 'screenshots' | 'servers' | 'settings' | 'saves'
 
 const props = withDefaults(defineProps<Props>(), {
   initialTab: 'overview',
@@ -369,6 +420,7 @@ const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void
   (e: 'launch', version: ScannedVersion): void
   (e: 'delete', version: ScannedVersion): void
+  (e: 'updated'): void
 }>()
 
 const { t } = useI18n()
@@ -380,14 +432,7 @@ const visible = computed({
   set: (val) => emit('update:visible', val),
 })
 
-const title = computed(() => props.version?.versionId || t('versions.detail.settings'))
-
-const versionImage = computed(() => {
-  const version = props.version
-  if (!version) return ''
-  if (version.hasOptiFine) return getLoaderImage('optifine')
-  return getLoaderImage(version.primaryLoader) || getVersionImage(version.versionType)
-})
+const title = computed(() => props.version?.displayName || props.version?.versionId || t('versions.detail.settings'))
 
 const activeTab = ref<DetailTab>('overview')
 const runStats = reactive<VersionRunStats>({
@@ -401,11 +446,121 @@ let statsRequestId = 0
 
 const tabs = computed(() => [
   { id: 'overview' as const, icon: 'info', label: t('versions.detail.overview') },
-  { id: 'mods' as const, icon: 'puzzle', label: t('versions.detail.mods') },
-  { id: 'online-mods' as const, icon: 'cloud-download', label: t('versions.detail.onlineMods') },
+  { id: 'resources' as const, icon: 'puzzle', label: '资源' },
+  { id: 'worlds' as const, icon: 'globe', label: '存档' },
+  { id: 'screenshots' as const, icon: 'photo', label: '截图' },
+  { id: 'servers' as const, icon: 'server', label: '服务器' },
+  { id: 'profile' as const, icon: 'palette', label: '个性化' },
   { id: 'settings' as const, icon: 'settings', label: t('versions.detail.settings') },
-  { id: 'saves' as const, icon: 'folder', label: t('versions.detail.saves') },
 ])
+const worldOptions = ref<Array<{ label: string; value: string }>>([])
+function handleWorldsChanged(worlds: WorldEntry[]) {
+  worldOptions.value = worlds.map((world) => ({ label: world.name, value: world.id }))
+}
+
+const categories = ref<InstanceCategory[]>([])
+const profileSaving = ref(false)
+const iconPickerVisible = ref(false)
+const profileForm = reactive({
+  alias: '',
+  description: '',
+  favorite: false,
+  pinned: false,
+  hidden: false,
+  categoryId: 'unclassified',
+  tagsText: '',
+  preferredExternalSource: 'auto' as InstanceExternalSource,
+})
+const categoryOptions = computed(() => categories.value.map((category) => ({ label: category.name, value: category.id })))
+const sourceOptions = [
+  { label: '自动（最新来源）', value: 'auto' },
+  { label: 'PCL / PCL-CE', value: 'pcl' },
+  { label: 'HMCL', value: 'hmcl' },
+  { label: 'Qomicex', value: 'qomicex' },
+]
+const profileFields = ['alias', 'description', 'favorite', 'pinned', 'hidden', 'categoryId', 'tags', 'icon']
+const iconChoices = [
+  { type: 'builtin' as const, value: 'grass', label: '草方块', image: '/img/item/grass.png' },
+  { type: 'builtin' as const, value: 'chest', label: '箱子', image: '/img/item/chest.png' },
+  { type: 'builtin' as const, value: 'command', label: '命令方块', image: '/img/item/command.png' },
+  { type: 'builtin' as const, value: 'coal', label: '煤炭', image: '/img/item/coal.png' },
+  { type: 'builtin' as const, value: 'iron', label: '铁块', image: '/img/item/iron.png' },
+  { type: 'builtin' as const, value: 'quartz', label: '石英', image: '/img/item/quartz.png' },
+  { type: 'loader' as const, value: 'vanilla', label: 'Vanilla', image: '/img/item/grass.png' },
+  { type: 'loader' as const, value: 'forge', label: 'Forge', image: '/img/item/forge.png' },
+  { type: 'loader' as const, value: 'neoforge', label: 'NeoForge', image: '/img/item/neoforge.png' },
+  { type: 'loader' as const, value: 'fabric', label: 'Fabric', image: '/img/item/fabric.png' },
+  { type: 'loader' as const, value: 'quilt', label: 'Quilt', image: '/img/item/quilt.png' },
+  { type: 'loader' as const, value: 'optifine', label: 'OptiFine', image: '/img/item/optifine.png' },
+]
+
+function loadProfileForm() {
+  const version = props.version
+  if (!version) return
+  Object.assign(profileForm, {
+    alias: version.displayName || version.versionId,
+    description: version.description || '',
+    favorite: Boolean(version.favorite),
+    pinned: Boolean(version.pinned),
+    hidden: Boolean(version.hidden),
+    categoryId: version.categoryId || 'unclassified',
+    tagsText: (version.tags || []).join(', '),
+    preferredExternalSource: version.preferredExternalSource || 'auto',
+  })
+}
+
+async function saveProfile() {
+  const version = props.version
+  if (!version || profileSaving.value) return
+  profileSaving.value = true
+  try {
+    await instanceProfileApi.patch(targetFromVersion(version), {
+      alias: profileForm.alias,
+      description: profileForm.description,
+      favorite: profileForm.favorite,
+      pinned: profileForm.pinned,
+      hidden: profileForm.hidden,
+      categoryId: profileForm.categoryId,
+      tags: profileForm.tagsText.split(/[,，]/).map((tag) => tag.trim()).filter(Boolean),
+      preferredExternalSource: profileForm.preferredExternalSource,
+    })
+    message.success('实例资料已保存')
+    emit('updated')
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : '保存实例资料失败')
+  } finally {
+    profileSaving.value = false
+  }
+}
+
+async function resetProfileField(field: string) {
+  const version = props.version
+  if (!version) return
+  await instanceProfileApi.reset(targetFromVersion(version), [field])
+  emit('updated')
+}
+
+async function setProfileIcon(type: 'auto' | 'builtin' | 'loader', value?: string) {
+  const version = props.version
+  if (!version) return
+  await instanceProfileApi.setIcon(targetFromVersion(version), type, { value })
+  iconPickerVisible.value = false
+  emit('updated')
+}
+
+async function chooseLocalProfileIcon() {
+  const version = props.version
+  if (!version) return
+  const sourcePath = await instanceProfileApi.chooseLocalIcon()
+  if (!sourcePath) return
+  await instanceProfileApi.setIcon(targetFromVersion(version), 'local', { sourcePath })
+  iconPickerVisible.value = false
+  emit('updated')
+}
+
+function profileFieldLabel(field: string): string {
+  return { alias: '别名', description: '描述', favorite: '收藏', pinned: '置顶', hidden: '隐藏', categoryId: '分类', tags: '标签', icon: '图标' }[field] || field
+}
 
 // ======================== 模组管理 ========================
 
@@ -610,6 +765,8 @@ watch(
   (val) => {
     if (val) {
       activeTab.value = props.initialTab
+      loadProfileForm()
+      void instanceProfileApi.categories().then((items) => (categories.value = items))
       void loadSettings()
       void loadMods()
       void loadRunStats()
