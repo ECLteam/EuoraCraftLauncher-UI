@@ -1,7 +1,10 @@
 import type {
   ApiResponse,
   BackendEvents,
+  ConnectorMatchResult,
+  ConnectorStatus,
   CrashAnalysisResult,
+  EasyTierStatus,
   GameInstance,
   MinecraftAccount,
   PluginInfo,
@@ -54,6 +57,69 @@ export function createShowcaseTransport(): BackendTransport {
   const wardrobe: WardrobeItem[] = []
   const runningInstances: GameInstance[] = []
   const versionStats = new Map<string, VersionRunStats>()
+  let connectorStatus: ConnectorStatus = {
+    mode: 'idle',
+    roomCode: null,
+    mcHost: null,
+    mcPort: null,
+    gameInfo: null,
+    players: [],
+    error: null,
+  }
+  let easyTierStatus: EasyTierStatus = {
+    installed: true,
+    status: 'installed',
+    progress: 100,
+    speed: 0,
+    error: null,
+  }
+  let portScanCount = 0
+  let connectorStartTimer: ReturnType<typeof setTimeout> | null = null
+
+  const hostPlayer = {
+    name: 'CloudMaple685',
+    vendor: 'EuoraCraft Launcher',
+    iconBase64: null,
+    kind: 'host' as const,
+    machineId: 'showcase-host',
+  }
+  const guestPlayer = {
+    name: 'SkyBuilder',
+    vendor: 'Qomicex Launcher',
+    iconBase64: null,
+    kind: 'guest' as const,
+    machineId: 'showcase-guest',
+  }
+
+  const setHostedRoom = () => {
+    connectorStartTimer = null
+    connectorStatus = {
+      mode: 'host',
+      roomCode: 'U/ECL7-W9KM-4R2P-X8QA',
+      mcHost: '127.0.0.1',
+      mcPort: 25565,
+      gameInfo: { gameVersion: '1.21.5', loader: 'Fabric', loaderVersion: '0.16.10' },
+      players: [hostPlayer, guestPlayer],
+      error: null,
+    }
+  }
+
+  const connectorMatches = (): ConnectorMatchResult => ({
+    mods: [
+      { source: 'modrinth', id: 'fabric-api', hash: '67a873fd8fb045aa', name: 'Fabric API' },
+      { source: 'curseforge', id: 'sodium', hash: 'af340d09e96544bd', name: 'Sodium' },
+    ],
+    instances: showcaseScannedVersions.slice(0, 3).map((instance, index) => ({
+      gamePath: instance.path,
+      versionId: instance.versionId,
+      name: instance.displayName || instance.versionId,
+      gameVersion: instance.vanillaName,
+      loader: instance.primaryLoader || null,
+      loaderVersion: instance.loaderVersion ?? null,
+      matched: index === 0,
+      modCount: index === 0 ? 2 : index + 2,
+    })),
+  })
   const showcaseCrashReport: CrashAnalysisResult = {
     reportId: '5c0a5eca5e0a4eaf8f465ad0f42d89b1',
     versionId: 'Showcase-1.21.5-Fabric',
@@ -145,6 +211,67 @@ export function createShowcaseTransport(): BackendTransport {
         return success({ status: 'ok', message: 'Showcase Transport 已连接' })
       case 'system_memory':
         return success({ totalMb: 32768, usedMb: 8192, freeMb: 24576, percentUsed: 25 })
+      case 'connector_status':
+        return success(structuredClone(connectorStatus))
+      case 'connector_host_port':
+        if (connectorStartTimer) clearTimeout(connectorStartTimer)
+        setHostedRoom()
+        connectorStatus.mcPort = Number(payload.port || 25565)
+        return success({ roomCode: connectorStatus.roomCode })
+      case 'connector_host_instance':
+        if (connectorStartTimer) clearTimeout(connectorStartTimer)
+        connectorStatus = {
+          mode: 'starting',
+          roomCode: null,
+          mcHost: null,
+          mcPort: null,
+          gameInfo: null,
+          players: [],
+          error: null,
+        }
+        connectorStartTimer = setTimeout(setHostedRoom, 900)
+        return success({ status: 'starting' })
+      case 'connector_join':
+        if (connectorStartTimer) clearTimeout(connectorStartTimer)
+        connectorStartTimer = null
+        connectorStatus = {
+          mode: 'guest',
+          roomCode: String(payload.code || 'U/ECL7-W9KM-4R2P-X8QA'),
+          mcHost: '127.0.0.1',
+          mcPort: 25566,
+          gameInfo: { gameVersion: '1.21.5', loader: 'Fabric', loaderVersion: '0.16.10' },
+          players: [hostPlayer, { ...guestPlayer, name: 'ShowcasePlayer', machineId: 'showcase-local' }],
+          error: null,
+        }
+        return success({ mcHost: connectorStatus.mcHost, mcPort: connectorStatus.mcPort })
+      case 'connector_leave':
+        if (connectorStartTimer) clearTimeout(connectorStartTimer)
+        connectorStartTimer = null
+        connectorStatus = {
+          mode: 'idle',
+          roomCode: null,
+          mcHost: null,
+          mcPort: null,
+          gameInfo: null,
+          players: [],
+          error: null,
+        }
+        return success({ status: 'idle' })
+      case 'connector_kick':
+        connectorStatus.players = connectorStatus.players.filter((player) => player.machineId !== payload.machine_id)
+        return success({ status: 'ok' })
+      case 'connector_match_instances':
+        return success(connectorMatches())
+      case 'connector_easytier_status':
+        return success(structuredClone(easyTierStatus))
+      case 'connector_easytier_download':
+        easyTierStatus = { installed: true, status: 'installed', progress: 100, speed: 0, error: null }
+        return success(structuredClone(easyTierStatus))
+      case 'connector_scan_ports':
+        portScanCount += 1
+        return success({ port: portScanCount >= 2 ? 25565 : null })
+      case 'connector_nat_type':
+        return success({ type: 'cone', publicIp: '203.0.113.42', publicPort: 51820 })
       case 'frontend_ready':
         return success()
       case 'debug_reset_launcher_data':

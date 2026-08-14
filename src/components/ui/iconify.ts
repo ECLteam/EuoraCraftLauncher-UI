@@ -17,6 +17,8 @@ export const ICON_MAP: Record<string, string> = {
   plugin: 'puzzle',
   bug: 'bug',
   activity: 'activity',
+  wifi: 'wifi',
+  network: 'network',
   menu: 'menu-2',
   help: 'help-circle',
 
@@ -26,6 +28,7 @@ export const ICON_MAP: Record<string, string> = {
   spinner: 'loader-2',
   loading: 'loader-2',
   add: 'plus',
+  plus: 'plus',
   delete: 'trash',
   trash: 'trash',
   search: 'search',
@@ -40,6 +43,9 @@ export const ICON_MAP: Record<string, string> = {
   brush: 'brush',
   list: 'list',
   copy: 'copy',
+  link: 'link',
+  login: 'login-2',
+  logout: 'logout-2',
   minus: 'minus',
   edit: 'edit',
   upload: 'upload',
@@ -85,6 +91,7 @@ export const ICON_MAP: Record<string, string> = {
   success: 'circle-check',
   error: 'circle-x',
   warning: 'alert-circle',
+  'alert-circle': 'alert-circle',
   'alert-triangle': 'alert-triangle',
 
   // 窗口
@@ -101,7 +108,9 @@ export const ICON_MAP: Record<string, string> = {
 
   // 账户
   user: 'user',
+  users: 'users',
   'user-x': 'user-x',
+  crown: 'crown',
   shield: 'shield',
   circle: 'circle',
   package: 'package',

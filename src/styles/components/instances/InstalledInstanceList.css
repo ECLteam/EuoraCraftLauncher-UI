@@ -103,13 +103,18 @@
   gap: 4px;
   height: 28px;
   padding: 0 10px;
-  border: 1px solid var(--primary);
+  border: 1px solid var(--border);
   border-radius: var(--r-sm);
-  background: var(--primary);
-  color: var(--text-on-primary);
+  background: var(--bg-elevated);
+  color: var(--text-tertiary);
   font-size: 11px;
   cursor: pointer;
   white-space: nowrap;
+}
+.btn-install-version:hover {
+  border-color: var(--primary);
+  background: var(--primary-alpha);
+  color: var(--primary);
 }
 .search-box {
   position: relative;
@@ -254,7 +259,7 @@
   display: inline-flex;
   align-items: center;
   padding: 2px 6px;
-  border-radius: 999px;
+  border-radius: var(--r-xs);
   font-size: 9px;
   white-space: nowrap;
 }
@@ -401,13 +406,12 @@
   background: transparent;
 }
 .quick-launch-button {
-  background: var(--primary) !important;
-  color: var(--text-on-primary) !important;
+  color: var(--primary) !important;
 }
 .quick-launch-button:hover {
   border-color: var(--primary) !important;
-  background: var(--primary-hover, var(--primary)) !important;
-  color: var(--text-on-primary) !important;
+  background: var(--primary-alpha) !important;
+  color: var(--primary) !important;
 }
 .empty-state,
 .loading-state {

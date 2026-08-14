@@ -1,0 +1,260 @@
+import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { connectorApi } from '@/features/connect/api/connectorApi'
+import type {
+  ConnectorMatchResult,
+  ConnectorPlayer,
+  ConnectorStatus,
+  EasyTierStatus,
+  InstanceTargetPayload,
+  NatTypeResult,
+} from '@/types/api'
+import { getErrorMessage } from '@/utils/error'
+
+const STATUS_POLL_MS = 2_000
+const EASYTIER_POLL_MS = 1_000
+const PORT_SCAN_MS = 1_000
+
+function idleStatus(): ConnectorStatus {
+  return {
+    mode: 'idle',
+    roomCode: null,
+    mcHost: null,
+    mcPort: null,
+    gameInfo: null,
+    players: [],
+    error: null,
+  }
+}
+
+interface UseConnectorOptions {
+  onError?: (message: string) => void
+}
+
+export function useConnector(options: UseConnectorOptions = {}) {
+  const availability = ref<'checking' | 'available' | 'unavailable'>('checking')
+  const unavailableReason = ref('')
+  const status = ref<ConnectorStatus>(idleStatus())
+  const easyTier = ref<EasyTierStatus | null>(null)
+  const natType = ref<NatTypeResult | null>(null)
+  const matchResult = ref<ConnectorMatchResult | null>(null)
+  const busy = ref(false)
+  const easyTierBusy = ref(false)
+  const natBusy = ref(false)
+  const matching = ref(false)
+  const scanning = ref(false)
+  const detectedPort = ref<number | null>(null)
+
+  let statusTimer: ReturnType<typeof setInterval> | null = null
+  let easyTierTimer: ReturnType<typeof setInterval> | null = null
+  let portScanTimer: ReturnType<typeof setInterval> | null = null
+
+  function report(error: unknown): void {
+    options.onError?.(getErrorMessage(error))
+  }
+
+  function clearTimer(timer: ReturnType<typeof setInterval> | null): void {
+    if (timer) clearInterval(timer)
+  }
+
+  async function refreshStatus(initial = false): Promise<boolean> {
+    try {
+      status.value = await connectorApi.status()
+      availability.value = 'available'
+      unavailableReason.value = ''
+      return true
+    } catch (error) {
+      if (initial || availability.value === 'checking') {
+        availability.value = 'unavailable'
+        unavailableReason.value = getErrorMessage(error)
+        status.value = idleStatus()
+      }
+      return false
+    }
+  }
+
+  async function refreshEasyTier(silent = true): Promise<void> {
+    try {
+      easyTier.value = await connectorApi.easyTierStatus()
+    } catch (error) {
+      if (!silent) report(error)
+    }
+  }
+
+  async function initialize(): Promise<void> {
+    availability.value = 'checking'
+    if (await refreshStatus(true)) await refreshEasyTier()
+  }
+
+  async function retryAvailability(): Promise<void> {
+    await initialize()
+  }
+
+  async function runAction(action: () => Promise<unknown>): Promise<boolean> {
+    if (busy.value) return false
+    busy.value = true
+    try {
+      await action()
+      await refreshStatus()
+      return true
+    } catch (error) {
+      report(error)
+      return false
+    } finally {
+      busy.value = false
+    }
+  }
+
+  function hostPort(port: number): Promise<boolean> {
+    return runAction(() => connectorApi.hostPort(port))
+  }
+
+  function hostInstance(target: InstanceTargetPayload): Promise<boolean> {
+    return runAction(() => connectorApi.hostInstance(target))
+  }
+
+  function join(code: string): Promise<boolean> {
+    return runAction(() => connectorApi.join(code))
+  }
+
+  async function leave(): Promise<boolean> {
+    const succeeded = await runAction(() => connectorApi.leave())
+    if (succeeded) {
+      matchResult.value = null
+      detectedPort.value = null
+    }
+    return succeeded
+  }
+
+  function kick(player: ConnectorPlayer): Promise<boolean> {
+    return runAction(() => connectorApi.kick(player.machineId))
+  }
+
+  async function detectNat(): Promise<void> {
+    if (natBusy.value) return
+    natBusy.value = true
+    try {
+      natType.value = await connectorApi.natType()
+    } catch (error) {
+      report(error)
+    } finally {
+      natBusy.value = false
+    }
+  }
+
+  async function downloadEasyTier(): Promise<void> {
+    if (easyTierBusy.value) return
+    easyTierBusy.value = true
+    try {
+      easyTier.value = await connectorApi.downloadEasyTier()
+    } catch (error) {
+      report(error)
+    } finally {
+      easyTierBusy.value = false
+    }
+  }
+
+  async function scanPortOnce(): Promise<void> {
+    try {
+      const result = await connectorApi.scanPorts()
+      if (result.port !== null) {
+        detectedPort.value = result.port
+        scanning.value = false
+        clearTimer(portScanTimer)
+        portScanTimer = null
+      }
+    } catch (error) {
+      scanning.value = false
+      clearTimer(portScanTimer)
+      portScanTimer = null
+      report(error)
+    }
+  }
+
+  function startPortScan(): void {
+    clearTimer(portScanTimer)
+    detectedPort.value = null
+    scanning.value = true
+    void scanPortOnce()
+    portScanTimer = setInterval(() => void scanPortOnce(), PORT_SCAN_MS)
+  }
+
+  function stopPortScan(): void {
+    clearTimer(portScanTimer)
+    portScanTimer = null
+    scanning.value = false
+  }
+
+  async function refreshMatches(): Promise<void> {
+    if (status.value.mode !== 'guest') return
+    matching.value = true
+    try {
+      matchResult.value = await connectorApi.matchInstances()
+    } catch {
+      matchResult.value = null
+    } finally {
+      matching.value = false
+    }
+  }
+
+  watch(
+    () => status.value.mode,
+    (mode) => {
+      clearTimer(statusTimer)
+      statusTimer = mode === 'idle' ? null : setInterval(() => void refreshStatus(), STATUS_POLL_MS)
+      if (mode !== 'guest') matchResult.value = null
+    }
+  )
+
+  watch(
+    () => [status.value.mode, status.value.roomCode] as const,
+    ([mode]) => {
+      if (mode === 'guest') void refreshMatches()
+    }
+  )
+
+  watch(
+    () => easyTier.value?.status,
+    (phase) => {
+      clearTimer(easyTierTimer)
+      easyTierTimer =
+        phase === 'resolving' || phase === 'downloading' || phase === 'extracting'
+          ? setInterval(() => void refreshEasyTier(), EASYTIER_POLL_MS)
+          : null
+    }
+  )
+
+  onMounted(() => void initialize())
+  onUnmounted(() => {
+    clearTimer(statusTimer)
+    clearTimer(easyTierTimer)
+    clearTimer(portScanTimer)
+  })
+
+  return {
+    availability,
+    unavailableReason,
+    status,
+    easyTier,
+    natType,
+    matchResult,
+    busy,
+    easyTierBusy,
+    natBusy,
+    matching,
+    scanning,
+    detectedPort,
+    refreshStatus,
+    refreshEasyTier,
+    retryAvailability,
+    hostPort,
+    hostInstance,
+    join,
+    leave,
+    kick,
+    detectNat,
+    downloadEasyTier,
+    startPortScan,
+    stopPortScan,
+    refreshMatches,
+  }
+}

@@ -11,12 +11,123 @@
     "game": "Game",
     "versions": "Instances",
     "instances": "Instances",
+    "connect": "Connect",
     "plugins": "Plugins",
     "settings": "Settings",
     "debug": "Debug",
     "debugTitle": "Component Debug",
     "help": "Docs",
     "helpMessage": "Help documentation is under construction..."
+  },
+  "connect": {
+    "title": "Connect",
+    "description": "Create or join a Minecraft multiplayer room",
+    "nav": {
+      "createHint": "Share your world",
+      "joinHint": "Connect to friends",
+      "service": "Service",
+      "checking": "Checking",
+      "available": "Available",
+      "unavailable": "Unavailable",
+      "ready": "Ready",
+      "notReady": "Not ready"
+    },
+    "entry": {
+      "title": "Choose how to connect",
+      "description": "Create your own room or join a friend with a room code",
+      "createDescription": "Launch a local instance and share your Minecraft world with friends",
+      "joinDescription": "Enter a room code to join your friend's virtual LAN"
+    },
+    "copy": "Copy",
+    "copied": "Copied to clipboard",
+    "unavailable": {
+      "title": "Multiplayer service unavailable",
+      "description": "The frontend is ready and is waiting for the multiplayer IPC backend.",
+      "retry": "Reconnect"
+    },
+    "nat": {
+      "detect": "Detect NAT",
+      "cone": "Full cone",
+      "symmetric": "Symmetric",
+      "blocked": "Blocked",
+      "unknown": "Unknown"
+    },
+    "easyTier": {
+      "title": "EasyTier multiplayer component",
+      "idle": "The multiplayer component is not installed",
+      "resolving": "Selecting the fastest download source...",
+      "downloading": "Downloading the multiplayer component...",
+      "extracting": "Extracting the multiplayer component...",
+      "installed": "The multiplayer component is ready",
+      "failed": "The multiplayer component download failed",
+      "install": "Install component",
+      "retry": "Retry"
+    },
+    "create": {
+      "tab": "Create room",
+      "instanceTitle": "Launch an instance and create a room",
+      "instanceHint": "Select an instance and open it to LAN after launch",
+      "portTitle": "Scan local multiplayer ports",
+      "portHint": "Connect a Minecraft world that is already running",
+      "selectInstance": "Select instance",
+      "instancePlaceholder": "Choose a local instance",
+      "launchAndCreate": "Launch and create room",
+      "lanHint": "After launch, choose Open to LAN in Minecraft and the port will be detected automatically.",
+      "alreadyRunning": "Already running? Scan local ports",
+      "scanning": "Scanning Java processes and LAN ports...",
+      "detectedPort": "Detected port",
+      "noPort": "No open LAN port was detected",
+      "manualPort": "Enter port manually",
+      "decreasePort": "Decrease port",
+      "increasePort": "Increase port",
+      "createRoom": "Create room"
+    },
+    "join": {
+      "tab": "Join room",
+      "title": "Join a multiplayer room",
+      "hint": "Enter the room code shared by the host",
+      "roomCode": "Room code",
+      "action": "Join room"
+    },
+    "starting": {
+      "title": "Launching the instance and creating the room",
+      "description": "Wait for the game to launch, then open the world to LAN.",
+      "failed": "Launch failed"
+    },
+    "host": {
+      "title": "Room created",
+      "description": "Share the room code with other players",
+      "close": "Close room"
+    },
+    "guest": {
+      "title": "Room joined",
+      "description": "Choose a matching instance to enter the game",
+      "serverAddress": "Server address",
+      "leave": "Leave room"
+    },
+    "players": {
+      "title": "Players ({count})",
+      "host": "Host",
+      "kick": "Kick player",
+      "empty": "No players"
+    },
+    "match": {
+      "title": "Game and mod matching",
+      "loading": "Matching the host mods with local instances...",
+      "hostMods": "Host Mods ({count})",
+      "noMods": "The host did not publish mods, or is using vanilla Minecraft.",
+      "instances": "Local instances",
+      "consistent": "Mods match ({count})",
+      "inconsistent": "Mods differ ({count})",
+      "noInstances": "No matching local instances",
+      "quickLaunch": "Quick launch",
+      "launched": "Launching {name}"
+    },
+    "validation": {
+      "instance": "Select an instance",
+      "port": "Enter a valid port from 1 to 65535",
+      "roomCode": "Enter a room code"
+    }
   },
   "game": {
     "title": "Game",

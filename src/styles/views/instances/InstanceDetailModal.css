@@ -1,18 +1,18 @@
 /* =============================================
-   VersionDetailModal.css
-   按 page-style-guide 技能重写
-   使用项目设计系统 ecl-* token：玻璃拟态风格
+   InstanceDetailModal.css
+   完全重写 — 与前端 ecl-* 设计系统对齐
+   玻璃拟态 + 清晰视觉层级
    ============================================= */
 
 /* =============================================
-   Modal wrapper 背景（透明，露出主界面）
+   Modal wrapper — 透明背景，露出主界面
    ============================================= */
 :global(.version-detail-modal) {
   background: transparent;
 }
 
 /* =============================================
-   Shell - 全宽布局容器（不是卡片）
+   Shell — 全宽布局容器
    ============================================= */
 .vdm-shell {
   display: flex;
@@ -24,7 +24,7 @@
 }
 
 /* =============================================
-   Header
+   Header — 版本身份 + 选项卡导航
    ============================================= */
 .vdm-header {
   display: flex;
@@ -35,6 +35,8 @@
   padding: 0 var(--ecl-page-padding);
   background: var(--ecl-surface);
   border-bottom: 1px solid var(--ecl-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .vdm-version-identity {
@@ -42,30 +44,6 @@
   flex-shrink: 0;
   align-items: center;
   gap: 12px;
-}
-
-.vdm-version-icon {
-  display: flex;
-  width: 38px;
-  height: 38px;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  color: var(--ecl-primary);
-  background: var(--ecl-primary-alpha);
-  border-radius: var(--ecl-radius-control);
-}
-
-.vdm-version-icon.has-image {
-  background: transparent;
-}
-
-.vdm-version-icon-img {
-  width: 38px;
-  height: 38px;
-  object-fit: contain;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
 }
 
 .vdm-version-copy {
@@ -114,9 +92,10 @@
   font-weight: 500;
   background: transparent;
   border: 0;
-  border-radius: var(--r-full);
+  border-radius: var(--ecl-radius-control);
   cursor: pointer;
   transition: all var(--duration-fast) var(--ease-smooth);
+  white-space: nowrap;
 }
 
 .vdm-tab-button:hover {
@@ -135,7 +114,7 @@
 }
 
 /* =============================================
-   Content
+   Content — 滚动区域
    ============================================= */
 .vdm-content {
   flex: 1;
@@ -156,7 +135,7 @@
 }
 
 /* =============================================
-   Overview 页面
+   Overview 页面 — 信息卡片 + 快捷操作
    ============================================= */
 .overview-page {
   display: flex;
@@ -170,9 +149,14 @@
   border: 1px solid var(--ecl-border);
   border-radius: var(--ecl-radius-card);
   box-shadow: var(--ecl-shadow-surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .info-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 14px 18px;
   border-bottom: 1px solid var(--ecl-border);
   color: var(--ecl-text);
@@ -215,12 +199,15 @@
   white-space: nowrap;
 }
 
+/* 快捷操作卡片 */
 .actions-card {
   overflow: hidden;
   background: var(--ecl-surface);
   border: 1px solid var(--ecl-border);
   border-radius: var(--ecl-radius-card);
   box-shadow: var(--ecl-shadow-surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .actions-card__header {
@@ -277,7 +264,116 @@
 }
 
 /* =============================================
-   Mods 页面
+   Profile 页面 — 个性化表单
+   ============================================= */
+.profile-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ecl-page-gap);
+}
+
+.profile-card {
+  overflow: visible;
+}
+
+.profile-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  padding: 16px 18px;
+}
+
+.profile-form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--ecl-text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.profile-form-grid label small {
+  color: var(--ecl-text-tertiary);
+  font-size: 10px;
+}
+
+.profile-form-wide {
+  grid-column: 1 / -1;
+}
+
+.profile-switches {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 4px 0;
+}
+
+.profile-switches span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ecl-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.profile-icon-preview {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+}
+
+.profile-icon-preview > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.profile-icon-preview strong {
+  color: var(--ecl-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.profile-icon-preview span {
+  color: var(--ecl-text-tertiary);
+  font-size: 11px;
+}
+
+/* 字段来源信息 */
+.field-source-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 16px;
+  padding: 12px 18px;
+}
+
+.field-source-list > div {
+  display: grid;
+  grid-template-columns: 70px 1fr auto;
+  align-items: center;
+  min-height: 32px;
+  gap: 8px;
+  color: var(--ecl-text-secondary);
+  font-size: 11px;
+}
+
+.field-source-list code {
+  color: var(--ecl-primary);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.source-warning {
+  margin: 4px 18px 12px;
+  color: var(--warning);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* =============================================
+   Mods 页面 — 模组列表
    ============================================= */
 .mods-page {
   display: flex;
@@ -296,6 +392,8 @@
   border: 1px solid var(--ecl-border);
   border-radius: var(--ecl-radius-card);
   box-shadow: var(--ecl-shadow-surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .mods-panel-header {
@@ -304,9 +402,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  min-height: 44px;
-  padding: 0 14px;
+  min-height: 48px;
+  padding: 0 16px;
   border-bottom: 1px solid var(--ecl-border);
+  background: var(--ecl-surface-muted);
 }
 
 .mods-panel-header-left {
@@ -314,7 +413,7 @@
   flex: 1;
   min-width: 0;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .mods-panel-header-right {
@@ -326,7 +425,8 @@
   min-width: 0;
 }
 
-.search-box {
+/* 模组搜索框 */
+.mods-page .search-box {
   position: relative;
   display: flex;
   flex-shrink: 1;
@@ -336,22 +436,22 @@
   height: 30px;
   border: 1px solid var(--ecl-border);
   border-radius: var(--ecl-radius-control);
-  background: var(--ecl-surface-muted);
+  background: var(--ecl-surface);
   transition: border-color var(--duration-fast) ease-out;
 }
 
-.search-box:focus-within {
+.mods-page .search-box:focus-within {
   border-color: var(--ecl-primary);
 }
 
-.search-icon {
+.mods-page .search-icon {
   position: absolute;
   left: 9px;
   color: var(--ecl-text-secondary);
   pointer-events: none;
 }
 
-.search-input {
+.mods-page .search-input {
   width: 100%;
   height: 100%;
   padding: 0 29px;
@@ -363,11 +463,11 @@
   font-size: 12px;
 }
 
-.search-input::placeholder {
-  color: var(--ecl-text-secondary);
+.mods-page .search-input::placeholder {
+  color: var(--ecl-text-tertiary);
 }
 
-.search-clear {
+.mods-page .search-clear {
   position: absolute;
   right: 5px;
   display: flex;
@@ -376,32 +476,36 @@
   width: 18px;
   height: 18px;
   border: none;
-  border-radius: var(--r-xs);
+  border-radius: var(--ecl-radius-control);
   background: transparent;
   color: var(--ecl-text-secondary);
   cursor: pointer;
   transition: all var(--duration-fast) ease-out;
 }
 
-.search-clear:hover {
+.mods-page .search-clear:hover {
   background: var(--ecl-hover);
   color: var(--ecl-text);
 }
 
+/* 模组筛选选项卡 */
 .mods-filter-tabs {
   display: flex;
   flex-shrink: 0;
   align-items: center;
   gap: 2px;
+  background: var(--ecl-hover);
+  border-radius: var(--ecl-radius-control);
+  padding: 2px;
 }
 
 .mods-filter-btn {
   display: inline-flex;
   align-items: center;
-  height: 26px;
+  height: 24px;
   padding: 0 10px;
   border: none;
-  border-radius: var(--r-full);
+  border-radius: calc(var(--ecl-radius-control) - 2px);
   background: transparent;
   color: var(--ecl-text-secondary);
   font-size: 11px;
@@ -412,17 +516,17 @@
 
 .mods-filter-btn:hover {
   color: var(--ecl-text);
-  background: var(--ecl-hover);
 }
 
 .mods-filter-btn.active {
-  color: var(--ecl-primary);
-  background: var(--ecl-primary-alpha);
+  color: var(--ecl-text);
+  background: var(--ecl-surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .mods-count {
   flex-shrink: 0;
-  color: var(--ecl-text-secondary);
+  color: var(--ecl-text-tertiary);
   font-size: 11px;
   white-space: nowrap;
 }
@@ -454,39 +558,41 @@
   overflow-y: auto;
 }
 
-.table-header {
+/* 模组表格列头 */
+.mods-table .table-header {
   display: flex;
   align-items: center;
   flex-shrink: 0;
   position: sticky;
   top: 0;
   z-index: 1;
-  height: 34px;
-  padding: 0 14px;
+  height: 36px;
+  padding: 0 16px;
   border-bottom: 1px solid var(--ecl-border);
   background: var(--ecl-surface-muted);
   color: var(--ecl-text-secondary);
   font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
-.table-row {
+/* 模组表格行 */
+.mods-table .table-row {
   display: flex;
   align-items: center;
-  height: 44px;
-  padding: 0 14px;
+  height: 48px;
+  padding: 0 16px;
   border-bottom: 1px solid var(--ecl-border);
   transition: background var(--duration-fast) ease-out;
 }
 
-.table-row:last-child {
+.mods-table .table-row:last-child {
   border-bottom: none;
 }
 
-.table-row:hover {
+.mods-table .table-row:hover {
   background: var(--ecl-hover);
 }
 
@@ -510,7 +616,7 @@
 
 .mod-filename {
   overflow: hidden;
-  color: var(--ecl-text-secondary);
+  color: var(--ecl-text-tertiary);
   font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -566,12 +672,13 @@
   justify-content: center;
 }
 
-.badge {
+/* 模组加载器标签 */
+.mods-table .badge {
   display: inline-block;
-  padding: 2px 6px;
-  border-radius: var(--r-xs);
+  padding: 2px 7px;
+  border-radius: var(--ecl-radius-control);
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 600;
   white-space: nowrap;
 }
 
@@ -600,35 +707,59 @@
   color: var(--ecl-badge-quilt-fg);
 }
 
-.btn-action {
+/* 模组操作按钮 */
+.mods-table .btn-action {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   border: none;
   border-radius: var(--ecl-radius-control);
   background: transparent;
+  color: var(--ecl-text-secondary);
   cursor: pointer;
   opacity: 0;
   transition: all var(--duration-fast) ease-out;
 }
 
-.table-row:hover .btn-action {
+.mods-table .table-row:hover .btn-action {
   opacity: 1;
 }
 
-.btn-delete {
-  color: var(--ecl-text-secondary);
-}
-
-.btn-delete:hover {
+.mods-table .btn-delete:hover {
   background: var(--error-alpha);
   color: var(--error);
 }
 
+/* 模组空状态 */
+.mods-empty {
+  flex: 1;
+  min-height: 200px;
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+}
+
+.empty-icon {
+  color: var(--ecl-text-tertiary);
+  opacity: 0.6;
+}
+
+.empty-text {
+  margin: 0;
+  color: var(--ecl-text-secondary);
+  font-size: 13px;
+}
+
 /* =============================================
-   Settings 页面
+   Settings 页面 — 版本设置
    ============================================= */
 .version-settings-page {
   display: flex;
@@ -642,11 +773,13 @@
   justify-content: space-between;
   gap: 16px;
   min-height: 48px;
-  padding: 12px 16px;
+  padding: 12px 18px;
   background: var(--ecl-surface);
   border: 1px solid var(--ecl-border);
   border-radius: var(--ecl-radius-card);
   box-shadow: var(--ecl-shadow-surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .settings-summary-copy {
@@ -672,13 +805,13 @@
   min-height: 200px;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  gap: 10px;
   color: var(--ecl-text-secondary);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .settings-subgroup__title {
-  padding: 10px 16px 2px;
+  padding: 12px 18px 4px;
   color: var(--ecl-text-secondary);
   font-size: 11px;
   font-weight: 600;
@@ -704,17 +837,7 @@
 }
 
 /* =============================================
-   Saves 页面
-   ============================================= */
-.empty-page {
-  display: flex;
-  min-height: 260px;
-  align-items: center;
-  justify-content: center;
-}
-
-/* =============================================
-   Online Mods 页面（嵌入版）
+   Online Mods 页面（嵌入）
    ============================================= */
 .online-mods-page {
   display: flex;
@@ -745,44 +868,66 @@
   grid-template-columns: minmax(220px, 1fr) 150px auto;
 }
 
-.vdm-footer-status {
-  flex: 1;
-  min-width: 0;
-  color: var(--warning);
-  font-size: 12px;
-}
-.mods-empty {
-  flex: 1;
-  min-height: 200px;
+/* =============================================
+   Empty page 占位
+   ============================================= */
+.empty-page {
+  display: flex;
+  min-height: 260px;
+  align-items: center;
+  justify-content: center;
 }
 
-.empty-state {
+/* =============================================
+   Icon Picker — 图标选择弹窗
+   ============================================= */
+.icon-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.icon-picker-grid button {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  gap: var(--s-md);
-  height: 100%;
+  gap: 8px;
+  min-height: 88px;
+  border: 1px solid var(--ecl-border);
+  border-radius: var(--ecl-radius-card);
+  background: var(--ecl-surface);
+  color: var(--ecl-text-secondary);
+  cursor: pointer;
+  transition: all var(--duration-fast) ease-out;
 }
 
-.empty-icon {
-  color: var(--ecl-text-secondary);
+.icon-picker-grid button:hover {
+  border-color: var(--ecl-primary);
+  background: var(--ecl-primary-alpha);
+  color: var(--ecl-primary);
 }
 
-.empty-text {
-  margin: 0;
-  color: var(--ecl-text-secondary);
-  font-size: 13px;
+.icon-picker-grid img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.icon-picker-grid span {
+  font-size: 11px;
+  font-weight: 500;
 }
 
 /* =============================================
-   响应式 - 820px
+   响应式 — 820px 断点
    ============================================= */
 @media (max-width: 820px) {
   .vdm-header {
     flex-wrap: wrap;
     gap: 8px;
-    padding: 10px 16px;
+    padding: 10px var(--ecl-page-padding);
     min-height: auto;
   }
 
@@ -827,7 +972,7 @@
     justify-content: flex-start;
   }
 
-  .search-box {
+  .mods-page .search-box {
     width: 140px;
   }
 
@@ -844,10 +989,22 @@
   .argument-input {
     width: min(400px, 45vw);
   }
+
+  .profile-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field-source-list {
+    grid-template-columns: 1fr;
+  }
+
+  .icon-picker-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 /* =============================================
-   响应式 - 620px
+   响应式 — 620px 断点
    ============================================= */
 @media (max-width: 620px) {
   .vdm-content {
@@ -874,114 +1031,8 @@
   .argument-input {
     width: 100%;
   }
-}
-.profile-form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-.profile-form-grid label {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  color: var(--text-secondary);
-  font-size: 11px;
-}
-.profile-form-grid label small {
-  color: var(--text-tertiary);
-  font-size: 9px;
-}
-.profile-form-wide {
-  grid-column: 1 / -1;
-}
-.profile-switches {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding-top: 22px;
-}
-.profile-switches span {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--text-secondary);
-  font-size: 11px;
-}
-.profile-icon-preview {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.profile-icon-preview > div {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.profile-icon-preview strong {
-  color: var(--text-primary);
-  font-size: 12px;
-}
-.profile-icon-preview span {
-  color: var(--text-tertiary);
-  font-size: 10px;
-}
-.field-source-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px 14px;
-}
-.field-source-list > div {
-  display: grid;
-  grid-template-columns: 70px 1fr auto;
-  align-items: center;
-  min-height: 30px;
-  color: var(--text-secondary);
-  font-size: 10px;
-}
-.field-source-list code {
-  color: var(--primary);
-  font-size: 10px;
-}
-.source-warning {
-  margin: 7px 0 0;
-  color: var(--warning);
-  font-size: 10px;
-}
-.icon-picker-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-.icon-picker-grid button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: 6px;
-  min-height: 82px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  background: var(--bg-elevated);
-  color: var(--text-secondary);
-  cursor: pointer;
-}
-.icon-picker-grid button:hover {
-  border-color: var(--primary);
-  background: var(--primary-alpha);
-  color: var(--primary);
-}
-.icon-picker-grid img {
-  width: 38px;
-  height: 38px;
-  object-fit: contain;
-  image-rendering: pixelated;
-}
-@media (max-width: 700px) {
-  .profile-form-grid,
-  .field-source-list {
-    grid-template-columns: 1fr;
-  }
+
   .icon-picker-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 }

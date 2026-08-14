@@ -11,12 +11,123 @@
     "game": "游戏",
     "versions": "实例",
     "instances": "实例管理",
+    "connect": "联机",
     "plugins": "插件",
     "settings": "设置",
     "debug": "调试",
     "debugTitle": "组件调试",
     "help": "文档",
     "helpMessage": "帮助文档正在编写中..."
+  },
+  "connect": {
+    "title": "联机",
+    "description": "创建或加入 Minecraft 联机房间",
+    "nav": {
+      "createHint": "分享你的世界",
+      "joinHint": "连接好友房间",
+      "service": "联机服务",
+      "checking": "检测中",
+      "available": "可用",
+      "unavailable": "不可用",
+      "ready": "已就绪",
+      "notReady": "未就绪"
+    },
+    "entry": {
+      "title": "选择联机方式",
+      "description": "创建自己的房间，或者使用房间码加入好友",
+      "createDescription": "启动本地实例，将你的 Minecraft 世界分享给好友",
+      "joinDescription": "输入好友分享的房间码，加入同一个虚拟局域网"
+    },
+    "copy": "复制",
+    "copied": "已复制到剪贴板",
+    "unavailable": {
+      "title": "联机服务尚不可用",
+      "description": "前端界面已经就绪，等待后端实现联机 IPC 接口。",
+      "retry": "重新连接"
+    },
+    "nat": {
+      "detect": "NAT 检测",
+      "cone": "完全锥形",
+      "symmetric": "严格对称",
+      "blocked": "不可穿透",
+      "unknown": "类型未知"
+    },
+    "easyTier": {
+      "title": "EasyTier 联机组件",
+      "idle": "联机组件尚未安装",
+      "resolving": "正在测速并选择下载源...",
+      "downloading": "正在下载联机组件...",
+      "extracting": "正在解压联机组件...",
+      "installed": "联机组件已就绪",
+      "failed": "联机组件下载失败",
+      "install": "安装组件",
+      "retry": "重试"
+    },
+    "create": {
+      "tab": "创建房间",
+      "instanceTitle": "启动实例并创建房间",
+      "instanceHint": "选择实例，启动后开放局域网即可联机",
+      "portTitle": "扫描本地联机端口",
+      "portHint": "连接已经在运行的 Minecraft 世界",
+      "selectInstance": "选择实例",
+      "instancePlaceholder": "请选择一个本地实例",
+      "launchAndCreate": "启动并创建房间",
+      "lanHint": "启动后请在游戏内点击“对局域网开放”，系统会自动探测端口。",
+      "alreadyRunning": "实例已经启动？扫描本地端口",
+      "scanning": "正在扫描 Java 进程和局域网端口...",
+      "detectedPort": "检测到端口",
+      "noPort": "暂未检测到开放的局域网端口",
+      "manualPort": "手动输入端口",
+      "decreasePort": "端口减一",
+      "increasePort": "端口加一",
+      "createRoom": "创建房间"
+    },
+    "join": {
+      "tab": "加入房间",
+      "title": "加入联机房间",
+      "hint": "输入房主分享的房间码",
+      "roomCode": "房间码",
+      "action": "加入房间"
+    },
+    "starting": {
+      "title": "正在启动实例并创建房间",
+      "description": "请等待游戏启动，并在游戏内开放局域网。",
+      "failed": "启动失败"
+    },
+    "host": {
+      "title": "房间已创建",
+      "description": "将房间码分享给其他玩家",
+      "close": "关闭房间"
+    },
+    "guest": {
+      "title": "已加入房间",
+      "description": "选择匹配实例即可快速进入游戏",
+      "serverAddress": "服务器地址",
+      "leave": "退出房间"
+    },
+    "players": {
+      "title": "玩家列表（{count}）",
+      "host": "房主",
+      "kick": "踢出玩家",
+      "empty": "暂无玩家"
+    },
+    "match": {
+      "title": "游戏与模组匹配",
+      "loading": "正在匹配房主模组与本地实例...",
+      "hostMods": "房主 Mods（{count}）",
+      "noMods": "房主未发布 Mods，或使用原版游戏。",
+      "instances": "本地实例",
+      "consistent": "Mods 一致（{count}）",
+      "inconsistent": "Mods 不一致（{count}）",
+      "noInstances": "没有可匹配的本地实例",
+      "quickLaunch": "快捷启动",
+      "launched": "正在启动 {name}"
+    },
+    "validation": {
+      "instance": "请选择一个实例",
+      "port": "请输入 1 到 65535 之间的有效端口",
+      "roomCode": "请输入房间码"
+    }
   },
   "game": {
     "title": "游戏",

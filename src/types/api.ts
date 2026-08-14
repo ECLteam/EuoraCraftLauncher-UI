@@ -252,6 +252,73 @@ export interface GameInstance {
   gamePath: string
 }
 
+// ================================================================
+//  联机
+// ================================================================
+
+export type ConnectorMode = 'idle' | 'starting' | 'host' | 'guest'
+
+export interface ConnectorPlayer {
+  name: string
+  vendor: string
+  iconBase64: string | null
+  kind: 'host' | 'guest'
+  machineId: string
+}
+
+export interface ConnectorGameInfo {
+  gameVersion: string
+  loader: string | null
+  loaderVersion: string | null
+}
+
+export interface ConnectorStatus {
+  mode: ConnectorMode
+  roomCode: string | null
+  mcHost: string | null
+  mcPort: number | null
+  gameInfo: ConnectorGameInfo | null
+  players: ConnectorPlayer[]
+  error: string | null
+}
+
+export interface EasyTierStatus {
+  installed: boolean
+  status: 'idle' | 'resolving' | 'downloading' | 'extracting' | 'installed' | 'failed'
+  progress: number
+  speed: number
+  error: string | null
+}
+
+export interface NatTypeResult {
+  type: 'cone' | 'symmetric' | 'blocked' | 'unknown'
+  publicIp: string | null
+  publicPort: number | null
+}
+
+export interface ConnectorModEntry {
+  source: string
+  id: string
+  hash: string
+  name: string
+}
+
+export interface ConnectorMatchedInstance {
+  gamePath: string
+  versionId: string
+  name: string
+  gameVersion: string
+  loader: string | null
+  loaderVersion: string | null
+  matched: boolean
+  modCount: number
+}
+
+export interface ConnectorMatchResult {
+  mods: ConnectorModEntry[]
+  instances: ConnectorMatchedInstance[]
+}
+
 export interface VersionRunStats {
   launchCount: number
   lastRunDurationSeconds: number
@@ -939,6 +1006,19 @@ export interface CommandPayloadMap {
   // 系统信息
   system_memory: undefined
 
+  // 联机（当前仅声明前端契约，后端实现后直接接入）
+  connector_status: undefined
+  connector_host_port: { port: number }
+  connector_host_instance: InstanceTargetPayload
+  connector_join: { code: string }
+  connector_leave: undefined
+  connector_kick: { machine_id: string }
+  connector_match_instances: undefined
+  connector_easytier_status: undefined
+  connector_easytier_download: undefined
+  connector_scan_ports: undefined
+  connector_nat_type: undefined
+
   // Java
   game_java_scan: { paths?: string[] } | undefined
 
@@ -1258,6 +1338,18 @@ export interface CommandResponseMap {
   settings_set: void
 
   system_memory: SystemMemoryInfo
+
+  connector_status: ConnectorStatus
+  connector_host_port: { roomCode: string }
+  connector_host_instance: { status: string }
+  connector_join: { mcHost: string; mcPort: number }
+  connector_leave: { status: string }
+  connector_kick: { status: string }
+  connector_match_instances: ConnectorMatchResult
+  connector_easytier_status: EasyTierStatus
+  connector_easytier_download: EasyTierStatus
+  connector_scan_ports: { port: number | null }
+  connector_nat_type: NatTypeResult
 
   game_java_scan: JavaInstallation[]
 

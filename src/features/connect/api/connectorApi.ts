@@ -1,0 +1,61 @@
+import backend from '@/api/client'
+import { unwrapResponse } from '@/app/runtime/errorPresentation'
+import type {
+  ConnectorMatchResult,
+  ConnectorStatus,
+  EasyTierStatus,
+  InstanceTargetPayload,
+  NatTypeResult,
+} from '@/types/api'
+
+export const connectorApi = {
+  status(): Promise<ConnectorStatus> {
+    return backend.command('connector_status').then((response) => unwrapResponse(response, '读取联机状态'))
+  },
+
+  hostPort(port: number): Promise<{ roomCode: string }> {
+    return backend.command('connector_host_port', { port }).then((response) => unwrapResponse(response, '创建联机房间'))
+  },
+
+  hostInstance(target: InstanceTargetPayload): Promise<{ status: string }> {
+    return backend
+      .command('connector_host_instance', target)
+      .then((response) => unwrapResponse(response, '启动实例并创建联机房间'))
+  },
+
+  join(code: string): Promise<{ mcHost: string; mcPort: number }> {
+    return backend.command('connector_join', { code }).then((response) => unwrapResponse(response, '加入联机房间'))
+  },
+
+  leave(): Promise<{ status: string }> {
+    return backend.command('connector_leave').then((response) => unwrapResponse(response, '退出联机房间'))
+  },
+
+  kick(machineId: string): Promise<{ status: string }> {
+    return backend
+      .command('connector_kick', { machine_id: machineId })
+      .then((response) => unwrapResponse(response, '移出联机玩家'))
+  },
+
+  matchInstances(): Promise<ConnectorMatchResult> {
+    return backend.command('connector_match_instances').then((response) => unwrapResponse(response, '匹配联机实例'))
+  },
+
+  easyTierStatus(): Promise<EasyTierStatus> {
+    return backend
+      .command('connector_easytier_status')
+      .then((response) => unwrapResponse(response, '读取 EasyTier 状态'))
+  },
+
+  downloadEasyTier(): Promise<EasyTierStatus> {
+    return backend.command('connector_easytier_download').then((response) => unwrapResponse(response, '下载 EasyTier'))
+  },
+
+  scanPorts(): Promise<{ port: number | null }> {
+    return backend.command('connector_scan_ports').then((response) => unwrapResponse(response, '扫描本地端口'))
+  },
+
+  natType(): Promise<NatTypeResult> {
+    return backend.command('connector_nat_type').then((response) => unwrapResponse(response, '检测 NAT 类型'))
+  },
+}

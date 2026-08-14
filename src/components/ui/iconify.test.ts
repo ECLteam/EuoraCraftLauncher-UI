@@ -32,4 +32,10 @@ describe('图标映射', () => {
       expect(ICON_MAP[shortName], `实例列表图标 ${shortName} 未注册`).toBeDefined()
     }
   })
+
+  it('联机页面使用的图标短名均已注册', () => {
+    for (const shortName of ['wifi', 'network', 'login', 'logout', 'link', 'plus', 'alert-circle', 'users', 'crown']) {
+      expect(ICON_MAP[shortName], `联机图标 ${shortName} 未注册`).toBeDefined()
+    }
+  })
 })

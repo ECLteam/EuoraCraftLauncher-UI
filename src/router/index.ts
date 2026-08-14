@@ -7,6 +7,7 @@ const routes: RouteRecordRaw[] = [
     name: 'versions-manage',
     component: () => import('@/views/Instances.vue'),
   },
+  { path: '/connect', name: 'connect', component: () => import('@/views/Connect.vue') },
   { path: '/versions/manage', redirect: '/versions' },
   { path: '/versions/running', redirect: '/' },
   { path: '/download', name: 'download', component: () => import('@/views/Download.vue') },
