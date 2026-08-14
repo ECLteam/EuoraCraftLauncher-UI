@@ -79,23 +79,7 @@
   overflow: hidden;
 }
 
-.connect-status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--ecl-text-tertiary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ecl-text-tertiary) 12%, transparent);
-}
 
-.connect-status-dot.is-available {
-  background: var(--success);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 12%, transparent);
-}
-
-.connect-status-dot.is-unavailable {
-  background: var(--warning);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--warning) 12%, transparent);
-}
 
 .connect-header-actions,
 .connect-service-row,
@@ -396,27 +380,6 @@
   opacity: 1;
 }
 
-.connect-entry-status {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 24px;
-  margin-top: auto;
-  padding-top: 2px;
-  color: var(--ecl-text-tertiary);
-  font-size: 9px;
-}
-
-.connect-entry-status > span {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.connect-entry-status .connect-status-dot {
-  display: inline-block;
-  flex-shrink: 0;
-}
 
 .connect-back-link {
   display: flex;
@@ -798,12 +761,6 @@
 
   .connect-entry-option__content small {
     display: none;
-  }
-
-  .connect-entry-status {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 7px;
   }
 
   .connect-alert-content,

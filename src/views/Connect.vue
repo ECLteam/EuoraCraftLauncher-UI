@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="connect-page">
     <section class="connect-workspace ecl-surface">
       <header class="connect-workspace__header">
@@ -102,16 +102,6 @@
                     <UiIcon name="arrow-right" :size="18" />
                   </span>
                 </button>
-              </div>
-              <div class="connect-entry-status" aria-live="polite">
-                <span>
-                  <i class="connect-status-dot" :class="`is-${availability}`" />
-                  {{ t('connect.nav.service') }} · {{ t(`connect.nav.${availability}`) }}
-                </span>
-                <span>
-                  <i class="connect-status-dot" :class="easyTier?.installed ? 'is-available' : 'is-checking'" />
-                  EasyTier · {{ easyTier?.installed ? t('connect.nav.ready') : t('connect.nav.notReady') }}
-                </span>
               </div>
             </div>
 
@@ -491,7 +481,6 @@ const launchingKey = ref('')
 
 const {
   availability,
-  unavailableReason,
   status,
   easyTier,
   natType,
@@ -502,7 +491,6 @@ const {
   matching,
   scanning,
   detectedPort,
-  retryAvailability,
   hostPort,
   hostInstance,
   join,
@@ -661,3 +649,4 @@ onMounted(() => {
 </script>
 
 <style scoped src="@/styles/views/Connect.css"></style>
+
