@@ -22,6 +22,7 @@ function idleStatus(): ConnectorStatus {
     mcPort: null,
     gameInfo: null,
     players: [],
+    nodes: [],
     error: null,
   }
 }

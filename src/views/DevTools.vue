@@ -78,6 +78,47 @@
           <NSwitch :value="flowDebug" :disabled="!debugMode" @update:value="handleFlowDebugChange" />
         </div>
       </div>
+
+      <div class="tool-row" :class="{ 'tool-row--disabled': !debugMode }">
+        <div class="tool-info">
+          <div class="tool-label-row">
+            <div class="tool-label">{{ t('dev.showContainerBoundaries') }}</div>
+            <span class="mode-badge mode-badge--debug">{{ t('dev.modeDebug') }}</span>
+          </div>
+          <div class="tool-desc">{{ t('dev.showContainerBoundariesDesc') }}</div>
+        </div>
+        <div class="tool-control">
+          <NSwitch :value="showContainerBoundaries" :disabled="!debugMode" @update:value="toggleContainerBoundaries" />
+        </div>
+      </div>
+
+      <div class="tool-row" :class="{ 'tool-row--disabled': !debugMode }">
+        <div class="tool-info">
+          <div class="tool-label-row">
+            <div class="tool-label">{{ t('dev.disableAnimations') }}</div>
+            <span class="mode-badge mode-badge--debug">{{ t('dev.modeDebug') }}</span>
+          </div>
+          <div class="tool-desc">{{ t('dev.disableAnimationsDesc') }}</div>
+        </div>
+        <div class="tool-control">
+          <NSwitch :value="animationsDisabled" :disabled="!debugMode" @update:value="toggleAnimations" />
+        </div>
+      </div>
+
+      <div class="tool-row" :class="{ 'tool-row--disabled': !debugMode }">
+        <div class="tool-info">
+          <div class="tool-label-row">
+            <div class="tool-label">{{ t('dev.clearCaches') }}</div>
+            <span class="mode-badge mode-badge--debug">{{ t('dev.modeDebug') }}</span>
+          </div>
+          <div class="tool-desc">{{ t('dev.clearCachesDesc') }}</div>
+        </div>
+        <div class="tool-control">
+          <UiButton size="sm" variant="outline" :disabled="!debugMode" :loading="clearingCaches" @click="clearAllCaches">
+            {{ t('dev.clearCaches') }}
+          </UiButton>
+        </div>
+      </div>
     </section>
 
     <!-- 组件调试 -->
@@ -302,10 +343,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, ref, watch } from 'vue'
+import { NSwitch } from 'naive-ui'
+import { computed, inject, onMounted, ref, watch, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import { NSwitch } from 'naive-ui'
 import { pinia } from '@/app/stores'
 import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
@@ -314,8 +355,8 @@ import UiButton from '@/components/ui/Button.vue'
 import UiCard from '@/components/ui/Card.vue'
 import UiInput from '@/components/ui/Input.vue'
 import UiSlider from '@/components/ui/Slider.vue'
-import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { useFlowDebug } from '@/composables/useFlowDebug'
+import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { debugToolsApi } from '@/features/settings/api/debugToolsApi'
 
 const { t } = useI18n()
@@ -351,6 +392,44 @@ const { flowDebug, setFlowDebug } = useFlowDebug()
 
 function handleFlowDebugChange(value: boolean): void {
   void setFlowDebug(value).catch(() => {})
+}
+
+// ── 显示容器边界：给所有元素叠加调试轮廓，便于观察布局层级 ──────────
+const DEBUG_OUTLINE_CLASS = 'dev-show-outlines'
+const showContainerBoundaries = ref(false)
+
+function toggleContainerBoundaries(value: boolean): void {
+  showContainerBoundaries.value = value
+  document.documentElement.classList.toggle(DEBUG_OUTLINE_CLASS, value)
+}
+
+// ── 禁用所有动画：关闭全局动画与过渡，便于静止截图与定位布局 ────────
+const DEBUG_NO_ANIMATION_CLASS = 'dev-no-animation'
+const animationsDisabled = ref(false)
+
+function toggleAnimations(value: boolean): void {
+  animationsDisabled.value = value
+  document.documentElement.classList.toggle(DEBUG_NO_ANIMATION_CLASS, value)
+}
+
+// ── 清除所有缓存：清空浏览器 Cache Storage，可能需刷新页面观察变化 ──
+const clearingCaches = ref(false)
+
+async function clearAllCaches(): Promise<void> {
+  clearingCaches.value = true
+  try {
+    let cleared = 0
+    if (typeof caches !== 'undefined') {
+      const keys = await caches.keys()
+      await Promise.all(keys.map((key) => caches.delete(key)))
+      cleared = keys.length
+    }
+    message.success(t('dev.cachesCleared', { count: cleared }))
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : t('dev.clearCachesFailed'))
+  } finally {
+    clearingCaches.value = false
+  }
 }
 
 function applyAnimSpeed(speed: number): void {

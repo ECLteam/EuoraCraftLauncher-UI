@@ -7,13 +7,9 @@
 }
 
 :root {
-  --font-body:
-    'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    Roboto, sans-serif;
-  --font-display:
-    'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Mono', 'Droid Sans Mono', monospace;
+  --font-body: 'HarmonyOS Sans SC', sans-serif;
+  --font-display: 'HarmonyOS Sans SC', sans-serif;
+  --font-mono: 'JetBrains Mono', Consolas, 'Cascadia Code', monospace;
 
   --primary: #4a7fd9;
   --primary-hover: #3d6ec2;

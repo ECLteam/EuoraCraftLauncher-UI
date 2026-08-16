@@ -4,7 +4,7 @@
     :class="{ 'ui-avatar--fallback': !src }"
     :style="{ width: `${size}px`, height: `${size}px`, fontSize: `${Math.round(size * 0.42)}px` }"
   >
-    <img v-if="src" :src="src" :alt="alt" class="ui-avatar__img" />
+    <img v-if="src" :src="src" :alt="name" class="ui-avatar__img" />
     <span v-else class="ui-avatar__initial">{{ initial }}</span>
   </span>
 </template>

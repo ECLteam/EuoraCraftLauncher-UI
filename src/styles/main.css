@@ -41,8 +41,31 @@
   --shadow-md: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
   --shadow-lg: 0 4px 5px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
 
-  --font-sans: 'MiSans VF', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', 'SF Mono', Monaco, Inconsolata, 'Fira Mono', monospace;
+  --font-sans: 'HarmonyOS Sans SC', sans-serif;
+  --font-mono: 'JetBrains Mono', Consolas, 'Cascadia Code', monospace;
 
   --backdrop-blur-xs: 2px;
+}
+
+/* 开发调试浮动按钮：允许在标题栏拖拽区域内拖动，避免触发整窗拖拽 */
+.vue-devtools__anchor,
+.vue-devtools__anchor-btn,
+.vue-inspector-container,
+.VueDevTools__toggle-button {
+  -webkit-app-region: no-drag !important;
+}
+
+/* 调试工具：为所有元素叠加轮廓，展示容器边界与层级 */
+.dev-show-outlines * {
+  outline: 1px solid color-mix(in srgb, var(--error) 30%, transparent) !important;
+  outline-offset: -1px;
+}
+
+/* 调试工具：关闭所有动画与过渡，便于静止截图与布局定位 */
+.dev-no-animation,
+.dev-no-animation *,
+.dev-no-animation *::before,
+.dev-no-animation *::after {
+  animation: none !important;
+  transition: none !important;
 }

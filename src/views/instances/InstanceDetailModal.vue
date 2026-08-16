@@ -395,33 +395,33 @@
         <div v-if="activeTab === 'resourcepacks' && version" class="vdm-page workspace-page">
           <InstanceResourcesTab
             :version="version"
-            :world-options="worldOptions"
-            initial-type="resourcepack"
-            :allowed-types="['resourcepack']"
+            :worldOptions="worldOptions"
+            initialType="resourcepack"
+            :allowedTypes="['resourcepack']"
           />
         </div>
         <div v-if="activeTab === 'shaderpacks' && version" class="vdm-page workspace-page">
           <InstanceResourcesTab
             :version="version"
-            :world-options="worldOptions"
-            initial-type="shaderpack"
-            :allowed-types="['shaderpack']"
+            :worldOptions="worldOptions"
+            initialType="shaderpack"
+            :allowedTypes="['shaderpack']"
           />
         </div>
         <div v-if="activeTab === 'datapacks' && version" class="vdm-page workspace-page">
           <InstanceResourcesTab
             :version="version"
-            :world-options="worldOptions"
-            initial-type="datapack"
-            :allowed-types="['datapack']"
+            :worldOptions="worldOptions"
+            initialType="datapack"
+            :allowedTypes="['datapack']"
           />
         </div>
         <div v-if="activeTab === 'schematics' && version" class="vdm-page workspace-page">
           <InstanceResourcesTab
             :version="version"
-            :world-options="worldOptions"
-            initial-type="schematic"
-            :allowed-types="['schematic']"
+            :worldOptions="worldOptions"
+            initialType="schematic"
+            :allowedTypes="['schematic']"
           />
         </div>
         <div v-if="activeTab === 'worlds' && version" class="vdm-page workspace-page">
@@ -474,8 +474,8 @@ import InstanceResourcesTab from '@/components/instances/InstanceResourcesTab.vu
 import InstanceScreenshotsTab from '@/components/instances/InstanceScreenshotsTab.vue'
 import InstanceServersTab from '@/components/instances/InstanceServersTab.vue'
 import InstanceWorldsTab from '@/components/instances/InstanceWorldsTab.vue'
-import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
+import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import Modal from '@/components/modals/Modal.vue'
 import OnlineModSearch from '@/components/mods/OnlineModSearch.vue'
 import UiIcon from '@/components/ui/Icon.vue'
@@ -508,6 +508,7 @@ interface Props {
 type DetailTab =
   | 'overview'
   | 'mods'
+  | 'online-mods'
   | 'resourcepacks'
   | 'shaderpacks'
   | 'datapacks'
@@ -667,7 +668,7 @@ async function persistProfile() {
   try {
     await instanceProfileApi.patch(targetFromVersion(version), profilePayload())
     // 直接更新本地版本对象，避免触发全量扫描
-    const v = version as Record<string, unknown>
+    const v = version as unknown as Record<string, unknown>
     v.displayName = profileForm.alias
     v.description = profileForm.description
     v.favorite = profileForm.favorite

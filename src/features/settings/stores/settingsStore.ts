@@ -21,7 +21,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const ui = ref<UiConfig>({})
   const game = ref<GameConfig>({ ...DEFAULT_GAME_CONFIG })
   const download = ref<DownloadConfig>({ ...DEFAULT_DOWNLOAD_CONFIG })
-  const launcher = ref<LauncherConfig>({ debug: false })
+  const launcher = ref<LauncherConfig>({ debug: false, disable_ssl_verify: false })
   const status = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const error = ref('')
   let loadPromise: Promise<void> | null = null

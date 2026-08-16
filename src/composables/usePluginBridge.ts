@@ -1,3 +1,4 @@
+/* eslint-disable vue/one-component-per-file -- 动态工厂按需 createApp 生成组件，单文件多组件属必要设计 */
 import { compile, createApp, defineComponent, h, ref } from 'vue'
 import { pluginHostApi } from '@/features/plugins/api/pluginHostApi'
 import * as api from '@/plugin-sdk/api'

@@ -86,10 +86,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject } from 'vue'
+import { computed, inject, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import type { Ref } from 'vue'
 import backend from '@/api/client'
 import { desktopWindow } from '@/app/runtime/desktopWindow'
 import TitleBarTray from '@/components/layout/TitleBarTray.vue'
@@ -144,6 +143,13 @@ const handleDragStart = (e: MouseEvent) => {
   if (e.button !== 0) return
   const target = e.target as HTMLElement
   if (target.closest('[data-no-drag]')) return
+  if (
+    target.closest('.vue-devtools__anchor') ||
+    target.closest('.vue-devtools__anchor-btn') ||
+    target.closest('.vue-inspector-container') ||
+    target.closest('.VueDevTools__toggle-button')
+  )
+    return
   desktopWindow.startDragging()
 }
 </script>

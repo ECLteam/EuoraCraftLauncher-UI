@@ -91,6 +91,9 @@
       <SettingRow :label="t('settings.debugMode')" :description="t('settings.debugModeDesc')">
         <NSwitch :value="debugMode" @update:value="handleDebugModeChange" />
       </SettingRow>
+      <SettingRow :label="t('settings.disableSslVerify')" :description="t('settings.disableSslVerifyDesc')">
+        <NSwitch :value="disableSslVerify" @update:value="handleDisableSslVerifyChange" />
+      </SettingRow>
     </SettingSection>
 
     <div id="plugin-slot-settings-general-section-after" class="plugin-slot-container"></div>
@@ -114,9 +117,9 @@ import SettingSection from '@/features/settings/components/SettingSection.vue'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import { setLocale, supportedLocales, type LocaleCode } from '@/i18n'
 
-function debounce<T extends (...args: any[]) => void>(fn: T, delay: number) {
+function debounce<A extends unknown[]>(fn: (...args: A) => void, delay: number) {
   let timer: ReturnType<typeof setTimeout> | null = null
-  return (...args: Parameters<T>) => {
+  return (...args: A) => {
     if (timer) clearTimeout(timer)
     timer = setTimeout(() => fn(...args), delay)
   }
@@ -146,6 +149,7 @@ const {
 } = useTheme()
 const { topNavEnabled, toggleTopNav } = useTopNav()
 const { debugMode, setDebugMode } = useDebugMode()
+const disableSslVerify = computed(() => settingsStore.launcher.disable_ssl_verify === true)
 
 const currentSettings = computed(() => ({
   mode: themeMode.value,
@@ -226,10 +230,8 @@ async function selectLocalImage() {
   }
 
   const result = await run(async () => settingsStore.chooseBackgroundImage())
-  console.log('[selectLocalImage] choose result:', result)
   if (!result) return
   if (result.imageUrl) {
-    console.log('[selectLocalImage] setting background, url length:', result.imageUrl.length)
     setBackgroundImage(result.imageUrl, result.path, false)
     backgroundInput.value = result.path
     message.success(t('common.success'))
@@ -317,6 +319,10 @@ async function handleLanguageChange(languageCode: LocaleCode) {
 
 async function handleDebugModeChange(value: boolean) {
   await run(async () => setDebugMode(value))
+}
+
+async function handleDisableSslVerifyChange(value: boolean) {
+  await run(async () => settingsStore.patchLauncher({ disable_ssl_verify: value }))
 }
 
 function handleLanguageUpdate(languageCode: string) {

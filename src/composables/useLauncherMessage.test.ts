@@ -1,3 +1,4 @@
+/* eslint-disable vue/one-component-per-file -- 测试挂载用辅助组件 */
 import { flushPromises, mount } from '@vue/test-utils'
 import { NMessageProvider } from 'naive-ui'
 import { afterEach, describe, expect, it } from 'vitest'

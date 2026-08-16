@@ -28,11 +28,12 @@ export type JsonDict = Record<string, unknown>
 // ═══════════════════════════════════════════════════════════════════
 
 export interface LauncherConfig {
-  version: string
-  version_type: 'dev' | 'beta' | 'release'
-  debug: boolean
+  version?: string
+  version_type?: 'dev' | 'beta' | 'release'
+  debug?: boolean
   /** 由 ECL_CONFIG_launcher_showcase 环境变量控制，启用后使用 mock 数据替代真实后端 */
   showcase?: boolean
+  disable_ssl_verify?: boolean
 }
 
 export interface BackgroundConfig {
@@ -118,12 +119,6 @@ export interface UiConfig {
     sortKey?: InstanceSortKey
     sortDirection?: 'asc' | 'desc'
   }
-}
-
-export interface LauncherConfig {
-  version?: string
-  version_type?: string
-  debug?: boolean
 }
 
 export type ConfigSection = 'launcher' | 'game' | 'download' | 'ui' | 'locale' | 'background' | string
@@ -287,6 +282,7 @@ export interface ConnectorStatus {
   mcPort: number | null
   gameInfo: ConnectorGameInfo | null
   players: ConnectorPlayer[]
+  nodes: string[]
   error: string | null
 }
 
@@ -1078,6 +1074,8 @@ export interface CommandPayloadMap {
   accounts_complete_microsoft_login: undefined
   accounts_switch: { account_id: string }
   accounts_remove: { account_id: string }
+  accounts_set_favorite: { account_id: string; favorite: boolean }
+  accounts_set_pinned: { account_id: string; pinned: boolean }
   accounts_refresh_profile: { account_id: string }
   accounts_texture_urls: { account_id: string }
   wardrobe_list: undefined

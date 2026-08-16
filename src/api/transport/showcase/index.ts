@@ -64,6 +64,7 @@ export function createShowcaseTransport(): BackendTransport {
     mcPort: null,
     gameInfo: null,
     players: [],
+    nodes: [],
     error: null,
   }
   let easyTierStatus: EasyTierStatus = {
@@ -100,6 +101,7 @@ export function createShowcaseTransport(): BackendTransport {
       mcPort: 25565,
       gameInfo: { gameVersion: '1.21.5', loader: 'Fabric', loaderVersion: '0.16.10' },
       players: [hostPlayer, guestPlayer],
+      nodes: [],
       error: null,
     }
   }
@@ -227,6 +229,7 @@ export function createShowcaseTransport(): BackendTransport {
           mcPort: null,
           gameInfo: null,
           players: [],
+          nodes: [],
           error: null,
         }
         connectorStartTimer = setTimeout(setHostedRoom, 900)
@@ -241,6 +244,7 @@ export function createShowcaseTransport(): BackendTransport {
           mcPort: 25566,
           gameInfo: { gameVersion: '1.21.5', loader: 'Fabric', loaderVersion: '0.16.10' },
           players: [hostPlayer, { ...guestPlayer, name: 'ShowcasePlayer', machineId: 'showcase-local' }],
+          nodes: [],
           error: null,
         }
         return success({ mcHost: connectorStatus.mcHost, mcPort: connectorStatus.mcPort })
@@ -254,6 +258,7 @@ export function createShowcaseTransport(): BackendTransport {
           mcPort: null,
           gameInfo: null,
           players: [],
+          nodes: [],
           error: null,
         }
         return success({ status: 'idle' })

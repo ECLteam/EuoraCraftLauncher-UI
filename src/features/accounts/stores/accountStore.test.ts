@@ -1,4 +1,5 @@
-import { createPinia, setActivePinia } from 'pinia'
+import { createTestingPinia } from '@pinia/testing'
+import { setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { accountsApi } from '@/features/accounts/api/accountsApi'
 import { useAccountStore } from './accountStore'
@@ -33,7 +34,7 @@ const account = {
 
 describe('accountStore', () => {
   beforeEach(() => {
-    setActivePinia(createPinia())
+    setActivePinia(createTestingPinia({ stubActions: false }))
     vi.clearAllMocks()
     vi.mocked(accountsApi.list).mockResolvedValue({ accounts: [account], current: account })
   })

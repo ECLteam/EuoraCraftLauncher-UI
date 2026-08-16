@@ -21,6 +21,14 @@
 
       <!-- 任务列表 -->
       <div v-else class="tq-list">
+        <div class="tq-toolbar">
+          <span class="tq-status-text">
+            {{ activeCount > 0 ? t('taskQueue.runningCount', { count: activeCount }) : t('taskQueue.allDone') }}
+          </span>
+          <button class="tq-clear-btn" :disabled="completedCount === 0" @click="clearCompleted">
+            {{ t('taskQueue.clearCompleted', { count: completedCount }) }}
+          </button>
+        </div>
         <div v-for="task in tasks" :key="task.id" :class="['tq-task', `tq-task--${task.status}`]">
           <div class="tq-task-header" @click="toggleExpand(task.id)">
             <div class="tq-task-main">
@@ -87,15 +95,6 @@
         </div>
         <div id="plugin-slot-task-queue-item-actions" class="plugin-slot-container"></div>
       </div>
-    </div>
-
-    <div v-if="tasks.length > 0" class="tq-footer">
-      <span class="tq-status-text">
-        {{ activeCount > 0 ? t('taskQueue.runningCount', { count: activeCount }) : t('taskQueue.allDone') }}
-      </span>
-      <button class="tq-footer-btn" :disabled="completedCount === 0" @click="clearCompleted">
-        {{ t('taskQueue.clearCompleted', { count: completedCount }) }}
-      </button>
     </div>
   </FullscreenModal>
 </template>

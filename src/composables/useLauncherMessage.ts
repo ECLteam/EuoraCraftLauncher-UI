@@ -99,7 +99,8 @@ export function useLauncherMessage() {
         options.onClose?.()
       },
     }
-    const reactive = message[type](renderContent(content, options.title), nativeOptions)
+    // show() 已对 !message 提前 return，此处 message 必非空
+    const reactive = message![type](renderContent(content, options.title), nativeOptions)
     const entry: ActiveMessage = { key, reactive, count, timer: null }
     resetTimer(entry, effectiveDuration)
     activeMessages.set(key, entry)

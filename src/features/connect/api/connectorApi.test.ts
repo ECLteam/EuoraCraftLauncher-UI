@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { okResponse } from '@/test/mockBackend'
 import { connectorApi } from './connectorApi'
 
 const command = vi.hoisted(() => vi.fn())
@@ -10,7 +11,7 @@ vi.mock('@/api/client', () => ({
 describe('connectorApi', () => {
   beforeEach(() => {
     command.mockReset()
-    command.mockResolvedValue({ success: true, data: { status: 'ok' } })
+    command.mockResolvedValue(okResponse({ status: 'ok' }))
   })
 
   it.each([

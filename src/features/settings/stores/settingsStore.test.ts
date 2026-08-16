@@ -27,6 +27,7 @@ describe('settingsStore', () => {
         memory_size: 6144,
       },
       download: { mirror_source: 'bmclapi' },
+      launcher: {},
     })
   })
 

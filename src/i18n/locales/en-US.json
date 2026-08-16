@@ -106,9 +106,9 @@
       "action": "Join room"
     },
     "starting": {
-      "title": "Launching the instance and creating the room",
-      "description": "Wait for the game to launch, then open the world to LAN.",
-      "failed": "Launch failed"
+      "title": "Creating the multiplayer room",
+      "description": "Setting up the multiplayer network, please wait.",
+      "failed": "Failed to create the room"
     },
     "host": {
       "title": "Room created",
@@ -125,6 +125,7 @@
       "title": "Players ({count})",
       "host": "Host",
       "kick": "Kick player",
+      "refresh": "Refresh players",
       "empty": "No players"
     },
     "match": {
@@ -144,6 +145,18 @@
       "port": "Enter a valid port from 1 to 65535",
       "roomCode": "Enter a room code",
       "pasteFailed": "Unable to read clipboard"
+    },
+    "side": {
+      "title": "Connection Status",
+      "hint": "Service & connection",
+      "service": "Connect Component",
+      "availability": "Service Status"
+    },
+    "roomInfo": {
+      "title": "Room Info",
+      "hint": "Current room details",
+      "game": "Game Version",
+      "creator": "Creator"
     }
   },
   "game": {
@@ -723,7 +736,9 @@
     "transparentBgDesc": "Make the window background transparent, allowing desktop to show through",
     "developer": "Developer",
     "debugMode": "Debug Mode",
-    "debugModeDesc": "Controls the launcher config file's debug mode (launcher.debug). Takes full effect after restarting the launcher"
+    "debugModeDesc": "Controls the launcher config file's debug mode (launcher.debug). Takes full effect after restarting the launcher",
+    "disableSslVerify": "Disable SSL Certificate Verification",
+    "disableSslVerifyDesc": "Globally disables HTTPS certificate verification (including Microsoft login). Takes full effect after restarting the launcher"
   },
   "error": {
     "id": "Error ID",
@@ -1084,6 +1099,14 @@
     "animationSpeedDesc": "Adjusts the speed of global animations and transitions. Takes effect for the current session only.",
     "flowDebug": "Flow Debug",
     "flowDebugDesc": "When enabled, staged pages (e.g. Connect) allow freely switching between previous/next stages for debugging.",
+    "showContainerBoundaries": "Show container boundaries",
+    "showContainerBoundariesDesc": "Draw debug outlines on all page elements to inspect their boundaries and stacking.",
+    "disableAnimations": "Disable all animations",
+    "disableAnimationsDesc": "Turns off global animations and transitions for static screenshots and layout debugging. Current session only.",
+    "clearCaches": "Clear all caches",
+    "clearCachesDesc": "Clears the browser cache storage (Cache Storage). You may need to refresh the page to observe changes.",
+    "cachesCleared": "Cleared {count} cache entries",
+    "clearCachesFailed": "Failed to clear caches",
     "normalModalTest": "Normal Modal Test",
     "normalModalDesc": "This is a normal modal",
     "fullscreenModalTest": "Fullscreen Modal Test",
@@ -1242,7 +1265,7 @@
     "title": "Task"
   },
   "taskQueue": {
-    "title": "Task Center",
+    "title": "Download Task Center",
     "empty": "No tasks",
     "emptyHint": "Task progress will be shown here when installing game instances",
     "currentStatus": "Current status: ",

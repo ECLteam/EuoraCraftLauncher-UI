@@ -106,9 +106,9 @@
       "action": "加入房间"
     },
     "starting": {
-      "title": "正在启动实例并创建房间",
-      "description": "请等待游戏启动，并在游戏内开放局域网。",
-      "failed": "启动失败"
+      "title": "正在创建联机房间",
+      "description": "正在创建联机网络，请稍候。",
+      "failed": "创建房间失败"
     },
     "host": {
       "title": "房间已创建",
@@ -125,6 +125,7 @@
       "title": "玩家列表（{count}）",
       "host": "房主",
       "kick": "踢出玩家",
+      "refresh": "刷新玩家",
       "empty": "暂无玩家"
     },
     "match": {
@@ -144,6 +145,18 @@
       "port": "请输入 1 到 65535 之间的有效端口",
       "roomCode": "请输入房间码",
       "pasteFailed": "无法读取剪贴板"
+    },
+    "side": {
+      "title": "连接状态",
+      "hint": "服务与连接信息",
+      "service": "联机组件",
+      "availability": "服务状态"
+    },
+    "roomInfo": {
+      "title": "房间信息",
+      "hint": "当前房间详情",
+      "game": "游戏版本",
+      "creator": "创建者"
     }
   },
   "game": {
@@ -723,7 +736,9 @@
     "transparentBgDesc": "启用后窗口背景变为透明，可透过窗口看到桌面",
     "developer": "开发者",
     "debugMode": "调试模式",
-    "debugModeDesc": "控制启动器配置文件的调试模式（launcher.debug），需重启启动器后完全生效"
+    "debugModeDesc": "控制启动器配置文件的调试模式（launcher.debug），需重启启动器后完全生效",
+    "disableSslVerify": "关闭 SSL 证书校验",
+    "disableSslVerifyDesc": "全局关闭 HTTPS 证书校验（含微软登录），需重启启动器后完全生效"
   },
   "error": {
     "id": "错误编号",
@@ -1084,6 +1099,14 @@
     "animationSpeedDesc": "调整全局动画与过渡的播放速度，仅对当前会话生效。",
     "flowDebug":  "流程调试",
     "flowDebugDesc": "开启后可在阶段性界面（如联机页）自由切换前后阶段，便于调试与走查。",
+    "showContainerBoundaries": "显示容器边界",
+    "showContainerBoundariesDesc": "为页面所有元素叠加调试轮廓，便于观察各容器边界与层叠关系。",
+    "disableAnimations": "禁用所有动画",
+    "disableAnimationsDesc": "全局关闭动画与过渡效果，便于静止截图与定位布局问题，仅当前会话生效。",
+    "clearCaches": "清除所有缓存",
+    "clearCachesDesc": "清除浏览器缓存存储（Cache Storage），可能需要刷新页面才能观察到变化。",
+    "cachesCleared": "已清除 {count} 个缓存条目",
+    "clearCachesFailed": "清除缓存失败",
     "normalModalTest": "普通弹窗测试",
     "normalModalDesc": "这是一个普通弹窗",
     "fullscreenModalTest": "全屏弹窗测试",
@@ -1242,7 +1265,7 @@
     "title": "任务"
   },
   "taskQueue": {
-    "title": "任务中心",
+    "title": "下载任务中心",
     "empty": "暂无任务",
     "emptyHint": "安装实例时会在此显示任务进度",
     "currentStatus": "当前状态：",

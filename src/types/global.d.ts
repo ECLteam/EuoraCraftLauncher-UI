@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars -- 供 import.meta.env 消费的全局环境类型声明 */
 /// <reference lib="dom" />
 
 interface ImportMetaEnv {

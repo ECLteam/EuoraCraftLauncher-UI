@@ -480,7 +480,8 @@ function toggleSortDirection() {
 async function toggleFlag(version: ScannedVersion, field: 'favorite' | 'pinned' | 'hidden') {
   await instanceProfileApi.patch(targetFromVersion(version), { [field]: !version[field] })
   // 直接更新本地版本对象，避免触发全量扫描
-  ;(version as Record<string, boolean | undefined>)[field] = !(version as any)[field]
+  const flags = version as unknown as Record<string, boolean | undefined>
+  flags[field] = !flags[field]
 }
 </script>
 

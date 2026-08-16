@@ -69,9 +69,19 @@ describe('installFrontendLogging', () => {
   })
 
   it('普通信息日志不转发', async () => {
+    // eslint-disable-next-line no-console -- 被测对象即 console 拦截器，需直接调用 console 验证转发行为
     console.log('常规日志')
+    // eslint-disable-next-line no-console
     console.info('信息日志')
+    // eslint-disable-next-line no-console
     console.debug('调试日志')
+    await flush()
+
+    expect(mocks.command).not.toHaveBeenCalled()
+  })
+
+  it('抑制 WebGL 着色器编译警告，不输出也不转发', async () => {
+    console.warn('THREE.WebGLProgram: Program Info Log: (50,12-96): warning X4713: Sample Bias value is limited')
     await flush()
 
     expect(mocks.command).not.toHaveBeenCalled()
