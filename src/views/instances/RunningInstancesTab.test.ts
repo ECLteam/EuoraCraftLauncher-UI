@@ -1,14 +1,13 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import { i18n } from '@/i18n'
 import RunningInstancesTab from './RunningInstancesTab.vue'
-import type * as NaiveUi from 'naive-ui'
 
 const mocks = vi.hoisted(() => ({
   list: vi.fn(),
   stop: vi.fn(),
   onChanged: vi.fn(),
-  warning: vi.fn(),
   success: vi.fn(),
   error: vi.fn(),
 }))
@@ -24,14 +23,6 @@ vi.mock('@/features/instances/api/instanceRuntimeApi', () => ({
 vi.mock('@/composables/useLauncherMessage', () => ({
   useLauncherMessage: () => ({ success: mocks.success, error: mocks.error }),
 }))
-
-vi.mock('naive-ui', async (importOriginal) => {
-  const actual = await importOriginal<typeof NaiveUi>()
-  return {
-    ...actual,
-    useDialog: () => ({ warning: mocks.warning }),
-  }
-})
 
 const runningInstance = {
   id: 'instance-1',
@@ -82,8 +73,7 @@ describe('RunningInstancesTab', () => {
     const stopButton = wrapper.findAll('button').find((button) => button.text().includes(exitLabel))
 
     await stopButton?.trigger('click')
-    const options = mocks.warning.mock.calls[0]?.[0]
-    await options.onPositiveClick()
+    await wrapper.findComponent(ConfirmDialog).vm.$emit('confirm')
     await flushPromises()
 
     expect(mocks.stop).toHaveBeenCalledWith('instance-1')

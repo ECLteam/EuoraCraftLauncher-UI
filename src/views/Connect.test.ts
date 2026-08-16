@@ -1,8 +1,8 @@
 import { flushPromises, mount } from '@vue/test-utils'
-import { NSelect } from 'naive-ui'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
+import UiSelect from '@/components/ui/Select.vue'
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
 import { i18n } from '@/i18n'
 import type {
@@ -133,10 +133,9 @@ describe('Connect view', () => {
   it('keeps the room choices visible when the backend is unavailable', () => {
     const wrapper = mountConnect(connectorState(idleStatus(), false))
 
-    expect(wrapper.text()).toContain('联机服务尚不可用')
+    expect(wrapper.text()).toContain('加入联机房间')
     expect(wrapper.text()).toContain('创建房间')
-    expect(wrapper.text()).toContain('加入房间')
-    expect(wrapper.findAll('button').some((button) => button.text().includes('重新连接'))).toBe(true)
+    expect(wrapper.get('#connect-room-code').attributes('disabled')).toBeDefined()
   })
 
   it('renders launch failures as a stable starting-state card', () => {
@@ -148,7 +147,7 @@ describe('Connect view', () => {
       })
     )
 
-    expect(wrapper.text()).toContain('启动失败')
+    expect(wrapper.text()).toContain('创建房间失败')
     expect(wrapper.text()).toContain('Minecraft process exited before opening a LAN port')
   })
 
@@ -184,10 +183,11 @@ describe('Connect view', () => {
     const wrapper = mountConnect(state)
     await flushPromises()
 
-    wrapper.findComponent(NSelect).vm.$emit('update:value', runningInstance.id)
+    wrapper.findComponent(UiSelect).vm.$emit('update:modelValue', runningInstance.id)
     await wrapper.vm.$nextTick()
     const button = wrapper.findAll('button').find((candidate) => candidate.text().includes('下一步'))
     await button?.trigger('click')
+    await flushPromises()
 
     expect(state.startPortScan).toHaveBeenCalled()
   })
@@ -198,12 +198,13 @@ describe('Connect view', () => {
     const wrapper = mountConnect(state)
     await flushPromises()
 
-    wrapper.findComponent(NSelect).vm.$emit('update:value', runningInstance.id)
+    wrapper.findComponent(UiSelect).vm.$emit('update:modelValue', runningInstance.id)
     await wrapper.vm.$nextTick()
     await wrapper
       .findAll('button')
       .find((candidate) => candidate.text().includes('下一步'))
       ?.trigger('click')
+    await flushPromises()
 
     await wrapper.get('#connect-port').setValue('25566')
     await wrapper

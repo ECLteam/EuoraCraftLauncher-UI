@@ -67,8 +67,10 @@ function mountVersionList(searchQuery = '') {
 }
 
 describe('InstalledInstanceList', () => {
-  it('按版本名称过滤列表', () => {
+  it('按版本名称过滤列表', async () => {
     const wrapper = mountVersionList('fabric')
+    // 默认视图为列表；切到卡片视图以断言卡片数量按筛选收敛
+    await wrapper.get('[title="卡片视图"]').trigger('click')
 
     expect(wrapper.findAll('.instance-card')).toHaveLength(1)
     expect(wrapper.text()).toContain('Fabric 1.21.1')
@@ -78,6 +80,7 @@ describe('InstalledInstanceList', () => {
   it('将启动操作作为版本事件抛出', async () => {
     const wrapper = mountVersionList()
 
+    await wrapper.get('[title="卡片视图"]').trigger('click')
     await wrapper.get('.play-button').trigger('click')
 
     expect(wrapper.emitted('launch')).toEqual([[versions[0]]])
