@@ -108,10 +108,15 @@ async function background(shot: ScreenshotEntry) {
   message.success('启动器背景已更新')
 }
 function remove(shot: ScreenshotEntry) {
-  openConfirm('移入回收站', `删除截图 ${shot.name}？`, async () => {
-    await instanceWorkspaceApi.deleteScreenshot(target.value, shot.id)
-    await load()
-  }, true)
+  openConfirm(
+    '移入回收站',
+    `删除截图 ${shot.name}？`,
+    async () => {
+      await instanceWorkspaceApi.deleteScreenshot(target.value, shot.id)
+      await load()
+    },
+    true
+  )
 }
 const formatSize = (size: number) =>
   size < 1024 * 1024 ? `${Math.round(size / 1024)} KiB` : `${(size / 1024 / 1024).toFixed(1)} MiB`

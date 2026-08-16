@@ -1,5 +1,11 @@
 <template>
-  <div ref="selectRef" v-bind="$attrs" v-click-outside class="ui-select" :class="{ open: isOpen, 'is-disabled': disabled }">
+  <div
+    ref="selectRef"
+    v-bind="$attrs"
+    v-click-outside
+    class="ui-select"
+    :class="{ open: isOpen, 'is-disabled': disabled }"
+  >
     <div class="select-trigger" @click="toggle">
       <span class="selected-text">
         <slot name="trigger" :selected="selectedOption">

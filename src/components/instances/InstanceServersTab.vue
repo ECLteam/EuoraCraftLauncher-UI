@@ -123,10 +123,15 @@ async function copyAddress(server: ServerEntry) {
   message.success('地址已复制')
 }
 function remove(server: ServerEntry) {
-  openConfirm('删除服务器', `从 servers.dat 删除“${server.name}”？`, async () => {
-    await instanceWorkspaceApi.deleteServer(target.value, server.id)
-    await load()
-  }, true)
+  openConfirm(
+    '删除服务器',
+    `从 servers.dat 删除“${server.name}”？`,
+    async () => {
+      await instanceWorkspaceApi.deleteServer(target.value, server.id)
+      await load()
+    },
+    true
+  )
 }
 onMounted(async () => {
   await load()

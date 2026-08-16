@@ -34,405 +34,416 @@
 
       <main class="vdm-main">
         <div class="vdm-content">
-        <div v-if="activeTab === 'overview'" class="vdm-page overview-page">
-          <div class="info-card">
-            <div class="info-card__header">{{ t('versions.detail.versionInfo') }}</div>
-            <div class="info-grid">
-              <div class="info-item">
-                <span class="info-label">{{ t('versions.detail.versionId') }}</span>
-                <span class="info-value">{{ version?.versionId || '-' }}</span>
+          <div v-if="activeTab === 'overview'" class="vdm-page overview-page">
+            <div class="info-card">
+              <div class="info-card__header">{{ t('versions.detail.versionInfo') }}</div>
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">{{ t('versions.detail.versionId') }}</span>
+                  <span class="info-value">{{ version?.versionId || '-' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">{{ t('versions.detail.loader') }}</span>
+                  <span class="info-value">{{ getLoaderName(version?.primaryLoader || 'vanilla') }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">{{ t('versions.detail.vanillaVersion') }}</span>
+                  <span class="info-value">{{ version?.vanillaName || '-' }}</span>
+                </div>
               </div>
-              <div class="info-item">
-                <span class="info-label">{{ t('versions.detail.loader') }}</span>
-                <span class="info-value">{{ getLoaderName(version?.primaryLoader || 'vanilla') }}</span>
+            </div>
+
+            <div class="info-card">
+              <div class="info-card__header">{{ t('versions.detail.runStats') }}</div>
+              <div v-if="statsLoading" class="settings-loading-state">
+                <NSpin size="small" />
+                <span>{{ t('versions.detail.loadingStats') }}</span>
               </div>
-              <div class="info-item">
-                <span class="info-label">{{ t('versions.detail.vanillaVersion') }}</span>
-                <span class="info-value">{{ version?.vanillaName || '-' }}</span>
+              <div v-else class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">{{ t('versions.detail.launchCount') }}</span>
+                  <span class="info-value">{{
+                    t('versions.detail.launchCountValue', { count: runStats.launchCount })
+                  }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">{{ t('versions.detail.lastRunDuration') }}</span>
+                  <span class="info-value">{{ formatRunDuration(runStats.lastRunDurationSeconds) }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">{{ t('versions.detail.totalRunDuration') }}</span>
+                  <span class="info-value">{{ formatRunDuration(runStats.totalRunDurationSeconds) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="actions-card">
+              <div class="actions-card__header">{{ t('versions.detail.quickActions') }}</div>
+              <div class="overview-actions">
+                <NButton type="primary" secondary @click="handleLaunch">
+                  <template #icon><UiIcon name="play" :size="15" /></template>
+                  {{ t('versions.detail.launch') }}
+                </NButton>
+                <NButton secondary @click="handleOpenFolder">
+                  <template #icon><UiIcon name="folder" :size="15" /></template>
+                  {{ t('versions.detail.openFolder') }}
+                </NButton>
+                <NButton secondary :loading="crashAnalyzing" @click="handleAnalyzeCrash">
+                  <template #icon><UiIcon name="alert-triangle" :size="15" /></template>
+                  {{ t('versions.detail.analyzeCrash') }}
+                </NButton>
+                <NButton secondary @click="handleAction('repair')">
+                  <template #icon><UiIcon name="check" :size="15" /></template>
+                  校验文件
+                </NButton>
+                <NButton secondary @click="handleAction('clone')">
+                  <template #icon><UiIcon name="copy" :size="15" /></template>
+                  复制实例
+                </NButton>
+                <NButton secondary @click="handleAction('export')">
+                  <template #icon><UiIcon name="archive" :size="15" /></template>
+                  导出整合包
+                </NButton>
+                <NButton secondary @click="handleAction('import')">
+                  <template #icon><UiIcon name="upload" :size="15" /></template>
+                  导入整合包
+                </NButton>
+                <NButton type="error" secondary @click="handleDelete">
+                  <template #icon><UiIcon name="trash" :size="15" /></template>
+                  {{ t('versions.detail.delete') }}
+                </NButton>
               </div>
             </div>
           </div>
 
-          <div class="info-card">
-            <div class="info-card__header">{{ t('versions.detail.runStats') }}</div>
-            <div v-if="statsLoading" class="settings-loading-state">
-              <NSpin size="small" />
-              <span>{{ t('versions.detail.loadingStats') }}</span>
-            </div>
-            <div v-else class="info-grid">
-              <div class="info-item">
-                <span class="info-label">{{ t('versions.detail.launchCount') }}</span>
-                <span class="info-value">{{
-                  t('versions.detail.launchCountValue', { count: runStats.launchCount })
-                }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">{{ t('versions.detail.lastRunDuration') }}</span>
-                <span class="info-value">{{ formatRunDuration(runStats.lastRunDurationSeconds) }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">{{ t('versions.detail.totalRunDuration') }}</span>
-                <span class="info-value">{{ formatRunDuration(runStats.totalRunDurationSeconds) }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="actions-card">
-            <div class="actions-card__header">{{ t('versions.detail.quickActions') }}</div>
-            <div class="overview-actions">
-              <NButton type="primary" secondary @click="handleLaunch">
-                <template #icon><UiIcon name="play" :size="15" /></template>
-                {{ t('versions.detail.launch') }}
-              </NButton>
-              <NButton secondary @click="handleOpenFolder">
-                <template #icon><UiIcon name="folder" :size="15" /></template>
-                {{ t('versions.detail.openFolder') }}
-              </NButton>
-              <NButton secondary :loading="crashAnalyzing" @click="handleAnalyzeCrash">
-                <template #icon><UiIcon name="alert-triangle" :size="15" /></template>
-                {{ t('versions.detail.analyzeCrash') }}
-              </NButton>
-              <NButton secondary @click="handleAction('repair')">
-                <template #icon><UiIcon name="check" :size="15" /></template>
-                校验文件
-              </NButton>
-              <NButton secondary @click="handleAction('clone')">
-                <template #icon><UiIcon name="copy" :size="15" /></template>
-                复制实例
-              </NButton>
-              <NButton secondary @click="handleAction('export')">
-                <template #icon><UiIcon name="archive" :size="15" /></template>
-                导出整合包
-              </NButton>
-              <NButton secondary @click="handleAction('import')">
-                <template #icon><UiIcon name="upload" :size="15" /></template>
-                导入整合包
-              </NButton>
-              <NButton type="error" secondary @click="handleDelete">
-                <template #icon><UiIcon name="trash" :size="15" /></template>
-                {{ t('versions.detail.delete') }}
-              </NButton>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="activeTab === 'profile'" class="vdm-page profile-page">
-          <div class="info-card profile-card">
-            <div class="info-card__header"><span>个性化</span></div>
-            <div class="profile-form-grid">
-              <label
-                ><span>实例别名</span><NInput v-model:value="profileForm.alias" maxlength="120" /><small
-                  >磁盘目录仍为 {{ version?.versionId }}</small
-                ></label
-              >
-              <label
-                ><span>分类</span><NSelect v-model:value="profileForm.categoryId" :options="categoryOptions"
-              /></label>
-              <label class="profile-form-wide"
-                ><span>描述</span
-                ><NInput
-                  v-model:value="profileForm.description"
-                  type="textarea"
-                  :autosize="{ minRows: 2, maxRows: 5 }"
-                  maxlength="1000"
-              /></label>
-              <label class="profile-form-wide"
-                ><span>标签（使用逗号分隔）</span
-                ><NInput v-model:value="profileForm.tagsText" placeholder="朋友服, 机械动力, 生存"
-              /></label>
-              <label
-                ><span>兼容元数据来源</span
-                ><NSelect v-model:value="profileForm.preferredExternalSource" :options="sourceOptions"
-              /></label>
-              <div class="profile-switches">
-                <span><NSwitch v-model:value="profileForm.favorite" />收藏</span>
-                <span><NSwitch v-model:value="profileForm.pinned" />置顶</span>
-                <span><NSwitch v-model:value="profileForm.hidden" />隐藏</span>
-              </div>
-            </div>
-          </div>
-          <div class="info-card">
-            <div class="info-card__header">字段来源与恢复</div>
-            <div class="field-source-list">
-              <div v-for="field in profileFields" :key="field">
-                <span>{{ profileFieldLabel(field) }}</span
-                ><code>{{ version?.fieldSources?.[field] || 'auto' }}</code
-                ><NButton
-                  v-if="version?.profileOverrides?.includes(field)"
-                  size="tiny"
-                  quaternary
-                  @click="resetProfileField(field)"
-                  >恢复自动</NButton
+          <div v-if="activeTab === 'profile'" class="vdm-page profile-page">
+            <div class="info-card profile-card">
+              <div class="info-card__header"><span>个性化</span></div>
+              <div class="profile-form-grid">
+                <label
+                  ><span>实例别名</span><NInput v-model:value="profileForm.alias" maxlength="120" /><small
+                    >磁盘目录仍为 {{ version?.versionId }}</small
+                  ></label
                 >
+                <label
+                  ><span>分类</span><NSelect v-model:value="profileForm.categoryId" :options="categoryOptions"
+                /></label>
+                <label class="profile-form-wide"
+                  ><span>描述</span
+                  ><NInput
+                    v-model:value="profileForm.description"
+                    type="textarea"
+                    :autosize="{ minRows: 2, maxRows: 5 }"
+                    maxlength="1000"
+                /></label>
+                <label class="profile-form-wide"
+                  ><span>标签（使用逗号分隔）</span
+                  ><NInput v-model:value="profileForm.tagsText" placeholder="朋友服, 机械动力, 生存"
+                /></label>
+                <label
+                  ><span>兼容元数据来源</span
+                  ><NSelect v-model:value="profileForm.preferredExternalSource" :options="sourceOptions"
+                /></label>
+                <div class="profile-switches">
+                  <span><NSwitch v-model:value="profileForm.favorite" />收藏</span>
+                  <span><NSwitch v-model:value="profileForm.pinned" />置顶</span>
+                  <span><NSwitch v-model:value="profileForm.hidden" />隐藏</span>
+                </div>
               </div>
             </div>
-            <p v-for="warning in version?.sourceWarnings || []" :key="warning" class="source-warning">{{ warning }}</p>
-          </div>
-        </div>
-
-        <div v-if="activeTab === 'mods'" class="vdm-page mods-page">
-          <div class="mods-panel">
-            <div class="mods-panel-header">
-              <div class="mods-panel-header-left">
-                <div class="search-box">
-                  <UiIcon name="search" :size="15" class="search-icon" />
-                  <input
-                    v-model="modSearchQuery"
-                    type="text"
-                    class="search-input"
-                    :placeholder="t('versions.mods.searchPlaceholder')"
-                  />
-                  <button v-if="modSearchQuery" class="search-clear" type="button" @click="modSearchQuery = ''">
-                    <UiIcon name="close" :size="14" />
-                  </button>
-                </div>
-                <div class="mods-filter-tabs">
-                  <button
-                    v-for="f in modFilterOptions"
-                    :key="f.value"
-                    :class="['mods-filter-btn', { active: modFilter === f.value }]"
-                    @click="modFilter = f.value"
+            <div class="info-card">
+              <div class="info-card__header">字段来源与恢复</div>
+              <div class="field-source-list">
+                <div v-for="field in profileFields" :key="field">
+                  <span>{{ profileFieldLabel(field) }}</span
+                  ><code>{{ version?.fieldSources?.[field] || 'auto' }}</code
+                  ><NButton
+                    v-if="version?.profileOverrides?.includes(field)"
+                    size="tiny"
+                    quaternary
+                    @click="resetProfileField(field)"
+                    >恢复自动</NButton
                   >
-                    {{ f.label }}
-                  </button>
                 </div>
               </div>
-              <div class="mods-panel-header-right">
-                <span v-if="filteredMods.length" class="mods-count">{{
-                  t('versions.mods.count', { count: filteredMods.length })
-                }}</span>
-                <NButton size="tiny" secondary @click="handleOnlineSearch">
-                  <template #icon><UiIcon name="search" :size="14" /></template>
-                  {{ t('versions.mods.onlineSearch') }}
-                </NButton>
-                <NButton size="tiny" secondary @click="handleAddMod">
-                  <template #icon><UiIcon name="add" :size="14" /></template>
-                  {{ t('versions.mods.addMod') }}
-                </NButton>
-                <NButton size="tiny" secondary @click="handleOpenModsFolder">
-                  <template #icon><UiIcon name="folder" :size="14" /></template>
-                  {{ t('versions.mods.openFolder') }}
-                </NButton>
-              </div>
+              <p v-for="warning in version?.sourceWarnings || []" :key="warning" class="source-warning">
+                {{ warning }}
+              </p>
             </div>
+          </div>
 
-            <div class="mods-panel-content">
-              <NSpin :show="modsLoading" class="mods-spin">
-                <template v-if="filteredMods.length">
-                  <div class="mods-table">
-                    <div class="table-header">
-                      <span class="mcol-name">{{ t('versions.mods.modName') }}</span>
-                      <span class="mcol-loader">{{ t('versions.mods.loader') }}</span>
-                      <span class="mcol-version">{{ t('versions.mods.modVersion') }}</span>
-                      <span class="mcol-author">{{ t('versions.mods.author') }}</span>
-                      <span class="mcol-status">{{ t('versions.mods.enabled') }}</span>
-                      <span class="mcol-actions" />
-                    </div>
-                    <div class="mods-table-body">
-                      <div v-for="mod in filteredMods" :key="mod.filename" class="table-row">
-                        <span class="mcol-name">
-                          <span class="mod-name">{{ mod.name || mod.filename.replace(/\.(jar|disabled)$/, '') }}</span>
-                          <span class="mod-filename">{{ mod.filename }}</span>
-                        </span>
-                        <span class="mcol-loader">
-                          <span v-if="mod.loader_type" class="badge" :class="'badge-' + mod.loader_type.toLowerCase()">
-                            {{ getLoaderName(mod.loader_type) }}
+          <div v-if="activeTab === 'mods'" class="vdm-page mods-page">
+            <div class="mods-panel">
+              <div class="mods-panel-header">
+                <div class="mods-panel-header-left">
+                  <div class="search-box">
+                    <UiIcon name="search" :size="15" class="search-icon" />
+                    <input
+                      v-model="modSearchQuery"
+                      type="text"
+                      class="search-input"
+                      :placeholder="t('versions.mods.searchPlaceholder')"
+                    />
+                    <button v-if="modSearchQuery" class="search-clear" type="button" @click="modSearchQuery = ''">
+                      <UiIcon name="close" :size="14" />
+                    </button>
+                  </div>
+                  <div class="mods-filter-tabs">
+                    <button
+                      v-for="f in modFilterOptions"
+                      :key="f.value"
+                      :class="['mods-filter-btn', { active: modFilter === f.value }]"
+                      @click="modFilter = f.value"
+                    >
+                      {{ f.label }}
+                    </button>
+                  </div>
+                </div>
+                <div class="mods-panel-header-right">
+                  <span v-if="filteredMods.length" class="mods-count">{{
+                    t('versions.mods.count', { count: filteredMods.length })
+                  }}</span>
+                  <NButton size="tiny" secondary @click="handleOnlineSearch">
+                    <template #icon><UiIcon name="search" :size="14" /></template>
+                    {{ t('versions.mods.onlineSearch') }}
+                  </NButton>
+                  <NButton size="tiny" secondary @click="handleAddMod">
+                    <template #icon><UiIcon name="add" :size="14" /></template>
+                    {{ t('versions.mods.addMod') }}
+                  </NButton>
+                  <NButton size="tiny" secondary @click="handleOpenModsFolder">
+                    <template #icon><UiIcon name="folder" :size="14" /></template>
+                    {{ t('versions.mods.openFolder') }}
+                  </NButton>
+                </div>
+              </div>
+
+              <div class="mods-panel-content">
+                <NSpin :show="modsLoading" class="mods-spin">
+                  <template v-if="filteredMods.length">
+                    <div class="mods-table">
+                      <div class="table-header">
+                        <span class="mcol-name">{{ t('versions.mods.modName') }}</span>
+                        <span class="mcol-loader">{{ t('versions.mods.loader') }}</span>
+                        <span class="mcol-version">{{ t('versions.mods.modVersion') }}</span>
+                        <span class="mcol-author">{{ t('versions.mods.author') }}</span>
+                        <span class="mcol-status">{{ t('versions.mods.enabled') }}</span>
+                        <span class="mcol-actions" />
+                      </div>
+                      <div class="mods-table-body">
+                        <div v-for="mod in filteredMods" :key="mod.filename" class="table-row">
+                          <span class="mcol-name">
+                            <span class="mod-name">{{
+                              mod.name || mod.filename.replace(/\.(jar|disabled)$/, '')
+                            }}</span>
+                            <span class="mod-filename">{{ mod.filename }}</span>
                           </span>
-                          <span v-else class="badge badge-vanilla">{{ t('versions.manage.vanilla') }}</span>
-                        </span>
-                        <span class="mcol-version">
-                          <span class="mod-version-text">{{ mod.version || '-' }}</span>
-                        </span>
-                        <span class="mcol-author">
-                          <span class="mod-author-text">{{ mod.author || '-' }}</span>
-                        </span>
-                        <span class="mcol-status">
-                          <NSwitch :value="mod.enabled" size="small" @update:value="handleToggleMod(mod)" />
-                        </span>
-                        <span class="mcol-actions">
-                          <button
-                            class="btn-action btn-delete"
-                            :title="t('common.delete')"
-                            @click="handleDeleteMod(mod)"
-                          >
-                            <UiIcon name="trash" :size="13" />
-                          </button>
-                        </span>
+                          <span class="mcol-loader">
+                            <span
+                              v-if="mod.loader_type"
+                              class="badge"
+                              :class="'badge-' + mod.loader_type.toLowerCase()"
+                            >
+                              {{ getLoaderName(mod.loader_type) }}
+                            </span>
+                            <span v-else class="badge badge-vanilla">{{ t('versions.manage.vanilla') }}</span>
+                          </span>
+                          <span class="mcol-version">
+                            <span class="mod-version-text">{{ mod.version || '-' }}</span>
+                          </span>
+                          <span class="mcol-author">
+                            <span class="mod-author-text">{{ mod.author || '-' }}</span>
+                          </span>
+                          <span class="mcol-status">
+                            <NSwitch :value="mod.enabled" size="small" @update:value="handleToggleMod(mod)" />
+                          </span>
+                          <span class="mcol-actions">
+                            <button
+                              class="btn-action btn-delete"
+                              :title="t('common.delete')"
+                              @click="handleDeleteMod(mod)"
+                            >
+                              <UiIcon name="trash" :size="13" />
+                            </button>
+                          </span>
+                        </div>
                       </div>
                     </div>
+                  </template>
+                  <div v-else-if="!modsLoading" class="mods-empty empty-state">
+                    <UiIcon name="puzzle" :size="36" class="empty-icon" />
+                    <p class="empty-text">{{ t('versions.mods.noMods') }}</p>
+                    <div class="empty-actions" style="display: flex; gap: 8px; margin-top: 4px">
+                      <NButton size="small" secondary @click="handleAddMod">
+                        <template #icon><UiIcon name="add" :size="14" /></template>
+                        {{ t('versions.mods.addMod') }}
+                      </NButton>
+                      <NButton size="small" secondary @click="handleOnlineSearch">
+                        <template #icon><UiIcon name="search" :size="14" /></template>
+                        {{ t('versions.mods.onlineSearch') }}
+                      </NButton>
+                    </div>
                   </div>
-                </template>
-                <div v-else-if="!modsLoading" class="mods-empty empty-state">
-                  <UiIcon name="puzzle" :size="36" class="empty-icon" />
-                  <p class="empty-text">{{ t('versions.mods.noMods') }}</p>
-                  <div class="empty-actions" style="display: flex; gap: 8px; margin-top: 4px">
-                    <NButton size="small" secondary @click="handleAddMod">
-                      <template #icon><UiIcon name="add" :size="14" /></template>
-                      {{ t('versions.mods.addMod') }}
-                    </NButton>
-                    <NButton size="small" secondary @click="handleOnlineSearch">
-                      <template #icon><UiIcon name="search" :size="14" /></template>
-                      {{ t('versions.mods.onlineSearch') }}
-                    </NButton>
-                  </div>
+                </NSpin>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="activeTab === 'online-mods'" class="vdm-page online-mods-page">
+            <OnlineModSearch :instance="version" @installed="loadMods" />
+          </div>
+
+          <div v-if="activeTab === 'settings'" class="vdm-page version-settings-page">
+            <div v-if="settingsLoading" class="settings-loading-state">
+              <NSpin size="small" />
+              <span>{{ t('versions.detail.loadingSettings') }}</span>
+            </div>
+            <template v-else>
+              <div class="settings-summary">
+                <div class="settings-summary-copy">
+                  <strong>{{
+                    isCustomized ? t('versions.detail.customizedSettings') : t('versions.detail.usingGlobalSettings')
+                  }}</strong>
+                  <span>{{ t('versions.detail.settings') }} · {{ version?.versionId || '-' }}</span>
                 </div>
-              </NSpin>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="activeTab === 'online-mods'" class="vdm-page online-mods-page">
-          <OnlineModSearch :instance="version" @installed="loadMods" />
-        </div>
-
-        <div v-if="activeTab === 'settings'" class="vdm-page version-settings-page">
-          <div v-if="settingsLoading" class="settings-loading-state">
-            <NSpin size="small" />
-            <span>{{ t('versions.detail.loadingSettings') }}</span>
-          </div>
-          <template v-else>
-            <div class="settings-summary">
-              <div class="settings-summary-copy">
-                <strong>{{
-                  isCustomized ? t('versions.detail.customizedSettings') : t('versions.detail.usingGlobalSettings')
-                }}</strong>
-                <span>{{ t('versions.detail.settings') }} · {{ version?.versionId || '-' }}</span>
-              </div>
-              <NButton
-                size="small"
-                secondary
-                :disabled="settingsSaving || !isCustomized"
-                :loading="settingsSaving"
-                @click="resetSettings"
-              >
-                {{ t('versions.detail.inheritGlobal') }}
-              </NButton>
-            </div>
-
-            <SettingSection :title="t('versions.detail.launchConfig')">
-              <div class="settings-subgroup">
-                <div class="settings-subgroup__title">{{ t('versions.detail.launchOptions') }}</div>
-                <SettingRow :label="t('versions.detail.isolated')" :description="t('versions.detail.isolatedDesc')">
-                  <NSwitch v-model:value="versionSettings.isolated" />
-                </SettingRow>
-              </div>
-
-              <div class="settings-subgroup">
-                <div class="settings-subgroup__title">{{ t('versions.detail.memoryAllocation') }}</div>
-                <SettingRow
-                  :label="t('versions.detail.customMemory')"
-                  :description="t('versions.detail.customMemoryDesc')"
+                <NButton
+                  size="small"
+                  secondary
+                  :disabled="settingsSaving || !isCustomized"
+                  :loading="settingsSaving"
+                  @click="resetSettings"
                 >
-                  <NSwitch v-model:value="versionSettings.customMemory" />
-                </SettingRow>
-                <SettingRow v-if="versionSettings.customMemory" :label="t('versions.detail.memorySize')">
-                  <NInputNumber
-                    v-model:value="versionSettings.memory"
-                    class="memory-number-input"
-                    :min="512"
-                    :max="65536"
-                    :step="256"
-                    :showButton="false"
+                  {{ t('versions.detail.inheritGlobal') }}
+                </NButton>
+              </div>
+
+              <SettingSection :title="t('versions.detail.launchConfig')">
+                <div class="settings-subgroup">
+                  <div class="settings-subgroup__title">{{ t('versions.detail.launchOptions') }}</div>
+                  <SettingRow :label="t('versions.detail.isolated')" :description="t('versions.detail.isolatedDesc')">
+                    <NSwitch v-model:value="versionSettings.isolated" />
+                  </SettingRow>
+                </div>
+
+                <div class="settings-subgroup">
+                  <div class="settings-subgroup__title">{{ t('versions.detail.memoryAllocation') }}</div>
+                  <SettingRow
+                    :label="t('versions.detail.customMemory')"
+                    :description="t('versions.detail.customMemoryDesc')"
                   >
-                    <template #suffix>MB</template>
-                  </NInputNumber>
-                </SettingRow>
-              </div>
+                    <NSwitch v-model:value="versionSettings.customMemory" />
+                  </SettingRow>
+                  <SettingRow v-if="versionSettings.customMemory" :label="t('versions.detail.memorySize')">
+                    <NInputNumber
+                      v-model:value="versionSettings.memory"
+                      class="memory-number-input"
+                      :min="512"
+                      :max="65536"
+                      :step="256"
+                      :showButton="false"
+                    >
+                      <template #suffix>MB</template>
+                    </NInputNumber>
+                  </SettingRow>
+                </div>
 
-              <div class="settings-subgroup">
-                <div class="settings-subgroup__title">{{ t('versions.detail.javaRuntime') }}</div>
-                <SettingRow :label="t('versions.detail.customJava')" :description="t('versions.detail.customJavaDesc')">
-                  <NSwitch v-model:value="versionSettings.customJava" />
-                </SettingRow>
-                <SettingRow v-if="versionSettings.customJava" :label="t('versions.detail.javaPath')">
-                  <NInputGroup class="java-path-control">
+                <div class="settings-subgroup">
+                  <div class="settings-subgroup__title">{{ t('versions.detail.javaRuntime') }}</div>
+                  <SettingRow
+                    :label="t('versions.detail.customJava')"
+                    :description="t('versions.detail.customJavaDesc')"
+                  >
+                    <NSwitch v-model:value="versionSettings.customJava" />
+                  </SettingRow>
+                  <SettingRow v-if="versionSettings.customJava" :label="t('versions.detail.javaPath')">
+                    <NInputGroup class="java-path-control">
+                      <NInput
+                        v-model:value="versionSettings.javaPath"
+                        :placeholder="t('versions.detail.javaPathPlaceholder')"
+                      />
+                      <NButton :loading="javaSelecting" @click="selectJava">
+                        {{ t('common.browse') }}
+                      </NButton>
+                    </NInputGroup>
+                  </SettingRow>
+                </div>
+
+                <div class="settings-subgroup">
+                  <div class="settings-subgroup__title">{{ t('versions.detail.jvmArgs') }}</div>
+                  <SettingRow
+                    :label="t('versions.detail.customJvmArgs')"
+                    :description="t('versions.detail.customJvmArgsDesc')"
+                  >
                     <NInput
-                      v-model:value="versionSettings.javaPath"
-                      :placeholder="t('versions.detail.javaPathPlaceholder')"
+                      v-model:value="versionSettings.jvmArgs"
+                      class="argument-input"
+                      type="textarea"
+                      :autosize="{ minRows: 2, maxRows: 5 }"
+                      :placeholder="t('versions.detail.jvmArgsPlaceholder')"
                     />
-                    <NButton :loading="javaSelecting" @click="selectJava">
-                      {{ t('common.browse') }}
-                    </NButton>
-                  </NInputGroup>
-                </SettingRow>
-              </div>
+                  </SettingRow>
+                </div>
 
-              <div class="settings-subgroup">
-                <div class="settings-subgroup__title">{{ t('versions.detail.jvmArgs') }}</div>
-                <SettingRow
-                  :label="t('versions.detail.customJvmArgs')"
-                  :description="t('versions.detail.customJvmArgsDesc')"
-                >
-                  <NInput
-                    v-model:value="versionSettings.jvmArgs"
-                    class="argument-input"
-                    type="textarea"
-                    :autosize="{ minRows: 2, maxRows: 5 }"
-                    :placeholder="t('versions.detail.jvmArgsPlaceholder')"
-                  />
-                </SettingRow>
-              </div>
+                <div class="settings-subgroup">
+                  <div class="settings-subgroup__title">{{ t('versions.detail.gameArgs') }}</div>
+                  <SettingRow
+                    :label="t('versions.detail.customGameArgs')"
+                    :description="t('versions.detail.customGameArgsDesc')"
+                  >
+                    <NInput
+                      v-model:value="versionSettings.gameArgs"
+                      class="argument-input"
+                      type="textarea"
+                      :autosize="{ minRows: 2, maxRows: 5 }"
+                      :placeholder="t('versions.detail.gameArgsPlaceholder')"
+                    />
+                  </SettingRow>
+                </div>
+              </SettingSection>
+            </template>
+          </div>
 
-              <div class="settings-subgroup">
-                <div class="settings-subgroup__title">{{ t('versions.detail.gameArgs') }}</div>
-                <SettingRow
-                  :label="t('versions.detail.customGameArgs')"
-                  :description="t('versions.detail.customGameArgsDesc')"
-                >
-                  <NInput
-                    v-model:value="versionSettings.gameArgs"
-                    class="argument-input"
-                    type="textarea"
-                    :autosize="{ minRows: 2, maxRows: 5 }"
-                    :placeholder="t('versions.detail.gameArgsPlaceholder')"
-                  />
-                </SettingRow>
-              </div>
-            </SettingSection>
-          </template>
-        </div>
-
-        <div v-if="activeTab === 'resourcepacks' && version" class="vdm-page workspace-page">
-          <InstanceResourcesTab
-            :version="version"
-            :worldOptions="worldOptions"
-            initialType="resourcepack"
-            :allowedTypes="['resourcepack']"
-          />
-        </div>
-        <div v-if="activeTab === 'shaderpacks' && version" class="vdm-page workspace-page">
-          <InstanceResourcesTab
-            :version="version"
-            :worldOptions="worldOptions"
-            initialType="shaderpack"
-            :allowedTypes="['shaderpack']"
-          />
-        </div>
-        <div v-if="activeTab === 'datapacks' && version" class="vdm-page workspace-page">
-          <InstanceResourcesTab
-            :version="version"
-            :worldOptions="worldOptions"
-            initialType="datapack"
-            :allowedTypes="['datapack']"
-          />
-        </div>
-        <div v-if="activeTab === 'schematics' && version" class="vdm-page workspace-page">
-          <InstanceResourcesTab
-            :version="version"
-            :worldOptions="worldOptions"
-            initialType="schematic"
-            :allowedTypes="['schematic']"
-          />
-        </div>
-        <div v-if="activeTab === 'worlds' && version" class="vdm-page workspace-page">
-          <InstanceWorldsTab :version="version" @changed="handleWorldsChanged" />
-        </div>
-        <div v-if="activeTab === 'screenshots' && version" class="vdm-page workspace-page">
-          <InstanceScreenshotsTab :version="version" @updated="emit('updated')" />
-        </div>
-        <div v-if="activeTab === 'servers' && version" class="vdm-page workspace-page">
-          <InstanceServersTab :version="version" />
-        </div>
+          <div v-if="activeTab === 'resourcepacks' && version" class="vdm-page workspace-page">
+            <InstanceResourcesTab
+              :version="version"
+              :worldOptions="worldOptions"
+              initialType="resourcepack"
+              :allowedTypes="['resourcepack']"
+            />
+          </div>
+          <div v-if="activeTab === 'shaderpacks' && version" class="vdm-page workspace-page">
+            <InstanceResourcesTab
+              :version="version"
+              :worldOptions="worldOptions"
+              initialType="shaderpack"
+              :allowedTypes="['shaderpack']"
+            />
+          </div>
+          <div v-if="activeTab === 'datapacks' && version" class="vdm-page workspace-page">
+            <InstanceResourcesTab
+              :version="version"
+              :worldOptions="worldOptions"
+              initialType="datapack"
+              :allowedTypes="['datapack']"
+            />
+          </div>
+          <div v-if="activeTab === 'schematics' && version" class="vdm-page workspace-page">
+            <InstanceResourcesTab
+              :version="version"
+              :worldOptions="worldOptions"
+              initialType="schematic"
+              :allowedTypes="['schematic']"
+            />
+          </div>
+          <div v-if="activeTab === 'worlds' && version" class="vdm-page workspace-page">
+            <InstanceWorldsTab :version="version" @changed="handleWorldsChanged" />
+          </div>
+          <div v-if="activeTab === 'screenshots' && version" class="vdm-page workspace-page">
+            <InstanceScreenshotsTab :version="version" @updated="emit('updated')" />
+          </div>
+          <div v-if="activeTab === 'servers' && version" class="vdm-page workspace-page">
+            <InstanceServersTab :version="version" />
+          </div>
         </div>
 
         <div id="plugin-slot-version-detail-footer" class="plugin-slot-container"></div>
@@ -848,17 +859,22 @@ async function handleToggleMod(mod: ModItem) {
 }
 
 function handleDeleteMod(mod: ModItem) {
-  openConfirm(t('common.delete'), t('versions.mods.deleteConfirm', { name: mod.name || mod.filename }), async () => {
-    const gamePath = getGamePath()
-    if (!gamePath) return
-    try {
-      await localModsApi.remove(gamePath, mod.filename)
-      mods.value = mods.value.filter((m) => m.filename !== mod.filename)
-      message.success(t('versions.mods.modDeleted'))
-    } catch (error) {
-      message.error(error instanceof Error ? error.message : t('versions.mods.modDeleteFailed'))
-    }
-  }, true)
+  openConfirm(
+    t('common.delete'),
+    t('versions.mods.deleteConfirm', { name: mod.name || mod.filename }),
+    async () => {
+      const gamePath = getGamePath()
+      if (!gamePath) return
+      try {
+        await localModsApi.remove(gamePath, mod.filename)
+        mods.value = mods.value.filter((m) => m.filename !== mod.filename)
+        message.success(t('versions.mods.modDeleted'))
+      } catch (error) {
+        message.error(error instanceof Error ? error.message : t('versions.mods.modDeleteFailed'))
+      }
+    },
+    true
+  )
 }
 
 async function handleAddMod() {

@@ -161,12 +161,7 @@
                         searchable
                         :disabled="!serviceReady"
                       />
-                      <UiButton
-                        variant="outline"
-                        icon="edit"
-                        :disabled="!serviceReady"
-                        @click="goToManualPort"
-                      >
+                      <UiButton variant="outline" icon="edit" :disabled="!serviceReady" @click="goToManualPort">
                         {{ t('connect.create.manualPortEntry') }}
                       </UiButton>
                       <UiButton
@@ -346,78 +341,78 @@
               </template>
               <PlayerList :players="displayStatus.players" />
 
-            <div class="connect-match-section">
-              <div class="connect-section-title">
-                <strong>{{ t('connect.match.title') }}</strong>
-                <UiButton size="sm" variant="text" icon="refresh" :loading="matching" @click="refreshMatches">
-                  {{ t('common.refresh') }}
+              <div class="connect-match-section">
+                <div class="connect-section-title">
+                  <strong>{{ t('connect.match.title') }}</strong>
+                  <UiButton size="sm" variant="text" icon="refresh" :loading="matching" @click="refreshMatches">
+                    {{ t('common.refresh') }}
+                  </UiButton>
+                </div>
+                <div v-if="matching && !matchResult" class="connect-inline-loading">
+                  <UiIcon name="spinner" class="spin" />
+                  {{ t('connect.match.loading') }}
+                </div>
+                <template v-else>
+                  <div class="connect-mod-list">
+                    <span class="connect-subtitle">{{
+                      t('connect.match.hostMods', { count: matchResult?.mods.length ?? 0 })
+                    }}</span>
+                    <div v-if="matchResult?.mods.length" class="connect-mod-items">
+                      <div v-for="mod in matchResult.mods" :key="`${mod.hash}-${mod.id}`" class="connect-mod-item">
+                        <span>{{ mod.name }}</span>
+                        <UiTag :tone="mod.source === 'modrinth' ? 'success' : 'warning'" size="tiny">{{
+                          mod.source
+                        }}</UiTag>
+                        <code>{{ mod.hash.slice(0, 8) }}</code>
+                      </div>
+                    </div>
+                    <span v-else class="connect-empty-text">{{ t('connect.match.noMods') }}</span>
+                  </div>
+                  <div class="connect-instance-matches">
+                    <span class="connect-subtitle">{{ t('connect.match.instances') }}</span>
+                    <div v-if="matchResult?.instances.length" class="connect-match-items">
+                      <div
+                        v-for="instance in matchResult.instances"
+                        :key="`${instance.gamePath}-${instance.versionId}`"
+                        class="connect-match-item"
+                        :class="{ matched: instance.matched }"
+                      >
+                        <div>
+                          <strong>{{ instance.name }}</strong>
+                          <span>
+                            {{ instance.gameVersion }} · {{ instance.loader || 'Vanilla' }} ·
+                            {{
+                              t(instance.matched ? 'connect.match.consistent' : 'connect.match.inconsistent', {
+                                count: instance.modCount,
+                              })
+                            }}
+                          </span>
+                        </div>
+                        <UiButton
+                          v-if="instance.matched"
+                          size="sm"
+                          icon="play"
+                          :loading="launchingKey === `${instance.gamePath}\u0000${instance.versionId}`"
+                          :disabled="Boolean(launchingKey)"
+                          @click="quickLaunch(instance)"
+                        >
+                          {{ t('connect.match.quickLaunch') }}
+                        </UiButton>
+                      </div>
+                    </div>
+                    <span v-else class="connect-empty-text">{{ t('connect.match.noInstances') }}</span>
+                  </div>
+                </template>
+              </div>
+
+              <div class="connect-room-actions">
+                <UiButton variant="outline" icon="refresh" :loading="busy" @click="() => refreshStatus()">
+                  {{ t('connect.players.refresh') }}
+                </UiButton>
+                <UiButton variant="danger" icon="logout" :loading="busy" @click="leave">
+                  {{ t('connect.guest.leave') }}
                 </UiButton>
               </div>
-              <div v-if="matching && !matchResult" class="connect-inline-loading">
-                <UiIcon name="spinner" class="spin" />
-                {{ t('connect.match.loading') }}
-              </div>
-              <template v-else>
-                <div class="connect-mod-list">
-                  <span class="connect-subtitle">{{
-                    t('connect.match.hostMods', { count: matchResult?.mods.length ?? 0 })
-                  }}</span>
-                  <div v-if="matchResult?.mods.length" class="connect-mod-items">
-                    <div v-for="mod in matchResult.mods" :key="`${mod.hash}-${mod.id}`" class="connect-mod-item">
-                      <span>{{ mod.name }}</span>
-                      <UiTag :tone="mod.source === 'modrinth' ? 'success' : 'warning'" size="tiny">{{
-                        mod.source
-                      }}</UiTag>
-                      <code>{{ mod.hash.slice(0, 8) }}</code>
-                    </div>
-                  </div>
-                  <span v-else class="connect-empty-text">{{ t('connect.match.noMods') }}</span>
-                </div>
-                <div class="connect-instance-matches">
-                  <span class="connect-subtitle">{{ t('connect.match.instances') }}</span>
-                  <div v-if="matchResult?.instances.length" class="connect-match-items">
-                    <div
-                      v-for="instance in matchResult.instances"
-                      :key="`${instance.gamePath}-${instance.versionId}`"
-                      class="connect-match-item"
-                      :class="{ matched: instance.matched }"
-                    >
-                      <div>
-                        <strong>{{ instance.name }}</strong>
-                        <span>
-                          {{ instance.gameVersion }} · {{ instance.loader || 'Vanilla' }} ·
-                          {{
-                            t(instance.matched ? 'connect.match.consistent' : 'connect.match.inconsistent', {
-                              count: instance.modCount,
-                            })
-                          }}
-                        </span>
-                      </div>
-                      <UiButton
-                        v-if="instance.matched"
-                        size="sm"
-                        icon="play"
-                        :loading="launchingKey === `${instance.gamePath}\u0000${instance.versionId}`"
-                        :disabled="Boolean(launchingKey)"
-                        @click="quickLaunch(instance)"
-                      >
-                        {{ t('connect.match.quickLaunch') }}
-                      </UiButton>
-                    </div>
-                  </div>
-                  <span v-else class="connect-empty-text">{{ t('connect.match.noInstances') }}</span>
-                </div>
-              </template>
-            </div>
-
-            <div class="connect-room-actions">
-              <UiButton variant="outline" icon="refresh" :loading="busy" @click="() => refreshStatus()">
-                {{ t('connect.players.refresh') }}
-              </UiButton>
-              <UiButton variant="danger" icon="logout" :loading="busy" @click="leave">
-                {{ t('connect.guest.leave') }}
-              </UiButton>
-            </div>
             </UiCard>
             <aside class="connect-side-panel">
               <UiCard class="connect-side-card">
@@ -577,7 +572,16 @@ const debugStages = computed<{ key: DebugStageKey; label: string }[]>(() => [
 ])
 
 function mockIdleStatus(): ConnectorStatus {
-  return { mode: 'idle', roomCode: null, mcHost: null, mcPort: null, gameInfo: null, players: [], nodes: [], error: null }
+  return {
+    mode: 'idle',
+    roomCode: null,
+    mcHost: null,
+    mcPort: null,
+    gameInfo: null,
+    players: [],
+    nodes: [],
+    error: null,
+  }
 }
 
 function mockRoomStatus(mode: 'starting' | 'host' | 'guest'): ConnectorStatus {
@@ -890,4 +894,3 @@ onUnmounted(() => {
 </script>
 
 <style scoped src="@/styles/views/Connect.css"></style>
-

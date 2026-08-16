@@ -29,7 +29,13 @@
           <div class="tool-desc">{{ t('dev.webviewDevtoolsDesc') }}</div>
         </div>
         <div class="tool-control">
-          <UiButton size="sm" variant="outline" :disabled="!debugMode" :loading="devtoolsLoading" @click="openWebviewDevTools">
+          <UiButton
+            size="sm"
+            variant="outline"
+            :disabled="!debugMode"
+            :loading="devtoolsLoading"
+            @click="openWebviewDevTools"
+          >
             {{ t('dev.openWebviewDevtools') }}
           </UiButton>
         </div>
@@ -44,7 +50,12 @@
           <div class="tool-desc">{{ t('dev.vueDevtoolsDesc') }}</div>
         </div>
         <div class="tool-control">
-          <UiButton size="sm" variant="outline" :disabled="!devMode || !vueDevtoolsAvailable" @click="toggleVueDevTools">
+          <UiButton
+            size="sm"
+            variant="outline"
+            :disabled="!devMode || !vueDevtoolsAvailable"
+            @click="toggleVueDevTools"
+          >
             {{ vueDevtoolsOpen ? t('dev.closeVueDevtools') : t('dev.openVueDevtools') }}
           </UiButton>
         </div>
@@ -114,7 +125,13 @@
           <div class="tool-desc">{{ t('dev.clearCachesDesc') }}</div>
         </div>
         <div class="tool-control">
-          <UiButton size="sm" variant="outline" :disabled="!debugMode" :loading="clearingCaches" @click="clearAllCaches">
+          <UiButton
+            size="sm"
+            variant="outline"
+            :disabled="!debugMode"
+            :loading="clearingCaches"
+            @click="clearAllCaches"
+          >
             {{ t('dev.clearCaches') }}
           </UiButton>
         </div>
@@ -469,7 +486,10 @@ async function openWebviewDevTools(): Promise<void> {
 // ── Vue DevTools 面板 ─────────────────────────────────────────────
 const VUE_DEVTOOLS_FRAME_STATE_KEY = '__vue-devtools-frame-state__'
 const vueDevtoolsAvailable = computed(
-  () => devMode && typeof window !== 'undefined' && !!(window as unknown as Record<string, unknown>).__VUE_DEVTOOLS_GLOBAL_HOOK__
+  () =>
+    devMode &&
+    typeof window !== 'undefined' &&
+    !!(window as unknown as Record<string, unknown>).__VUE_DEVTOOLS_GLOBAL_HOOK__
 )
 
 const vueDevtoolsOpen = ref(false)

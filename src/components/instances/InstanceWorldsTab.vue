@@ -221,10 +221,15 @@ async function exportWorld(world: WorldEntry) {
   }
 }
 function remove(world: WorldEntry) {
-  openConfirm('移入回收站', `删除存档“${world.name}”？可从系统回收站恢复。`, async () => {
-    await instanceWorkspaceApi.deleteWorld(target.value, world.id)
-    await load()
-  }, true)
+  openConfirm(
+    '移入回收站',
+    `删除存档“${world.name}”？可从系统回收站恢复。`,
+    async () => {
+      await instanceWorkspaceApi.deleteWorld(target.value, world.id)
+      await load()
+    },
+    true
+  )
 }
 async function chunkbase(world: WorldEntry) {
   const url = `https://www.chunkbase.com/apps/seed-map#seed=${encodeURIComponent(world.seed || '')}&platform=java_${encodeURIComponent(world.version || '')}`

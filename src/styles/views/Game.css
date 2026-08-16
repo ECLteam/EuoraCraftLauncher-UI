@@ -235,7 +235,9 @@
   background: transparent;
   color: var(--ecl-text-secondary);
   cursor: pointer;
-  transition: color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    background 0.15s;
 }
 
 .account-action-btn:hover {

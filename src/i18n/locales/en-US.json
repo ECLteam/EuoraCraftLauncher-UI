@@ -818,10 +818,7 @@
         },
         "java_32bit_heap": {
           "title": "32-bit Java memory limit",
-          "suggestions": [
-            "Install and select 64-bit Java.",
-            "Temporarily lower allocated memory before switching."
-          ]
+          "suggestions": ["Install and select 64-bit Java.", "Temporarily lower allocated memory before switching."]
         },
         "java_architecture_mismatch": {
           "title": "Java or native library architecture mismatch",
@@ -951,10 +948,7 @@
         },
         "world_entity_failure": {
           "title": "An entity in the world caused the crash",
-          "suggestions": [
-            "Back up the save first.",
-            "Locate and remove the broken entity or its related mod."
-          ]
+          "suggestions": ["Back up the save first.", "Locate and remove the broken entity or its related mod."]
         },
         "game_manual_debug_crash": {
           "title": "A debug crash was triggered",

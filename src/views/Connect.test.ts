@@ -200,10 +200,16 @@ describe('Connect view', () => {
 
     wrapper.findComponent(NSelect).vm.$emit('update:value', runningInstance.id)
     await wrapper.vm.$nextTick()
-    await wrapper.findAll('button').find((candidate) => candidate.text().includes('下一步'))?.trigger('click')
+    await wrapper
+      .findAll('button')
+      .find((candidate) => candidate.text().includes('下一步'))
+      ?.trigger('click')
 
     await wrapper.get('#connect-port').setValue('25566')
-    await wrapper.findAll('button').find((candidate) => candidate.text().includes('创建房间'))?.trigger('click')
+    await wrapper
+      .findAll('button')
+      .find((candidate) => candidate.text().includes('创建房间'))
+      ?.trigger('click')
 
     expect(state.hostPort).toHaveBeenCalledWith(25566)
   })

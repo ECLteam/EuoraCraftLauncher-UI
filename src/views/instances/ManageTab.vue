@@ -591,9 +591,17 @@ const handleDelete = async (version: ScannedVersion) => {
 async function handleInstanceAction(action: string, version: ScannedVersion) {
   if (action === 'launch') return handleLaunch(version)
   if (
-    ['overview', 'mods', 'resourcepacks', 'shaderpacks', 'datapacks', 'schematics', 'worlds', 'screenshots', 'servers'].includes(
-      action
-    )
+    [
+      'overview',
+      'mods',
+      'resourcepacks',
+      'shaderpacks',
+      'datapacks',
+      'schematics',
+      'worlds',
+      'screenshots',
+      'servers',
+    ].includes(action)
   ) {
     return handleOpenDetail(version, action as DetailTab)
   }

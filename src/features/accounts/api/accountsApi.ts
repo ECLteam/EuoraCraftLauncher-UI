@@ -73,10 +73,7 @@ export const accountsApi = {
   },
 
   async setPinned(accountId: string, pinned: boolean): Promise<AccountListData> {
-    return assertSuccess(
-      await backend.command('accounts_set_pinned', { account_id: accountId, pinned }),
-      '设置置顶'
-    )
+    return assertSuccess(await backend.command('accounts_set_pinned', { account_id: accountId, pinned }), '设置置顶')
   },
 
   async refresh(accountId: string): Promise<void> {

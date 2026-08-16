@@ -9,15 +9,9 @@
     aria-valuemax="100"
   >
     <div class="ui-progress__track">
-      <div
-        v-if="!processing"
-        class="ui-progress__bar"
-        :style="{ width: `${clamped}%` }"
-      />
+      <div v-if="!processing" class="ui-progress__bar" :style="{ width: `${clamped}%` }" />
     </div>
-    <span v-if="showIndicator && !processing" class="ui-progress__indicator">
-      {{ clamped }}%
-    </span>
+    <span v-if="showIndicator && !processing" class="ui-progress__indicator"> {{ clamped }}% </span>
   </div>
 </template>
 

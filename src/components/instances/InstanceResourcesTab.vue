@@ -185,11 +185,16 @@ function toggleSelected(id: string) {
   selected.value = next
 }
 function confirmDelete(ids: string[]) {
-  openConfirm('移入回收站', `将 ${ids.length} 个资源移入系统回收站？`, async () => {
-    await instanceWorkspaceApi.deleteResources(target.value, resourceType.value, ids, worldId.value || undefined)
-    selected.value = new Set()
-    await load()
-  }, true)
+  openConfirm(
+    '移入回收站',
+    `将 ${ids.length} 个资源移入系统回收站？`,
+    async () => {
+      await instanceWorkspaceApi.deleteResources(target.value, resourceType.value, ids, worldId.value || undefined)
+      selected.value = new Set()
+      await load()
+    },
+    true
+  )
 }
 function removeOne(item: GameResource) {
   confirmDelete([item.id])
@@ -250,16 +255,20 @@ async function exportManifest() {
 function confirmUpdate(item: GameResource) {
   const update = updates.value[item.id]
   if (!update) return
-  openConfirm('确认资源更新', `将 ${item.name} 更新至 ${String(update.versionNumber || '新版本')}。旧文件会移入回收站。`, async () => {
-    await instanceWorkspaceApi.updateResource(
-      target.value,
-      resourceType.value,
-      item.id,
-      update,
-      worldId.value || undefined
-    )
-    message.success('资源更新任务已创建')
-  })
+  openConfirm(
+    '确认资源更新',
+    `将 ${item.name} 更新至 ${String(update.versionNumber || '新版本')}。旧文件会移入回收站。`,
+    async () => {
+      await instanceWorkspaceApi.updateResource(
+        target.value,
+        resourceType.value,
+        item.id,
+        update,
+        worldId.value || undefined
+      )
+      message.success('资源更新任务已创建')
+    }
+  )
 }
 watch([resourceType, worldId], load)
 
@@ -446,7 +455,9 @@ onMounted(load)
   padding: 12px 14px;
   border: 1px solid var(--ecl-border);
   border-radius: var(--ecl-radius-card);
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .online-results > div:hover {
