@@ -66,7 +66,6 @@ watch(
   justify-content: center;
   overflow: hidden;
   border-radius: var(--r-sm);
-  background: var(--primary-alpha);
   color: var(--primary);
 }
 

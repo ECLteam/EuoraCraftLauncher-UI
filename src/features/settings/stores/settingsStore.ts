@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { resolveLocalImageUrl, settingsApi } from '@/features/settings/api/settingsApi'
-import type { DownloadConfig, GameConfig, UiConfig } from '@/types/api'
+import type { DownloadConfig, GameConfig, LauncherConfig, UiConfig } from '@/types/api'
 
 const DEFAULT_GAME_CONFIG: GameConfig = {
   minecraft_paths: [],
@@ -21,6 +21,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const ui = ref<UiConfig>({})
   const game = ref<GameConfig>({ ...DEFAULT_GAME_CONFIG })
   const download = ref<DownloadConfig>({ ...DEFAULT_DOWNLOAD_CONFIG })
+  const launcher = ref<LauncherConfig>({ debug: false })
   const status = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const error = ref('')
   let loadPromise: Promise<void> | null = null
@@ -38,6 +39,7 @@ export const useSettingsStore = defineStore('settings', () => {
         ui.value = config.ui
         game.value = { ...DEFAULT_GAME_CONFIG, ...config.game }
         download.value = { ...DEFAULT_DOWNLOAD_CONFIG, ...config.download }
+        launcher.value = { ...config.launcher }
         status.value = 'ready'
       } catch (reason) {
         status.value = 'error'
@@ -74,6 +76,13 @@ export const useSettingsStore = defineStore('settings', () => {
     const next = { ...game.value, ...patch }
     await settingsApi.saveGame(next)
     game.value = next
+  }
+
+  async function patchLauncher(patch: Partial<LauncherConfig>): Promise<void> {
+    await ensureReady()
+    const next = { ...launcher.value, ...patch }
+    await settingsApi.saveLauncher(next)
+    launcher.value = next
   }
 
   async function patchDownload(patch: Partial<DownloadConfig>): Promise<void> {
@@ -116,6 +125,7 @@ export const useSettingsStore = defineStore('settings', () => {
     ui,
     game,
     download,
+    launcher,
     status,
     error,
     isLoading,
@@ -124,6 +134,7 @@ export const useSettingsStore = defineStore('settings', () => {
     patchUiTheme,
     patchUiBackground,
     patchGame,
+    patchLauncher,
     patchDownload,
     chooseBackgroundImage,
     chooseBackgroundFolder,

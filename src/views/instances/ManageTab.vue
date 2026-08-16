@@ -120,6 +120,7 @@
       @launch="handleDetailLaunch"
       @delete="handleDetailDelete"
       @updated="handleProfileChanged"
+      @action="handleInstanceAction"
     />
   </div>
 </template>
@@ -170,7 +171,18 @@ const showConfirmModal = ref(false)
 const confirmLoading = ref(false)
 const showDetailModal = ref(false)
 const detailVersion = ref<ScannedVersion | null>(null)
-type DetailTab = 'overview' | 'profile' | 'resources' | 'worlds' | 'screenshots' | 'servers' | 'settings'
+type DetailTab =
+  | 'overview'
+  | 'mods'
+  | 'resourcepacks'
+  | 'shaderpacks'
+  | 'datapacks'
+  | 'schematics'
+  | 'worlds'
+  | 'screenshots'
+  | 'servers'
+  | 'profile'
+  | 'settings'
 const detailInitialTab = ref<DetailTab>('overview')
 const confirmTitle = ref('')
 const confirmContent = ref('')
@@ -578,7 +590,11 @@ const handleDelete = async (version: ScannedVersion) => {
 
 async function handleInstanceAction(action: string, version: ScannedVersion) {
   if (action === 'launch') return handleLaunch(version)
-  if (['overview', 'resources', 'worlds', 'screenshots', 'servers'].includes(action)) {
+  if (
+    ['overview', 'mods', 'resourcepacks', 'shaderpacks', 'datapacks', 'schematics', 'worlds', 'screenshots', 'servers'].includes(
+      action
+    )
+  ) {
     return handleOpenDetail(version, action as DetailTab)
   }
   if (action.startsWith('folder-')) {

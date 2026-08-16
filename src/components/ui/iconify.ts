@@ -43,6 +43,7 @@ export const ICON_MAP: Record<string, string> = {
   brush: 'brush',
   list: 'list',
   copy: 'copy',
+  clipboard: 'clipboard',
   link: 'link',
   login: 'login-2',
   logout: 'logout-2',

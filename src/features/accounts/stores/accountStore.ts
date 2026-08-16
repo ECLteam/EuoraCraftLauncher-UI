@@ -155,6 +155,16 @@ export const useAccountStore = defineStore('accounts', () => {
     return result
   }
 
+  async function setFavorite(accountId: string, favorite: boolean): Promise<void> {
+    await accountsApi.setFavorite(accountId, favorite)
+    await load()
+  }
+
+  async function setPinned(accountId: string, pinned: boolean): Promise<void> {
+    await accountsApi.setPinned(accountId, pinned)
+    await load()
+  }
+
   function onMicrosoftLoginStatus(handler: (event: MicrosoftLoginStatusEvent) => void): () => void {
     return accountsApi.onMicrosoftLoginStatus(handler)
   }
@@ -186,6 +196,8 @@ export const useAccountStore = defineStore('accounts', () => {
     pollMicrosoftLogin,
     cancelMicrosoftLogin,
     completeMicrosoftLogin,
+    setFavorite,
+    setPinned,
     onMicrosoftLoginStatus,
   }
 })

@@ -65,6 +65,20 @@ export const accountsApi = {
     assertSuccess(await backend.command('accounts_remove', { account_id: accountId }), '删除账户')
   },
 
+  async setFavorite(accountId: string, favorite: boolean): Promise<AccountListData> {
+    return assertSuccess(
+      await backend.command('accounts_set_favorite', { account_id: accountId, favorite }),
+      '设置收藏'
+    )
+  },
+
+  async setPinned(accountId: string, pinned: boolean): Promise<AccountListData> {
+    return assertSuccess(
+      await backend.command('accounts_set_pinned', { account_id: accountId, pinned }),
+      '设置置顶'
+    )
+  },
+
   async refresh(accountId: string): Promise<void> {
     assertSuccess(await backend.command('accounts_refresh_profile', { account_id: accountId }), '刷新账户')
   },

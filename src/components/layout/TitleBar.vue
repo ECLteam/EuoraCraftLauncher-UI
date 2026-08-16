@@ -13,6 +13,22 @@
           <img src="/favicon.ico" alt="Logo" class="titlebar-logo" />
           <span class="titlebar-app-name">{{ topNavEnabled ? 'ECL' : 'EuoraCraft Launcher' }}</span>
           <span
+            v-if="isDevMode"
+            class="titlebar-mode-badge titlebar-mode-badge--dev"
+            title="开发模式：Vite 开发构建"
+            aria-label="开发模式"
+          >
+            DEV
+          </span>
+          <span
+            v-if="isDebugMode"
+            class="titlebar-mode-badge titlebar-mode-badge--debug"
+            title="调试模式：启动器已开启调试"
+            aria-label="调试模式"
+          >
+            DEBUG
+          </span>
+          <span
             v-if="isShowcaseMode"
             class="titlebar-mode-badge"
             title="展示模式使用本地演示数据，不连接后端"
@@ -70,9 +86,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import type { Ref } from 'vue'
 import backend from '@/api/client'
 import { desktopWindow } from '@/app/runtime/desktopWindow'
 import TitleBarTray from '@/components/layout/TitleBarTray.vue'
@@ -98,6 +115,9 @@ const isFullscreenModalVisible = computed(() => fullscreenModal.isVisible.value)
 const fullscreenModalTitle = computed(() => fullscreenModal.title.value)
 const isDesktopMode = backend.runtime.isDesktop
 const isShowcaseMode = backend.runtime.isShowcase
+const isDevMode = import.meta.env.DEV
+const injectedDevMode = inject<Readonly<Ref<boolean>>>('devMode')
+const isDebugMode = computed(() => injectedDevMode?.value ?? false)
 
 const menuItems = computed(() =>
   MENU_ITEMS.map((item) => ({

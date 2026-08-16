@@ -77,7 +77,7 @@ const version: ScannedVersion = {
   jsonPath: 'D:/Games/.minecraft/versions/1.21.5/1.21.5.json',
 }
 
-function mountModal(initialTab: 'overview' | 'mods' | 'settings' | 'saves' = 'settings') {
+function mountModal(initialTab: 'overview' | 'mods' | 'settings' = 'settings') {
   return mount(InstanceDetailModal, {
     global: {
       plugins: [i18n],

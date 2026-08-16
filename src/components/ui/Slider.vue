@@ -1,5 +1,5 @@
 <template>
-  <div class="ui-slider">
+  <div class="ui-slider" :class="{ 'ui-slider--disabled': disabled }">
     <input
       type="range"
       :value="modelValue"
@@ -7,6 +7,7 @@
       :max="max"
       :step="step"
       class="ui-slider-input"
+      :disabled="disabled"
       @input="handleInput"
     />
     <span class="ui-slider-value">{{ modelValue }}{{ suffix }}</span>
@@ -23,12 +24,14 @@ withDefaults(
     max?: number
     step?: number
     suffix?: string
+    disabled?: boolean
   }>(),
   {
     min: 0,
     max: 100,
     step: 1,
     suffix: '',
+    disabled: false,
   }
 )
 

@@ -29,21 +29,30 @@
       </section>
       <NEmpty v-if="!groups.length" description="还没有截图" />
     </NSpin>
+    <ConfirmDialog
+      v-model:visible="confirmVisible"
+      :title="confirmTitle"
+      :content="confirmContent"
+      :loading="confirmLoading"
+      :danger="confirmDanger"
+      :closeOnConfirm="false"
+      @confirm="handleConfirm"
+    />
   </section>
 </template>
 
 <script setup lang="ts">
-import { NButton, NEmpty, NInput, NSelect, NSpin, useDialog } from 'naive-ui'
+import { NButton, NEmpty, NInput, NSelect, NSpin } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
 import backend from '@/api/client'
 import { unwrapResponse } from '@/app/runtime/errorPresentation'
+import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
 import type { ScannedVersion, ScreenshotEntry } from '@/types/api'
 const props = defineProps<{ version: ScannedVersion }>()
 const emit = defineEmits<{ updated: [] }>()
 const message = useLauncherMessage()
-const dialog = useDialog()
 const loading = ref(false)
 const shots = ref<ScreenshotEntry[]>([])
 const query = ref('')
@@ -99,19 +108,42 @@ async function background(shot: ScreenshotEntry) {
   message.success('启动器背景已更新')
 }
 function remove(shot: ScreenshotEntry) {
-  dialog.warning({
-    title: '移入回收站',
-    content: `删除截图 ${shot.name}？`,
-    positiveText: '移入回收站',
-    negativeText: '取消',
-    onPositiveClick: async () => {
-      await instanceWorkspaceApi.deleteScreenshot(target.value, shot.id)
-      await load()
-    },
-  })
+  openConfirm('移入回收站', `删除截图 ${shot.name}？`, async () => {
+    await instanceWorkspaceApi.deleteScreenshot(target.value, shot.id)
+    await load()
+  }, true)
 }
 const formatSize = (size: number) =>
   size < 1024 * 1024 ? `${Math.round(size / 1024)} KiB` : `${(size / 1024 / 1024).toFixed(1)} MiB`
+
+const confirmVisible = ref(false)
+const confirmTitle = ref('')
+const confirmContent = ref('')
+const confirmDanger = ref(false)
+const confirmLoading = ref(false)
+let confirmAction: (() => Promise<void>) | null = null
+
+function openConfirm(title: string, content: string, action: () => Promise<void>, danger = false) {
+  confirmTitle.value = title
+  confirmContent.value = content
+  confirmDanger.value = danger
+  confirmAction = action
+  confirmLoading.value = false
+  confirmVisible.value = true
+}
+
+async function handleConfirm() {
+  if (!confirmAction || confirmLoading.value) return
+  confirmLoading.value = true
+  try {
+    await confirmAction()
+    confirmVisible.value = false
+    confirmAction = null
+  } finally {
+    confirmLoading.value = false
+  }
+}
+
 onMounted(load)
 </script>
 
@@ -120,6 +152,13 @@ onMounted(load)
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-height: 420px;
+  overflow: hidden;
+  padding: 12px;
+  background: var(--ecl-surface);
+  border: 1px solid var(--ecl-border);
+  border-radius: var(--ecl-radius-card);
+  box-shadow: var(--ecl-shadow-surface);
 }
 .screens-toolbar {
   display: flex;

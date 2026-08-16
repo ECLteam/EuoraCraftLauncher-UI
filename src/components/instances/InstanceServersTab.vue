@@ -33,6 +33,15 @@
       </div>
       <NEmpty v-else description="服务器列表为空" />
     </NSpin>
+    <ConfirmDialog
+      v-model:visible="confirmVisible"
+      :title="confirmTitle"
+      :content="confirmContent"
+      :loading="confirmLoading"
+      :danger="confirmDanger"
+      :closeOnConfirm="false"
+      @confirm="handleConfirm"
+    />
     <Modal v-model:visible="editorVisible" :title="form.id ? '编辑服务器' : '添加服务器'" width="480px"
       ><div class="server-form">
         <label>名称<NInput v-model:value="form.name" /></label
@@ -48,15 +57,15 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NEmpty, NInput, NSpin, NSwitch, useDialog } from 'naive-ui'
+import { NButton, NEmpty, NInput, NSpin, NSwitch } from 'naive-ui'
 import { computed, onMounted, reactive, ref } from 'vue'
+import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import Modal from '@/components/modals/Modal.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
 import type { ScannedVersion, ServerEntry, ServerStatus } from '@/types/api'
 const props = defineProps<{ version: ScannedVersion }>()
 const message = useLauncherMessage()
-const dialog = useDialog()
 const servers = ref<ServerEntry[]>([])
 const statuses = reactive<Record<string, ServerStatus>>({})
 const loading = ref(false)
@@ -114,21 +123,43 @@ async function copyAddress(server: ServerEntry) {
   message.success('地址已复制')
 }
 function remove(server: ServerEntry) {
-  dialog.warning({
-    title: '删除服务器',
-    content: `从 servers.dat 删除“${server.name}”？`,
-    positiveText: '删除',
-    negativeText: '取消',
-    onPositiveClick: async () => {
-      await instanceWorkspaceApi.deleteServer(target.value, server.id)
-      await load()
-    },
-  })
+  openConfirm('删除服务器', `从 servers.dat 删除“${server.name}”？`, async () => {
+    await instanceWorkspaceApi.deleteServer(target.value, server.id)
+    await load()
+  }, true)
 }
 onMounted(async () => {
   await load()
   await refreshStatus()
 })
+
+const confirmVisible = ref(false)
+const confirmTitle = ref('')
+const confirmContent = ref('')
+const confirmDanger = ref(false)
+const confirmLoading = ref(false)
+let confirmAction: (() => Promise<void>) | null = null
+
+function openConfirm(title: string, content: string, action: () => Promise<void>, danger = false) {
+  confirmTitle.value = title
+  confirmContent.value = content
+  confirmDanger.value = danger
+  confirmAction = action
+  confirmLoading.value = false
+  confirmVisible.value = true
+}
+
+async function handleConfirm() {
+  if (!confirmAction || confirmLoading.value) return
+  confirmLoading.value = true
+  try {
+    await confirmAction()
+    confirmVisible.value = false
+    confirmAction = null
+  } finally {
+    confirmLoading.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -136,6 +167,13 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-height: 420px;
+  overflow: hidden;
+  padding: 12px;
+  background: var(--ecl-surface);
+  border: 1px solid var(--ecl-border);
+  border-radius: var(--ecl-radius-card);
+  box-shadow: var(--ecl-shadow-surface);
 }
 .servers-toolbar {
   display: flex;

@@ -1,16 +1,25 @@
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { NSelect } from 'naive-ui'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
 import { i18n } from '@/i18n'
-import type { ConnectorMatchResult, ConnectorStatus, EasyTierStatus, NatTypeResult, ScannedVersion } from '@/types/api'
+import type {
+  ConnectorMatchResult,
+  ConnectorStatus,
+  EasyTierStatus,
+  GameInstance,
+  NatTypeResult,
+  ScannedVersion,
+} from '@/types/api'
 import Connect from './Connect.vue'
 
 const mocks = vi.hoisted(() => ({
   useConnector: vi.fn(),
   launchServer: vi.fn(),
+  listRunningInstances: vi.fn(),
+  onRunningChanged: vi.fn(),
 }))
 
 vi.mock('@/features/connect/composables/useConnector', () => ({
@@ -20,6 +29,25 @@ vi.mock('@/features/connect/composables/useConnector', () => ({
 vi.mock('@/features/instances/api/instanceWorkspaceApi', () => ({
   instanceWorkspaceApi: { launchServer: mocks.launchServer },
 }))
+
+vi.mock('@/features/instances/api/instanceRuntimeApi', () => ({
+  instanceRuntimeApi: {
+    list: mocks.listRunningInstances,
+    onChanged: mocks.onRunningChanged,
+  },
+}))
+
+const runningInstance: GameInstance = {
+  id: 'survival-1',
+  name: '生存世界',
+  type: 'instance',
+  isRunning: true,
+  pid: 1234,
+  version: '1.21.5',
+  versionId: 'Fabric 1.21.5',
+  loader: 'Fabric',
+  gamePath: 'C:\\Games\\.minecraft',
+}
 
 const scannedVersion: ScannedVersion = {
   id: 'fabric-1.21.5',
@@ -97,6 +125,8 @@ describe('Connect view', () => {
   beforeEach(() => {
     mocks.useConnector.mockReset()
     mocks.launchServer.mockReset().mockResolvedValue(undefined)
+    mocks.listRunningInstances.mockReset().mockResolvedValue([])
+    mocks.onRunningChanged.mockReset().mockReturnValue(undefined)
   })
 
   it('keeps the room choices visible when the backend is unavailable', () => {
@@ -121,7 +151,7 @@ describe('Connect view', () => {
     expect(wrapper.text()).toContain('Minecraft process exited before opening a LAN port')
   })
 
-  it('renders EasyTier progress and NAT diagnostics', () => {
+  it('renders EasyTier progress', () => {
     const state = connectorState(idleStatus())
     state.easyTier.value = {
       installed: false,
@@ -130,28 +160,51 @@ describe('Connect view', () => {
       speed: 2 * 1024 * 1024,
       error: null,
     }
-    state.natType.value = { type: 'cone', publicIp: '203.0.113.42', publicPort: 51820 }
     const wrapper = mountConnect(state)
 
     expect(wrapper.text()).toContain('正在下载联机组件')
     expect(wrapper.text()).toContain('42% 2.0 MB/s')
-    expect(wrapper.text()).toContain('完全锥形')
   })
 
-  it('hosts an instance with the composite game path and version id', async () => {
+  it('triggers NAT detection from the corner button', async () => {
     const state = connectorState(idleStatus())
     const wrapper = mountConnect(state)
 
-    await wrapper.get('.connect-entry-option.is-create').trigger('click')
-    wrapper.findComponent(NSelect).vm.$emit('update:value', `${scannedVersion.path}\u0000${scannedVersion.versionId}`)
-    await wrapper.vm.$nextTick()
-    const button = wrapper.findAll('button').find((candidate) => candidate.text().includes('启动并创建房间'))
+    const button = wrapper.findAll('button').find((candidate) => candidate.text().includes('NAT 检测'))
+    expect(button).toBeDefined()
     await button?.trigger('click')
 
-    expect(state.hostInstance).toHaveBeenCalledWith({
-      game_path: scannedVersion.path,
-      version_id: scannedVersion.versionId,
-    })
+    expect(state.detectNat).toHaveBeenCalled()
+  })
+
+  it('selects a running instance and proceeds to port detection', async () => {
+    const state = connectorState(idleStatus())
+    mocks.listRunningInstances.mockResolvedValue([runningInstance])
+    const wrapper = mountConnect(state)
+    await flushPromises()
+
+    wrapper.findComponent(NSelect).vm.$emit('update:value', runningInstance.id)
+    await wrapper.vm.$nextTick()
+    const button = wrapper.findAll('button').find((candidate) => candidate.text().includes('下一步'))
+    await button?.trigger('click')
+
+    expect(state.startPortScan).toHaveBeenCalled()
+  })
+
+  it('creates a room with a manually entered port', async () => {
+    const state = connectorState(idleStatus())
+    mocks.listRunningInstances.mockResolvedValue([runningInstance])
+    const wrapper = mountConnect(state)
+    await flushPromises()
+
+    wrapper.findComponent(NSelect).vm.$emit('update:value', runningInstance.id)
+    await wrapper.vm.$nextTick()
+    await wrapper.findAll('button').find((candidate) => candidate.text().includes('下一步'))?.trigger('click')
+
+    await wrapper.get('#connect-port').setValue('25566')
+    await wrapper.findAll('button').find((candidate) => candidate.text().includes('创建房间'))?.trigger('click')
+
+    expect(state.hostPort).toHaveBeenCalledWith(25566)
   })
 
   it('shows host controls and passes the selected player to kick', async () => {

@@ -47,6 +47,7 @@
     },
     "nat": {
       "detect": "NAT 检测",
+      "resultTitle": "NAT 检测结果",
       "cone": "完全锥形",
       "symmetric": "严格对称",
       "blocked": "不可穿透",
@@ -65,28 +66,43 @@
     },
     "create": {
       "tab": "创建房间",
-      "instanceTitle": "启动实例并创建房间",
-      "instanceHint": "选择实例，启动后开放局域网即可联机",
-      "portTitle": "扫描本地联机端口",
-      "portHint": "连接已经在运行的 Minecraft 世界",
-      "selectInstance": "选择实例",
-      "instancePlaceholder": "请选择一个本地实例",
-      "launchAndCreate": "启动并创建房间",
-      "lanHint": "启动后请在游戏内点击“对局域网开放”，系统会自动探测端口。",
-      "alreadyRunning": "实例已经启动？扫描本地端口",
+      "title": "创建房间",
+      "hint": "从已启动的实例创建联机房间",
+      "selectInstance": "运行实例",
+      "instancePlaceholder": "请选择已启动的实例",
+      "noRunningInstance": "没有检测到已启动的实例，请先在「游戏」页启动实例",
+      "next": "下一步",
+      "manualPortEntry": "输入端口",
+      "back": "上一步",
+      "lanHint": "请确保游戏已开启「对局域网开放」，系统会自动探测端口。",
       "scanning": "正在扫描 Java 进程和局域网端口...",
       "detectedPort": "检测到端口",
       "noPort": "暂未检测到开放的局域网端口",
-      "manualPort": "手动输入端口",
+      "manualPort": "或手动输入端口",
       "decreasePort": "端口减一",
       "increasePort": "端口加一",
-      "createRoom": "创建房间"
+      "createRoom": "创建房间",
+      "runningGame": "已启动游戏：{name}",
+      "runningGameHint": "已启动游戏？点击下方直接创建房间"
+    },
+    "debug": {
+      "label": "阶段调试",
+      "live": "实时",
+      "prev": "上一步",
+      "next": "下一步",
+      "idle": "初始",
+      "createInstance": "选实例",
+      "createPort": "端口",
+      "starting": "创建中",
+      "host": "房主",
+      "guest": "房客"
     },
     "join": {
       "tab": "加入房间",
       "title": "加入联机房间",
       "hint": "输入房主分享的房间码",
       "roomCode": "房间码",
+      "paste": "粘贴",
       "action": "加入房间"
     },
     "starting": {
@@ -126,7 +142,8 @@
     "validation": {
       "instance": "请选择一个实例",
       "port": "请输入 1 到 65535 之间的有效端口",
-      "roomCode": "请输入房间码"
+      "roomCode": "请输入房间码",
+      "pasteFailed": "无法读取剪贴板"
     }
   },
   "game": {
@@ -201,6 +218,7 @@
       "copied": "已复制",
       "waiting": "等待授权...",
       "autoDetecting": "正在自动检测授权状态...",
+      "fetching": "正在获取数据，请稍后",
       "complete": "我已完成授权",
       "success": "登录成功",
       "failed": "登录失败",
@@ -239,7 +257,13 @@
       "emptyUsername": "用户名不能为空",
       "duplicateUsername": "该用户名已存在",
       "accountLoadFailed": "加载账户失败",
-      "noGamePath": "未找到实例路径"
+      "noGamePath": "未找到实例路径",
+      "favoriteAdded": "已收藏",
+      "favoriteRemoved": "已取消收藏",
+      "favoriteFailed": "设置收藏失败",
+      "pinAdded": "已置顶",
+      "pinRemoved": "已取消置顶",
+      "pinFailed": "设置置顶失败"
     }
   },
   "download": {
@@ -383,6 +407,7 @@
       "settingsReset": "已恢复全局设置",
       "loadSettingsFailed": "读取实例设置失败",
       "saveSettingsFailed": "保存实例设置失败",
+      "profileSaveFailed": "保存实例资料失败",
       "invalidMemory": "内存大小必须在 512–65536 MB 之间",
       "javaPathRequired": "请选择 Java 可执行文件",
       "javaSelectFailed": "选择 Java 失败",
@@ -695,7 +720,10 @@
     "mouseEffectSpeed": "粒子速度",
     "mouseEffectSpeedDesc": "调整粒子移动的速度",
     "transparentBg": "透明背景",
-    "transparentBgDesc": "启用后窗口背景变为透明，可透过窗口看到桌面"
+    "transparentBgDesc": "启用后窗口背景变为透明，可透过窗口看到桌面",
+    "developer": "开发者",
+    "debugMode": "调试模式",
+    "debugModeDesc": "控制启动器配置文件的调试模式（launcher.debug），需重启启动器后完全生效"
   },
   "error": {
     "id": "错误编号",
@@ -733,131 +761,227 @@
       "reasons": {
         "jvm_invalid_arguments": {
           "title": "JVM 参数无效",
-          "suggestions": ["移除最近添加的 JVM 参数。", "确认参数适用于当前 Java 版本。"]
+          "suggestions": [
+            "移除最近添加的 JVM 参数。",
+            "确认参数适用于当前 Java 版本。"
+          ]
         },
         "memory_out_of_memory": {
           "title": "可用内存不足",
-          "suggestions": ["适当增加游戏内存，或关闭占用较高的程序。", "若已经分配过多内存，请降低分配值并检查模组。"]
+          "suggestions": [
+            "适当增加游戏内存，或关闭占用较高的程序。",
+            "若已经分配过多内存，请降低分配值并检查模组。"
+          ]
         },
         "java_incompatible_version": {
           "title": "Java 版本不兼容",
-          "suggestions": ["根据 Minecraft 与加载器版本选择正确的 Java。", "优先使用 64 位 HotSpot/OpenJDK 发行版。"]
+          "suggestions": [
+            "根据 Minecraft 与加载器版本选择正确的 Java。",
+            "优先使用 64 位 HotSpot/OpenJDK 发行版。"
+          ]
         },
         "java_module_access": {
           "title": "Java 模块访问受限",
-          "suggestions": ["切换到该版本推荐的 Java。", "移除不兼容的旧版加载器或核心模组。"]
+          "suggestions": [
+            "切换到该版本推荐的 Java。",
+            "移除不兼容的旧版加载器或核心模组。"
+          ]
         },
         "java_legacy_forge": {
           "title": "旧版 Forge 与 Java 不兼容",
-          "suggestions": ["为旧版 Forge 选择兼容的 Java 8。", "更新 Forge 或相关启动组件。"]
+          "suggestions": [
+            "为旧版 Forge 选择兼容的 Java 8。",
+            "更新 Forge 或相关启动组件。"
+          ]
         },
         "java_openj9": {
           "title": "当前 Java 虚拟机不受支持",
-          "suggestions": ["改用 HotSpot 系列 Java。", "重新扫描并选择兼容的 Java 运行时。"]
+          "suggestions": [
+            "改用 HotSpot 系列 Java。",
+            "重新扫描并选择兼容的 Java 运行时。"
+          ]
         },
         "java_32bit_heap": {
           "title": "32 位 Java 内存受限",
-          "suggestions": ["安装并选择 64 位 Java。", "在切换前临时降低内存分配。"]
+          "suggestions": [
+            "安装并选择 64 位 Java。",
+            "在切换前临时降低内存分配。"
+          ]
         },
         "java_architecture_mismatch": {
           "title": "Java 或原生库架构不匹配",
-          "suggestions": ["确保 Java、系统和原生库均为相同架构。", "删除版本的原生库缓存后重新补全文件。"]
+          "suggestions": [
+            "确保 Java、系统和原生库均为相同架构。",
+            "删除版本的原生库缓存后重新补全文件。"
+          ]
         },
         "graphics_opengl_unsupported": {
           "title": "OpenGL 不受支持",
-          "suggestions": ["更新显卡驱动并确认游戏使用独立显卡。", "避免通过不支持硬件加速的远程桌面启动。"]
+          "suggestions": [
+            "更新显卡驱动并确认游戏使用独立显卡。",
+            "避免通过不支持硬件加速的远程桌面启动。"
+          ]
         },
         "graphics_driver_crash": {
           "title": "显卡驱动发生崩溃",
-          "suggestions": ["更新或回退到稳定版显卡驱动。", "暂时关闭光影、高清修复和图形增强模组。"]
+          "suggestions": [
+            "更新或回退到稳定版显卡驱动。",
+            "暂时关闭光影、高清修复和图形增强模组。"
+          ]
         },
         "jvm_native_crash": {
           "title": "Java 原生层崩溃",
-          "suggestions": ["检查 hs_err_pid 日志中的问题帧。", "更换 Java 并更新显卡驱动或相关原生组件。"]
+          "suggestions": [
+            "检查 hs_err_pid 日志中的问题帧。",
+            "更换 Java 并更新显卡驱动或相关原生组件。"
+          ]
         },
         "native_library_missing": {
           "title": "原生库缺失或无法加载",
-          "suggestions": ["重新补全版本文件和原生库。", "检查安全软件是否隔离了 DLL 或动态库。"]
+          "suggestions": [
+            "重新补全版本文件和原生库。",
+            "检查安全软件是否隔离了 DLL 或动态库。"
+          ]
         },
         "files_integrity_failure": {
           "title": "游戏文件损坏",
-          "suggestions": ["重新补全游戏与加载器文件。", "删除日志中指出的损坏 JAR 后重新下载。"]
+          "suggestions": [
+            "重新补全游戏与加载器文件。",
+            "删除日志中指出的损坏 JAR 后重新下载。"
+          ]
         },
         "loader_install_incomplete": {
           "title": "模组加载器安装不完整",
-          "suggestions": ["重新安装 Forge、Fabric、NeoForge 或 Quilt。", "确认版本 JSON 与依赖库没有被手动修改。"]
+          "suggestions": [
+            "重新安装 Forge、Fabric、NeoForge 或 Quilt。",
+            "确认版本 JSON 与依赖库没有被手动修改。"
+          ]
         },
         "mod_extracted_jar": {
           "title": "模组被错误解压",
-          "suggestions": ["删除 mods 目录中的解压文件夹。", "仅保留原始 JAR 模组文件。"]
+          "suggestions": [
+            "删除 mods 目录中的解压文件夹。",
+            "仅保留原始 JAR 模组文件。"
+          ]
         },
         "mod_duplicate": {
           "title": "存在重复模组",
-          "suggestions": ["根据日志证据删除重复的模组副本。", "检查同一模组是否同时存在启用和禁用版本。"]
+          "suggestions": [
+            "根据日志证据删除重复的模组副本。",
+            "检查同一模组是否同时存在启用和禁用版本。"
+          ]
         },
         "mod_missing_dependency": {
           "title": "模组依赖缺失",
-          "suggestions": ["安装日志中列出的依赖及正确版本。", "确认依赖与当前加载器和 Minecraft 版本匹配。"]
+          "suggestions": [
+            "安装日志中列出的依赖及正确版本。",
+            "确认依赖与当前加载器和 Minecraft 版本匹配。"
+          ]
         },
         "mod_incompatible": {
           "title": "模组版本不兼容",
-          "suggestions": ["移除冲突模组或安装兼容版本。", "按加载器给出的解决方案调整模组组合。"]
+          "suggestions": [
+            "移除冲突模组或安装兼容版本。",
+            "按加载器给出的解决方案调整模组组合。"
+          ]
         },
         "mod_mixin_failure": {
           "title": "Mixin 注入失败",
-          "suggestions": ["更新证据中关联的模组及其依赖。", "逐批禁用最近添加的核心或优化模组。"]
+          "suggestions": [
+            "更新证据中关联的模组及其依赖。",
+            "逐批禁用最近添加的核心或优化模组。"
+          ]
         },
         "mod_config_failure": {
           "title": "模组配置无法解析",
-          "suggestions": ["备份后删除出错的配置文件，让模组重新生成。", "检查配置是否被手动编辑为无效格式。"]
+          "suggestions": [
+            "备份后删除出错的配置文件，让模组重新生成。",
+            "检查配置是否被手动编辑为无效格式。"
+          ]
         },
         "mod_initialization_failure": {
           "title": "模组初始化失败",
-          "suggestions": ["更新或暂时移除证据中涉及的模组。", "核对该模组所需的前置依赖与加载器版本。"]
+          "suggestions": [
+            "更新或暂时移除证据中涉及的模组。",
+            "核对该模组所需的前置依赖与加载器版本。"
+          ]
         },
         "mod_loader_reported": {
           "title": "加载器报告模组加载失败",
-          "suggestions": ["优先按加载器日志中的解决方案处理。", "导出报告以查看完整的加载失败上下文。"]
+          "suggestions": [
+            "优先按加载器日志中的解决方案处理。",
+            "导出报告以查看完整的加载失败上下文。"
+          ]
         },
         "mod_optifine_conflict": {
           "title": "OptiFine 或图形模组冲突",
-          "suggestions": ["暂时移除 OptiFine 后重试。", "使用与当前加载器兼容的图形优化方案。"]
+          "suggestions": [
+            "暂时移除 OptiFine 后重试。",
+            "使用与当前加载器兼容的图形优化方案。"
+          ]
         },
         "resource_render_failure": {
           "title": "资源包或渲染资源异常",
-          "suggestions": ["禁用最近添加的资源包或光影包。", "降低资源分辨率并检查显存占用。"]
+          "suggestions": [
+            "禁用最近添加的资源包或光影包。",
+            "降低资源分辨率并检查显存占用。"
+          ]
         },
         "world_block_failure": {
           "title": "世界中的方块导致崩溃",
-          "suggestions": ["先备份存档。", "根据证据定位方块，移除相关模组或使用修复工具处理区块。"]
+          "suggestions": [
+            "先备份存档。",
+            "根据证据定位方块，移除相关模组或使用修复工具处理区块。"
+          ]
         },
         "world_entity_failure": {
           "title": "世界中的实体导致崩溃",
-          "suggestions": ["先备份存档。", "根据证据定位实体，移除相关模组或清理异常实体。"]
+          "suggestions": [
+            "先备份存档。",
+            "根据证据定位实体，移除相关模组或清理异常实体。"
+          ]
         },
         "game_manual_debug_crash": {
           "title": "游戏触发了调试崩溃",
-          "suggestions": ["确认是否误触发了调试崩溃快捷键。", "若非主动触发，请检查键盘映射或自动化工具。"]
+          "suggestions": [
+            "确认是否误触发了调试崩溃快捷键。",
+            "若非主动触发，请检查键盘映射或自动化工具。"
+          ]
         },
         "game_crash_report": {
           "title": "Minecraft 已生成崩溃报告",
-          "suggestions": ["查看其他可能原因与日志证据。", "导出完整报告供进一步排查。"]
+          "suggestions": [
+            "查看其他可能原因与日志证据。",
+            "导出完整报告供进一步排查。"
+          ]
         },
         "stack_suspected_mod": {
           "title": "堆栈指向可疑模组",
-          "suggestions": ["更新或暂时移除列出的可疑模组。", "若问题仍存在，逐批排查相邻依赖模组。"]
+          "suggestions": [
+            "更新或暂时移除列出的可疑模组。",
+            "若问题仍存在，逐批排查相邻依赖模组。"
+          ]
         },
         "stack_suspected_component": {
           "title": "堆栈指向第三方组件",
-          "suggestions": ["根据列出的包名检查对应模组或组件。", "导出报告并结合模组列表进一步定位。"]
+          "suggestions": [
+            "根据列出的包名检查对应模组或组件。",
+            "导出报告并结合模组列表进一步定位。"
+          ]
         },
         "unknown_no_logs": {
           "title": "没有可用的崩溃日志",
-          "suggestions": ["再次启动并等待崩溃报告写入完成。", "检查日志目录权限与安全软件拦截。"]
+          "suggestions": [
+            "再次启动并等待崩溃报告写入完成。",
+            "检查日志目录权限与安全软件拦截。"
+          ]
         },
         "unknown_unclassified": {
           "title": "暂时无法确定原因",
-          "suggestions": ["导出崩溃报告并保留完整日志。", "尝试移除最近的改动后再次启动。"]
+          "suggestions": [
+            "导出崩溃报告并保留完整日志。",
+            "尝试移除最近的改动后再次启动。"
+          ]
         }
       }
     }
@@ -889,6 +1013,7 @@
     "back": "返回",
     "launch": "启动",
     "select": "选择",
+    "clear": "清除",
     "more": "更多"
   },
   "agreement": {
@@ -934,9 +1059,31 @@
     "noIcon": "无图标",
     "noIconCard": "没有图标的卡片",
     "message": "消息提示",
-    "debugSettings": "调试设置",
-    "animationSpeed": "动画速度",
+    "debugSettings":  "调试设置",
+    "debugTools":  "调试工具",
+    "modeDebug":  "调试模式",
+    "modeDev":  "开发模式",
+    "webviewDevtools":  "网页调试窗口 (F12)",
+    "webviewDevtoolsDesc":  "打开启动器内置网页的开发者工具窗口，用于查看 DOM、网络、控制台与存储。",
+    "openWebviewDevtools":  "打开调试窗口",
+    "vueDevtools":  "Vue DevTools 面板",
+    "vueDevtoolsDesc":  "基于 Vite 插件实时控制 Vue DevTools 面板的开合，仅开发模式可用。",
+    "openVueDevtools":  "打开面板",
+    "closeVueDevtools":  "关闭面板",
+    "vueDevtoolsNeedDev":  "Vue DevTools 仅在开发模式可用",
+    "toggleFailed":  "操作调试窗口失败",
+    "componentDebug":  "组件调试",
+    "componentDebugDesc":  "查看当前页面路由、Pinia 状态与已挂载组件，辅助定位问题。",
+    "routeInfo":  "当前路由",
+    "piniaStores":  "Pinia Stores",
+    "mountedComponents":  "挂载组件",
+    "empty":  "暂无",
+    "devOnlyHint":  "组件检查仅在开发模式可用",
+    "libTest":  "组件库测试",
+    "animationSpeed":  "动画速度",
     "animationSpeedDesc": "调整全局动画与过渡的播放速度，仅对当前会话生效。",
+    "flowDebug":  "流程调试",
+    "flowDebugDesc": "开启后可在阶段性界面（如联机页）自由切换前后阶段，便于调试与走查。",
     "normalModalTest": "普通弹窗测试",
     "normalModalDesc": "这是一个普通弹窗",
     "fullscreenModalTest": "全屏弹窗测试",

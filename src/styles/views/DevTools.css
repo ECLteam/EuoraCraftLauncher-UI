@@ -196,3 +196,208 @@ h1 {
     flex-direction: column;
   }
 }
+
+/* ── 分组区块标题 ─────────────────────────────────────────────── */
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 13px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.section-heading h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 15px;
+}
+
+.section-desc {
+  margin: -4px 0 14px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* ── 调试工具行 ───────────────────────────────────────────────── */
+.tool-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 10px;
+  padding: 13px 16px;
+  border: 1px solid var(--divider);
+  border-radius: var(--r-sm);
+  background: var(--card-bg);
+}
+
+.tool-row:last-child {
+  margin-bottom: 0;
+}
+
+.tool-row--disabled {
+  opacity: 0.55;
+}
+
+.tool-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.tool-label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.tool-label {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tool-desc {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.tool-control {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (max-width: 560px) {
+  .tool-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* ── 模式徽章 ─────────────────────────────────────────────────── */
+.mode-badge {
+  flex-shrink: 0;
+  padding: 1px 8px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.mode-badge--debug {
+  background: color-mix(in srgb, var(--error) 14%, transparent);
+  color: var(--error);
+}
+
+.mode-badge--dev {
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+  color: var(--primary);
+}
+
+/* ── 组件库测试分组卡片 ───────────────────────────────────────── */
+.sub-section {
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--divider);
+  border-radius: var(--r-sm);
+  background: var(--card-bg);
+}
+
+.sub-section:last-child {
+  margin-bottom: 0;
+}
+
+.sub-section h3 {
+  margin: 0 0 12px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ── 组件检查面板 ─────────────────────────────────────────────── */
+.component-inspector {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.inspector-block {
+  padding: 13px 14px;
+  border: 1px solid var(--divider);
+  border-radius: var(--r-sm);
+  background: var(--card-bg);
+}
+
+.inspector-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.inspector-count {
+  padding: 1px 7px;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--primary) 18%, transparent);
+  color: var(--primary);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.inspector-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px 12px;
+}
+
+.inspector-item {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.inspector-label {
+  color: var(--text-tertiary);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.inspector-item code {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag-chip {
+  padding: 2px 9px;
+  border: 1px solid var(--divider);
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  color: var(--text-primary);
+  font-size: 11px;
+}
+
+.inspector-empty {
+  margin: 0;
+  color: var(--text-tertiary);
+  font-size: 12px;
+}

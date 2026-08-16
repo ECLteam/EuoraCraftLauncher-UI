@@ -296,7 +296,7 @@ const categoryFilter = ref('')
 const favoritesOnly = ref(false)
 const pinnedOnly = ref(false)
 const showHidden = ref(false)
-const viewMode = ref<'card' | 'list'>(settingsStore.ui.instanceManager?.viewMode || 'card')
+const viewMode = ref<'card' | 'list'>(settingsStore.ui.instanceManager?.viewMode || 'list')
 const sortKey = ref<InstanceSortKey>(settingsStore.ui.instanceManager?.sortKey || 'lastLaunchedAt')
 const sortDirection = ref<'asc' | 'desc'>(settingsStore.ui.instanceManager?.sortDirection || 'desc')
 const categoryManagerVisible = ref(false)
@@ -307,30 +307,36 @@ const menuY = ref(0)
 const menuVersion = ref<ScannedVersion | null>(null)
 const icon = (name: string) => () => h(UiIcon, { name, size: 15 })
 const actionOptions = computed<DropdownOption[]>(() => [
-  { label: '启动游戏', key: 'launch', icon: icon('play') },
   { label: '进入实例工作台', key: 'overview', icon: icon('cube') },
   { type: 'divider', key: 'd1' },
-  { label: '存档管理', key: 'worlds', icon: icon('globe') },
-  { label: '截图管理', key: 'screenshots', icon: icon('photo') },
-  { label: '服务器管理', key: 'servers', icon: icon('server') },
-  { label: '资源管理', key: 'resources', icon: icon('puzzle') },
+  {
+    label: '资源管理',
+    key: 'manage',
+    icon: icon('layout-grid'),
+    children: [
+      { label: 'Mod 管理', key: 'mods', icon: icon('cube') },
+      { label: '存档管理', key: 'worlds', icon: icon('globe') },
+      { label: '截图管理', key: 'screenshots', icon: icon('photo') },
+      { label: '服务器管理', key: 'servers', icon: icon('server') },
+    ],
+  },
+  {
+    label: '打开文件夹',
+    key: 'folders',
+    icon: icon('folder-open'),
+    children: [
+      { label: '实例文件夹', key: 'folder-instance', icon: icon('folder-open') },
+      { label: '模组文件夹', key: 'folder-mods', icon: icon('folder') },
+      { label: '存档文件夹', key: 'folder-saves', icon: icon('globe') },
+      { label: '截图文件夹', key: 'folder-screenshots', icon: icon('photo') },
+      { label: '日志文件夹', key: 'folder-logs', icon: icon('file-text') },
+      { label: '崩溃报告文件夹', key: 'folder-crash-reports', icon: icon('alert-triangle') },
+    ],
+  },
   { type: 'divider', key: 'd2' },
-  { label: '打开实例文件夹', key: 'folder-instance', icon: icon('folder-open') },
-  { label: '打开模组文件夹', key: 'folder-mods', icon: icon('folder') },
-  { label: '打开存档文件夹', key: 'folder-saves', icon: icon('globe') },
-  { label: '打开截图文件夹', key: 'folder-screenshots', icon: icon('photo') },
-  { label: '打开日志文件夹', key: 'folder-logs', icon: icon('file-text') },
-  { label: '打开崩溃报告文件夹', key: 'folder-crash-reports', icon: icon('alert-triangle') },
-  { type: 'divider', key: 'd3' },
-  { label: '复制实例', key: 'clone', icon: icon('copy') },
-  { label: '导入整合包', key: 'import', icon: icon('upload') },
-  { label: '导出整合包', key: 'export', icon: icon('archive') },
-  { label: '校验并补全文件', key: 'repair', icon: icon('check') },
   { label: '修改图标、别名与描述', key: 'profile', icon: icon('edit') },
   { label: menuVersion.value?.favorite ? '取消收藏' : '收藏', key: 'favorite', icon: icon('star') },
   { label: menuVersion.value?.hidden ? '取消隐藏' : '隐藏', key: 'hidden', icon: icon('eye-off') },
-  { type: 'divider', key: 'd4' },
-  { label: '移入回收站', key: 'delete', icon: icon('trash'), props: { style: 'color:#d85b5b' } },
 ])
 
 function showActionMenu(event: MouseEvent, version: ScannedVersion) {
@@ -473,7 +479,8 @@ function toggleSortDirection() {
 
 async function toggleFlag(version: ScannedVersion, field: 'favorite' | 'pinned' | 'hidden') {
   await instanceProfileApi.patch(targetFromVersion(version), { [field]: !version[field] })
-  emit('changed')
+  // 直接更新本地版本对象，避免触发全量扫描
+  ;(version as Record<string, boolean | undefined>)[field] = !(version as any)[field]
 }
 </script>
 

@@ -26,7 +26,6 @@ defineProps<{
 .settings-section__header {
   padding: 13px 16px;
   border-bottom: 1px solid var(--ecl-border);
-  background: var(--ecl-surface-muted);
   color: var(--ecl-text);
   font-size: 13px;
   font-weight: 650;

@@ -5,9 +5,13 @@ import { pinia } from '@/app/stores'
 import { initTheme } from '@/composables/useTheme'
 import { i18n, getCurrentLocale, loadLocaleFromBackend } from '@/i18n'
 import router from '@/router'
+import { installFrontendLogging } from '@/utils/frontendLogger'
 import UiIcon from './components/ui/Icon.vue'
 import '@/styles/main.css'
 import '@/styles/components/ui/LauncherMessage.css'
+
+// 尽早安装 console 拦截器，把前端运行日志通过 IPC 上报给后端统一归档
+installFrontendLogging()
 
 // 快速初始化主题（从本地存储），避免白屏闪烁
 // 后端配置将在 App.vue 挂载后加载并覆盖

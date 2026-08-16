@@ -13,4 +13,9 @@ export const debugToolsApi = {
   async clearPlugins(): Promise<DebugMaintenanceResult> {
     return assertSuccess(await backend.command('debug_clear_plugins'), '安排清理插件')
   },
+
+  /** 打开 WebView 开发者工具（F12 调试窗口） */
+  async openDevTools(): Promise<boolean> {
+    return (await assertSuccess(await backend.command('debug_devtools_open'), '打开调试窗口')).open
+  },
 }

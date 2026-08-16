@@ -109,6 +109,8 @@ export interface LocaleConfig {
 
 export interface UiConfig {
   locale?: string
+  debug?: boolean
+  flowDebug?: boolean
   theme?: Partial<ThemeConfig> & { background_opacity?: number }
   background?: Partial<BackgroundConfig>
   instanceManager?: {
@@ -116,6 +118,12 @@ export interface UiConfig {
     sortKey?: InstanceSortKey
     sortDirection?: 'asc' | 'desc'
   }
+}
+
+export interface LauncherConfig {
+  version?: string
+  version_type?: string
+  debug?: boolean
 }
 
 export type ConfigSection = 'launcher' | 'game' | 'download' | 'ui' | 'locale' | 'background' | string
@@ -474,6 +482,8 @@ export interface MinecraftAccount {
   email?: string
   uuid?: string
   isCurrent?: boolean
+  favorite?: boolean
+  pinned?: boolean
   skinUrl?: string
   capes?: MicrosoftCape[]
   auth_server?: string
@@ -1003,6 +1013,9 @@ export interface CommandPayloadMap {
   settings_get: { section?: ConfigSection; sections?: ConfigSection[] } | undefined
   settings_set: { section: ConfigSection; data: unknown }
 
+  // 前端日志上报
+  frontend_log: { level: 'warn' | 'error'; message: string; detail?: string; logger?: string }
+
   // 系统信息
   system_memory: undefined
 
@@ -1113,6 +1126,8 @@ export interface CommandPayloadMap {
   // 实例
   game_instances: undefined
   game_version_stats: { game_path: string; version_id: string }
+  game_version_settings_get: { game_path: string; version_id: string }
+  game_version_settings_set: { game_path: string; version_id: string; data: unknown }
   game_instance_profile_get: { game_path: string; version_id: string }
   game_instance_profile_patch: {
     game_path: string
@@ -1312,6 +1327,7 @@ export interface CommandPayloadMap {
   info_card_get: undefined
   debug_reset_launcher_data: undefined
   debug_clear_plugins: undefined
+  debug_devtools_open: undefined
   frontend_ready: undefined
 
   // 文件系统
@@ -1336,6 +1352,8 @@ export interface CommandResponseMap {
 
   settings_get: unknown
   settings_set: void
+
+  frontend_log: void
 
   system_memory: SystemMemoryInfo
 
@@ -1378,6 +1396,8 @@ export interface CommandResponseMap {
   accounts_remove: void
   accounts_refresh_profile: void
   accounts_texture_urls: AccountTextures
+  accounts_set_favorite: AccountListData
+  accounts_set_pinned: AccountListData
   wardrobe_list: WardrobeItem[]
   wardrobe_sync_account_skin: WardrobeImportResult
   wardrobe_import: WardrobeImportResult
@@ -1412,6 +1432,8 @@ export interface CommandResponseMap {
 
   game_instances: GameInstance[]
   game_version_stats: VersionRunStats
+  game_version_settings_get: Record<string, unknown>
+  game_version_settings_set: Record<string, unknown>
   game_instance_profile_get: InstanceProfile
   game_instance_profile_patch: InstanceProfile
   game_instance_profile_reset: InstanceProfile
@@ -1525,6 +1547,7 @@ export interface CommandResponseMap {
   info_card_get: InfoCardData
   debug_reset_launcher_data: DebugMaintenanceResult
   debug_clear_plugins: DebugMaintenanceResult
+  debug_devtools_open: { open: boolean }
   frontend_ready: void
 
   fs_read_dir: FsEntry[]

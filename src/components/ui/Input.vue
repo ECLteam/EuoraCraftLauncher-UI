@@ -11,6 +11,7 @@
       :disabled="disabled"
       :readonly="readonly"
       :aria-label="ariaLabel"
+      autocomplete="off"
       class="ui-input"
       @input="handleInput"
       @focus="isFocused = true"

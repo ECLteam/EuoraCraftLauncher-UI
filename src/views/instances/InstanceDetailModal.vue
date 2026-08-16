@@ -7,10 +7,12 @@
     bodyClass="version-detail-body"
   >
     <div class="vdm-shell">
-      <header class="vdm-header">
-        <div class="vdm-version-identity">
-          <InstanceIcon v-if="version" :version="version" :size="42" />
-          <div class="vdm-version-copy">
+      <aside class="vdm-nav ecl-surface">
+        <div class="vdm-nav-identity">
+          <button class="vdm-nav-icon-btn" title="更换实例图标" @click="iconPickerVisible = true">
+            <InstanceIcon v-if="version" :version="version" :size="36" />
+          </button>
+          <div class="vdm-nav-copy">
             <strong>{{ version?.displayName || version?.versionId || '...' }}</strong>
             <span>{{ version?.versionId }} · {{ getLoaderName(version?.primaryLoader || 'vanilla') }}</span>
           </div>
@@ -20,17 +22,18 @@
           <button
             v-for="tab in tabs"
             :key="tab.id"
-            :class="['vdm-tab-button', { active: activeTab === tab.id }]"
-            @click="activeTab = tab.id"
+            :class="['vdm-tab-button', { active: isTabActive(tab.id) }]"
+            @click="selectTab(tab.id)"
           >
             <UiIcon :name="tab.icon" :size="15" />
             <span>{{ tab.label }}</span>
           </button>
         </nav>
         <div id="plugin-slot-version-detail-tab" class="plugin-slot-container"></div>
-      </header>
+      </aside>
 
-      <div class="vdm-content">
+      <main class="vdm-main">
+        <div class="vdm-content">
         <div v-if="activeTab === 'overview'" class="vdm-page overview-page">
           <div class="info-card">
             <div class="info-card__header">{{ t('versions.detail.versionInfo') }}</div>
@@ -89,6 +92,22 @@
                 <template #icon><UiIcon name="alert-triangle" :size="15" /></template>
                 {{ t('versions.detail.analyzeCrash') }}
               </NButton>
+              <NButton secondary @click="handleAction('repair')">
+                <template #icon><UiIcon name="check" :size="15" /></template>
+                校验文件
+              </NButton>
+              <NButton secondary @click="handleAction('clone')">
+                <template #icon><UiIcon name="copy" :size="15" /></template>
+                复制实例
+              </NButton>
+              <NButton secondary @click="handleAction('export')">
+                <template #icon><UiIcon name="archive" :size="15" /></template>
+                导出整合包
+              </NButton>
+              <NButton secondary @click="handleAction('import')">
+                <template #icon><UiIcon name="upload" :size="15" /></template>
+                导入整合包
+              </NButton>
               <NButton type="error" secondary @click="handleDelete">
                 <template #icon><UiIcon name="trash" :size="15" /></template>
                 {{ t('versions.detail.delete') }}
@@ -99,10 +118,7 @@
 
         <div v-if="activeTab === 'profile'" class="vdm-page profile-page">
           <div class="info-card profile-card">
-            <div class="info-card__header">
-              <span>个性化</span>
-              <NButton size="small" type="primary" :loading="profileSaving" @click="saveProfile">保存资料</NButton>
-            </div>
+            <div class="info-card__header"><span>个性化</span></div>
             <div class="profile-form-grid">
               <label
                 ><span>实例别名</span><NInput v-model:value="profileForm.alias" maxlength="120" /><small
@@ -133,15 +149,6 @@
                 <span><NSwitch v-model:value="profileForm.pinned" />置顶</span>
                 <span><NSwitch v-model:value="profileForm.hidden" />隐藏</span>
               </div>
-            </div>
-          </div>
-          <div class="info-card">
-            <div class="info-card__header">
-              <span>实例图标</span><NButton size="small" secondary @click="iconPickerVisible = true">更换图标</NButton>
-            </div>
-            <div class="profile-icon-preview">
-              <InstanceIcon v-if="version" :version="version" :size="64" />
-              <div><strong>内置方块、加载器或本地图片</strong><span>本地图片会复制到实例的 .ecl 目录。</span></div>
             </div>
           </div>
           <div class="info-card">
@@ -385,8 +392,37 @@
           </template>
         </div>
 
-        <div v-if="activeTab === 'resources' && version" class="vdm-page workspace-page">
-          <InstanceResourcesTab :version="version" :worldOptions="worldOptions" />
+        <div v-if="activeTab === 'resourcepacks' && version" class="vdm-page workspace-page">
+          <InstanceResourcesTab
+            :version="version"
+            :world-options="worldOptions"
+            initial-type="resourcepack"
+            :allowed-types="['resourcepack']"
+          />
+        </div>
+        <div v-if="activeTab === 'shaderpacks' && version" class="vdm-page workspace-page">
+          <InstanceResourcesTab
+            :version="version"
+            :world-options="worldOptions"
+            initial-type="shaderpack"
+            :allowed-types="['shaderpack']"
+          />
+        </div>
+        <div v-if="activeTab === 'datapacks' && version" class="vdm-page workspace-page">
+          <InstanceResourcesTab
+            :version="version"
+            :world-options="worldOptions"
+            initial-type="datapack"
+            :allowed-types="['datapack']"
+          />
+        </div>
+        <div v-if="activeTab === 'schematics' && version" class="vdm-page workspace-page">
+          <InstanceResourcesTab
+            :version="version"
+            :world-options="worldOptions"
+            initial-type="schematic"
+            :allowed-types="['schematic']"
+          />
         </div>
         <div v-if="activeTab === 'worlds' && version" class="vdm-page workspace-page">
           <InstanceWorldsTab :version="version" @changed="handleWorldsChanged" />
@@ -397,11 +433,21 @@
         <div v-if="activeTab === 'servers' && version" class="vdm-page workspace-page">
           <InstanceServersTab :version="version" />
         </div>
-      </div>
+        </div>
 
-      <div id="plugin-slot-version-detail-footer" class="plugin-slot-container"></div>
+        <div id="plugin-slot-version-detail-footer" class="plugin-slot-container"></div>
+      </main>
     </div>
   </FullscreenModal>
+  <ConfirmDialog
+    v-model:visible="confirmVisible"
+    :title="confirmTitle"
+    :content="confirmContent"
+    :loading="confirmLoading"
+    :danger="confirmDanger"
+    :closeOnConfirm="false"
+    @confirm="handleConfirm"
+  />
   <Modal v-model:visible="iconPickerVisible" title="选择实例图标" width="520px">
     <div class="icon-picker-grid">
       <button @click="setProfileIcon('auto')"><UiIcon name="refresh" :size="28" /><span>自动</span></button>
@@ -418,7 +464,7 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NInput, NInputGroup, NInputNumber, NSelect, NSpin, NSwitch, useDialog } from 'naive-ui'
+import { NButton, NInput, NInputGroup, NInputNumber, NSelect, NSpin, NSwitch } from 'naive-ui'
 import { ref, reactive, computed, watch, nextTick, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import backend from '@/api/client'
@@ -429,6 +475,7 @@ import InstanceScreenshotsTab from '@/components/instances/InstanceScreenshotsTa
 import InstanceServersTab from '@/components/instances/InstanceServersTab.vue'
 import InstanceWorldsTab from '@/components/instances/InstanceWorldsTab.vue'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
+import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import Modal from '@/components/modals/Modal.vue'
 import OnlineModSearch from '@/components/mods/OnlineModSearch.vue'
 import UiIcon from '@/components/ui/Icon.vue'
@@ -460,15 +507,16 @@ interface Props {
 
 type DetailTab =
   | 'overview'
-  | 'profile'
   | 'mods'
-  | 'online-mods'
-  | 'resources'
+  | 'resourcepacks'
+  | 'shaderpacks'
+  | 'datapacks'
+  | 'schematics'
   | 'worlds'
   | 'screenshots'
   | 'servers'
+  | 'profile'
   | 'settings'
-  | 'saves'
 
 const props = withDefaults(defineProps<Props>(), {
   initialTab: 'overview',
@@ -478,11 +526,11 @@ const emit = defineEmits<{
   (e: 'launch', version: ScannedVersion): void
   (e: 'delete', version: ScannedVersion): void
   (e: 'updated'): void
+  (e: 'action', action: string, version: ScannedVersion): void
 }>()
 
 const { t } = useI18n()
 const message = useLauncherMessage()
-const dialog = useDialog()
 
 const visible = computed({
   get: () => props.visible,
@@ -492,6 +540,15 @@ const visible = computed({
 const title = computed(() => props.version?.displayName || props.version?.versionId || t('versions.detail.settings'))
 
 const activeTab = ref<DetailTab>('overview')
+
+/** Mod 导航项同时覆盖本地模组与在线搜索两个内部视图 */
+function isTabActive(id: DetailTab): boolean {
+  if (id === 'mods') return activeTab.value === 'mods' || activeTab.value === 'online-mods'
+  return activeTab.value === id
+}
+function selectTab(id: DetailTab) {
+  activeTab.value = id
+}
 const runStats = reactive<VersionRunStats>({
   launchCount: 0,
   lastRunDurationSeconds: 0,
@@ -503,11 +560,15 @@ let statsRequestId = 0
 
 const tabs = computed(() => [
   { id: 'overview' as const, icon: 'info', label: t('versions.detail.overview') },
-  { id: 'resources' as const, icon: 'puzzle', label: '资源' },
+  { id: 'mods' as const, icon: 'cube', label: 'Mod' },
+  { id: 'resourcepacks' as const, icon: 'package', label: '资源包' },
+  { id: 'shaderpacks' as const, icon: 'sun', label: '光影包' },
+  { id: 'datapacks' as const, icon: 'archive', label: '数据包' },
+  { id: 'schematics' as const, icon: 'grid', label: '原理图' },
   { id: 'worlds' as const, icon: 'globe', label: '存档' },
   { id: 'screenshots' as const, icon: 'photo', label: '截图' },
   { id: 'servers' as const, icon: 'server', label: '服务器' },
-  { id: 'profile' as const, icon: 'palette', label: '个性化' },
+  { id: 'profile' as const, icon: 'brush', label: '个性化' },
   { id: 'settings' as const, icon: 'settings', label: t('versions.detail.settings') },
 ])
 const worldOptions = ref<Array<{ label: string; value: string }>>([])
@@ -556,6 +617,7 @@ const iconChoices = [
 function loadProfileForm() {
   const version = props.version
   if (!version) return
+  skipProfileWatch = true
   Object.assign(profileForm, {
     alias: version.displayName || version.versionId,
     description: version.description || '',
@@ -566,33 +628,80 @@ function loadProfileForm() {
     tagsText: (version.tags || []).join(', '),
     preferredExternalSource: version.preferredExternalSource || 'auto',
   })
+  savedProfileSnapshot.value = JSON.stringify(profileForm)
+  void nextTick(() => {
+    skipProfileWatch = false
+  })
 }
 
-async function saveProfile() {
+/** 个性化表单自动保存：防抖 + 串行化（参考设置 tab） */
+let skipProfileWatch = false
+let profileSaveTimer: ReturnType<typeof setTimeout> | null = null
+let profileResaveQueued = false
+const savedProfileSnapshot = ref('')
+
+function profilePayload() {
+  return {
+    alias: profileForm.alias,
+    description: profileForm.description,
+    favorite: profileForm.favorite,
+    pinned: profileForm.pinned,
+    hidden: profileForm.hidden,
+    categoryId: profileForm.categoryId,
+    tags: profileForm.tagsText
+      .split(/[,，]/)
+      .map((tag) => tag.trim())
+      .filter(Boolean),
+    preferredExternalSource: profileForm.preferredExternalSource,
+  }
+}
+
+async function persistProfile() {
   const version = props.version
-  if (!version || profileSaving.value) return
+  if (!version) return
+  if (profileSaving.value) {
+    profileResaveQueued = true
+    return
+  }
   profileSaving.value = true
   try {
-    await instanceProfileApi.patch(targetFromVersion(version), {
-      alias: profileForm.alias,
-      description: profileForm.description,
-      favorite: profileForm.favorite,
-      pinned: profileForm.pinned,
-      hidden: profileForm.hidden,
-      categoryId: profileForm.categoryId,
-      tags: profileForm.tagsText
-        .split(/[,，]/)
-        .map((tag) => tag.trim())
-        .filter(Boolean),
-      preferredExternalSource: profileForm.preferredExternalSource,
-    })
-    message.success('实例资料已保存')
-    emit('updated')
+    await instanceProfileApi.patch(targetFromVersion(version), profilePayload())
+    // 直接更新本地版本对象，避免触发全量扫描
+    const v = version as Record<string, unknown>
+    v.displayName = profileForm.alias
+    v.description = profileForm.description
+    v.favorite = profileForm.favorite
+    v.pinned = profileForm.pinned
+    v.hidden = profileForm.hidden
+    v.categoryId = profileForm.categoryId
+    v.tags = profilePayload().tags
+    v.preferredExternalSource = profileForm.preferredExternalSource
+    savedProfileSnapshot.value = JSON.stringify(profileForm)
   } catch (error) {
-    message.error(error instanceof Error ? error.message : '保存实例资料失败')
+    message.error(error instanceof Error ? error.message : t('versions.detail.profileSaveFailed'))
   } finally {
     profileSaving.value = false
+    if (profileResaveQueued) {
+      profileResaveQueued = false
+      void persistProfile()
+    }
   }
+}
+
+function scheduleProfileSave(delay = 300) {
+  if (profileSaveTimer) clearTimeout(profileSaveTimer)
+  profileSaveTimer = setTimeout(() => {
+    profileSaveTimer = null
+    void persistProfile()
+  }, delay)
+}
+
+function flushProfileSave() {
+  if (profileSaveTimer) {
+    clearTimeout(profileSaveTimer)
+    profileSaveTimer = null
+  }
+  if (JSON.stringify(profileForm) !== savedProfileSnapshot.value) void persistProfile()
 }
 
 async function resetProfileField(field: string) {
@@ -738,24 +847,17 @@ async function handleToggleMod(mod: ModItem) {
 }
 
 function handleDeleteMod(mod: ModItem) {
-  const d = dialog.warning({
-    title: t('common.delete'),
-    content: t('versions.mods.deleteConfirm', { name: mod.name || mod.filename }),
-    positiveText: t('common.confirm'),
-    negativeText: t('common.cancel'),
-    onPositiveClick: async () => {
-      d.loading = true
-      const gamePath = getGamePath()
-      if (!gamePath) return
-      try {
-        await localModsApi.remove(gamePath, mod.filename)
-        mods.value = mods.value.filter((m) => m.filename !== mod.filename)
-        message.success(t('versions.mods.modDeleted'))
-      } catch (error) {
-        message.error(error instanceof Error ? error.message : t('versions.mods.modDeleteFailed'))
-      }
-    },
-  })
+  openConfirm(t('common.delete'), t('versions.mods.deleteConfirm', { name: mod.name || mod.filename }), async () => {
+    const gamePath = getGamePath()
+    if (!gamePath) return
+    try {
+      await localModsApi.remove(gamePath, mod.filename)
+      mods.value = mods.value.filter((m) => m.filename !== mod.filename)
+      message.success(t('versions.mods.modDeleted'))
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : t('versions.mods.modDeleteFailed'))
+    }
+  }, true)
 }
 
 async function handleAddMod() {
@@ -845,6 +947,7 @@ watch(
       void loadRunStats()
     } else {
       flushSettingsSave()
+      flushProfileSave()
     }
   },
   { immediate: true }
@@ -866,6 +969,7 @@ onBeforeUnmount(() => {
   statsRequestId += 1
   stopStatsListening()
   if (settingsSaveTimer) clearTimeout(settingsSaveTimer)
+  if (profileSaveTimer) clearTimeout(profileSaveTimer)
 })
 
 function validateSettings(): string | null {
@@ -933,6 +1037,16 @@ watch(
   { deep: true }
 )
 
+// 个性化表单：修改即自动保存（300ms 防抖）
+watch(
+  profileForm,
+  () => {
+    if (skipProfileWatch) return
+    scheduleProfileSave()
+  },
+  { deep: true }
+)
+
 async function resetSettings() {
   const target = getSettingsTarget()
   if (!target) return
@@ -982,6 +1096,38 @@ function handleDelete() {
   if (props.version) {
     emit('delete', props.version)
     visible.value = false
+  }
+}
+
+function handleAction(action: string) {
+  if (props.version) emit('action', action, props.version)
+}
+
+const confirmVisible = ref(false)
+const confirmTitle = ref('')
+const confirmContent = ref('')
+const confirmDanger = ref(false)
+const confirmLoading = ref(false)
+let confirmAction: (() => Promise<void>) | null = null
+
+function openConfirm(title: string, content: string, action: () => Promise<void>, danger = false) {
+  confirmTitle.value = title
+  confirmContent.value = content
+  confirmDanger.value = danger
+  confirmAction = action
+  confirmLoading.value = false
+  confirmVisible.value = true
+}
+
+async function handleConfirm() {
+  if (!confirmAction || confirmLoading.value) return
+  confirmLoading.value = true
+  try {
+    await confirmAction()
+    confirmVisible.value = false
+    confirmAction = null
+  } finally {
+    confirmLoading.value = false
   }
 }
 </script>

@@ -20,6 +20,18 @@ const Harness = defineComponent({
   },
 })
 
+const DedupHarness = defineComponent({
+  setup() {
+    const message = useLauncherMessage()
+    onMounted(() => {
+      message.warning('Disk almost full')
+      message.warning('Disk almost full')
+      message.warning('Disk almost full')
+    })
+    return () => h('div')
+  },
+})
+
 describe('useLauncherMessage', () => {
   afterEach(() => {
     document.body.innerHTML = ''
@@ -48,5 +60,18 @@ describe('useLauncherMessage', () => {
     expect(document.body.textContent).toContain('Saved')
     expect(document.body.textContent).not.toContain('Loading')
     expect(document.body.querySelectorAll('.n-message')).toHaveLength(4)
+  })
+
+  it('merges identical simultaneous messages into one with a count suffix', async () => {
+    mount(NMessageProvider, {
+      attachTo: document.body,
+      slots: { default: () => h(DedupHarness) },
+    })
+    await flushPromises()
+    // 追加时会销毁旧消息并重建，等待过渡动画结束后仅剩最终一条
+    await new Promise((resolve) => setTimeout(resolve, 400))
+
+    expect(document.body.textContent).toContain('Disk almost full ×3')
+    expect(document.body.querySelectorAll('.n-message')).toHaveLength(1)
   })
 })

@@ -47,14 +47,21 @@
 }
 
 .titlebar-mode-badge {
-  padding: 2px 6px;
-  border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--primary) 12%, transparent);
-  color: var(--primary);
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: var(--primary);
+  color: #fff;
   font-size: 8px;
   font-weight: 800;
   letter-spacing: 0.08em;
+}
+
+.titlebar-mode-badge--dev {
+  background: var(--primary);
+}
+
+.titlebar-mode-badge--debug {
+  background: var(--error);
 }
 
 .titlebar-back-btn {

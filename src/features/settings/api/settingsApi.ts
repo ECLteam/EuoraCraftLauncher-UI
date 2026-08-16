@@ -6,6 +6,7 @@ import type {
   ImageSaveAsPayload,
   ImageSaveUrlResult,
   JavaInstallation,
+  LauncherConfig,
   SystemMemoryInfo,
   UiConfig,
 } from '@/types/api'
@@ -85,12 +86,13 @@ export const settingsApi = {
   isShowcase: backend.runtime.isShowcase,
 
   async load() {
-    const result = await backend.config.getMany(['ui', 'game', 'download'])
+    const result = await backend.config.getMany(['ui', 'game', 'download', 'launcher'])
     const data = assertSuccess(result, '读取设置')
     return {
       ui: (data.ui ?? {}) as UiConfig,
       game: (data.game ?? {}) as GameConfig,
       download: (data.download ?? {}) as DownloadConfig,
+      launcher: (data.launcher ?? {}) as LauncherConfig,
     }
   },
 
@@ -100,6 +102,14 @@ export const settingsApi = {
 
   async saveUi(config: UiConfig): Promise<void> {
     assertSuccess(await backend.config.set('ui', config), '保存界面设置')
+  },
+
+  async getLauncher(): Promise<LauncherConfig> {
+    return assertSuccess(await backend.config.get<LauncherConfig>('launcher'), '读取启动器设置') ?? {}
+  },
+
+  async saveLauncher(config: LauncherConfig): Promise<void> {
+    assertSuccess(await backend.config.set('launcher', config), '保存启动器设置')
   },
 
   async saveGame(config: GameConfig): Promise<void> {

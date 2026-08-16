@@ -149,16 +149,36 @@
                   </NButton>
                 </div>
 
-                <NButton
-                  class="account-delete"
-                  quaternary
-                  size="tiny"
-                  type="error"
-                  :title="t('app.delete')"
-                  @click="account.removeAccount(savedAccount.id, savedAccount.alias)"
-                >
-                  <template #icon><UiIcon name="delete" :size="13" /></template>
-                </NButton>
+                <div class="account-actions">
+                  <button
+                    class="account-action-btn"
+                    :class="{ active: savedAccount.favorite }"
+                    :title="savedAccount.favorite ? t('game.status.favoriteRemoved') : t('game.status.favoriteAdded')"
+                    @click="account.toggleFavorite(savedAccount.id)"
+                  >
+                    <UiIcon :name="savedAccount.favorite ? 'star-filled' : 'star'" :size="14" />
+                  </button>
+
+                  <button
+                    class="account-action-btn"
+                    :class="{ active: savedAccount.pinned }"
+                    :title="savedAccount.pinned ? t('game.status.pinRemoved') : t('game.status.pinAdded')"
+                    @click="account.togglePinned(savedAccount.id)"
+                  >
+                    <UiIcon name="pin" :size="14" />
+                  </button>
+
+                  <NButton
+                    class="account-delete"
+                    quaternary
+                    size="tiny"
+                    type="error"
+                    :title="t('app.delete')"
+                    @click="account.removeAccount(savedAccount.id, savedAccount.alias)"
+                  >
+                    <template #icon><UiIcon name="delete" :size="13" /></template>
+                  </NButton>
+                </div>
               </div>
             </div>
             <NEmpty v-else class="account-empty" :description="t('game.noAccounts')" />
@@ -354,14 +374,9 @@
             <span>{{ t('game.login.autoDetecting') }}</span>
           </div>
         </div>
-        <div v-else-if="account.microsoftLoginStatus === 'loading'" class="ms-login-steps">
-          <div v-for="step in microsoftLoginSteps" :key="step.stage" class="ms-login-step" :class="step.state">
-            <NSpin v-if="step.state === 'active'" size="small" />
-            <span v-else class="ms-login-step-icon">
-              <UiIcon :name="step.state === 'done' ? 'check' : 'minus'" :size="13" />
-            </span>
-            <span>{{ step.label }}</span>
-          </div>
+        <div v-else-if="account.microsoftLoginStatus === 'loading'" class="ms-login-fetching">
+          <NSpin size="small" />
+          <span>{{ t('game.login.fetching') }}</span>
         </div>
         <NAlert v-else-if="account.microsoftLoginStatus === 'error'" type="error">
           {{ account.microsoftLoginError }}
@@ -423,7 +438,6 @@ import { useGameInfoCard } from '@/features/game-home/composables/useGameInfoCar
 import { useGameHomeStore } from '@/features/game-home/stores/gameHomeStore'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
-import type { MicrosoftLoginStage } from '@/types/api'
 import { getLoaderIcon, getLoaderImage } from '@/utils/loader'
 import RunningInstancesTab from '@/views/instances/RunningInstancesTab.vue'
 
@@ -467,22 +481,6 @@ const accountTypeOptions = computed(() => [
   { value: 'offline', label: t('game.offlineAccount') },
   { value: 'authlib', label: t('game.authlibAccount') },
 ])
-const microsoftLoginStageOrder: MicrosoftLoginStage[] = [
-  'authorization_confirmed',
-  'minecraft_token',
-  'profile',
-  'saving',
-  'completed',
-]
-const microsoftLoginSteps = computed(() => {
-  const currentIndex = microsoftLoginStageOrder.indexOf(account.microsoftLoginStage)
-  return microsoftLoginStageOrder.map((stage, index) => ({
-    stage,
-    label: t(`game.login.stage.${stage}`),
-    state: index < currentIndex ? 'done' : index === currentIndex ? 'active' : 'waiting',
-  }))
-})
-
 function renderAuthlibProfileLabel(option: SelectOption) {
   return h('div', { class: 'authlib-profile-option-label' }, [
     h('span', String(option.profileName ?? option.label ?? '')),

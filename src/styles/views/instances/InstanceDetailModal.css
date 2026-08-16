@@ -12,81 +12,102 @@
 }
 
 /* =============================================
-   Shell — 全宽布局容器
+   Shell — 左侧边栏 + 右侧内容
    ============================================= */
 .vdm-shell {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   width: 100%;
   height: 100%;
   min-height: 0;
+  grid-template-columns: 184px minmax(0, 1fr);
+  gap: var(--ecl-page-gap);
+  padding: var(--ecl-page-padding);
   background: transparent;
 }
 
 /* =============================================
-   Header — 版本身份 + 选项卡导航
+   左侧边栏 — 版本身份 + 竖排导航
    ============================================= */
-.vdm-header {
+.vdm-nav {
   display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: 16px;
-  min-height: 56px;
-  padding: 0 var(--ecl-page-padding);
-  background: var(--ecl-surface);
-  border-bottom: 1px solid var(--ecl-border);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.vdm-version-identity {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: 12px;
-}
-
-.vdm-version-copy {
-  display: flex;
+  min-height: 0;
   flex-direction: column;
-  min-width: 120px;
+  overflow: hidden;
+}
+
+.vdm-nav-identity {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid var(--ecl-border);
+}
+
+.vdm-nav-icon-btn {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: none;
+  border-radius: var(--ecl-radius-control);
+  background: transparent;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.vdm-nav-icon-btn:hover {
+  background: var(--ecl-hover);
+}
+
+.vdm-nav-icon-btn:focus-visible {
+  outline: 2px solid var(--ecl-primary);
+  outline-offset: 2px;
+}
+
+.vdm-nav-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
   gap: 2px;
 }
 
-.vdm-version-copy strong {
+.vdm-nav-copy strong {
   overflow: hidden;
-  max-width: 220px;
   color: var(--ecl-text);
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 650;
   text-overflow: ellipsis;
   white-space: nowrap;
-  letter-spacing: -0.01em;
 }
 
-.vdm-version-copy span {
+.vdm-nav-copy span {
+  overflow: hidden;
   color: var(--ecl-text-secondary);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* =============================================
-   Tabs
+   Tabs — 竖排导航
    ============================================= */
 .vdm-tabs {
   display: flex;
-  min-width: 0;
-  margin-left: auto;
-  align-items: center;
+  flex-direction: column;
   gap: 2px;
+  padding: 6px;
+  overflow-y: auto;
 }
 
 .vdm-tab-button {
-  display: inline-flex;
-  height: 32px;
+  display: flex;
+  height: 34px;
+  flex-shrink: 0;
   align-items: center;
-  gap: 5px;
-  padding: 0 14px;
+  gap: 8px;
+  padding: 0 10px;
   color: var(--ecl-text-secondary);
   font-size: 13px;
   font-weight: 500;
@@ -116,11 +137,17 @@
 /* =============================================
    Content — 滚动区域
    ============================================= */
+.vdm-main {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+}
+
 .vdm-content {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: var(--ecl-page-padding);
   background: transparent;
   position: relative;
 }
@@ -149,8 +176,6 @@
   border: 1px solid var(--ecl-border);
   border-radius: var(--ecl-radius-card);
   box-shadow: var(--ecl-shadow-surface);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 .info-card__header {
@@ -206,8 +231,6 @@
   border: 1px solid var(--ecl-border);
   border-radius: var(--ecl-radius-card);
   box-shadow: var(--ecl-shadow-surface);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 .actions-card__header {
@@ -220,12 +243,13 @@
 
 .overview-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   padding: 16px 18px;
 }
 
 .overview-actions :deep(.n-button) {
-  flex: 1;
+  flex: 1 1 150px;
   height: 40px;
   border-radius: var(--ecl-radius-control);
   border: none !important;
@@ -392,8 +416,6 @@
   border: 1px solid var(--ecl-border);
   border-radius: var(--ecl-radius-card);
   box-shadow: var(--ecl-shadow-surface);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 .mods-panel-header {
@@ -405,7 +427,6 @@
   min-height: 48px;
   padding: 0 16px;
   border-bottom: 1px solid var(--ecl-border);
-  background: var(--ecl-surface-muted);
 }
 
 .mods-panel-header-left {
@@ -778,8 +799,6 @@
   border: 1px solid var(--ecl-border);
   border-radius: var(--ecl-radius-card);
   box-shadow: var(--ecl-shadow-surface);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 .settings-summary-copy {
@@ -924,27 +943,20 @@
    响应式 — 820px 断点
    ============================================= */
 @media (max-width: 820px) {
-  .vdm-header {
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 10px var(--ecl-page-padding);
-    min-height: auto;
+  .vdm-shell {
+    grid-template-columns: 156px minmax(0, 1fr);
+    gap: 10px;
+    padding: 12px;
   }
 
-  .vdm-tabs {
-    width: 100%;
-    margin-left: 0;
+  .vdm-nav-identity {
+    padding: 10px 8px;
   }
 
   .vdm-tab-button {
-    flex: 1;
-    min-width: 0;
     justify-content: center;
-    padding: 0 8px;
-  }
-
-  .vdm-content {
-    padding: 16px;
+    padding: 0 6px;
+    gap: 6px;
   }
 
   .info-grid {
@@ -1007,17 +1019,34 @@
    响应式 — 620px 断点
    ============================================= */
 @media (max-width: 620px) {
-  .vdm-content {
-    padding: 12px;
+  .vdm-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .vdm-nav {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .vdm-nav-identity {
+    display: none;
+  }
+
+  .vdm-tabs {
+    flex-direction: row;
+    padding: 4px;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .vdm-tab-button {
+    flex-shrink: 0;
   }
 
   .vdm-tab-button span:last-child {
     display: none;
-  }
-
-  .vdm-tab-button {
-    padding: 0 10px;
-    height: 32px;
   }
 
   .overview-actions {

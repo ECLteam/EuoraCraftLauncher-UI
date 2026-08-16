@@ -1,7 +1,7 @@
 <template>
   <section class="workspace-panel" @dragover.prevent @drop.prevent="installDropped">
     <header class="workspace-toolbar">
-      <div class="resource-tabs">
+      <div v-if="types.length > 1" class="resource-tabs">
         <NButton
           v-for="item in types"
           :key="item.value"
@@ -47,13 +47,24 @@
           <span class="resource-source">{{ item.source }}</span>
           <NSwitch v-if="resourceType !== 'schematic'" :value="item.enabled" @update:value="toggle(item, $event)" />
           <span v-else class="resource-na">—</span>
-          <NButton size="tiny" type="error" quaternary @click="removeOne(item)">删除</NButton>
-          <NButton v-if="updates[item.id]" size="tiny" type="primary" @click="confirmUpdate(item)">更新</NButton>
+          <div class="resource-actions">
+            <NButton size="tiny" type="error" quaternary @click="removeOne(item)">删除</NButton>
+            <NButton v-if="updates[item.id]" size="tiny" type="primary" @click="confirmUpdate(item)">更新</NButton>
+          </div>
         </div>
       </div>
       <NEmpty v-else description="这里还没有资源" />
     </NSpin>
 
+    <ConfirmDialog
+      v-model:visible="confirmVisible"
+      :title="confirmTitle"
+      :content="confirmContent"
+      :loading="confirmLoading"
+      :danger="confirmDanger"
+      :closeOnConfirm="false"
+      @confirm="handleConfirm"
+    />
     <Modal v-model:visible="onlineVisible" title="在线搜索资源" width="700px">
       <div class="online-toolbar">
         <NInput v-model:value="onlineQuery" placeholder="输入项目名称" @keyup.enter="searchOnline" />
@@ -71,19 +82,26 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NCheckbox, NEmpty, NInput, NSelect, NSpin, NSwitch, useDialog } from 'naive-ui'
+import { NButton, NCheckbox, NEmpty, NInput, NSelect, NSpin, NSwitch } from 'naive-ui'
 import { computed, onMounted, ref, watch } from 'vue'
 import backend from '@/api/client'
 import { unwrapResponse } from '@/app/runtime/errorPresentation'
+import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import Modal from '@/components/modals/Modal.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
 import type { GameResource, GameResourceType, ScannedVersion } from '@/types/api'
 
-const props = defineProps<{ version: ScannedVersion; worldOptions?: Array<{ label: string; value: string }> }>()
-const dialog = useDialog()
+const props = defineProps<{
+  version: ScannedVersion
+  worldOptions?: Array<{ label: string; value: string }>
+  /** 初始选中的资源类型，默认 'mod' */
+  initialType?: GameResourceType
+  /** 限定可切换的资源类型；为空表示全部 */
+  allowedTypes?: GameResourceType[]
+}>()
 const message = useLauncherMessage()
-const resourceType = ref<GameResourceType>('mod')
+const resourceType = ref<GameResourceType>(props.initialType || 'mod')
 const worldId = ref<string | null>(null)
 const resources = ref<GameResource[]>([])
 const selected = ref(new Set<string>())
@@ -96,13 +114,16 @@ const onlineItems = ref<unknown[]>([])
 const onlineLoading = ref(false)
 const updateLoading = ref(false)
 const updates = ref<Record<string, Record<string, unknown>>>({})
-const types: Array<{ value: GameResourceType; label: string }> = [
+const allTypes: Array<{ value: GameResourceType; label: string }> = [
   { value: 'mod', label: '模组' },
   { value: 'resourcepack', label: '资源包' },
   { value: 'shaderpack', label: '光影包' },
   { value: 'datapack', label: '数据包' },
   { value: 'schematic', label: '原理图' },
 ]
+const types = computed(() =>
+  props.allowedTypes?.length ? allTypes.filter((t) => props.allowedTypes!.includes(t.value)) : allTypes
+)
 const onlineSources = [
   { label: 'Modrinth', value: 'modrinth' },
   { label: 'CurseForge', value: 'curseforge' },
@@ -164,17 +185,11 @@ function toggleSelected(id: string) {
   selected.value = next
 }
 function confirmDelete(ids: string[]) {
-  dialog.warning({
-    title: '移入回收站',
-    content: `将 ${ids.length} 个资源移入系统回收站？`,
-    positiveText: '移入回收站',
-    negativeText: '取消',
-    onPositiveClick: async () => {
-      await instanceWorkspaceApi.deleteResources(target.value, resourceType.value, ids, worldId.value || undefined)
-      selected.value = new Set()
-      await load()
-    },
-  })
+  openConfirm('移入回收站', `将 ${ids.length} 个资源移入系统回收站？`, async () => {
+    await instanceWorkspaceApi.deleteResources(target.value, resourceType.value, ids, worldId.value || undefined)
+    selected.value = new Set()
+    await load()
+  }, true)
 }
 function removeOne(item: GameResource) {
   confirmDelete([item.id])
@@ -235,24 +250,47 @@ async function exportManifest() {
 function confirmUpdate(item: GameResource) {
   const update = updates.value[item.id]
   if (!update) return
-  dialog.warning({
-    title: '确认资源更新',
-    content: `将 ${item.name} 更新至 ${String(update.versionNumber || '新版本')}。旧文件会移入回收站。`,
-    positiveText: '更新',
-    negativeText: '取消',
-    onPositiveClick: async () => {
-      await instanceWorkspaceApi.updateResource(
-        target.value,
-        resourceType.value,
-        item.id,
-        update,
-        worldId.value || undefined
-      )
-      message.success('资源更新任务已创建')
-    },
+  openConfirm('确认资源更新', `将 ${item.name} 更新至 ${String(update.versionNumber || '新版本')}。旧文件会移入回收站。`, async () => {
+    await instanceWorkspaceApi.updateResource(
+      target.value,
+      resourceType.value,
+      item.id,
+      update,
+      worldId.value || undefined
+    )
+    message.success('资源更新任务已创建')
   })
 }
 watch([resourceType, worldId], load)
+
+const confirmVisible = ref(false)
+const confirmTitle = ref('')
+const confirmContent = ref('')
+const confirmDanger = ref(false)
+const confirmLoading = ref(false)
+let confirmAction: (() => Promise<void>) | null = null
+
+function openConfirm(title: string, content: string, action: () => Promise<void>, danger = false) {
+  confirmTitle.value = title
+  confirmContent.value = content
+  confirmDanger.value = danger
+  confirmAction = action
+  confirmLoading.value = false
+  confirmVisible.value = true
+}
+
+async function handleConfirm() {
+  if (!confirmAction || confirmLoading.value) return
+  confirmLoading.value = true
+  try {
+    await confirmAction()
+    confirmVisible.value = false
+    confirmAction = null
+  } finally {
+    confirmLoading.value = false
+  }
+}
+
 onMounted(load)
 </script>
 
@@ -260,61 +298,139 @@ onMounted(load)
 .workspace-panel {
   display: flex;
   flex-direction: column;
-  gap: 12px;
   min-height: 420px;
+  overflow: hidden;
+  background: var(--ecl-surface);
+  border: 1px solid var(--ecl-border);
+  border-radius: var(--ecl-radius-card);
+  box-shadow: var(--ecl-shadow-surface);
 }
+
 .workspace-toolbar,
-.resource-tabs,
 .online-toolbar {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
+
+.workspace-toolbar {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--ecl-border);
+}
+
+.resource-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  background: var(--ecl-hover);
+  border-radius: var(--ecl-radius-control);
+}
+
 .workspace-toolbar > .n-input {
   min-width: 180px;
   flex: 1;
 }
+
 .world-select {
   width: 180px;
 }
+
 .drop-hint {
-  margin: 0;
-  padding: 10px;
-  border: 1px dashed var(--border-color);
-  border-radius: 8px;
-  color: var(--text-secondary);
+  flex-shrink: 0;
+  margin: 12px 16px 0;
+  padding: 10px 12px;
+  border: 1px dashed var(--ecl-border-strong);
+  border-radius: var(--ecl-radius-control);
+  color: var(--ecl-text-secondary);
+  font-size: 12px;
 }
+
 .resource-table {
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
+
 .resource-row {
   display: grid;
-  grid-template-columns: 28px minmax(240px, 1fr) 110px 70px 54px;
+  grid-template-columns: 28px minmax(220px, 1fr) 110px 60px auto;
   align-items: center;
   gap: 12px;
-  padding: 11px 14px;
-  border-bottom: 1px solid var(--border-color);
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--ecl-border);
+  transition: background 0.15s ease;
 }
+
 .resource-row:last-child {
   border-bottom: 0;
 }
+
+.resource-row:hover {
+  background: var(--ecl-hover);
+}
+
 .resource-copy {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  gap: 2px;
 }
-.resource-copy small,
-.resource-source,
+
+.resource-copy strong {
+  overflow: hidden;
+  color: var(--ecl-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resource-copy small {
+  overflow: hidden;
+  color: var(--ecl-text-secondary);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resource-source {
+  overflow: hidden;
+  justify-self: start;
+  max-width: 110px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--ecl-hover);
+  color: var(--ecl-text-secondary);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .resource-na {
-  color: var(--text-secondary);
+  color: var(--ecl-text-secondary);
 }
+
+.resource-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
 .resource-warning {
-  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-top: 2px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--ecl-primary-alpha);
   color: #e39a35;
+  font-size: 11px;
 }
+
 .online-results {
   display: grid;
   gap: 8px;
@@ -322,11 +438,30 @@ onMounted(load)
   overflow: auto;
   margin-top: 12px;
 }
+
 .online-results > div {
   display: flex;
   flex-direction: column;
-  padding: 10px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--ecl-border);
+  border-radius: var(--ecl-radius-card);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.online-results > div:hover {
+  background: var(--ecl-surface-muted);
+  border-color: var(--ecl-border-strong);
+}
+
+.online-results strong {
+  color: var(--ecl-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.online-results span {
+  color: var(--ecl-text-secondary);
+  font-size: 12px;
 }
 </style>

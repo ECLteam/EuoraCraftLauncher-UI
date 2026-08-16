@@ -401,6 +401,30 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     }
   }
 
+  async function toggleFavorite(accountId: string) {
+    if (!accountId) return
+    const account = accounts.value.find((a) => a.id === accountId)
+    if (!account) return
+    try {
+      await accountStore.setFavorite(accountId, !account.favorite)
+      message.success(account.favorite ? t('game.status.favoriteRemoved') : t('game.status.favoriteAdded'))
+    } catch (reason) {
+      message.error(reason instanceof Error ? reason.message : t('game.status.favoriteFailed'))
+    }
+  }
+
+  async function togglePinned(accountId: string) {
+    if (!accountId) return
+    const account = accounts.value.find((a) => a.id === accountId)
+    if (!account) return
+    try {
+      await accountStore.setPinned(accountId, !account.pinned)
+      message.success(account.pinned ? t('game.status.pinRemoved') : t('game.status.pinAdded'))
+    } catch (reason) {
+      message.error(reason instanceof Error ? reason.message : t('game.status.pinFailed'))
+    }
+  }
+
   function reset() {
     const shouldCancelMicrosoftLogin =
       showMicrosoftLoginModal.value || startingMicrosoftLogin.value || completingMicrosoftLogin.value
@@ -474,6 +498,8 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     completeMicrosoftLogin,
     copyUserCode,
     openMicrosoftLoginPage,
+    toggleFavorite,
+    togglePinned,
     reset,
   })
 }

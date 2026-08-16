@@ -47,6 +47,7 @@
     },
     "nat": {
       "detect": "Detect NAT",
+      "resultTitle": "NAT detection result",
       "cone": "Full cone",
       "symmetric": "Symmetric",
       "blocked": "Blocked",
@@ -65,28 +66,43 @@
     },
     "create": {
       "tab": "Create room",
-      "instanceTitle": "Launch an instance and create a room",
-      "instanceHint": "Select an instance and open it to LAN after launch",
-      "portTitle": "Scan local multiplayer ports",
-      "portHint": "Connect a Minecraft world that is already running",
-      "selectInstance": "Select instance",
-      "instancePlaceholder": "Choose a local instance",
-      "launchAndCreate": "Launch and create room",
-      "lanHint": "After launch, choose Open to LAN in Minecraft and the port will be detected automatically.",
-      "alreadyRunning": "Already running? Scan local ports",
+      "title": "Create room",
+      "hint": "Create a room from an already running instance",
+      "selectInstance": "Running instance",
+      "instancePlaceholder": "Select an already running instance",
+      "noRunningInstance": "No running instance detected. Start an instance on the Game page first.",
+      "next": "Next",
+      "manualPortEntry": "Input port",
+      "back": "Back",
+      "lanHint": "Make sure the game is open to LAN; the port will be detected automatically.",
       "scanning": "Scanning Java processes and LAN ports...",
       "detectedPort": "Detected port",
       "noPort": "No open LAN port was detected",
-      "manualPort": "Enter port manually",
+      "manualPort": "Or enter port manually",
       "decreasePort": "Decrease port",
       "increasePort": "Increase port",
-      "createRoom": "Create room"
+      "createRoom": "Create room",
+      "runningGame": "Running game: {name}",
+      "runningGameHint": "A game is running? Click below to create a room directly"
+    },
+    "debug": {
+      "label": "Stage debug",
+      "live": "Live",
+      "prev": "Previous",
+      "next": "Next",
+      "idle": "Idle",
+      "createInstance": "Instance",
+      "createPort": "Port",
+      "starting": "Starting",
+      "host": "Host",
+      "guest": "Guest"
     },
     "join": {
       "tab": "Join room",
       "title": "Join a multiplayer room",
       "hint": "Enter the room code shared by the host",
       "roomCode": "Room code",
+      "paste": "Paste",
       "action": "Join room"
     },
     "starting": {
@@ -126,7 +142,8 @@
     "validation": {
       "instance": "Select an instance",
       "port": "Enter a valid port from 1 to 65535",
-      "roomCode": "Enter a room code"
+      "roomCode": "Enter a room code",
+      "pasteFailed": "Unable to read clipboard"
     }
   },
   "game": {
@@ -201,6 +218,7 @@
       "copied": "Copied",
       "waiting": "Waiting for authorization...",
       "autoDetecting": "Auto-detecting authorization status...",
+      "fetching": "Fetching data, please wait",
       "complete": "I've completed authorization",
       "success": "Login successful",
       "failed": "Login failed",
@@ -239,7 +257,13 @@
       "emptyUsername": "Username cannot be empty",
       "duplicateUsername": "This username already exists",
       "accountLoadFailed": "Failed to load accounts",
-      "noGamePath": "Game path not found"
+      "noGamePath": "Game path not found",
+      "favoriteAdded": "Favorited",
+      "favoriteRemoved": "Unfavorited",
+      "favoriteFailed": "Failed to set favorite",
+      "pinAdded": "Pinned",
+      "pinRemoved": "Unpinned",
+      "pinFailed": "Failed to set pin"
     }
   },
   "download": {
@@ -383,6 +407,7 @@
       "settingsReset": "Global settings restored",
       "loadSettingsFailed": "Failed to load instance settings",
       "saveSettingsFailed": "Failed to save instance settings",
+      "profileSaveFailed": "Failed to save instance profile",
       "invalidMemory": "Memory must be between 512 and 65536 MB",
       "javaPathRequired": "Select a Java executable",
       "javaSelectFailed": "Failed to select Java",
@@ -695,7 +720,10 @@
     "mouseEffectSpeed": "Particle Speed",
     "mouseEffectSpeedDesc": "Adjust the speed of particles",
     "transparentBg": "Transparent Background",
-    "transparentBgDesc": "Make the window background transparent, allowing desktop to show through"
+    "transparentBgDesc": "Make the window background transparent, allowing desktop to show through",
+    "developer": "Developer",
+    "debugMode": "Debug Mode",
+    "debugModeDesc": "Controls the launcher config file's debug mode (launcher.debug). Takes full effect after restarting the launcher"
   },
   "error": {
     "id": "Error ID",
@@ -718,7 +746,11 @@
       "evidence": "Log evidence",
       "suggestions": "Recommended steps",
       "genericSuggestion": "Export the crash report and inspect the complete logs for more context.",
-      "confidence": { "certain": "High confidence", "likely": "Likely", "possible": "Possible" },
+      "confidence": {
+        "certain": "High confidence",
+        "likely": "Likely",
+        "possible": "Possible"
+      },
       "viewOutput": "View Output",
       "hideOutput": "Hide Output",
       "output": "Game Output",
@@ -771,7 +803,10 @@
         },
         "java_32bit_heap": {
           "title": "32-bit Java memory limit",
-          "suggestions": ["Install and select 64-bit Java.", "Temporarily lower allocated memory before switching."]
+          "suggestions": [
+            "Install and select 64-bit Java.",
+            "Temporarily lower allocated memory before switching."
+          ]
         },
         "java_architecture_mismatch": {
           "title": "Java or native library architecture mismatch",
@@ -901,7 +936,10 @@
         },
         "world_entity_failure": {
           "title": "An entity in the world caused the crash",
-          "suggestions": ["Back up the save first.", "Locate and remove the broken entity or its related mod."]
+          "suggestions": [
+            "Back up the save first.",
+            "Locate and remove the broken entity or its related mod."
+          ]
         },
         "game_manual_debug_crash": {
           "title": "A debug crash was triggered",
@@ -975,6 +1013,7 @@
     "back": "Back",
     "launch": "Launch",
     "select": "Select",
+    "clear": "Clear",
     "more": "More"
   },
   "agreement": {
@@ -1021,8 +1060,30 @@
     "noIconCard": "Card without icon",
     "message": "Message",
     "debugSettings": "Debug Settings",
+    "debugTools": "Debug Tools",
+    "modeDebug": "Debug mode",
+    "modeDev": "Dev mode",
+    "webviewDevtools": "Web DevTools (F12)",
+    "webviewDevtoolsDesc": "Open the launcher's embedded webpage developer tools window to inspect DOM, network, console and storage.",
+    "openWebviewDevtools": "Open DevTools",
+    "vueDevtools": "Vue DevTools Panel",
+    "vueDevtoolsDesc": "Control the Vue DevTools panel via the Vite plugin in real time. Dev mode only.",
+    "openVueDevtools": "Open Panel",
+    "closeVueDevtools": "Close Panel",
+    "vueDevtoolsNeedDev": "Vue DevTools is only available in development mode",
+    "toggleFailed": "Failed to operate the debug window",
+    "componentDebug": "Component Debug",
+    "componentDebugDesc": "Inspect the current route, Pinia state and mounted components to help locate issues.",
+    "routeInfo": "Current Route",
+    "piniaStores": "Pinia Stores",
+    "mountedComponents": "Mounted Components",
+    "empty": "None",
+    "devOnlyHint": "Component inspection is only available in development mode",
+    "libTest": "Component Library Test",
     "animationSpeed": "Animation speed",
     "animationSpeedDesc": "Adjusts the speed of global animations and transitions. Takes effect for the current session only.",
+    "flowDebug": "Flow Debug",
+    "flowDebugDesc": "When enabled, staged pages (e.g. Connect) allow freely switching between previous/next stages for debugging.",
     "normalModalTest": "Normal Modal Test",
     "normalModalDesc": "This is a normal modal",
     "fullscreenModalTest": "Fullscreen Modal Test",

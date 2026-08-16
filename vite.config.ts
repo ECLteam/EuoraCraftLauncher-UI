@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import vueDevTools from 'vite-plugin-vue-devtools'
 import { resolve } from 'path'
 import Components from 'unplugin-vue-components/vite'
 
@@ -11,12 +12,12 @@ const packageVersion = (
   }
 ).version
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   base: './',
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(packageVersion ?? ''),
   },
-  plugins: [vue(), Components()],
+  plugins: [vue(), ...(mode === 'development' ? [vueDevTools()] : []), Components()],
   publicDir: 'public',
   resolve: {
     alias: {
@@ -46,4 +47,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))

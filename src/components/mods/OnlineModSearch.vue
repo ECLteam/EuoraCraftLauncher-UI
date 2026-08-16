@@ -99,13 +99,11 @@
       </div>
     </div>
 
-    <NModal
-      v-model:show="detailsVisible"
-      preset="card"
+    <Modal
+      v-model:visible="detailsVisible"
       class="mod-detail-modal"
       :title="selectedMod?.displayTitle || t('mods.details')"
-      :bordered="false"
-      :segmented="{ content: true, footer: true }"
+      width="720px"
     >
       <NSpin :show="detailLoading">
         <div v-if="selectedMod" class="detail-content">
@@ -171,15 +169,16 @@
           </NButton>
         </div>
       </template>
-    </NModal>
+    </Modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { NAlert, NAvatar, NButton, NEmpty, NInput, NModal, NScrollbar, NSelect, NSpin, NTag } from 'naive-ui'
+import { NAlert, NAvatar, NButton, NEmpty, NInput, NScrollbar, NSelect, NSpin, NTag } from 'naive-ui'
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import backend from '@/api/client'
+import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'

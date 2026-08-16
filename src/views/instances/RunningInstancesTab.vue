@@ -88,13 +88,23 @@
         </div>
       </NSpin>
     </section>
+    <ConfirmDialog
+      v-model:visible="confirmVisible"
+      :title="confirmTitle"
+      :content="confirmContent"
+      :loading="confirmLoading"
+      :danger="confirmDanger"
+      :closeOnConfirm="false"
+      @confirm="handleConfirm"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { NButton, NSpin, useDialog } from 'naive-ui'
+import { NButton, NSpin } from 'naive-ui'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { getLoaderImage } from '@/config/version'
@@ -102,7 +112,6 @@ import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
 import type { GameInstance } from '@/types/api'
 
 const { t } = useI18n()
-const dialog = useDialog()
 const message = useLauncherMessage()
 const instances = ref<GameInstance[]>([])
 const loading = ref(false)
@@ -131,13 +140,12 @@ async function loadInstances(): Promise<void> {
 }
 
 function confirmStop(instance: GameInstance): void {
-  dialog.warning({
-    title: t('versions.running.stopTitle'),
-    content: t('versions.running.stopConfirm', { name: instance.name || instance.versionId }),
-    positiveText: t('versions.running.stop'),
-    negativeText: t('common.cancel'),
-    onPositiveClick: () => stopInstance(instance),
-  })
+  openConfirm(
+    t('versions.running.stopTitle'),
+    t('versions.running.stopConfirm', { name: instance.name || instance.versionId }),
+    () => stopInstance(instance),
+    true
+  )
 }
 
 async function stopInstance(instance: GameInstance): Promise<void> {
@@ -169,6 +177,34 @@ onBeforeUnmount(() => {
   requestId += 1
   stopListening?.()
 })
+
+const confirmVisible = ref(false)
+const confirmTitle = ref('')
+const confirmContent = ref('')
+const confirmDanger = ref(false)
+const confirmLoading = ref(false)
+let confirmAction: (() => Promise<void>) | null = null
+
+function openConfirm(title: string, content: string, action: () => Promise<void>, danger = false) {
+  confirmTitle.value = title
+  confirmContent.value = content
+  confirmDanger.value = danger
+  confirmAction = action
+  confirmLoading.value = false
+  confirmVisible.value = true
+}
+
+async function handleConfirm() {
+  if (!confirmAction || confirmLoading.value) return
+  confirmLoading.value = true
+  try {
+    await confirmAction()
+    confirmVisible.value = false
+    confirmAction = null
+  } finally {
+    confirmLoading.value = false
+  }
+}
 </script>
 
 <style scoped>

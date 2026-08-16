@@ -123,7 +123,6 @@
   justify-content: space-between;
   padding: 0 14px;
   border-bottom: 1px solid var(--ecl-border);
-  background: var(--ecl-surface-muted);
   color: var(--ecl-text);
   font-size: 13px;
   font-weight: 650;
@@ -155,7 +154,7 @@
   display: grid;
   height: 32px;
   flex-shrink: 0;
-  grid-template-columns: minmax(0, 1fr) 100px 80px 32px;
+  grid-template-columns: minmax(0, 1fr) 100px 80px 28px 28px 32px;
   align-items: center;
   gap: 8px;
   padding: 0 12px;
@@ -173,7 +172,7 @@
 .account-row {
   display: grid;
   min-height: 58px;
-  grid-template-columns: minmax(0, 1fr) 100px 80px 32px;
+  grid-template-columns: minmax(0, 1fr) 100px 80px 110px;
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
@@ -214,7 +213,42 @@
 }
 
 .account-delete {
-  justify-self: end;
+  margin-left: 2px;
+}
+
+.account-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+.account-action-btn {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  align-self: center;
+  justify-self: center;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ecl-text-secondary);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.account-action-btn:hover {
+  background: var(--ecl-surface-muted);
+  color: var(--ecl-text);
+}
+
+.account-action-btn.active {
+  color: var(--ecl-primary);
+}
+
+.account-action-btn.active:hover {
+  color: var(--ecl-primary-hover);
 }
 
 .account-empty {
@@ -419,39 +453,14 @@
   font-size: 12px;
 }
 
-.ms-login-steps {
+.ms-login-fetching {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.ms-login-step {
-  display: flex;
-  min-height: 40px;
+  min-height: 56px;
   align-items: center;
+  justify-content: center;
   gap: 10px;
-  padding: 8px 10px;
-  border-radius: var(--ecl-radius-sm);
-  background: var(--ecl-surface-muted);
-  color: var(--text-tertiary);
+  color: var(--ecl-text-secondary);
   font-size: 12px;
-}
-
-.ms-login-step.active {
-  color: var(--ecl-text);
-  box-shadow: inset 2px 0 0 var(--primary);
-}
-
-.ms-login-step.done {
-  color: var(--success);
-}
-
-.ms-login-step-icon {
-  display: grid;
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-  place-items: center;
 }
 
 .microsoft-client-id-alert p {

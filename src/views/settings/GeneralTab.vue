@@ -87,6 +87,12 @@
       </SettingRow>
     </SettingSection>
 
+    <SettingSection :title="t('settings.developer')">
+      <SettingRow :label="t('settings.debugMode')" :description="t('settings.debugModeDesc')">
+        <NSwitch :value="debugMode" @update:value="handleDebugModeChange" />
+      </SettingRow>
+    </SettingSection>
+
     <div id="plugin-slot-settings-general-section-after" class="plugin-slot-container"></div>
   </div>
 </template>
@@ -97,6 +103,7 @@ import { computed, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
+import { useDebugMode } from '@/composables/useDebugMode'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { presetColors, useTheme, type ThemeMode } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
@@ -138,6 +145,7 @@ const {
   blurAmount,
 } = useTheme()
 const { topNavEnabled, toggleTopNav } = useTopNav()
+const { debugMode, setDebugMode } = useDebugMode()
 
 const currentSettings = computed(() => ({
   mode: themeMode.value,
@@ -305,6 +313,10 @@ function handleBgImageInput(value: string) {
 async function handleLanguageChange(languageCode: LocaleCode) {
   await setLocale(languageCode)
   await run(async () => settingsStore.patchUi({ locale: languageCode }))
+}
+
+async function handleDebugModeChange(value: boolean) {
+  await run(async () => setDebugMode(value))
 }
 
 function handleLanguageUpdate(languageCode: string) {

@@ -156,7 +156,6 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  padding: 12px;
 }
 .instance-grid {
   display: grid;
@@ -166,6 +165,7 @@
   grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
   align-content: start;
   gap: 10px;
+  padding: 12px;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -258,6 +258,7 @@
 .tag-badge {
   display: inline-flex;
   align-items: center;
+  width: fit-content;
   padding: 2px 6px;
   border-radius: var(--r-xs);
   font-size: 9px;
@@ -319,9 +320,6 @@
   min-height: 0;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  background: var(--bg-elevated);
 }
 .table-header,
 .table-row {

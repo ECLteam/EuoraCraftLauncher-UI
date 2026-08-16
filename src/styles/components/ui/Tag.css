@@ -1,0 +1,59 @@
+.ui-tag {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+  border-radius: var(--ecl-radius-sm);
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.ui-tag--tiny {
+  padding: 0 5px;
+  font-size: 9px;
+}
+
+.ui-tag--small {
+  padding: 1px 7px;
+  font-size: 10px;
+}
+
+.ui-tag--medium {
+  padding: 2px 9px;
+  font-size: 11px;
+}
+
+.ui-tag--round {
+  border-radius: var(--ecl-radius-full, 999px);
+}
+
+.ui-tag--default {
+  background: var(--ecl-hover);
+  color: var(--ecl-text-secondary);
+}
+
+.ui-tag--primary {
+  background: var(--ecl-primary-alpha);
+  color: var(--ecl-primary);
+}
+
+.ui-tag--info {
+  background: var(--ecl-primary-alpha);
+  color: var(--ecl-primary);
+}
+
+.ui-tag--success {
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+  color: var(--success);
+}
+
+.ui-tag--warning {
+  background: color-mix(in srgb, var(--warning) 14%, transparent);
+  color: var(--warning);
+}
+
+.ui-tag--error {
+  background: color-mix(in srgb, var(--error) 12%, transparent);
+  color: var(--error);
+}

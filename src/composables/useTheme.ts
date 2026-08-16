@@ -118,7 +118,7 @@ function createThemeOverrides(isDark: boolean, primary: string): GlobalThemeOver
       textColor2: baseColors.textSecondary,
       textColor3: baseColors.textSecondary,
       bodyColor: 'transparent',
-      cardColor: baseColors.background,
+      cardColor: baseColors.cardBackground,
       modalColor: baseColors.surface,
       popoverColor: baseColors.surface,
       borderColor: baseColors.border,
@@ -143,7 +143,7 @@ function createThemeOverrides(isDark: boolean, primary: string): GlobalThemeOver
       paddingMedium: '0 14px',
     },
     Card: {
-      color: baseColors.background,
+      color: baseColors.cardBackground,
       borderColor: baseColors.border,
       borderRadius: '8px',
       boxShadow: '0 1px 2px rgba(29, 36, 51, 0.04)',

@@ -1,34 +1,49 @@
 ﻿<template>
   <div class="connect-page">
-    <section class="connect-workspace ecl-surface">
-      <header class="connect-workspace__header">
-        <div class="connect-workspace__identity">
-          <div class="connect-workspace__icon">
-            <UiIcon name="wifi" :size="20" />
+    <section class="connect-workspace">
+      <div class="connect-workspace__body">
+        <div v-if="flowDebug" class="connect-debug-bar">
+          <span class="connect-debug-bar__label">
+            <UiIcon name="bug" :size="13" />
+            {{ t('connect.debug.label') }}
+          </span>
+          <div class="connect-debug-bar__nav">
+            <UiButton
+              size="sm"
+              variant="outline"
+              icon="arrow-left"
+              :disabled="debugStageIndex <= 0"
+              @click="prevDebugStage"
+            >
+              {{ t('connect.debug.prev') }}
+            </UiButton>
+            <div class="connect-debug-chips">
+              <button
+                v-for="(stage, index) in debugStages"
+                :key="stage.key"
+                type="button"
+                class="connect-debug-chip"
+                :class="{ active: debugStageIndex === index }"
+                @click="applyDebugStage(index)"
+              >
+                {{ stage.label }}
+              </button>
+            </div>
+            <UiButton
+              size="sm"
+              variant="outline"
+              icon="arrow-right"
+              :disabled="debugStageIndex >= debugStages.length - 1"
+              @click="nextDebugStage"
+            >
+              {{ t('connect.debug.next') }}
+            </UiButton>
           </div>
-          <div>
-            <h1>{{ workspaceTitle }}</h1>
-            <p>{{ workspaceDescription }}</p>
-          </div>
-        </div>
-        <div class="connect-header-actions">
-          <NTag v-if="natType" :type="natTagType" size="small" round>
-            {{ t(`connect.nat.${natType.type}`) }}
-          </NTag>
-          <UiButton
-            variant="outline"
-            size="sm"
-            icon="wifi"
-            :loading="natBusy"
-            :disabled="availability !== 'available'"
-            @click="detectNat"
-          >
-            {{ t('connect.nat.detect') }}
+          <UiButton v-if="stageOverride" size="sm" variant="text" @click="resetLiveStage">
+            {{ t('connect.debug.live') }}
           </UiButton>
         </div>
-      </header>
 
-      <div class="connect-workspace__body">
         <UiCard v-if="availability === 'available' && easyTier && !easyTier.installed" class="connect-service-card">
           <div class="connect-service-row">
             <div class="connect-service-icon">
@@ -55,117 +70,146 @@
               {{ easyTier.status === 'failed' ? t('connect.easyTier.retry') : t('connect.easyTier.install') }}
             </UiButton>
           </div>
-          <NProgress
-            v-if="isEasyTierWorking"
-            type="line"
-            :percentage="Math.max(2, easyTier.progress)"
-            :showIndicator="false"
-            :height="6"
-            :borderRadius="3"
-          />
+          <UiProgress v-if="isEasyTierWorking" :percentage="Math.max(2, easyTier.progress)" :height="6" />
         </UiCard>
 
         <div class="connect-scroll-area">
-          <template v-if="status.mode === 'idle'">
-            <div v-if="!activeTab" class="connect-entry-panel">
-              <div class="connect-entry-intro">
-                <div class="connect-entry-intro__icon">
-                  <UiIcon name="network" :size="24" />
-                </div>
-                <div>
-                  <strong>{{ t('connect.entry.title') }}</strong>
-                  <p>{{ t('connect.entry.description') }}</p>
-                </div>
-              </div>
-              <div class="connect-entry-actions">
-                <button type="button" class="connect-entry-option is-create" @click="selectTab('create')">
-                  <span class="connect-entry-option__icon">
-                    <UiIcon name="server" :size="22" />
-                  </span>
-                  <span class="connect-entry-option__content">
-                    <strong>{{ t('connect.create.tab') }}</strong>
-                    <small>{{ t('connect.entry.createDescription') }}</small>
-                  </span>
-                  <span class="connect-entry-option__arrow">
-                    <UiIcon name="arrow-right" :size="18" />
-                  </span>
-                </button>
-                <button type="button" class="connect-entry-option is-join" @click="selectTab('join')">
-                  <span class="connect-entry-option__icon">
-                    <UiIcon name="login" :size="22" />
-                  </span>
-                  <span class="connect-entry-option__content">
-                    <strong>{{ t('connect.join.tab') }}</strong>
-                    <small>{{ t('connect.entry.joinDescription') }}</small>
-                  </span>
-                  <span class="connect-entry-option__arrow">
-                    <UiIcon name="arrow-right" :size="18" />
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            <div v-else class="connect-idle-layout">
+          <template v-if="displayStatus.mode === 'idle'">
+            <div class="connect-idle-layout">
               <div class="connect-idle-primary">
-                <button type="button" class="connect-back-link" @click="returnToChoices">
-                  <UiIcon name="arrow-left" :size="16" />
-                  {{ t('common.back') }}
-                </button>
-                <UiCard v-if="activeTab === 'create'" class="connect-main-card">
+                <UiCard v-if="displayHostStep !== 2" class="connect-main-card">
                   <template #header>
                     <div class="connect-card-heading">
-                      <UiIcon :name="hostMode === 'instance' ? 'game' : 'server'" :size="18" />
+                      <UiIcon name="login" :size="18" />
                       <div>
-                        <strong>{{
-                          hostMode === 'instance' ? t('connect.create.instanceTitle') : t('connect.create.portTitle')
-                        }}</strong>
-                        <span>{{
-                          hostMode === 'instance' ? t('connect.create.instanceHint') : t('connect.create.portHint')
-                        }}</span>
+                        <strong>{{ t('connect.join.title') }}</strong>
+                        <span>{{ t('connect.join.hint') }}</span>
                       </div>
                     </div>
                   </template>
+                  <div class="connect-form">
+                    <label for="connect-room-code">{{ t('connect.join.roomCode') }}</label>
+                    <div class="connect-room-input-row">
+                      <UiInput
+                        id="connect-room-code"
+                        v-model="roomCode"
+                        placeholder="U/XXXX-XXXX-XXXX-XXXX"
+                        prefixIcon="link"
+                        :aria-label="t('connect.join.roomCode')"
+                        :disabled="!serviceReady"
+                        @enter="joinRoom"
+                      />
+                      <UiButton
+                        variant="outline"
+                        icon="close"
+                        :disabled="!serviceReady || !roomCode"
+                        @click="clearRoomCode"
+                      >
+                        {{ t('common.clear') }}
+                      </UiButton>
+                      <UiButton
+                        variant="outline"
+                        icon="clipboard"
+                        :title="t('connect.join.paste')"
+                        :disabled="!serviceReady"
+                        @click="pasteRoomCode"
+                      >
+                        {{ t('connect.join.paste') }}
+                      </UiButton>
+                      <UiButton
+                        icon="login"
+                        :loading="busy"
+                        :disabled="!serviceReady || !roomCode.trim()"
+                        @click="joinRoom"
+                      >
+                        {{ t('connect.join.action') }}
+                      </UiButton>
+                    </div>
+                  </div>
+                </UiCard>
 
-                  <div v-if="hostMode === 'instance'" class="connect-form">
+                <UiCard class="connect-main-card">
+                  <template #header>
+                    <div class="connect-card-heading">
+                      <UiIcon name="server" :size="18" />
+                      <div>
+                        <strong>{{ t('connect.create.title') }}</strong>
+                        <span>{{ t('connect.create.hint') }}</span>
+                      </div>
+                      <UiButton
+                        class="connect-header-nat"
+                        variant="outline"
+                        size="sm"
+                        icon="wifi"
+                        :loading="natBusy"
+                        :disabled="availability !== 'available'"
+                        @click="detectNatWithNotify"
+                      >
+                        {{ t('connect.nat.detect') }}
+                      </UiButton>
+                    </div>
+                  </template>
+
+                  <div v-if="displayHostStep === 1" class="connect-form">
                     <label for="connect-instance">{{ t('connect.create.selectInstance') }}</label>
-                    <NSelect
-                      id="connect-instance"
-                      v-model:value="selectedInstanceKey"
-                      :options="instanceOptions"
-                      :placeholder="t('connect.create.instancePlaceholder')"
-                      filterable
-                      :disabled="!serviceReady"
-                    />
-                    <UiButton
-                      class="connect-primary-action"
-                      icon="play"
-                      :loading="busy"
-                      :disabled="!serviceReady || !selectedInstanceKey"
-                      @click="createFromInstance"
-                    >
-                      {{ t('connect.create.launchAndCreate') }}
-                    </UiButton>
-                    <p class="connect-help-text">{{ t('connect.create.lanHint') }}</p>
-                    <button
-                      class="connect-mode-link"
-                      type="button"
-                      :disabled="availability !== 'available'"
-                      @click="openPortMode"
-                    >
-                      {{ t('connect.create.alreadyRunning') }}
-                    </button>
+                    <div class="connect-room-input-row">
+                      <UiSelect
+                        id="connect-instance"
+                        v-model="selectedInstanceKey"
+                        :options="runningInstanceOptions"
+                        :placeholder="t('connect.create.instancePlaceholder')"
+                        searchable
+                        :disabled="!serviceReady"
+                      />
+                      <UiButton
+                        variant="outline"
+                        icon="edit"
+                        :disabled="!serviceReady"
+                        @click="goToManualPort"
+                      >
+                        {{ t('connect.create.manualPortEntry') }}
+                      </UiButton>
+                      <UiButton
+                        icon="arrow-right"
+                        :disabled="!serviceReady || !selectedInstanceKey"
+                        @click="goToPortStep"
+                      >
+                        {{ t('connect.create.next') }}
+                      </UiButton>
+                    </div>
+                    <p v-if="!runningInstances.length && serviceReady" class="connect-help-text">
+                      {{ t('connect.create.noRunningInstance') }}
+                    </p>
+                    <div v-else-if="runningInstances.length" class="connect-running-games">
+                      <span class="connect-running-games__hint">{{ t('connect.create.runningGameHint') }}</span>
+                      <ul class="connect-running-games__list">
+                        <li v-for="instance in runningInstances" :key="instance.id" class="connect-running-game">
+                          <span class="connect-running-game__name">
+                            <UiIcon name="game" :size="14" />
+                            {{ instance.name || instance.versionId }}
+                          </span>
+                          <UiButton size="sm" variant="outline" @click="quickCreate(instance)">
+                            {{ t('connect.create.createRoom') }}
+                          </UiButton>
+                        </li>
+                      </ul>
+                    </div>
                   </div>
 
                   <div v-else class="connect-form">
+                    <p class="connect-help-text">{{ t('connect.create.lanHint') }}</p>
                     <div class="connect-port-scan">
-                      <div v-if="scanning" class="connect-scan-state">
+                      <div v-if="displayScanning" class="connect-scan-state">
                         <UiIcon name="spinner" :size="18" class="spin" />
                         <span>{{ t('connect.create.scanning') }}</span>
                       </div>
-                      <div v-else-if="detectedPort" class="connect-detected-port">
+                      <div v-else-if="displayDetectedPort" class="connect-detected-port">
                         <div>
                           <span>{{ t('connect.create.detectedPort') }}</span>
-                          <strong>{{ detectedPort }}</strong>
+                          <strong>{{ displayDetectedPort }}</strong>
+                          <span v-if="selectedInstance" class="connect-detected-game">
+                            {{ t('connect.create.runningGame', { name: selectedInstance.name }) }}
+                          </span>
                         </div>
                         <UiButton :loading="busy" :disabled="!serviceReady" @click="createDetectedPort">
                           {{ t('connect.create.createRoom') }}
@@ -208,66 +252,32 @@
                         {{ t('connect.create.createRoom') }}
                       </UiButton>
                     </div>
-                    <button class="connect-mode-link" type="button" @click="closePortMode">
-                      {{ t('common.back') }}
+                    <button class="connect-mode-link" type="button" @click="goBackToInstanceStep">
+                      {{ t('connect.create.back') }}
                     </button>
-                  </div>
-                </UiCard>
-
-                <UiCard v-else class="connect-main-card">
-                  <template #header>
-                    <div class="connect-card-heading">
-                      <UiIcon name="login" :size="18" />
-                      <div>
-                        <strong>{{ t('connect.join.title') }}</strong>
-                        <span>{{ t('connect.join.hint') }}</span>
-                      </div>
-                    </div>
-                  </template>
-                  <div class="connect-form">
-                    <label for="connect-room-code">{{ t('connect.join.roomCode') }}</label>
-                    <UiInput
-                      id="connect-room-code"
-                      v-model="roomCode"
-                      placeholder="U/XXXX-XXXX-XXXX-XXXX"
-                      prefixIcon="link"
-                      clearable
-                      :aria-label="t('connect.join.roomCode')"
-                      :disabled="!serviceReady"
-                      @enter="joinRoom"
-                    />
-                    <UiButton
-                      class="connect-primary-action"
-                      icon="login"
-                      :loading="busy"
-                      :disabled="!serviceReady || !roomCode.trim()"
-                      @click="joinRoom"
-                    >
-                      {{ t('connect.join.action') }}
-                    </UiButton>
                   </div>
                 </UiCard>
               </div>
             </div>
           </template>
 
-          <UiCard v-else-if="status.mode === 'starting'" class="connect-main-card connect-state-card">
-            <div v-if="status.error" class="connect-state-content connect-state-error">
+          <UiCard v-else-if="displayStatus.mode === 'starting'" class="connect-main-card connect-state-card">
+            <div v-if="displayStatus.error" class="connect-state-content connect-state-error">
               <UiIcon name="alert-circle" :size="32" />
               <h2>{{ t('connect.starting.failed') }}</h2>
-              <p>{{ status.error }}</p>
+              <p>{{ displayStatus.error }}</p>
               <UiButton @click="leave">{{ t('common.confirm') }}</UiButton>
             </div>
             <div v-else class="connect-state-content">
               <UiIcon name="spinner" :size="32" class="spin connect-state-icon" />
               <h2>{{ t('connect.starting.title') }}</h2>
               <p>{{ t('connect.starting.description') }}</p>
-              <NProgress type="line" processing :percentage="35" :showIndicator="false" />
+              <UiProgress processing :height="6" />
               <UiButton variant="danger" :loading="busy" @click="leave">{{ t('common.cancel') }}</UiButton>
             </div>
           </UiCard>
 
-          <UiCard v-else-if="status.mode === 'host'" class="connect-main-card connect-room-card">
+          <UiCard v-else-if="displayStatus.mode === 'host'" class="connect-main-card connect-room-card">
             <template #header>
               <div class="connect-card-heading">
                 <UiIcon name="crown" :size="18" />
@@ -279,16 +289,16 @@
             </template>
             <div class="connect-room-code-panel">
               <span>{{ t('connect.join.roomCode') }}</span>
-              <code>{{ status.roomCode }}</code>
+              <code>{{ displayStatus.roomCode }}</code>
               <UiButton
                 variant="ghost"
                 shape="square"
                 icon="copy"
                 :title="t('connect.copy')"
-                @click="copyText(status.roomCode || '')"
+                @click="copyText(displayStatus.roomCode || '')"
               />
             </div>
-            <PlayerList :players="status.players" :hostControls="true" :busy="busy" @kick="kick" />
+            <PlayerList :players="displayStatus.players" :hostControls="true" :busy="busy" @kick="kick" />
             <UiButton class="connect-danger-action" variant="danger" icon="logout" :loading="busy" @click="leave">
               {{ t('connect.host.close') }}
             </UiButton>
@@ -315,13 +325,13 @@
                 @click="copyText(serverAddress)"
               />
             </div>
-            <div v-if="status.gameInfo" class="connect-game-info">
-              <NTag size="small" type="info">{{ status.gameInfo.gameVersion }}</NTag>
-              <NTag v-if="status.gameInfo.loader" size="small">
-                {{ status.gameInfo.loader }} {{ status.gameInfo.loaderVersion }}
-              </NTag>
+            <div v-if="displayStatus.gameInfo" class="connect-game-info">
+              <UiTag tone="info" size="small">{{ displayStatus.gameInfo.gameVersion }}</UiTag>
+              <UiTag v-if="displayStatus.gameInfo.loader" tone="default" size="small">
+                {{ displayStatus.gameInfo.loader }} {{ displayStatus.gameInfo.loaderVersion }}
+              </UiTag>
             </div>
-            <PlayerList :players="status.players" />
+            <PlayerList :players="displayStatus.players" />
 
             <div class="connect-match-section">
               <div class="connect-section-title">
@@ -342,9 +352,9 @@
                   <div v-if="matchResult?.mods.length" class="connect-mod-items">
                     <div v-for="mod in matchResult.mods" :key="`${mod.hash}-${mod.id}`" class="connect-mod-item">
                       <span>{{ mod.name }}</span>
-                      <NTag size="tiny" :type="mod.source === 'modrinth' ? 'success' : 'warning'">{{
+                      <UiTag :tone="mod.source === 'modrinth' ? 'success' : 'warning'" size="tiny">{{
                         mod.source
-                      }}</NTag>
+                      }}</UiTag>
                       <code>{{ mod.hash.slice(0, 8) }}</code>
                     </div>
                   </div>
@@ -398,18 +408,22 @@
 </template>
 
 <script setup lang="ts">
-import { NAvatar, NProgress, NSelect, NTag } from 'naive-ui'
-import { computed, defineComponent, h, onMounted, ref } from 'vue'
+import { computed, defineComponent, h, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import UiAvatar from '@/components/ui/Avatar.vue'
 import UiButton from '@/components/ui/Button.vue'
 import UiCard from '@/components/ui/Card.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import UiInput from '@/components/ui/Input.vue'
+import UiProgress from '@/components/ui/Progress.vue'
+import UiSelect from '@/components/ui/Select.vue'
+import UiTag from '@/components/ui/Tag.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
+import { useFlowDebug } from '@/composables/useFlowDebug'
 import { useConnector } from '@/features/connect/composables/useConnector'
+import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
 import { instanceWorkspaceApi } from '@/features/instances/api/instanceWorkspaceApi'
-import { useInstanceStore } from '@/features/instances/stores/instanceStore'
-import type { ConnectorMatchedInstance, ConnectorPlayer } from '@/types/api'
+import type { ConnectorMatchedInstance, ConnectorPlayer, ConnectorStatus, GameInstance } from '@/types/api'
 import { getErrorMessage } from '@/utils/error'
 
 const PlayerList = defineComponent({
@@ -433,20 +447,16 @@ const PlayerList = defineComponent({
               { class: 'connect-player-list' },
               props.players.map((player) =>
                 h('div', { class: 'connect-player-row', key: player.machineId || player.name }, [
-                  h(
-                    NAvatar,
-                    {
-                      round: true,
-                      size: 34,
-                      src: player.iconBase64 ? `data:image/png;base64,${player.iconBase64}` : undefined,
-                    },
-                    { default: () => player.name.slice(0, 1).toUpperCase() }
-                  ),
+                  h(UiAvatar, {
+                    src: player.iconBase64 ? `data:image/png;base64,${player.iconBase64}` : undefined,
+                    name: player.name,
+                    size: 34,
+                  }),
                   h('div', { class: 'connect-player-identity' }, [
                     h('div', [
                       h('strong', player.name),
                       player.kind === 'host'
-                        ? h(NTag, { size: 'tiny', type: 'info' }, { default: () => t('connect.players.host') })
+                        ? h(UiTag, { size: 'tiny', tone: 'info' }, { default: () => t('connect.players.host') })
                         : null,
                     ]),
                     h('span', player.vendor),
@@ -471,13 +481,122 @@ const PlayerList = defineComponent({
 
 const { t } = useI18n()
 const message = useLauncherMessage()
-const instanceStore = useInstanceStore()
-const activeTab = ref<'create' | 'join' | null>(null)
-const hostMode = ref<'instance' | 'port'>('instance')
+const hostStep = ref<1 | 2>(1)
 const selectedInstanceKey = ref('')
 const port = ref('25565')
 const roomCode = ref('')
 const launchingKey = ref('')
+const runningInstances = ref<GameInstance[]>([])
+let unsubscribeRunning: (() => void) | null = null
+
+const { flowDebug } = useFlowDebug()
+const debugStageIndex = ref(0)
+const stageOverride = ref<ConnectorStatus | null>(null)
+const hostStepOverride = ref<1 | 2>(1)
+
+type DebugStageKey = 'idle' | 'create-instance' | 'create-port' | 'starting' | 'host' | 'guest'
+const debugStages = computed<{ key: DebugStageKey; label: string }[]>(() => [
+  { key: 'idle', label: t('connect.debug.idle') },
+  { key: 'create-instance', label: t('connect.debug.createInstance') },
+  { key: 'create-port', label: t('connect.debug.createPort') },
+  { key: 'starting', label: t('connect.debug.starting') },
+  { key: 'host', label: t('connect.debug.host') },
+  { key: 'guest', label: t('connect.debug.guest') },
+])
+
+function mockIdleStatus(): ConnectorStatus {
+  return { mode: 'idle', roomCode: null, mcHost: null, mcPort: null, gameInfo: null, players: [], error: null }
+}
+
+function mockRoomStatus(mode: 'starting' | 'host' | 'guest'): ConnectorStatus {
+  const inRoom = mode !== 'starting'
+  return {
+    mode,
+    roomCode: inRoom ? 'U/1234-5678-9012-3456' : null,
+    mcHost: '127.0.0.1',
+    mcPort: 25565,
+    gameInfo: inRoom ? { gameVersion: '1.20.1', loader: 'fabric', loaderVersion: '0.15.11' } : null,
+    players: inRoom
+      ? [
+          { name: 'HostPlayer', vendor: 'Fabric', iconBase64: null, kind: 'host', machineId: 'host-1' },
+          { name: 'Alice', vendor: 'Fabric', iconBase64: null, kind: 'guest', machineId: 'guest-1' },
+        ]
+      : [],
+    error: null,
+  }
+}
+
+function stageIndex(key: DebugStageKey): number {
+  return debugStages.value.findIndex((stage) => stage.key === key)
+}
+
+function applyDebugStage(index: number): void {
+  debugStageIndex.value = index
+  const key = debugStages.value[index].key
+  switch (key) {
+    case 'idle':
+      stageOverride.value = mockIdleStatus()
+      hostStepOverride.value = 1
+      break
+    case 'create-instance':
+      stageOverride.value = mockIdleStatus()
+      hostStepOverride.value = 1
+      break
+    case 'create-port':
+      stageOverride.value = mockIdleStatus()
+      hostStepOverride.value = 2
+      break
+    case 'starting':
+      stageOverride.value = mockRoomStatus('starting')
+      break
+    case 'host':
+      stageOverride.value = mockRoomStatus('host')
+      break
+    case 'guest':
+      stageOverride.value = mockRoomStatus('guest')
+      break
+  }
+}
+
+function prevDebugStage(): void {
+  if (debugStageIndex.value > 0) applyDebugStage(debugStageIndex.value - 1)
+}
+
+function nextDebugStage(): void {
+  if (debugStageIndex.value < debugStages.value.length - 1) applyDebugStage(debugStageIndex.value + 1)
+}
+
+function resetLiveStage(): void {
+  stageOverride.value = null
+  updateDebugStageIndexFromStatus()
+}
+
+function updateDebugStageIndexFromStatus(): void {
+  const mode = status.value.mode
+  if (mode === 'idle') debugStageIndex.value = hostStep.value === 2 ? stageIndex('create-port') : stageIndex('idle')
+  else if (mode === 'starting') debugStageIndex.value = stageIndex('starting')
+  else if (mode === 'host') debugStageIndex.value = stageIndex('host')
+  else if (mode === 'guest') debugStageIndex.value = stageIndex('guest')
+}
+
+const displayStatus = computed<ConnectorStatus>(() => {
+  if (flowDebug.value && stageOverride.value) return stageOverride.value
+  return status.value
+})
+
+const displayHostStep = computed<1 | 2>(() =>
+  flowDebug.value && stageOverride.value ? hostStepOverride.value : hostStep.value
+)
+
+const displayDetectedPort = computed<number | null>(() => {
+  if (flowDebug.value && stageOverride.value && hostStepOverride.value === 2) return detectedPort.value ?? 25565
+  return detectedPort.value
+})
+
+const displayScanning = computed<boolean>(() => {
+  if (flowDebug.value && stageOverride.value) return false
+  return scanning.value
+})
 
 const {
   availability,
@@ -492,7 +611,6 @@ const {
   scanning,
   detectedPort,
   hostPort,
-  hostInstance,
   join,
   leave,
   kick,
@@ -503,69 +621,85 @@ const {
   refreshMatches,
 } = useConnector({ onError: (error) => message.error(error) })
 
-const instanceOptions = computed(() =>
-  instanceStore.scannedVersions
-    .filter((instance) => !instance.isBroken)
-    .map((instance) => ({
-      label: instance.displayName || instance.versionId,
-      value: `${instance.path}\u0000${instance.versionId}`,
-    }))
+const runningInstanceOptions = computed(() =>
+  runningInstances.value.map((instance) => ({
+    label: instance.name || instance.versionId,
+    value: instance.id,
+  }))
 )
+
+const selectedInstance = computed(
+  () => runningInstances.value.find((instance) => instance.id === selectedInstanceKey.value) ?? null
+)
+
+async function loadRunningInstances(): Promise<void> {
+  try {
+    const all = await instanceRuntimeApi.list()
+    runningInstances.value = all.filter((instance) => instance.isRunning)
+  } catch {
+    runningInstances.value = []
+  }
+}
 
 const serviceReady = computed(() => availability.value === 'available' && Boolean(easyTier.value?.installed))
 const isEasyTierWorking = computed(() =>
   ['resolving', 'downloading', 'extracting'].includes(easyTier.value?.status ?? '')
 )
 const easyTierPhaseText = computed(() => t(`connect.easyTier.${easyTier.value?.status ?? 'idle'}`))
-const serverAddress = computed(() => `${status.value.mcHost || '127.0.0.1'}:${status.value.mcPort || 25565}`)
-const natTagType = computed<'success' | 'error' | 'warning' | 'default'>(() => {
-  if (natType.value?.type === 'cone') return 'success'
-  if (natType.value?.type === 'symmetric' || natType.value?.type === 'blocked') return 'error'
-  return 'default'
-})
-const workspaceTitle = computed(() => {
-  if (status.value.mode === 'starting') return t('connect.starting.title')
-  if (status.value.mode === 'host') return t('connect.host.title')
-  if (status.value.mode === 'guest') return t('connect.guest.title')
-  if (!activeTab.value) return t('connect.title')
-  if (activeTab.value === 'join') return t('connect.join.title')
-  return t(hostMode.value === 'instance' ? 'connect.create.instanceTitle' : 'connect.create.portTitle')
-})
-const workspaceDescription = computed(() => {
-  if (status.value.mode === 'starting') return t('connect.starting.description')
-  if (status.value.mode === 'host') return t('connect.host.description')
-  if (status.value.mode === 'guest') return t('connect.guest.description')
-  if (!activeTab.value) return t('connect.description')
-  if (activeTab.value === 'join') return t('connect.join.hint')
-  return t(hostMode.value === 'instance' ? 'connect.create.instanceHint' : 'connect.create.portHint')
-})
+const serverAddress = computed(
+  () => `${displayStatus.value.mcHost || '127.0.0.1'}:${displayStatus.value.mcPort || 25565}`
+)
 
-function selectTab(tab: 'create' | 'join'): void {
-  if (status.value.mode === 'idle') activeTab.value = tab
+async function detectNatWithNotify(): Promise<void> {
+  await detectNat()
+  const result = natType.value
+  if (!result) return
+  const label = t(`connect.nat.${result.type}`)
+  const address = result.publicIp ? `${result.publicIp}${result.publicPort ? `:${result.publicPort}` : ''}` : ''
+  const content = address ? `${label} · ${address}` : label
+  if (result.type === 'cone') message.success(content, { title: t('connect.nat.resultTitle') })
+  else if (result.type === 'symmetric' || result.type === 'blocked')
+    message.warning(content, { title: t('connect.nat.resultTitle') })
+  else message.info(content, { title: t('connect.nat.resultTitle') })
 }
 
-function returnToChoices(): void {
-  stopPortScan()
-  hostMode.value = 'instance'
-  activeTab.value = null
-}
-
-function selectedTarget(): { game_path: string; version_id: string } | null {
-  const separator = selectedInstanceKey.value.indexOf('\u0000')
-  if (separator < 0) return null
-  return {
-    game_path: selectedInstanceKey.value.slice(0, separator),
-    version_id: selectedInstanceKey.value.slice(separator + 1),
+function goToPortStep(): void {
+  if (flowDebug.value) {
+    applyDebugStage(stageIndex('create-port'))
+    startPortScan()
+    return
   }
-}
-
-async function createFromInstance(): Promise<void> {
-  const target = selectedTarget()
-  if (!target) {
+  if (!selectedInstanceKey.value) {
     message.warning(t('connect.validation.instance'))
     return
   }
-  await hostInstance(target)
+  hostStep.value = 2
+  startPortScan()
+}
+
+function quickCreate(instance: GameInstance): void {
+  selectedInstanceKey.value = instance.id
+  goToPortStep()
+}
+
+function goBackToInstanceStep(): void {
+  if (flowDebug.value) {
+    applyDebugStage(stageIndex('create-instance'))
+    stopPortScan()
+    return
+  }
+  hostStep.value = 1
+  stopPortScan()
+}
+
+function goToManualPort(): void {
+  if (flowDebug.value) {
+    applyDebugStage(stageIndex('create-port'))
+    stopPortScan()
+    return
+  }
+  hostStep.value = 2
+  stopPortScan()
 }
 
 function validPort(): number | null {
@@ -590,16 +724,6 @@ function changePort(delta: number): void {
   port.value = String(Math.min(65535, Math.max(1, (Number.parseInt(port.value, 10) || 0) + delta)))
 }
 
-function openPortMode(): void {
-  hostMode.value = 'port'
-  startPortScan()
-}
-
-function closePortMode(): void {
-  hostMode.value = 'instance'
-  stopPortScan()
-}
-
 async function joinRoom(): Promise<void> {
   const code = roomCode.value.trim()
   if (!code) {
@@ -607,6 +731,19 @@ async function joinRoom(): Promise<void> {
     return
   }
   await join(code)
+}
+
+async function pasteRoomCode(): Promise<void> {
+  try {
+    const text = await navigator.clipboard.readText()
+    if (text) roomCode.value = text.trim()
+  } catch {
+    message.error(t('connect.validation.pasteFailed'))
+  }
+}
+
+function clearRoomCode(): void {
+  roomCode.value = ''
 }
 
 async function copyText(text: string): Promise<void> {
@@ -641,10 +778,35 @@ function formatSpeed(bytesPerSecond: number): string {
   return `${Math.round(bytesPerSecond / 1024)} KB/s`
 }
 
-onMounted(() => {
-  if (instanceStore.scannedVersions.length === 0) {
-    void instanceStore.loadAll().catch(() => undefined)
+watch(
+  () => status.value.mode,
+  (mode) => {
+    if (mode === 'idle') {
+      hostStep.value = 1
+      stopPortScan()
+    }
+    if (flowDebug.value) updateDebugStageIndexFromStatus()
   }
+)
+
+watch(
+  () => flowDebug.value,
+  (enabled) => {
+    if (enabled) updateDebugStageIndexFromStatus()
+    else {
+      stageOverride.value = null
+      debugStageIndex.value = 0
+    }
+  }
+)
+
+onMounted(() => {
+  void loadRunningInstances()
+  unsubscribeRunning = instanceRuntimeApi.onChanged(() => void loadRunningInstances())
+})
+
+onUnmounted(() => {
+  unsubscribeRunning?.()
 })
 </script>
 

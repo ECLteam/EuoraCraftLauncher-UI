@@ -38,6 +38,15 @@
       </div>
       <NEmpty v-else description="没有找到存档" />
     </NSpin>
+    <ConfirmDialog
+      v-model:visible="confirmVisible"
+      :title="confirmTitle"
+      :content="confirmContent"
+      :loading="confirmLoading"
+      :danger="confirmDanger"
+      :closeOnConfirm="false"
+      @confirm="handleConfirm"
+    />
     <Modal v-model:visible="editorVisible" title="世界设置" width="460px">
       <div class="world-editor">
         <label>难度<NSelect v-model:value="editor.difficulty" :options="difficultyOptions" /></label>
@@ -67,10 +76,11 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NEmpty, NInput, NSelect, NSpin, NSwitch, useDialog } from 'naive-ui'
+import { NButton, NEmpty, NInput, NSelect, NSpin, NSwitch } from 'naive-ui'
 import { computed, onMounted, reactive, ref } from 'vue'
 import backend from '@/api/client'
 import { unwrapResponse } from '@/app/runtime/errorPresentation'
+import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import Modal from '@/components/modals/Modal.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
@@ -79,7 +89,6 @@ import type { ScannedVersion, WorldEntry } from '@/types/api'
 const props = defineProps<{ version: ScannedVersion }>()
 const emit = defineEmits<{ changed: [worlds: WorldEntry[]] }>()
 const message = useLauncherMessage()
-const dialog = useDialog()
 const worlds = ref<WorldEntry[]>([])
 const loading = ref(false)
 const query = ref('')
@@ -171,15 +180,9 @@ async function toggleBackupLock(item: { id: string; locked: boolean }) {
 }
 function restoreBackup(item: { id: string }) {
   if (!backupWorld.value) return
-  dialog.warning({
-    title: '恢复存档',
-    content: '恢复前会完整验证备份，当前存档仅在验证成功后被替换。',
-    positiveText: '恢复',
-    negativeText: '取消',
-    onPositiveClick: async () => {
-      await instanceWorkspaceApi.restoreWorldBackup(target.value, backupWorld.value!.id, item.id)
-      message.success('恢复任务已创建')
-    },
+  openConfirm('恢复存档', '恢复前会完整验证备份，当前存档仅在验证成功后被替换。', async () => {
+    await instanceWorkspaceApi.restoreWorldBackup(target.value, backupWorld.value!.id, item.id)
+    message.success('恢复任务已创建')
   })
 }
 async function deleteBackup(item: { id: string }) {
@@ -195,15 +198,9 @@ async function setIcon(world: WorldEntry) {
   }
 }
 function copyWorld(world: WorldEntry) {
-  dialog.info({
-    title: '复制存档',
-    content: `将创建 ${world.id}-copy`,
-    positiveText: '复制',
-    negativeText: '取消',
-    onPositiveClick: async () => {
-      await instanceWorkspaceApi.copyWorld(target.value, world.id, `${world.id}-copy`)
-      message.success('复制任务已创建')
-    },
+  openConfirm('复制存档', `将创建 ${world.id}-copy`, async () => {
+    await instanceWorkspaceApi.copyWorld(target.value, world.id, `${world.id}-copy`)
+    message.success('复制任务已创建')
   })
 }
 async function importWorld() {
@@ -224,21 +221,44 @@ async function exportWorld(world: WorldEntry) {
   }
 }
 function remove(world: WorldEntry) {
-  dialog.warning({
-    title: '移入回收站',
-    content: `删除存档“${world.name}”？可从系统回收站恢复。`,
-    positiveText: '移入回收站',
-    negativeText: '取消',
-    onPositiveClick: async () => {
-      await instanceWorkspaceApi.deleteWorld(target.value, world.id)
-      await load()
-    },
-  })
+  openConfirm('移入回收站', `删除存档“${world.name}”？可从系统回收站恢复。`, async () => {
+    await instanceWorkspaceApi.deleteWorld(target.value, world.id)
+    await load()
+  }, true)
 }
 async function chunkbase(world: WorldEntry) {
   const url = `https://www.chunkbase.com/apps/seed-map#seed=${encodeURIComponent(world.seed || '')}&platform=java_${encodeURIComponent(world.version || '')}`
   await backend.command('open_url', { url })
 }
+
+const confirmVisible = ref(false)
+const confirmTitle = ref('')
+const confirmContent = ref('')
+const confirmDanger = ref(false)
+const confirmLoading = ref(false)
+let confirmAction: (() => Promise<void>) | null = null
+
+function openConfirm(title: string, content: string, action: () => Promise<void>, danger = false) {
+  confirmTitle.value = title
+  confirmContent.value = content
+  confirmDanger.value = danger
+  confirmAction = action
+  confirmLoading.value = false
+  confirmVisible.value = true
+}
+
+async function handleConfirm() {
+  if (!confirmAction || confirmLoading.value) return
+  confirmLoading.value = true
+  try {
+    await confirmAction()
+    confirmVisible.value = false
+    confirmAction = null
+  } finally {
+    confirmLoading.value = false
+  }
+}
+
 onMounted(load)
 </script>
 
@@ -246,101 +266,163 @@ onMounted(load)
 .worlds-panel {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  min-height: 420px;
+  overflow: hidden;
+  background: var(--ecl-surface);
+  border: 1px solid var(--ecl-border);
+  border-radius: var(--ecl-radius-card);
+  box-shadow: var(--ecl-shadow-surface);
 }
+
 .worlds-toolbar {
   display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--ecl-border);
 }
+
 .worlds-toolbar > .n-input {
   flex: 1;
+  min-width: 180px;
 }
+
 .sort-select {
   width: 150px;
 }
+
 .world-grid {
   display: grid;
-  gap: 10px;
+  gap: 0;
+  padding: 8px;
 }
+
 .world-card {
   display: grid;
-  grid-template-columns: 64px minmax(260px, 1fr) 260px;
+  grid-template-columns: 64px minmax(240px, 1fr) auto;
   gap: 14px;
   align-items: center;
-  padding: 14px;
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
+  padding: 12px;
+  border-bottom: 1px solid var(--ecl-border);
+  border-radius: var(--ecl-radius-card);
+  transition: background 0.15s ease;
 }
+
+.world-card:last-child {
+  border-bottom: 0;
+}
+
+.world-card:hover {
+  background: var(--ecl-hover);
+}
+
 .world-icon {
   width: 64px;
   height: 64px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: var(--ecl-radius-control);
 }
+
 .world-icon.fallback {
   display: grid;
   place-items: center;
-  background: var(--card-bg);
+  background: var(--ecl-hover);
   font-size: 30px;
 }
+
 .world-copy {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
+
+.world-copy strong {
+  overflow: hidden;
+  color: var(--ecl-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .world-copy small,
 .world-copy p {
   margin: 2px 0;
-  color: var(--text-secondary);
+  color: var(--ecl-text-secondary);
 }
+
+.world-copy p {
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .world-badges {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   margin-top: 6px;
 }
+
 .world-badges span {
-  padding: 2px 7px;
-  border-radius: 10px;
-  background: var(--card-bg);
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--ecl-hover);
+  color: var(--ecl-text-secondary);
+  font-size: 11px;
 }
+
 .world-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 6px;
-  flex-wrap: wrap;
+  max-width: 400px;
 }
+
 .world-error {
   color: #d65c5c !important;
 }
+
 .world-editor {
   display: grid;
   gap: 18px;
 }
+
 .world-editor label {
   display: flex;
   align-items: center;
   gap: 12px;
 }
+
 .world-editor .n-select {
   flex: 1;
 }
+
 .backup-list {
   display: grid;
   gap: 8px;
 }
+
 .backup-list > div {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--ecl-border);
+  border-radius: var(--ecl-radius-card);
 }
+
 .backup-list span {
   display: flex;
   flex: 1;
   flex-direction: column;
 }
+
 .backup-list small {
-  color: var(--text-secondary);
+  color: var(--ecl-text-secondary);
 }
 </style>

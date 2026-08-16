@@ -23,7 +23,6 @@
   gap: 9px;
   padding: 7px 14px;
   border-bottom: 1px solid var(--ecl-border);
-  background: var(--ecl-surface-muted);
 }
 
 .plugins-title {

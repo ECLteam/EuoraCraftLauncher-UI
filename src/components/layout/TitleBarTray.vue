@@ -43,7 +43,7 @@ const trayWrapperRef = ref<HTMLElement | null>(null)
   items.push({ id: 'debug', icon: 'bug', label: t('sidebar.debug'), action: () => router.push('/dev'), priority: 0 })
   items.push({
     id: 'docs',
-    icon: 'help',
+    icon: 'file-text',
     label: t('sidebar.help'),
     action: () => openExternalUrl(URLS.docs),
     priority: 1,

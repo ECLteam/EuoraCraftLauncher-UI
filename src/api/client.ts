@@ -32,6 +32,9 @@ const CONFIG = {
   DEBUG: import.meta.env.DEV,
 } as const
 
+/** 高频轮询命令：不打印 [API] 成功日志，避免开发控制台刷屏 */
+const SILENT_COMMANDS = new Set(['launcher_errors_pending'])
+
 class Logger {
   static log(...args: unknown[]) {
     if (CONFIG.DEBUG) {
@@ -80,7 +83,10 @@ async function call<T = unknown>(command: string, payload: unknown = {}): Promis
         detail: response.detail,
       })
     }
-    Logger.log(`${response.success ? 'OK' : 'ERR'} ${command} (${dur}ms)`)
+    // 高频轮询命令跳过成功日志，仅在失败时打印
+    if (!SILENT_COMMANDS.has(command) || !response.success) {
+      Logger.log(`${response.success ? 'OK' : 'ERR'} ${command} (${dur}ms)`)
+    }
     return response
   } catch (e) {
     Logger.error(`${command}:`, e)
