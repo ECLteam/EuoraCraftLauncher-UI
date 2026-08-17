@@ -208,19 +208,33 @@
 }
 
 /* =============================================
-   Mod Card — 全宽水平布局，基于 UiCard 组件
+   Mod Card — 全宽水平布局，使用 ecl-surface 设计系统
+   参考 Settings 页面卡片样式（ecl-surface 玻璃拟态）
    ============================================= */
-.mod-card-horizontal {
-  display: flex !important;
-  flex-direction: row !important;
+.mod-card {
+  display: flex;
   gap: 14px;
   align-items: flex-start;
   padding: 14px 16px;
   cursor: pointer;
+  transition:
+    transform var(--duration-fast) var(--ease-smooth),
+    border-color var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-normal) var(--ease-smooth);
 }
 
-.mod-card-horizontal .card-body {
-  display: contents;
+.mod-card:hover {
+  border-color: var(--ecl-border-strong);
+  box-shadow:
+    0 4px 12px color-mix(in srgb, var(--ecl-primary) 6%, transparent),
+    var(--ecl-shadow-surface);
+  transform: translateY(-1px);
+}
+
+.mod-card:active {
+  border-color: var(--ecl-border);
+  box-shadow: var(--ecl-shadow-surface);
+  transform: translateY(0);
 }
 
 /* =============================================
@@ -518,7 +532,7 @@
     min-width: 120px;
   }
 
-  .mod-card-horizontal {
+  .mod-card {
     flex-wrap: wrap;
   }
 
@@ -532,7 +546,7 @@
 }
 
 @media (max-width: 640px) {
-  .mod-card-horizontal {
+  .mod-card {
     gap: 10px;
     padding: 12px;
   }

@@ -85,12 +85,10 @@
         <NSpin :show="loading" class="mods-results-spin">
           <NScrollbar v-if="results.length" class="mods-results-scroll">
             <div class="mod-list">
-              <UiCard
+              <div
                 v-for="mod in sortedResults"
                 :key="mod.id"
-                hoverable
-                interactive
-                class="mod-card-horizontal"
+                class="mod-card ecl-surface"
                 @click="openDetails(mod)"
               >
                 <div class="mod-card-icon">
@@ -164,7 +162,7 @@
                     {{ t('mods.viewOnModPage') }}
                   </NButton>
                 </div>
-              </UiCard>
+              </div>
             </div>
           </NScrollbar>
           <NEmpty
@@ -268,7 +266,6 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import Modal from '@/components/modals/Modal.vue'
-import UiCard from '@/components/ui/Card.vue'
 import ResourceInstanceSelect from '@/components/resources/ResourceInstanceSelect.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
