@@ -456,11 +456,21 @@
       "onlineSearch": "Online Search",
       "selectModFile": "Select Mod File",
       "selectModFileHint": "Select .jar or .disabled mod files",
+      "dropHint": "Drop .jar mod files here to install",
       "loading": "Loading mod list...",
       "count": "{count} mods",
       "filterAll": "All",
       "filterEnabled": "Enabled",
-      "filterDisabled": "Disabled"
+      "filterDisabled": "Disabled",
+      "gameVersion": "Game Version",
+      "fileSize": "File Size",
+      "dependencies": "Dependencies",
+      "noDependencies": "No dependencies",
+      "checkOnline": "View Online",
+      "unknownVersion": "Unknown version",
+      "unknownAuthor": "Unknown author",
+      "unknownGameVersion": "Unknown version",
+      "openOnlineFailed": "Failed to open mod page"
     },
     "download": {
       "refreshList": "Refresh List",
@@ -1155,7 +1165,6 @@
     "searchHint": "Select an instance and search Modrinth, CurseForge, and MC Encyclopedia",
     "selectInstance": "Select target instance",
     "selectInstanceFirst": "Select a target game instance first",
-    "allSources": "All sources",
     "resultCount": "{count} compatible results",
     "translatedQuery": "Platform query: {query}",
     "chooseVersion": "Choose version",
@@ -1175,6 +1184,7 @@
     "email": "Email",
     "password": "Password",
     "addAuthlibAccount": "Add Authlib Account",
+    "authlibUnavailable": "authlib-injector is unavailable, external login is disabled",
     "presetServers": "Preset Servers",
     "savedServers": "Previously Added Servers",
     "selectSavedServer": "Select a saved URL",
@@ -1265,6 +1275,7 @@
     "currentStatus": "Current status: ",
     "runningCount": "{count} task(s) running",
     "allDone": "All done",
-    "clearCompleted": "Clear completed ({count})"
+    "clearCompleted": "Clear completed ({count})",
+    "files": "files"
   }
 }

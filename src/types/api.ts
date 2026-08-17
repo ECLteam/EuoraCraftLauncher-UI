@@ -545,6 +545,10 @@ export interface MicrosoftLoginConfigData {
   needs_client_id: boolean
 }
 
+export interface AuthlibLoginConfigData {
+  available: boolean
+}
+
 export interface MicrosoftPollData {
   status: 'pending' | 'progress' | 'ready' | 'error'
   stage?: MicrosoftLoginStage
@@ -694,7 +698,11 @@ export interface ModItem {
   author: string
   loader_type: string
   game_version: string
+  project_id: string
+  dependencies: string[]
   enabled: boolean
+  size: number
+  modified_at: string
 }
 
 export interface ModSearchItem {
@@ -878,6 +886,14 @@ export interface InstallProgress {
   task_id?: string
   done?: number
   total?: number
+  /** 进度模式：'bytes' 表示 done/total 为字节数，'files' 表示文件数 */
+  progress_type?: 'bytes' | 'files'
+  /** 下载文件总数 */
+  total_files?: number
+  /** 已下载文件数 */
+  downloaded_files?: number
+  /** 当前下载速度，字节/秒 */
+  speed?: number
   message: string
   subtask?: string
   errorCode?: string
@@ -1068,6 +1084,7 @@ export interface CommandPayloadMap {
   accounts_select_authlib_profile: { account_id: string; profile_id: string }
   authlib_resolve_server: { server_url: string }
   accounts_microsoft_login_config: undefined
+  accounts_authlib_login_config: undefined
   accounts_start_microsoft_login: undefined
   accounts_poll_microsoft_login: undefined
   accounts_cancel_microsoft_login: undefined
@@ -1386,6 +1403,7 @@ export interface CommandResponseMap {
   accounts_select_authlib_profile: MinecraftAccount
   authlib_resolve_server: string
   accounts_microsoft_login_config: MicrosoftLoginConfigData
+  accounts_authlib_login_config: AuthlibLoginConfigData
   accounts_start_microsoft_login: MicrosoftLoginData
   accounts_poll_microsoft_login: MicrosoftPollData
   accounts_cancel_microsoft_login: void

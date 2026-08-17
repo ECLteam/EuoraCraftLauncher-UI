@@ -412,10 +412,28 @@
   flex: 1;
   min-height: 0;
   overflow: hidden;
+  position: relative;
   background: var(--ecl-surface);
   border: 1px solid var(--ecl-border);
   border-radius: var(--ecl-radius-card);
   box-shadow: var(--ecl-shadow-surface);
+}
+
+.mods-drop-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  background: color-mix(in srgb, var(--ecl-primary-alpha) 55%, transparent);
+  backdrop-filter: blur(2px);
+  color: var(--ecl-primary);
+  font-size: 13px;
+  font-weight: 600;
+  pointer-events: none;
 }
 
 .mods-panel-header {
@@ -567,75 +585,80 @@
   height: 100%;
 }
 
-.mods-table {
+/* 模组卡片网格 */
+.mods-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 10px;
+  padding: 12px 16px;
+  overflow-y: auto;
+  align-content: start;
+}
+
+.mod-card {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--ecl-surface);
+  border: 1px solid var(--ecl-border);
+  border-radius: var(--ecl-radius-card);
+  box-shadow: var(--ecl-shadow-surface);
+  transition: all var(--duration-fast) var(--ease-smooth);
 }
 
-.mods-table-body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
+.mod-card:hover {
+  border-color: var(--ecl-border-strong);
+  box-shadow: var(--ecl-shadow-pop);
 }
 
-/* 模组表格列头 */
-.mods-table .table-header {
+.mod-card.is-disabled {
+  opacity: 0.6;
+}
+
+.mod-card-head {
   display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mod-card-identity {
+  display: flex;
+  min-width: 0;
   align-items: center;
+  gap: 10px;
+}
+
+.mod-card-icon {
+  display: flex;
   flex-shrink: 0;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  height: 36px;
-  padding: 0 16px;
-  border-bottom: 1px solid var(--ecl-border);
-  background: var(--ecl-surface-muted);
-  color: var(--ecl-text-secondary);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-/* 模组表格行 */
-.mods-table .table-row {
-  display: flex;
   align-items: center;
-  height: 48px;
-  padding: 0 16px;
-  border-bottom: 1px solid var(--ecl-border);
-  transition: background var(--duration-fast) ease-out;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--ecl-radius-control);
+  background: var(--ecl-primary-alpha);
+  color: var(--ecl-primary);
 }
 
-.mods-table .table-row:last-child {
-  border-bottom: none;
-}
-
-.mods-table .table-row:hover {
-  background: var(--ecl-hover);
-}
-
-.mcol-name {
-  flex: 1;
-  min-width: 120px;
+.mod-card-title {
   display: flex;
+  min-width: 0;
   flex-direction: column;
   gap: 1px;
-  overflow: hidden;
 }
 
-.mod-name {
+.mod-card-title strong {
   overflow: hidden;
   color: var(--ecl-text);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 650;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.mod-filename {
+.mod-card-filename {
   overflow: hidden;
   color: var(--ecl-text-tertiary);
   font-size: 10px;
@@ -643,59 +666,74 @@
   white-space: nowrap;
 }
 
-.mcol-loader {
-  flex-shrink: 0;
-  width: 80px;
-  padding: 0 8px;
+.mod-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
 }
 
-.mcol-version {
-  flex-shrink: 0;
-  width: 90px;
-  padding: 0 8px;
-}
-
-.mod-version-text {
-  overflow: hidden;
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
   color: var(--ecl-text-secondary);
   font-size: 11px;
+}
+
+.meta-item :deep(svg) {
+  flex-shrink: 0;
+  color: var(--ecl-text-tertiary);
+}
+
+.mod-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--ecl-border);
+}
+
+.mod-card-info {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mod-size,
+.mod-deps {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  color: var(--ecl-text-tertiary);
+  font-size: 10px;
+}
+
+.mod-deps {
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.mcol-author {
-  flex-shrink: 0;
-  width: 100px;
-  padding: 0 8px;
+.mod-deps-empty {
+  opacity: 0.7;
 }
 
-.mod-author-text {
-  overflow: hidden;
-  color: var(--ecl-text-secondary);
-  font-size: 11px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.mcol-status {
-  flex-shrink: 0;
-  width: 50px;
+.mod-card-actions {
   display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.mcol-actions {
   flex-shrink: 0;
-  width: 40px;
-  display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 4px;
 }
 
 /* 模组加载器标签 */
-.mods-table .badge {
+.mods-grid .badge {
   display: inline-block;
+  flex-shrink: 0;
   padding: 2px 7px;
   border-radius: var(--ecl-radius-control);
   font-size: 10px;
@@ -729,26 +767,26 @@
 }
 
 /* 模组操作按钮 */
-.mods-table .btn-action {
+.mods-grid .btn-action {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border: none;
   border-radius: var(--ecl-radius-control);
   background: transparent;
   color: var(--ecl-text-secondary);
   cursor: pointer;
-  opacity: 0;
   transition: all var(--duration-fast) ease-out;
 }
 
-.mods-table .table-row:hover .btn-action {
-  opacity: 1;
+.mods-grid .btn-action:hover {
+  background: var(--ecl-hover);
+  color: var(--ecl-text);
 }
 
-.mods-table .btn-delete:hover {
+.mods-grid .btn-delete:hover {
   background: var(--error-alpha);
   color: var(--error);
 }
@@ -884,7 +922,7 @@
 }
 
 .online-mods-page :deep(.search-controls) {
-  grid-template-columns: minmax(220px, 1fr) 150px auto;
+  grid-template-columns: minmax(220px, 1fr) auto;
 }
 
 /* =============================================
@@ -988,10 +1026,8 @@
     width: 140px;
   }
 
-  .mcol-loader,
-  .mcol-version,
-  .mcol-author {
-    display: none;
+  .mods-grid {
+    grid-template-columns: 1fr;
   }
 
   .java-path-control {

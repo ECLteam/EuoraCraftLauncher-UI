@@ -11,7 +11,6 @@
         >
           <template #prefix><UiIcon name="search" :size="15" /></template>
         </NInput>
-        <NSelect v-model:value="source" class="source-select" :options="sourceOptions" />
         <NButton type="primary" :loading="loading" @click="handleSearch">
           <template #icon><UiIcon name="search" :size="15" /></template>
           {{ t('mods.search') }}
@@ -175,9 +174,8 @@
 
 <script setup lang="ts">
 import { NAlert, NAvatar, NButton, NEmpty, NInput, NScrollbar, NSelect, NSpin, NTag } from 'naive-ui'
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import backend from '@/api/client'
 import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
@@ -206,7 +204,6 @@ const { t } = useI18n()
 const message = useLauncherMessage()
 const { loading, run } = useAsyncAction({ showSuccess: false, showError: false })
 const query = ref('')
-const source = ref<'all' | 'modrinth' | 'curseforge'>('all')
 const searched = ref(false)
 const results = ref<ModSearchItem[]>([])
 const sourceStatuses = ref<Record<string, ModSourceStatus>>({})
@@ -221,12 +218,6 @@ const selectedFileId = ref<string | null>(null)
 const installing = ref(false)
 const installProgress = ref('')
 const querySchema = v.string().min(1, t('mods.queryRequired')).max(100, t('mods.queryTooLong'))
-
-const sourceOptions = computed(() => [
-  { label: t('mods.allSources'), value: 'all' },
-  { label: 'Modrinth', value: 'modrinth' },
-  { label: 'CurseForge', value: 'curseforge' },
-])
 
 const sourceWarnings = computed(() =>
   Object.entries(sourceStatuses.value)
@@ -288,7 +279,7 @@ async function handleSearch() {
   const response = await run(() =>
     modApi.search({
       query: trimmed,
-      source: source.value,
+      source: 'modrinth',
       game_version: instance.vanillaName,
       loader_type: instance.primaryLoader,
       limit: 24,
@@ -380,12 +371,6 @@ async function openUrl(url: string) {
   if (!url) return
   await modApi.openUrl(url).catch((error) => message.error(getErrorMessage(error)))
 }
-
-const stopInstallProgress = backend.on('mods:install_progress', (payload) => {
-  installProgress.value = payload.phase === 'downloading' ? t('mods.downloadingFile') : t('mods.resolvingDependencies')
-})
-
-onBeforeUnmount(() => stopInstallProgress())
 </script>
 
 <style scoped src="@/styles/views/OnlineMods.css"></style>

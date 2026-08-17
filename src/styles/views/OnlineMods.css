@@ -29,14 +29,12 @@
 
 .search-controls {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(240px, 0.8fr) 150px auto;
+  grid-template-columns: minmax(220px, 1fr) auto;
   gap: 10px;
   align-items: center;
 }
 
-.query-input,
-.instance-select,
-.source-select {
+.query-input {
   min-width: 0;
 }
 
@@ -362,12 +360,7 @@
    ============================================= */
 @media (max-width: 900px) {
   .search-controls {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .query-input,
-  .instance-select {
-    grid-column: span 2;
+    grid-template-columns: 1fr;
   }
 }
 
@@ -393,11 +386,6 @@
 @media (max-width: 620px) {
   .search-controls {
     grid-template-columns: 1fr;
-  }
-
-  .query-input,
-  .instance-select {
-    grid-column: auto;
   }
 
   .mod-grid {

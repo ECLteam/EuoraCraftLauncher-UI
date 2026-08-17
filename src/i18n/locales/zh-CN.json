@@ -456,11 +456,21 @@
       "onlineSearch": "在线搜索",
       "selectModFile": "选择模组文件",
       "selectModFileHint": "选择 .jar 或 .disabled 模组文件",
+      "dropHint": "将 .jar 模组文件拖到这里安装",
       "loading": "正在加载模组列表...",
       "count": "共 {count} 个模组",
       "filterAll": "全部",
       "filterEnabled": "已启用",
-      "filterDisabled": "已禁用"
+      "filterDisabled": "已禁用",
+      "gameVersion": "游戏版本",
+      "fileSize": "文件大小",
+      "dependencies": "依赖",
+      "noDependencies": "无依赖",
+      "checkOnline": "在线查看",
+      "unknownVersion": "未知版本",
+      "unknownAuthor": "未知作者",
+      "unknownGameVersion": "未知版本",
+      "openOnlineFailed": "打开模组页面失败"
     },
     "download": {
       "refreshList": "刷新列表",
@@ -1065,7 +1075,6 @@
     "searchHint": "选择实例并搜索 Modrinth、CurseForge 与 MC 百科",
     "selectInstance": "选择安装实例",
     "selectInstanceFirst": "请先选择要安装到的实例",
-    "allSources": "全部来源",
     "resultCount": "找到 {count} 个兼容结果",
     "translatedQuery": "平台检索词：{query}",
     "chooseVersion": "选择版本",
@@ -1085,6 +1094,7 @@
     "email": "邮箱",
     "password": "密码",
     "addAuthlibAccount": "添加 Authlib 账户",
+    "authlibUnavailable": "authlib-injector 不可用，外置登录已禁用",
     "presetServers": "预设服务器",
     "savedServers": "已添加的皮肤站",
     "selectSavedServer": "选择已添加的链接",
@@ -1175,6 +1185,7 @@
     "currentStatus": "当前状态：",
     "runningCount": "{count} 个任务进行中",
     "allDone": "全部完成",
-    "clearCompleted": "清除已完成 ({count})"
+    "clearCompleted": "清除已完成 ({count})",
+    "files": "文件"
   }
 }
