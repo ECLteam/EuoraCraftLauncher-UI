@@ -282,7 +282,19 @@
   "download": {
     "title": "下载",
     "instanceDownload": "实例下载",
-    "modDownload": "MOD下载"
+    "modDownload": "MOD下载",
+    "mod": "Mod",
+    "resourcepack": "资源包",
+    "shaderpack": "光影包",
+    "datapack": "数据包",
+    "world": {
+      "importLocal": "导入本地存档",
+      "importHint": "选择目标实例后，将归档为 .zip 或 .mcworld 的存档文件导入到该实例。",
+      "manageInVersions": "已导入的存档可在「版本管理弹窗 → 存档」中查看与管理。",
+      "dropHint": "拖入 .zip / .mcworld 存档文件到此处导入",
+      "importSuccess": "存档导入成功",
+      "empty": "选择目标实例并导入存档后，会显示在这里"
+    }
   },
   "versions": {
     "title": "实例管理",
@@ -1086,7 +1098,11 @@
     "installTo": "安装到：{instance}",
     "resolvingDependencies": "解析依赖中",
     "downloadingFile": "下载文件中",
-    "installSuccess": "安装完成，共处理 {count} 个模组文件"
+    "installSuccess": "安装完成，共处理 {count} 个模组文件",
+    "selectWorld": "选择目标存档",
+    "noWorld": "当前实例暂无存档",
+    "dropToInstall": "松开以安装到当前实例",
+    "viewOnModPage": "在 Mod 页查看"
   },
   "auth": {
     "authlib": "Authlib 注入",

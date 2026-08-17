@@ -102,6 +102,8 @@ export type NavigationMode = 'sidebar' | 'top'
 
 export interface DownloadConfig {
   mirror_source: 'official' | 'bmclapi'
+  /** 按资源类型记忆的「上一次安装实例」缓存：key 为资源类型(mod/resourcepack/shaderpack/datapack/world) */
+  resourceInstallCache?: Record<string, { gamePath: string; versionId: string }>
 }
 
 export interface LocaleConfig {
@@ -723,6 +725,7 @@ export interface ModSearchItem {
   loaders: string[]
   gameVersions: string[]
   wiki?: McmodInfo
+  resourceType?: string
   alternatives: ModSourceReference[]
 }
 
@@ -763,7 +766,9 @@ export interface ModInfo {
   author: string
   body: string
   iconUrl?: string
+  code: string
   source: 'modrinth' | 'curseforge'
+  resourceType?: string
   loaders: string[]
   gameVersions: string[]
   projectUrl: string
@@ -1322,11 +1327,18 @@ export interface CommandPayloadMap {
     source?: string
     game_version?: string
     loader_type?: string
+    resource_type?: string
     limit?: number
     offset?: number
   }
-  get_mod_info: { mod_id: string; source: string }
-  get_mod_versions: { mod_id: string; source: string; game_version?: string; loader_type?: string }
+  get_mod_info: { mod_id: string; source: string; resource_type?: string }
+  get_mod_versions: {
+    mod_id: string
+    source: string
+    game_version?: string
+    loader_type?: string
+    resource_type?: string
+  }
   download_mod: {
     mod_id: string
     source: 'modrinth' | 'curseforge'
@@ -1335,6 +1347,9 @@ export interface CommandPayloadMap {
     instance_id: string
     game_version?: string
     loader_type?: string
+    resource_type?: string
+    world_id?: string
+    task_id?: string
   }
 
   // 启动器信息 / 页信息卡

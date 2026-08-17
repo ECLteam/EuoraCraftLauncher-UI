@@ -35,6 +35,7 @@ declare module 'vue' {
     OnlineModSearch: typeof import('./src/components/mods/OnlineModSearch.vue')['default']
     PageHeader: typeof import('./src/components/layout/PageHeader.vue')['default']
     Progress: typeof import('./src/components/ui/Progress.vue')['default']
+    ResourceInstanceSelect: typeof import('./src/components/resources/ResourceInstanceSelect.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SectionLayout: typeof import('./src/components/layout/SectionLayout.vue')['default']
@@ -45,5 +46,6 @@ declare module 'vue' {
     TaskQueuePanel: typeof import('./src/components/panels/TaskQueuePanel.vue')['default']
     TitleBar: typeof import('./src/components/layout/TitleBar.vue')['default']
     TitleBarTray: typeof import('./src/components/layout/TitleBarTray.vue')['default']
+    WorldDownloadTab: typeof import('./src/components/resources/WorldDownloadTab.vue')['default']
   }
 }

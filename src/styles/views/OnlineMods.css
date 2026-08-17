@@ -38,10 +38,52 @@
   min-width: 0;
 }
 
-.instance-context {
+.oms-instance-select {
+  min-width: 0;
+}
+
+/* =============================================
+   Drop Overlay
+   ============================================= */
+.oms-root {
+  position: relative;
+}
+
+.oms-drop-overlay {
+  position: absolute;
+  z-index: 30;
+  inset: 0;
   display: flex;
   align-items: center;
-  gap: 7px;
+  justify-content: center;
+  gap: 10px;
+  border: 1.5px dashed var(--primary);
+  border-radius: var(--ecl-radius-card);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}
+
+/* =============================================
+   Datapack World Selector
+   ============================================= */
+.datapack-world-row {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 2px;
+}
+
+.datapack-world-select {
+  width: 320px;
+  max-width: 100%;
+}
+
+.datapack-world-hint {
   color: var(--ecl-text-secondary);
   font-size: 12px;
 }
@@ -237,6 +279,13 @@
   gap: 5px;
   color: var(--ecl-text-secondary);
   font-size: 12px;
+}
+
+.mod-card-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
 }
 
 /* =============================================

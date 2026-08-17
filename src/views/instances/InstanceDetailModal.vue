@@ -332,10 +332,6 @@
             </div>
           </div>
 
-          <div v-if="activeTab === 'online-mods'" class="vdm-page online-mods-page">
-            <OnlineModSearch :instance="version" @installed="loadMods" />
-          </div>
-
           <div v-if="activeTab === 'settings'" class="vdm-page version-settings-page">
             <div v-if="settingsLoading" class="settings-loading-state">
               <NSpin size="small" />
@@ -520,6 +516,7 @@
 <script setup lang="ts">
 import { NButton, NInput, NInputGroup, NInputNumber, NSelect, NSpin, NSwitch } from 'naive-ui'
 import { ref, reactive, computed, watch, nextTick, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import backend from '@/api/client'
 import { launcherErrorQueue } from '@/app/runtime/errorPresentation'
@@ -531,7 +528,6 @@ import InstanceWorldsTab from '@/components/instances/InstanceWorldsTab.vue'
 import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import Modal from '@/components/modals/Modal.vue'
-import OnlineModSearch from '@/components/mods/OnlineModSearch.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
@@ -563,7 +559,6 @@ interface Props {
 type DetailTab =
   | 'overview'
   | 'mods'
-  | 'online-mods'
   | 'resourcepacks'
   | 'shaderpacks'
   | 'datapacks'
@@ -587,6 +582,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const message = useLauncherMessage()
+const router = useRouter()
 
 const visible = computed({
   get: () => props.visible,
@@ -597,9 +593,8 @@ const title = computed(() => props.version?.displayName || props.version?.versio
 
 const activeTab = ref<DetailTab>('overview')
 
-/** Mod 导航项同时覆盖本地模组与在线搜索两个内部视图 */
+/** Mod 导航项对应本地模组管理视图 */
 function isTabActive(id: DetailTab): boolean {
-  if (id === 'mods') return activeTab.value === 'mods' || activeTab.value === 'online-mods'
   return activeTab.value === id
 }
 function selectTab(id: DetailTab) {
@@ -980,7 +975,10 @@ async function handleOpenModsFolder() {
 }
 
 function handleOnlineSearch() {
-  activeTab.value = 'online-mods'
+  const version = props.version
+  if (!version) return
+  visible.value = false
+  void router.push({ name: 'download', query: { tab: 'mod', instance: `${version.path}\u0000${version.versionId}` } })
 }
 
 function formatFileSize(bytes: number): string {

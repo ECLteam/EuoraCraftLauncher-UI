@@ -5,32 +5,65 @@
         <UiIcon name="download" :size="18" />
         <span>{{ t('download.title') }}</span>
       </div>
-      <button class="download-nav-item" :class="{ active: activeTab === 'instances' }" @click="activeTab = 'instances'">
-        <UiIcon name="cube" :size="18" />
-        <span>{{ t('download.instanceDownload') }}</span>
-      </button>
-      <button class="download-nav-item" :class="{ active: activeTab === 'mods' }" @click="activeTab = 'mods'">
-        <UiIcon name="puzzle" :size="18" />
-        <span>{{ t('download.modDownload') }}</span>
+      <button
+        v-for="item in navItems"
+        :key="item.id"
+        class="download-nav-item"
+        :class="{ active: activeTab === item.id }"
+        @click="switchTab(item.id)"
+      >
+        <UiIcon :name="item.icon" :size="18" />
+        <span>{{ item.label }}</span>
       </button>
     </aside>
 
     <main class="download-content">
       <InstancesTab v-if="activeTab === 'instances'" />
-      <OnlineMods v-else />
+      <OnlineModSearch v-else-if="activeTab === 'mod'" :resourceType="'mod'" />
+      <OnlineModSearch v-else-if="activeTab === 'resourcepack'" :resourceType="'resourcepack'" />
+      <OnlineModSearch v-else-if="activeTab === 'shaderpack'" :resourceType="'shaderpack'" />
+      <OnlineModSearch v-else-if="activeTab === 'datapack'" :resourceType="'datapack'" />
+      <WorldDownloadTab v-else-if="activeTab === 'world'" />
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
+import OnlineModSearch from '@/components/mods/OnlineModSearch.vue'
+import WorldDownloadTab from '@/components/resources/WorldDownloadTab.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import InstancesTab from '@/views/instances/InstancesTab.vue'
-import OnlineMods from '@/views/OnlineMods.vue'
 
 const { t } = useI18n()
-const activeTab = ref<'instances' | 'mods'>('instances')
+const route = useRoute()
+const router = useRouter()
+
+type DownloadTab = 'instances' | 'mod' | 'resourcepack' | 'shaderpack' | 'datapack' | 'world'
+
+const validTabs: DownloadTab[] = ['instances', 'mod', 'resourcepack', 'shaderpack', 'datapack', 'world']
+
+const navItems = computed(() => [
+  { id: 'instances' as const, icon: 'cube', label: t('download.instanceDownload') },
+  { id: 'mod' as const, icon: 'puzzle', label: t('download.mod') },
+  { id: 'resourcepack' as const, icon: 'image', label: t('download.resourcepack') },
+  { id: 'shaderpack' as const, icon: 'sparkles', label: t('download.shaderpack') },
+  { id: 'datapack' as const, icon: 'layers', label: t('download.datapack') },
+  { id: 'world' as const, icon: 'globe', label: t('download.world.title') },
+])
+
+const fromQuery = typeof route.query.tab === 'string' ? route.query.tab : ''
+const activeTab = ref<DownloadTab>(
+  (validTabs as string[]).includes(fromQuery) ? (fromQuery as DownloadTab) : 'instances'
+)
+
+function switchTab(tab: DownloadTab) {
+  activeTab.value = tab
+  // 同步 query，方便版本弹窗等外部入口带 tab 直达；不覆盖其他外部参数
+  void router.replace({ query: { ...route.query, tab } })
+}
 </script>
 
 <style scoped>

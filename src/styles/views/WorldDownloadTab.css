@@ -1,0 +1,54 @@
+.world-download-tab {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--ecl-border);
+  border-radius: var(--ecl-radius-card);
+  background: var(--ecl-surface);
+  box-shadow: var(--ecl-shadow-surface);
+}
+
+.world-toolbar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.world-drop-overlay {
+  position: absolute;
+  z-index: 20;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1.5px dashed var(--primary);
+  border-radius: var(--ecl-radius-card);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.world-hint,
+.world-manage-hint {
+  margin: 0;
+  color: var(--ecl-text-secondary);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.world-manage-hint {
+  color: var(--primary);
+}
+
+.world-empty {
+  flex: 1;
+  min-height: 0;
+}

@@ -282,7 +282,19 @@
   "download": {
     "title": "Download",
     "instanceDownload": "Instance Download",
-    "modDownload": "Mod Download"
+    "modDownload": "Mod Download",
+    "mod": "Mod",
+    "resourcepack": "Resource Pack",
+    "shaderpack": "Shader Pack",
+    "datapack": "Data Pack",
+    "world": {
+      "importLocal": "Import Local World",
+      "importHint": "Pick a target instance, then import a world archived as .zip or .mcworld into it.",
+      "manageInVersions": "Imported worlds can be viewed and managed in Version Detail → Worlds.",
+      "dropHint": "Drop a .zip / .mcworld world file here to import",
+      "importSuccess": "World imported successfully",
+      "empty": "Select a target instance and import a world to see it here"
+    }
   },
   "versions": {
     "title": "Instance Management",
@@ -1176,7 +1188,11 @@
     "installTo": "Install to: {instance}",
     "resolvingDependencies": "Resolving dependencies",
     "downloadingFile": "Downloading file",
-    "installSuccess": "Installation complete; {count} mod files processed"
+    "installSuccess": "Installation complete; {count} mod files processed",
+    "selectWorld": "Select target world",
+    "noWorld": "This instance has no worlds",
+    "dropToInstall": "Release to install to the current instance",
+    "viewOnModPage": "View on Mod page"
   },
   "auth": {
     "authlib": "Authlib Injector",
