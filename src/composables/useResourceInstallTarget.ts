@@ -33,8 +33,8 @@ export function useResourceInstallTarget(resourceType: InstallTargetKey) {
   async function loadCache(): Promise<void> {
     await instanceStore.loadAll()
     const config = unwrapResponse(await backend.config.get('download'), '读取下载设置')
-    const cached = (config as { resourceInstallCache?: Record<string, { gamePath: string; versionId: string } }> | undefined)
-      ?.resourceInstallCache?.[resourceType]
+    const cfg = config as { resourceInstallCache?: Record<string, { gamePath: string; versionId: string }> }
+    const cached = cfg?.resourceInstallCache?.[resourceType]
     if (cached?.gamePath && cached?.versionId) {
       const hit = installableInstances.value.find(
         (version) => version.path === cached.gamePath && version.versionId === cached.versionId
