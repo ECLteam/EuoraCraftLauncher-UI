@@ -2,6 +2,7 @@ import backend from '@/api/client'
 import { unwrapResponse as assertSuccess } from '@/app/runtime/errorPresentation'
 import type {
   AccountListData,
+  AuthlibLoginConfigData,
   AuthlibServer,
   MinecraftAccount,
   MicrosoftCompleteData,
@@ -154,6 +155,10 @@ export const accountsApi = {
 
   async getMicrosoftLoginConfig(): Promise<MicrosoftLoginConfigData> {
     return assertSuccess(await backend.command('accounts_microsoft_login_config'), '读取微软登录配置')
+  },
+
+  async getAuthlibLoginConfig(): Promise<AuthlibLoginConfigData> {
+    return assertSuccess(await backend.command('accounts_authlib_login_config'), '读取外置登录配置')
   },
 
   async startMicrosoftLogin(): Promise<MicrosoftLoginData> {

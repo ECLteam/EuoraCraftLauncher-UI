@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { accountsApi } from '@/features/accounts/api/accountsApi'
 import type {
+  AuthlibLoginConfigData,
   AuthlibServer,
   MinecraftAccount,
   MicrosoftCompleteData,
@@ -19,14 +20,19 @@ export const useAccountStore = defineStore('accounts', () => {
     available: false,
     needs_client_id: false,
   })
+  const authlibLoginConfig = ref<AuthlibLoginConfigData>({
+    available: false,
+  })
   const status = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const authlibStatus = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const microsoftLoginConfigStatus = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const authlibLoginConfigStatus = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const error = ref('')
 
   const isLoading = computed(() => status.value === 'loading')
   const isAuthlibLoading = computed(() => authlibStatus.value === 'loading')
   const isMicrosoftLoginConfigLoading = computed(() => microsoftLoginConfigStatus.value === 'loading')
+  const isAuthlibLoginConfigLoading = computed(() => authlibLoginConfigStatus.value === 'loading')
 
   function accountIdentity(account: MinecraftAccount): string {
     const accountUuid = account.uuid?.replaceAll('-', '').trim().toLowerCase()
@@ -141,6 +147,18 @@ export const useAccountStore = defineStore('accounts', () => {
     }
   }
 
+  async function loadAuthlibLoginConfig(): Promise<void> {
+    authlibLoginConfigStatus.value = 'loading'
+    try {
+      authlibLoginConfig.value = await accountsApi.getAuthlibLoginConfig()
+      authlibLoginConfigStatus.value = 'ready'
+    } catch (reason) {
+      authlibLoginConfig.value = { available: false }
+      authlibLoginConfigStatus.value = 'error'
+      throw reason
+    }
+  }
+
   function pollMicrosoftLogin(): Promise<MicrosoftPollData> {
     return accountsApi.pollMicrosoftLogin()
   }
@@ -174,13 +192,16 @@ export const useAccountStore = defineStore('accounts', () => {
     currentAccount,
     authlibServers,
     microsoftLoginConfig,
+    authlibLoginConfig,
     status,
     authlibStatus,
     microsoftLoginConfigStatus,
+    authlibLoginConfigStatus,
     error,
     isLoading,
     isAuthlibLoading,
     isMicrosoftLoginConfigLoading,
+    isAuthlibLoginConfigLoading,
     load,
     loadCurrent,
     addOffline,
@@ -192,6 +213,7 @@ export const useAccountStore = defineStore('accounts', () => {
     refreshAccount,
     loadAuthlibServers,
     loadMicrosoftLoginConfig,
+    loadAuthlibLoginConfig,
     startMicrosoftLogin,
     pollMicrosoftLogin,
     cancelMicrosoftLogin,

@@ -325,11 +325,24 @@
                 @keyup.enter="addAuthlibFromModal"
               />
               <small class="authlib-server-hint">{{ t('auth.serverUrlHint') }}</small>
+              <NAlert
+                v-if="!account.authlibLoginConfig.available"
+                class="authlib-unavailable-alert"
+                type="warning"
+                :showIcon="true"
+              >
+                {{ t('auth.authlibUnavailable') }}
+              </NAlert>
               <NButton
                 type="primary"
                 block
                 :loading="account.addingAuthlib"
-                :disabled="!account.authlibServerUrl.trim() || !account.authlibEmail.trim() || !account.authlibPassword"
+                :disabled="
+                  !account.authlibLoginConfig.available ||
+                  !account.authlibServerUrl.trim() ||
+                  !account.authlibEmail.trim() ||
+                  !account.authlibPassword
+                "
                 @click="addAuthlibFromModal"
               >
                 {{ t('auth.addAuthlibAccount') }}

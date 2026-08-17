@@ -29,6 +29,8 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     isAuthlibLoading: authlibServersLoading,
     microsoftLoginConfig,
     isMicrosoftLoginConfigLoading,
+    authlibLoginConfig,
+    isAuthlibLoginConfigLoading,
   } = storeToRefs(accountStore)
 
   const showAccountModal = ref(false)
@@ -129,6 +131,7 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     loadAccounts()
     loadAuthlibServers()
     loadMicrosoftLoginConfig()
+    loadAuthlibLoginConfig()
   }
 
   async function addOfflineAccount() {
@@ -360,6 +363,14 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     }
   }
 
+  async function loadAuthlibLoginConfig() {
+    try {
+      await accountStore.loadAuthlibLoginConfig()
+    } catch {
+      return
+    }
+  }
+
   async function copyUserCode() {
     await copyToClipboard(microsoftLoginData.value.userCode || '')
   }
@@ -480,6 +491,8 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     microsoftLoginError,
     microsoftLoginConfig,
     isMicrosoftLoginConfigLoading,
+    authlibLoginConfig,
+    isAuthlibLoginConfigLoading,
     copiedUserCode,
     showDeleteConfirmModal,
     deletingAccount,
@@ -488,6 +501,7 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     loadAccounts,
     loadCurrentAccount,
     loadMicrosoftLoginConfig,
+    loadAuthlibLoginConfig,
     openAccountModal,
     addOfflineAccount,
     switchAccount,

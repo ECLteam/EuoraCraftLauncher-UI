@@ -353,6 +353,10 @@
   line-height: 1.45;
 }
 
+.authlib-unavailable-alert {
+  margin-bottom: 10px;
+}
+
 .offline-advanced-toggle {
   display: flex;
   width: 100%;

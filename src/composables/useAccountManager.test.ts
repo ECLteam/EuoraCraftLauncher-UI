@@ -27,6 +27,7 @@ vi.mock('@/features/accounts/api/accountsApi', () => ({
     refresh: vi.fn(),
     listAuthlibServers: vi.fn(),
     getMicrosoftLoginConfig: vi.fn(),
+    getAuthlibLoginConfig: vi.fn(),
     startMicrosoftLogin: vi.fn(),
     pollMicrosoftLogin: vi.fn(),
     cancelMicrosoftLogin: vi.fn(),
