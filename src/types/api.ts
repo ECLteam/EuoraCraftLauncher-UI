@@ -960,6 +960,15 @@ export interface LauncherErrorEvent {
   crash?: CrashAnalysisResult
 }
 
+export interface TerminalLogEntry {
+  time: string
+  level: string
+  logger: string
+  filename: string
+  lineno: number
+  message: string
+}
+
 export interface BackendEvents {
   'config:init': {
     launcher: LauncherConfig
@@ -978,6 +987,7 @@ export interface BackendEvents {
   'launcher:agreement_required': Record<string, never>
   'launcher:error': LauncherErrorEvent
   'launcher:popup': LauncherPopupEvent
+  'launcher:log': TerminalLogEntry
   'game:install_progress': InstallProgress
   'game:launch_progress': LaunchProgress
   'game:operation_progress': GameOperation
@@ -1271,6 +1281,7 @@ export interface CommandPayloadMap {
   game_crash_export: { report_id: string; output_path?: string }
 
   export_logs: { output_path?: string }
+  logs_get_history: undefined
 
   // 插件
   plugin_list: undefined
@@ -1529,6 +1540,7 @@ export interface CommandResponseMap {
   game_launch: LaunchInstanceResult
   game_launch_cancel: void
   export_logs: { path: string }
+  logs_get_history: { logs: TerminalLogEntry[] }
   game_instance_stop: void
   game_crash_analyze: CrashAnalysisResult
   game_crash_output: { name: string; content: string }

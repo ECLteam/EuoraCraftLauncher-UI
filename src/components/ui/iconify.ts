@@ -107,8 +107,15 @@ export const ICON_MAP: Record<string, string> = {
 
   // 窗口
   minimize: 'minus',
+  maximize: 'maximize',
+  restore: 'arrows-minimize',
   moon: 'moon',
   sun: 'sun',
+
+  // 终端
+  terminal: 'terminal-2',
+  eraser: 'eraser',
+  'auto-scroll': 'arrow-bar-to-down',
 
   // 加载器
   lab: 'flask',

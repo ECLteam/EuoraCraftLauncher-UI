@@ -832,9 +832,9 @@
     "transparentBgDesc": "启用后窗口背景变为透明，可透过窗口看到桌面",
     "developer": "开发者",
     "debugMode": "调试模式",
-    "debugModeDesc": "控制启动器配置文件的调试模式（launcher.debug），需重启启动器后完全生效",
+    "debugModeDesc": "控制启动器配置文件的调试模式（launcher.debug），修改后即时生效",
     "disableSslVerify": "关闭 SSL 证书校验",
-    "disableSslVerifyDesc": "全局关闭 HTTPS 证书校验（含微软登录），需重启启动器后完全生效"
+    "disableSslVerifyDesc": "全局关闭 HTTPS 证书校验；共享网络请求即时生效，微软登录需重启后应用"
   },
   "error": {
     "id": "错误编号",
@@ -1080,6 +1080,7 @@
     "modeDev": "开发模式",
     "webviewDevtools": "网页调试窗口 (F12)",
     "webviewDevtoolsDesc": "打开启动器内置网页的开发者工具窗口，用于查看 DOM、网络、控制台与存储。",
+    "terminalDesc": "展开日志终端悬浮窗，实时查看后端日志并支持级别过滤与搜索。",
     "openWebviewDevtools": "打开调试窗口",
     "vueDevtools": "Vue DevTools 面板",
     "vueDevtoolsDesc": "基于 Vite 插件实时控制 Vue DevTools 面板的开合，仅开发模式可用。",
@@ -1098,7 +1099,7 @@
     "animationSpeed": "动画速度",
     "animationSpeedDesc": "调整全局动画与过渡的播放速度，仅对当前会话生效。",
     "flowDebug": "流程调试",
-    "flowDebugDesc": "开启后可在阶段性界面（如联机页）自由切换前后阶段，便于调试与走查。",
+    "flowDebugDesc": "开启后可在阶段性界面自由切换前后阶段，便于调试与走查。",
     "showContainerBoundaries": "显示容器边界",
     "showContainerBoundariesDesc": "为页面所有元素叠加调试轮廓，便于观察各容器边界与层叠关系。",
     "disableAnimations": "禁用所有动画",
@@ -1282,5 +1283,20 @@
     "allDone": "全部完成",
     "clearCompleted": "清除已完成 ({count})",
     "files": "文件"
+  },
+  "terminal": {
+    "title": "日志终端",
+    "floating": "日志",
+    "searchPlaceholder": "搜索日志...",
+    "copy": "复制",
+    "copied": "已复制 {count} 行",
+    "clear": "清屏",
+    "autoScroll": "自动滚底",
+    "paused": "已暂停滚动",
+    "minimize": "最小化",
+    "maximize": "最大化",
+    "restore": "还原",
+    "empty": "暂无日志",
+    "history": "历史"
   }
 }

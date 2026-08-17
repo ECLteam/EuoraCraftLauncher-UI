@@ -101,6 +101,9 @@
         </main>
       </div>
     </div>
+
+    <!-- 日志终端悬浮窗（覆盖整窗） -->
+    <FloatingTerminal floatingIcon="terminal" floatingLabel="日志" />
   </div>
 </template>
 
@@ -117,6 +120,7 @@ import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import ErrorModal from '@/components/modals/ErrorModal.vue'
 import LauncherPopupModal from '@/components/modals/LauncherPopupModal.vue'
 import Modal from '@/components/modals/Modal.vue'
+import FloatingTerminal from '@/components/panels/FloatingTerminal.vue'
 import TaskQueuePanel from '@/components/panels/TaskQueuePanel.vue'
 import { useFullscreenModal } from '@/composables/useFullscreenModal'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'

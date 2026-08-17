@@ -13,6 +13,7 @@ declare module 'vue' {
     Card: typeof import('./src/components/ui/Card.vue')['default']
     ConfirmDialog: typeof import('./src/components/modals/ConfirmDialog.vue')['default']
     ErrorModal: typeof import('./src/components/modals/ErrorModal.vue')['default']
+    FloatingTerminal: typeof import('./src/components/panels/FloatingTerminal.vue')['default']
     FullscreenModal: typeof import('./src/components/modals/FullscreenModal.vue')['default']
     GameAccountCard: typeof import('./src/components/game/GameAccountCard.vue')['default']
     GameInfoCard: typeof import('./src/components/game/GameInfoCard.vue')['default']

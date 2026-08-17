@@ -829,9 +829,9 @@
     "transparentBgDesc": "Make the window background transparent, allowing desktop to show through",
     "developer": "Developer",
     "debugMode": "Debug Mode",
-    "debugModeDesc": "Controls the launcher config file's debug mode (launcher.debug). Takes full effect after restarting the launcher",
+    "debugModeDesc": "Controls the launcher config file's debug mode (launcher.debug). Applies immediately.",
     "disableSslVerify": "Disable SSL Certificate Verification",
-    "disableSslVerifyDesc": "Globally disables HTTPS certificate verification (including Microsoft login). Takes full effect after restarting the launcher"
+    "disableSslVerifyDesc": "Globally disables HTTPS certificate verification; shared requests apply immediately, Microsoft login applies after restart"
   },
   "error": {
     "id": "Error ID",
@@ -1167,6 +1167,7 @@
     "modeDev": "Dev mode",
     "webviewDevtools": "Web DevTools (F12)",
     "webviewDevtoolsDesc": "Open the launcher's embedded webpage developer tools window to inspect DOM, network, console and storage.",
+    "terminalDesc": "Open the log terminal floating panel to view backend logs in real time with level filtering and search.",
     "openWebviewDevtools": "Open DevTools",
     "vueDevtools": "Vue DevTools Panel",
     "vueDevtoolsDesc": "Control the Vue DevTools panel via the Vite plugin in real time. Dev mode only.",
@@ -1369,5 +1370,20 @@
     "allDone": "All done",
     "clearCompleted": "Clear completed ({count})",
     "files": "files"
+  },
+  "terminal": {
+    "title": "Log Terminal",
+    "floating": "Logs",
+    "searchPlaceholder": "Search logs...",
+    "copy": "Copy",
+    "copied": "Copied {count} line(s)",
+    "clear": "Clear",
+    "autoScroll": "Auto-scroll",
+    "paused": "Scrolling paused",
+    "minimize": "Minimize",
+    "maximize": "Maximize",
+    "restore": "Restore",
+    "empty": "No logs",
+    "history": "History"
   }
 }

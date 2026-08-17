@@ -41,7 +41,22 @@
         </div>
       </div>
 
-      <div class="tool-row" :class="{ 'tool-row--disabled': !devMode }">
+      <div class="tool-row" :class="{ 'tool-row--disabled': !debugMode }">
+        <div class="tool-info">
+          <div class="tool-label-row">
+            <div class="tool-label">{{ t('terminal.title') }}</div>
+            <span class="mode-badge mode-badge--debug">{{ t('dev.modeDebug') }}</span>
+          </div>
+          <div class="tool-desc">{{ t('dev.terminalDesc') }}</div>
+        </div>
+        <div class="tool-control">
+          <UiButton size="sm" variant="outline" :disabled="!debugMode" @click="openTerminal">
+            {{ t('terminal.title') }}
+          </UiButton>
+        </div>
+      </div>
+
+      <div class="tool-row" :class="{ 'tool-row--disabled': !debugMode }">
         <div class="tool-info">
           <div class="tool-label-row">
             <div class="tool-label">{{ t('dev.vueDevtools') }}</div>
@@ -361,7 +376,7 @@
 
 <script setup lang="ts">
 import { NSwitch } from 'naive-ui'
-import { computed, inject, onMounted, ref, watch, type Ref } from 'vue'
+import { computed, inject, onMounted, ref, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { pinia } from '@/app/stores'
@@ -372,9 +387,16 @@ import UiButton from '@/components/ui/Button.vue'
 import UiCard from '@/components/ui/Card.vue'
 import UiInput from '@/components/ui/Input.vue'
 import UiSlider from '@/components/ui/Slider.vue'
+import {
+  resetAnimSpeed,
+  setAnimationsDisabled,
+  setContainerBoundaries,
+  useDevToolsState,
+} from '@/composables/useDevToolsState'
 import { useFlowDebug } from '@/composables/useFlowDebug'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { debugToolsApi } from '@/features/settings/api/debugToolsApi'
+import { useTerminal } from '@/features/terminal/composables/useTerminal'
 
 const { t } = useI18n()
 const message = useLauncherMessage()
@@ -394,39 +416,26 @@ const showDangerConfirm = ref(false)
 const pendingAction = ref<'reset' | 'plugins' | null>(null)
 const processingAction = ref<'reset' | 'plugins' | null>(null)
 
-const ANIMATION_DURATIONS: Record<string, number> = {
-  '--duration-instant': 0.06,
-  '--duration-fast': 0.15,
-  '--duration-normal': 0.25,
-  '--duration-slow': 0.35,
-  '--duration-slower': 0.5,
-  '--duration-slowest': 0.7,
-}
-
-const animSpeed = ref(1)
-
 const { flowDebug, setFlowDebug } = useFlowDebug()
 
 function handleFlowDebugChange(value: boolean): void {
   void setFlowDebug(value).catch(() => {})
 }
 
-// ── 显示容器边界：给所有元素叠加调试轮廓，便于观察布局层级 ──────────
-const DEBUG_OUTLINE_CLASS = 'dev-show-outlines'
-const showContainerBoundaries = ref(false)
+// ── 生效于全局的调试运行状态统一由单例管理，切页后状态与界面保持一致 ──
+const { showContainerBoundaries, animationsDisabled, animSpeed } = useDevToolsState()
 
 function toggleContainerBoundaries(value: boolean): void {
-  showContainerBoundaries.value = value
-  document.documentElement.classList.toggle(DEBUG_OUTLINE_CLASS, value)
+  setContainerBoundaries(value)
 }
 
-// ── 禁用所有动画：关闭全局动画与过渡，便于静止截图与定位布局 ────────
-const DEBUG_NO_ANIMATION_CLASS = 'dev-no-animation'
-const animationsDisabled = ref(false)
-
 function toggleAnimations(value: boolean): void {
-  animationsDisabled.value = value
-  document.documentElement.classList.toggle(DEBUG_NO_ANIMATION_CLASS, value)
+  setAnimationsDisabled(value)
+}
+
+// ── 日志终端：以悬浮窗形式展开后端实时日志 ──
+function openTerminal(): void {
+  useTerminal().openTerminal()
 }
 
 // ── 清除所有缓存：清空浏览器 Cache Storage，可能需刷新页面观察变化 ──
@@ -447,26 +456,6 @@ async function clearAllCaches(): Promise<void> {
   } finally {
     clearingCaches.value = false
   }
-}
-
-function applyAnimSpeed(speed: number): void {
-  const root = document.documentElement
-  if (speed === 1) {
-    for (const key of Object.keys(ANIMATION_DURATIONS)) {
-      root.style.removeProperty(key)
-    }
-    return
-  }
-  for (const [key, base] of Object.entries(ANIMATION_DURATIONS)) {
-    root.style.setProperty(key, `${(base / speed).toFixed(3)}s`)
-  }
-}
-
-watch(animSpeed, (speed) => applyAnimSpeed(speed), { immediate: true })
-
-function resetAnimSpeed(): void {
-  animSpeed.value = 1
-  applyAnimSpeed(1)
 }
 
 // ── 网页 F12 调试窗口 ──────────────────────────────────────────────
