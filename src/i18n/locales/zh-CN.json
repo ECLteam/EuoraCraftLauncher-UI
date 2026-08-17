@@ -1081,6 +1081,8 @@
     "webviewDevtools": "网页调试窗口 (F12)",
     "webviewDevtoolsDesc": "打开启动器内置网页的开发者工具窗口，用于查看 DOM、网络、控制台与存储。",
     "terminalDesc": "展开日志终端悬浮窗，实时查看后端日志并支持级别过滤与搜索。",
+    "spawnDebugProcess": "生成测试子进程",
+    "spawnDebugFailed": "生成测试子进程失败，需在调试模式下运行",
     "openWebviewDevtools": "打开调试窗口",
     "vueDevtools": "Vue DevTools 面板",
     "vueDevtoolsDesc": "基于 Vite 插件实时控制 Vue DevTools 面板的开合，仅开发模式可用。",
@@ -1297,6 +1299,20 @@
     "maximize": "最大化",
     "restore": "还原",
     "empty": "暂无日志",
-    "history": "历史"
+    "history": "历史",
+    "viewLog": "日志",
+    "viewInstances": "实例",
+    "instances": {
+      "title": "子进程实例",
+      "emptyTitle": "暂无实例",
+      "emptyDesc": "插件启动的子进程会显示在这",
+      "selectHint": "选择左侧实例查看实时输出",
+      "inputPlaceholder": "输入内容后回车发送",
+      "send": "发送",
+      "stop": "停止",
+      "noStdin": "该实例未开启标准输入，仅可观察输出",
+      "stopped": "已停止",
+      "running": "运行中"
+    }
   }
 }

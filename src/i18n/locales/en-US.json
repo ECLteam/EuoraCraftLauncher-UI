@@ -1168,6 +1168,8 @@
     "webviewDevtools": "Web DevTools (F12)",
     "webviewDevtoolsDesc": "Open the launcher's embedded webpage developer tools window to inspect DOM, network, console and storage.",
     "terminalDesc": "Open the log terminal floating panel to view backend logs in real time with level filtering and search.",
+    "spawnDebugProcess": "Spawn test subprocess",
+    "spawnDebugFailed": "Failed to spawn test subprocess; debug mode required",
     "openWebviewDevtools": "Open DevTools",
     "vueDevtools": "Vue DevTools Panel",
     "vueDevtoolsDesc": "Control the Vue DevTools panel via the Vite plugin in real time. Dev mode only.",
@@ -1384,6 +1386,20 @@
     "maximize": "Maximize",
     "restore": "Restore",
     "empty": "No logs",
-    "history": "History"
+    "history": "History",
+    "viewLog": "Logs",
+    "viewInstances": "Instances",
+    "instances": {
+      "title": "Process Instances",
+      "emptyTitle": "No instances",
+      "emptyDesc": "Subprocesses started by plugins appear here",
+      "selectHint": "Select an instance on the left to view live output",
+      "inputPlaceholder": "Type and press Enter to send",
+      "send": "Send",
+      "stop": "Stop",
+      "noStdin": "No standard input; output only",
+      "stopped": "Stopped",
+      "running": "Running"
+    }
   }
 }

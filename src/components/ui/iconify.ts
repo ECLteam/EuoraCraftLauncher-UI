@@ -117,6 +117,11 @@ export const ICON_MAP: Record<string, string> = {
   eraser: 'eraser',
   'auto-scroll': 'arrow-bar-to-down',
 
+  // 子进程实例视图
+  cpu: 'cpu',
+  send: 'send',
+  keyboard: 'keyboard',
+
   // 加载器
   lab: 'flask',
   fire: 'flame',

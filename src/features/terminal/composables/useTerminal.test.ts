@@ -10,7 +10,7 @@ import {
   useTerminal,
 } from './useTerminal'
 
-const MAX_LINES = 150
+const MAX_LINES = 300
 
 function sample(level: string, message = 'hello', overrides: Record<string, unknown> = {}) {
   return {

@@ -154,6 +154,56 @@
   border-bottom: 1px solid var(--ecl-border);
 }
 
+.ft-views {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--ecl-border);
+  border-radius: 8px;
+  background: var(--ecl-surface-muted);
+}
+
+.ft-view {
+  display: inline-flex;
+  height: 24px;
+  align-items: center;
+  gap: 4px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ecl-text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.ft-view:hover {
+  color: var(--ecl-text);
+}
+
+.ft-view--on {
+  background: var(--ecl-surface);
+  box-shadow: var(--ecl-shadow-surface);
+  color: var(--ecl-text);
+  font-weight: 600;
+}
+
+.ft-viewport {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ft-viewport-inner {
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
 .ft-search {
   position: relative;
   display: flex;
@@ -241,6 +291,7 @@
 }
 
 .ft-body {
+  min-height: 0;
   flex: 1;
   overflow: auto;
   padding: 8px 10px;

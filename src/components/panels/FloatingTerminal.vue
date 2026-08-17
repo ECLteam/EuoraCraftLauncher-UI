@@ -38,66 +38,92 @@
         </div>
       </div>
 
-      <!-- 工具条：搜索 / 级别过滤 / 自动滚底 / 清屏 / 复制 -->
+      <!-- 工具条：视图切换 / 搜索 / 级别过滤 / 自动滚底 / 清屏 / 复制 -->
       <div class="ft-toolbar">
-        <div class="ft-search">
-          <UiIcon name="search" :size="14" class="ft-search-icon" />
-          <input v-model="terminalQuery" :placeholder="t('terminal.searchPlaceholder')" class="ft-search-input" />
+        <div class="ft-views">
+          <button
+            class="ft-view"
+            :class="{ 'ft-view--on': terminalView === 'log' }"
+            :title="t('terminal.viewLog')"
+            @click="switchTerminalView('log')"
+          >
+            <UiIcon name="terminal" :size="14" />
+            <span>{{ t('terminal.viewLog') }}</span>
+          </button>
+          <button
+            class="ft-view"
+            :class="{ 'ft-view--on': terminalView === 'instances' }"
+            :title="t('terminal.viewInstances')"
+            @click="switchTerminalView('instances')"
+          >
+            <UiIcon name="cpu" :size="14" />
+            <span>{{ t('terminal.viewInstances') }}</span>
+          </button>
         </div>
 
-        <div class="ft-levels">
-          <button
-            v-for="level in TERMINAL_LEVELS"
-            :key="level"
-            class="ft-level"
-            :class="[`ft-level--${level.toLowerCase()}`, { 'ft-level--on': terminalLevelsVisible[level] }]"
-            @click="toggleLevel(level)"
-          >
-            {{ level }}
-          </button>
-        </div>
+        <template v-if="terminalView === 'log'">
+          <div class="ft-search">
+            <UiIcon name="search" :size="14" class="ft-search-icon" />
+            <input v-model="terminalQuery" :placeholder="t('terminal.searchPlaceholder')" class="ft-search-input" />
+          </div>
 
-        <div class="ft-actions">
-          <button
-            class="ft-btn"
-            :class="{ 'ft-btn--active': autoScrollActive }"
-            :title="t('terminal.autoScroll')"
-            @click="toggleAutoScroll"
-          >
-            <UiIcon name="auto-scroll" :size="15" />
-          </button>
-          <button class="ft-btn" :title="t('terminal.copy')" @click="copy">
-            <UiIcon name="copy" :size="15" />
-          </button>
-          <button class="ft-btn" :title="t('terminal.clear')" @click="clear">
-            <UiIcon name="eraser" :size="15" />
-          </button>
-        </div>
+          <div class="ft-levels">
+            <button
+              v-for="level in TERMINAL_LEVELS"
+              :key="level"
+              class="ft-level"
+              :class="[`ft-level--${level.toLowerCase()}`, { 'ft-level--on': terminalLevelsVisible[level] }]"
+              @click="toggleLevel(level)"
+            >
+              {{ level }}
+            </button>
+          </div>
+
+          <div class="ft-actions">
+            <button
+              class="ft-btn"
+              :class="{ 'ft-btn--active': autoScrollActive }"
+              :title="t('terminal.autoScroll')"
+              @click="toggleAutoScroll"
+            >
+              <UiIcon name="auto-scroll" :size="15" />
+            </button>
+            <button class="ft-btn" :title="t('terminal.copy')" @click="copy">
+              <UiIcon name="copy" :size="15" />
+            </button>
+            <button class="ft-btn" :title="t('terminal.clear')" @click="clear">
+              <UiIcon name="eraser" :size="15" />
+            </button>
+          </div>
+        </template>
       </div>
 
-      <!-- 日志主体 -->
-      <div ref="scrollEl" class="ft-body" @scroll="onScroll">
-        <div v-if="terminalVisibleLogs.length === 0" class="ft-empty">
-          <UiIcon name="terminal" :size="40" class="ft-empty-icon" />
-          <p>{{ t('terminal.empty') }}</p>
+      <!-- 日志 / 实例 主体 -->
+      <div class="ft-viewport">
+        <div v-if="terminalView === 'log'" ref="scrollEl" class="ft-body" @scroll="onScroll">
+          <div v-if="terminalVisibleLogs.length === 0" class="ft-empty">
+            <UiIcon name="terminal" :size="40" class="ft-empty-icon" />
+            <p>{{ t('terminal.empty') }}</p>
+          </div>
+          <div
+            v-for="(row, index) in terminalVisibleLogs"
+            :key="row.time + row.lineno + index"
+            class="ft-line"
+            :class="`ft-line--${row.level.toLowerCase()}`"
+            @dblclick="copyLine(row)"
+          >
+            <span class="ft-line-time">{{ row.time }}</span>
+            <span class="ft-line-level">{{ row.level }}</span>
+            <span class="ft-line-loc">{{ row.filename }}:{{ row.lineno }}</span>
+            <span class="ft-line-msg">
+              <template v-for="(seg, i) in highlightSegments(row.message)" :key="i">
+                <mark v-if="seg.hot" class="ft-line-mark">{{ seg.text }}</mark>
+                <template v-else>{{ seg.text }}</template>
+              </template>
+            </span>
+          </div>
         </div>
-        <div
-          v-for="(row, index) in terminalVisibleLogs"
-          :key="row.time + row.lineno + index"
-          class="ft-line"
-          :class="`ft-line--${row.level.toLowerCase()}`"
-          @dblclick="copyLine(row)"
-        >
-          <span class="ft-line-time">{{ row.time }}</span>
-          <span class="ft-line-level">{{ row.level }}</span>
-          <span class="ft-line-loc">{{ row.filename }}:{{ row.lineno }}</span>
-          <span class="ft-line-msg">
-            <template v-for="(seg, i) in highlightSegments(row.message)" :key="i">
-              <mark v-if="seg.hot" class="ft-line-mark">{{ seg.text }}</mark>
-              <template v-else>{{ seg.text }}</template>
-            </template>
-          </span>
-        </div>
+        <ProcessInstanceView v-else class="ft-viewport-inner" />
       </div>
 
       <!-- resizer -->
@@ -112,6 +138,8 @@ import { useI18n } from 'vue-i18n'
 import backend from '@/api/client'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { terminalApi } from '@/features/terminal/api/terminalApi'
+import ProcessInstanceView from '@/features/terminal/components/ProcessInstanceView.vue'
+import { globalProcessInstances } from '@/features/terminal/composables/useProcessInstances'
 import { TERMINAL_LEVELS, useTerminal } from '@/features/terminal/composables/useTerminal'
 import type { TerminalLogEntry } from '@/types/api'
 
@@ -132,6 +160,7 @@ const { t } = useI18n()
 const message = useLauncherMessage()
 const {
   terminalMode,
+  terminalView,
   terminalLogs,
   terminalUnread,
   terminalAutoScroll,
@@ -141,6 +170,7 @@ const {
   minimize,
   maximize,
   toggleLevel,
+  switchTerminalView,
   pushLog,
   clearLogs,
 } = useTerminal()
@@ -373,6 +403,7 @@ watch(
 // ── 生命周期 ─────────────────────────────────────────────────────────
 onMounted(() => {
   readState()
+  globalProcessInstances.init()
   void terminalApi
     .getLogHistory()
     .then((entries) => {
@@ -397,6 +428,7 @@ onUnmounted(() => {
     offLog()
     offLog = null
   }
+  globalProcessInstances.dispose()
 })
 </script>
 

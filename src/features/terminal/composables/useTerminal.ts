@@ -4,14 +4,19 @@ import type { TerminalLogEntry } from '@/types/api'
 /** 悬浮窗三态：minimized 圆形按钮、floating 可拖动窗口、maximized 全屏 */
 export type TerminalMode = 'minimized' | 'floating' | 'maximized'
 
+/** 终端视图：global 全局日志、instances 子进程实例 */
+export type TerminalView = 'log' | 'instances'
+
 /** 日志级别，入参后端标准化后的 levelname */
 export type TerminalLogLevel = TerminalLogEntry['level']
 
-/** 日志环形缓冲上限，超出后丢弃最旧行以避免内存无限增长 */
-const MAX_LINES = 150
+/** 日志环形缓冲上限，超出后丢弃最旧行以避免内存无限增长；与后端 ProcessService 缓冲保持一致 */
+const MAX_LINES = 300
 
 /** 当前悬浮窗形态 */
 export const terminalMode = ref<TerminalMode>('minimized')
+/** 当前视图：日志 / 子进程实例 */
+export const terminalView = ref<TerminalView>('log')
 /** 已收到的全部日志行（环形，最新在末尾） */
 export const terminalLogs = ref<TerminalLogEntry[]>([])
 /** 最小化期间累计的新日志条数，用于圆形按钮角标提示 */
@@ -78,6 +83,11 @@ export function useTerminal() {
     terminalMode.value = terminalMode.value === 'maximized' ? 'floating' : 'maximized'
   }
 
+  /** 在全局日志与子进程实例视图间切换 */
+  function switchTerminalView(view: TerminalView): void {
+    terminalView.value = view
+  }
+
   /** 后端实时推送一条日志，超限时丢弃最旧行，最小化期间累计未读数 */
   function pushLog(entry: TerminalLogEntry): void {
     terminalLogs.value.push(entry)
@@ -97,6 +107,7 @@ export function useTerminal() {
 
   return {
     terminalMode,
+    terminalView,
     terminalLogs,
     terminalUnread,
     terminalAutoScroll,
@@ -107,6 +118,7 @@ export function useTerminal() {
     minimize,
     maximize,
     toggleMaximized,
+    switchTerminalView,
     pushLog,
     clearLogs,
     toggleLevel,

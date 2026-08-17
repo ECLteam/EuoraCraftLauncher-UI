@@ -969,6 +969,31 @@ export interface TerminalLogEntry {
   message: string
 }
 
+// ═══════════════════════════════════════════════════════════════════
+//  子进程实例
+// ═══════════════════════════════════════════════════════════════════
+
+/** 后端登记的一个子进程实例（由插件经 ProcessService 启动） */
+export interface ProcessInstance {
+  id: string
+  name: string
+  type: string
+  pid: number | null
+  /** 是否开启标准输入管道（可交互） */
+  stdin: boolean
+  running: boolean
+  /** 该实例最近输出行（环形，最多 BUFFER_LIMIT 条，旧在前新在后） */
+  lines: string[]
+}
+
+/** 实时推送的某实例单行输出 */
+export interface ProcessLogEntry {
+  instanceId: string
+  name: string
+  type: string
+  line: string
+}
+
 export interface BackendEvents {
   'config:init': {
     launcher: LauncherConfig
@@ -988,6 +1013,8 @@ export interface BackendEvents {
   'launcher:error': LauncherErrorEvent
   'launcher:popup': LauncherPopupEvent
   'launcher:log': TerminalLogEntry
+  'process:instance_log': ProcessLogEntry
+  'process:instances_changed': ProcessInstance[]
   'game:install_progress': InstallProgress
   'game:launch_progress': LaunchProgress
   'game:operation_progress': GameOperation
@@ -1283,6 +1310,18 @@ export interface CommandPayloadMap {
   export_logs: { output_path?: string }
   logs_get_history: undefined
 
+  // 子进程实例
+  process_instances: undefined
+  process_input: { instance_id: string; data: string }
+  process_stop: { instance_id: string; force?: boolean }
+  debug_process_spawn: {
+    name: string
+    type: string
+    args: string[]
+    cwd?: string
+    stdin?: boolean
+  }
+
   // 插件
   plugin_list: undefined
   plugin_info: { plugin_name: string }
@@ -1541,6 +1580,11 @@ export interface CommandResponseMap {
   game_launch_cancel: void
   export_logs: { path: string }
   logs_get_history: { logs: TerminalLogEntry[] }
+
+  process_instances: { instances: ProcessInstance[] }
+  process_input: { sent: boolean }
+  process_stop: { stopped: boolean }
+  debug_process_spawn: { instanceId: string }
   game_instance_stop: void
   game_crash_analyze: CrashAnalysisResult
   game_crash_output: { name: string; content: string }

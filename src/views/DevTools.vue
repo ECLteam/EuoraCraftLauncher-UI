@@ -53,6 +53,15 @@
           <UiButton size="sm" variant="outline" :disabled="!debugMode" @click="openTerminal">
             {{ t('terminal.title') }}
           </UiButton>
+          <UiButton
+            size="sm"
+            variant="outline"
+            :disabled="!debugMode || spawning"
+            :loading="spawning"
+            @click="spawnDebugInstance"
+          >
+            {{ t('dev.spawnDebugProcess') }}
+          </UiButton>
         </div>
       </div>
 
@@ -396,6 +405,7 @@ import {
 import { useFlowDebug } from '@/composables/useFlowDebug'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { debugToolsApi } from '@/features/settings/api/debugToolsApi'
+import { terminalApi } from '@/features/terminal/api/terminalApi'
 import { useTerminal } from '@/features/terminal/composables/useTerminal'
 
 const { t } = useI18n()
@@ -415,6 +425,7 @@ const inputValue = ref('')
 const showDangerConfirm = ref(false)
 const pendingAction = ref<'reset' | 'plugins' | null>(null)
 const processingAction = ref<'reset' | 'plugins' | null>(null)
+const spawning = ref(false)
 
 const { flowDebug, setFlowDebug } = useFlowDebug()
 
@@ -436,6 +447,37 @@ function toggleAnimations(value: boolean): void {
 // ── 日志终端：以悬浮窗形式展开后端实时日志 ──
 function openTerminal(): void {
   useTerminal().openTerminal()
+}
+
+// ── 生成测试子进程：端到端验收实例终端（stdin 交互 + 实时输出） ──
+async function spawnDebugInstance(): Promise<void> {
+  spawning.value = true
+  try {
+    const script = [
+      'import sys',
+      'print("[debug-spawn] ready, type a line then press Enter")',
+      'try:',
+      '    for line in iter(sys.stdin.readline, ""):',
+      '        print("[debug-spawn] echo: " + line.rstrip("\\n"))',
+      'except KeyboardInterrupt:',
+      '    pass',
+      'print("[debug-spawn] exit")',
+    ].join('\n')
+    const ok = await terminalApi.spawnDebugProcess({
+      name: 'debug-spawn',
+      type: 'plugin:debug',
+      args: ['python', '-u', '-c', script],
+      stdin: true,
+    })
+    if (ok) {
+      useTerminal().switchTerminalView('instances')
+      useTerminal().openTerminal()
+    } else {
+      message.error(t('dev.spawnDebugFailed'))
+    }
+  } finally {
+    spawning.value = false
+  }
 }
 
 // ── 清除所有缓存：清空浏览器 Cache Storage，可能需刷新页面观察变化 ──

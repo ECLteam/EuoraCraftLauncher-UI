@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   on: vi.fn(),
   off: vi.fn(),
   getLogHistory: vi.fn(),
+  getProcessInstances: vi.fn(),
   success: vi.fn(),
 }))
 
@@ -17,7 +18,7 @@ vi.mock('@/api/client', () => ({
 }))
 
 vi.mock('@/features/terminal/api/terminalApi', () => ({
-  terminalApi: { getLogHistory: mocks.getLogHistory },
+  terminalApi: { getLogHistory: mocks.getLogHistory, getProcessInstances: mocks.getProcessInstances },
 }))
 
 vi.mock('@/composables/useLauncherMessage', () => ({
@@ -44,6 +45,7 @@ describe('FloatingTerminal 悬浮终端', () => {
   beforeEach(() => {
     mocks.on.mockReturnValue(mocks.off)
     mocks.getLogHistory.mockResolvedValue([])
+    mocks.getProcessInstances.mockResolvedValue([])
     resetState()
   })
 
@@ -51,6 +53,7 @@ describe('FloatingTerminal 悬浮终端', () => {
     document.body.innerHTML = ''
     mocks.on.mockReset()
     mocks.getLogHistory.mockReset()
+    mocks.getProcessInstances.mockReset()
   })
 
   it('挂载时订阅 launcher:log，卸载时取消订阅', async () => {
