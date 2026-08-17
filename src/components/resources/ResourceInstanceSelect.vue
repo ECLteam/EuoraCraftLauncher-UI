@@ -2,7 +2,7 @@
   <NSelect
     v-model:value="currentKey"
     :options="options"
-    :render-label="renderLabel"
+    :renderLabel="renderLabel"
     :placeholder="t('mods.selectInstance')"
     filterable
     :disabled="!target.ready.value || options.length === 0"
