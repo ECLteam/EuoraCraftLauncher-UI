@@ -91,6 +91,13 @@ export const ICON_MAP: Record<string, string> = {
   bell: 'bell',
   lightbulb: 'bulb',
 
+  // 品牌/链接
+  github: 'brand-github',
+  'brand-github': 'brand-github',
+  'external-site': 'world',
+  'search-engine': 'world',
+  'file-source': 'file-code',
+
   // 消息类型
   success: 'circle-check',
   error: 'circle-x',

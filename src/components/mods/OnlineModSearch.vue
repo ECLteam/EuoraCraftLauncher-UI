@@ -351,7 +351,11 @@ const sortedResults = computed(() => {
   if (sortFilter.value === 'downloads') {
     list.sort((a, b) => b.downloads - a.downloads)
   } else if (sortFilter.value === 'updated') {
-    list.sort((a, b) => (b.updated?.getTime?.() ?? 0) - (a.updated?.getTime?.() ?? 0))
+    list.sort(
+      (a, b) =>
+        (b.dateModified ? new Date(b.dateModified).getTime() : 0) -
+        (a.dateModified ? new Date(a.dateModified).getTime() : 0),
+    )
   }
   return list
 })

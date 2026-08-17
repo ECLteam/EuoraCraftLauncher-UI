@@ -18,7 +18,6 @@ export const URLS = {
 
   /** 镜像源 */
   bmclapi: 'https://bmclapi2.bangbang93.com',
-  littleskin: 'https://littleskin.cn',
 
   // ---- 技术栈链接 ----
 
@@ -46,6 +45,61 @@ export const URLS = {
     repo: 'https://github.com/yushijinhun/authlib-injector',
     license: 'https://github.com/yushijinhun/authlib-injector/blob/develop/LICENSE',
   },
+  pinia: {
+    repo: 'https://github.com/vuejs/pinia',
+    license: 'https://github.com/vuejs/pinia/blob/v2/packages/pinia/LICENSE',
+  },
+  vueRouter: {
+    repo: 'https://github.com/vuejs/router',
+    license: 'https://github.com/vuejs/router/blob/main/LICENSE',
+  },
+  vueI18n: {
+    repo: 'https://github.com/intlify/vue-i18n',
+    license: 'https://github.com/intlify/vue-i18n/blob/master/LICENSE',
+  },
+  vueUse: {
+    repo: 'https://github.com/vueuse/vueuse',
+    license: 'https://github.com/vueuse/vueuse/blob/main/LICENSE',
+  },
+  gsap: {
+    repo: 'https://github.com/greensock/GSAP',
+    license: 'https://github.com/greensock/GSAP/blob/master/LICENSE',
+  },
+  tailwind: {
+    repo: 'https://github.com/tailwindlabs/tailwindcss',
+    license: 'https://github.com/tailwindlabs/tailwindcss/blob/master/LICENSE',
+  },
+  valibot: {
+    repo: 'https://github.com/fabian-hiller/valibot',
+    license: 'https://github.com/fabian-hiller/valibot/blob/main/LICENSE.md',
+  },
+  typescript: {
+    repo: 'https://github.com/microsoft/TypeScript',
+    license: 'https://github.com/microsoft/TypeScript/blob/main/LICENSE.txt',
+  },
+  skinview3d: {
+    repo: 'https://github.com/bs-community/skinview3d',
+    license: 'https://github.com/bs-community/skinview3d/blob/master/LICENSE',
+  },
+  easyTier: {
+    repo: 'https://github.com/EasyTier/EasyTier',
+    license: 'https://github.com/EasyTier/EasyTier/blob/main/LICENSE',
+  },
+  easyTierPyO3: {
+    repo: 'https://github.com/ECLteam/EasyTier-PyO3',
+    license: 'https://github.com/ECLteam/EasyTier-PyO3/blob/main/LICENSE',
+  },
+  scaffoldingMC: {
+    repo: 'https://github.com/Scaffolding-MC/Scaffolding-MC',
+    license: 'https://github.com/Scaffolding-MC/Scaffolding-MC/blob/main/LICENSE',
+  },
+  hmcl: {
+    repo: 'https://github.com/HMCL-dev/HMCL',
+    license: 'https://github.com/HMCL-dev/HMCL/blob/main/LICENSE',
+  },
+  modrinth: 'https://modrinth.com',
+  curseforge: 'https://www.curseforge.com/minecraft',
+  mcmod: 'https://www.mcmod.cn',
 } as const
 
 /** 头像 URL 构建 */
