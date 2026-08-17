@@ -389,7 +389,7 @@
   white-space: nowrap;
 }
 .plugin-font-mono {
-  font-family: 'Consolas', 'Monaco', monospace;
+  font-family: var(--font-mono, 'Consolas', 'Monaco', monospace);
 }
 
 /* ---- 滚动条 ---- */

@@ -75,7 +75,7 @@
               :class="[`ft-level--${level.toLowerCase()}`, { 'ft-level--on': terminalLevelsVisible[level] }]"
               @click="toggleLevel(level)"
             >
-              {{ level }}
+              [{{ level }}]
             </button>
           </div>
 
@@ -113,7 +113,7 @@
             @dblclick="copyLine(row)"
           >
             <span class="ft-line-time">{{ row.time }}</span>
-            <span class="ft-line-level">{{ row.level }}</span>
+            <span class="ft-line-level">[{{ row.level }}]</span>
             <span class="ft-line-loc">{{ row.filename }}:{{ row.lineno }}</span>
             <span class="ft-line-msg">
               <template v-for="(seg, i) in highlightSegments(row.message)" :key="i">
@@ -333,7 +333,7 @@ async function copy(): Promise<void> {
 }
 
 function copyLine(row: { message: string; time: string; level: string }): void {
-  void copyText(`${row.time} ${row.level} ${row.message}`)
+  void copyText(`${row.time} [${row.level}] ${row.message}`)
 }
 
 async function copyText(text: string): Promise<void> {
