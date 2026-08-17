@@ -8,7 +8,7 @@ export type TerminalMode = 'minimized' | 'floating' | 'maximized'
 export type TerminalLogLevel = TerminalLogEntry['level']
 
 /** 日志环形缓冲上限，超出后丢弃最旧行以避免内存无限增长 */
-const MAX_LINES = 2000
+const MAX_LINES = 150
 
 /** 当前悬浮窗形态 */
 export const terminalMode = ref<TerminalMode>('minimized')
