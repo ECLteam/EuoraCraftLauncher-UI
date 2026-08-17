@@ -13,25 +13,45 @@
 
     <div class="mods-search-toolbar">
       <div class="search-controls">
-        <NInput
-          v-model:value="query"
-          class="query-input"
-          :placeholder="t('mods.searchPlaceholder')"
-          clearable
-          @keydown.enter="handleSearch"
-        >
-          <template #prefix><UiIcon name="search" :size="15" /></template>
-        </NInput>
-        <NButton type="primary" :loading="loading" @click="handleSearch">
-          <template #icon><UiIcon name="search" :size="15" /></template>
-          {{ t('mods.search') }}
-        </NButton>
+        <div class="search-controls-main">
+          <NInput
+            v-model:value="query"
+            class="query-input"
+            :placeholder="t('mods.searchPlaceholder')"
+            clearable
+            @keydown.enter="handleSearch"
+          >
+            <template #prefix><UiIcon name="search" :size="15" /></template>
+          </NInput>
+          <NButton type="primary" :loading="loading" @click="handleSearch">
+            <template #icon><UiIcon name="search" :size="15" /></template>
+            {{ t('mods.search') }}
+          </NButton>
+        </div>
+        <ResourceInstanceSelect
+          :target="target"
+          class="oms-instance-select"
+          @persist="onInstancePersist"
+        />
       </div>
-      <ResourceInstanceSelect
-        :target="target"
-        class="oms-instance-select"
-        @persist="onInstancePersist"
-      />
+
+      <div class="search-filters">
+        <NSelect
+          v-model:value="categoryFilter"
+          :options="categoryOptions"
+          :placeholder="t('mods.category')"
+          filterable
+          class="filter-item"
+        />
+        <NSelect
+          v-model:value="sortFilter"
+          :options="sortOptions"
+          class="filter-item-small"
+        />
+        <span class="search-result-count">
+          {{ searched ? t('mods.resultCount', { count: results.length }) : '' }}
+        </span>
+      </div>
     </div>
 
     <div v-if="resourceType === 'datapack'" class="datapack-world-row">
@@ -64,60 +84,78 @@
       <div class="mods-results-content">
         <NSpin :show="loading" class="mods-results-spin">
           <NScrollbar v-if="results.length" class="mods-results-scroll">
-            <div class="mod-grid">
+            <div class="mod-list">
               <article v-for="mod in results" :key="mod.id" class="mod-card" @click="openDetails(mod)">
-                <div class="mod-card-header">
-                  <NAvatar :size="54" :src="mod.iconUrl" color="var(--ecl-surface-muted)" objectFit="cover">
-                    <UiIcon name="cube" :size="24" />
+                <div class="mod-icon-col">
+                  <NAvatar :size="52" :src="mod.iconUrl" color="var(--ecl-surface-muted)" objectFit="cover">
+                    <UiIcon name="cube" :size="22" />
                   </NAvatar>
-                  <div class="mod-title-wrap">
-                    <h3>{{ mod.displayTitle }}</h3>
-                    <p v-if="mod.displayTitle !== mod.title">{{ mod.title }}</p>
-                    <p v-else>{{ mod.author }}</p>
+                </div>
+
+                <div class="mod-info-col">
+                  <div class="mod-title-row">
+                    <div class="mod-title">
+                      <h3>{{ mod.displayTitle }}</h3>
+                      <p>{{ mod.displayTitle !== mod.title ? mod.title : mod.author }}</p>
+                    </div>
+                    <div class="platform-tags">
+                      <NTag
+                        v-for="platform in mod.alternatives"
+                        :key="`${platform.source}:${platform.projectId}`"
+                        size="small"
+                        :bordered="false"
+                        :type="platform.source === 'modrinth' ? 'success' : 'warning'"
+                      >
+                        {{ sourceLabel(platform.source) }}
+                      </NTag>
+                    </div>
                   </div>
-                  <div class="platform-tags">
-                    <NTag
-                      v-for="platform in mod.alternatives"
-                      :key="`${platform.source}:${platform.projectId}`"
-                      size="small"
-                      :bordered="false"
-                      :type="platform.source === 'modrinth' ? 'success' : 'warning'"
-                    >
-                      {{ sourceLabel(platform.source) }}
+
+                  <p class="mod-description">{{ mod.wiki?.summary || mod.description }}</p>
+
+                  <div class="mod-meta-row">
+                    <span class="mod-meta-item">
+                      <UiIcon name="user" :size="12" />
+                      {{ mod.author }}
+                    </span>
+                    <span class="mod-meta-item">
+                      <UiIcon name="download" :size="12" />
+                      {{ formatDownloads(mod.downloads) }}
+                    </span>
+                  </div>
+
+                  <div class="mod-tags">
+                    <NTag v-if="mod.wiki" size="small" :bordered="false" type="info">MC 百科</NTag>
+                    <NTag v-if="resourceType !== 'mod'" size="small" :bordered="false" type="info">
+                      {{ t(`download.${resourceType}`) }}
+                    </NTag>
+                    <template v-if="resourceType === 'mod'">
+                      <NTag v-for="loader in mod.loaders.slice(0, 3)" :key="loader" size="small" :bordered="false">
+                        {{ loaderName(loader) }}
+                      </NTag>
+                    </template>
+                    <NTag v-for="category in mod.categories.slice(0, 3)" :key="category" size="small" :bordered="false">
+                      {{ category }}
                     </NTag>
                   </div>
                 </div>
 
-                <p class="mod-description">{{ mod.wiki?.summary || mod.description }}</p>
-
-                <div class="mod-tags">
-                  <NTag v-if="mod.wiki" size="small" :bordered="false" type="info">MC 百科</NTag>
-                  <NTag v-if="resourceType !== 'mod'" size="small" :bordered="false" type="info">
-                    {{ t(`download.${resourceType}`) }}
-                  </NTag>
-                  <template v-if="resourceType === 'mod'">
-                    <NTag v-for="loader in mod.loaders.slice(0, 3)" :key="loader" size="small" :bordered="false">
-                      {{ loaderName(loader) }}
-                    </NTag>
-                  </template>
-                  <NTag v-for="category in mod.categories.slice(0, 2)" :key="category" size="small" :bordered="false">
-                    {{ category }}
-                  </NTag>
-                </div>
-
-                <div class="mod-card-footer">
-                  <span><UiIcon name="download" :size="13" />{{ formatDownloads(mod.downloads) }}</span>
-                  <div class="mod-card-actions">
+                <div class="mod-actions-col">
+                  <div class="mod-card-buttons">
+                    <NButton type="primary" size="small" @click.stop="openDetails(mod)">
+                      <template #icon><UiIcon name="download" :size="14" /></template>
+                      {{ t('mods.install') }}
+                    </NButton>
+                    <NButton size="small" secondary @click.stop="openDetails(mod)">
+                      {{ t('mods.chooseVersion') }}
+                    </NButton>
                     <NButton
                       v-if="resourceType === 'mod' && isDownloadHost"
-                      size="small"
+                      size="tiny"
                       quaternary
                       @click.stop="openInModPage(mod)"
                     >
                       {{ t('mods.viewOnModPage') }}
-                    </NButton>
-                    <NButton type="primary" size="small" secondary @click.stop="openDetails(mod)">
-                      {{ t('mods.chooseVersion') }}
                     </NButton>
                   </div>
                 </div>
@@ -287,6 +325,21 @@ let dragDepth = 0
 const selectedWorldId = ref<string | null>(null)
 const worldOptions = ref<Array<{ label: string; value: string }>>([])
 const worldsLoading = ref(false)
+
+// New filter state
+const categoryFilter = ref('')
+const sortFilter = ref('relevance')
+const categoryOptions = computed(() => [
+  { label: t('mods.allCategories'), value: '' },
+  ...Array.from(new Set(results.value.flatMap((r) => r.categories)))
+    .filter(Boolean)
+    .map((cat) => ({ label: cat, value: cat })),
+])
+const sortOptions = [
+  { label: t('mods.sortRelevance'), value: 'relevance' },
+  { label: t('mods.sortDownloads'), value: 'downloads' },
+  { label: t('mods.sortUpdated'), value: 'updated' },
+]
 
 const isDownloadHost = computed(() => route.name !== 'online-mods')
 
