@@ -13,7 +13,7 @@ export function instanceKey(version: Pick<ScannedVersion, 'path' | 'versionId'>)
 }
 
 export function parseInstanceKey(key: string): { path: string; versionId: string } {
-  const [path, versionId] = key.split('\u0000')
+  const [path = '', versionId = ''] = key.split('\u0000')
   return { path, versionId }
 }
 

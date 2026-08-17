@@ -516,8 +516,8 @@
 <script setup lang="ts">
 import { NButton, NInput, NInputGroup, NInputNumber, NSelect, NSpin, NSwitch } from 'naive-ui'
 import { ref, reactive, computed, watch, nextTick, onBeforeUnmount } from 'vue'
-import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import backend from '@/api/client'
 import { launcherErrorQueue } from '@/app/runtime/errorPresentation'
 import InstanceIcon from '@/components/instances/InstanceIcon.vue'

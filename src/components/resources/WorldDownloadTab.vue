@@ -36,9 +36,9 @@ import backend from '@/api/client'
 import { unwrapResponse } from '@/app/runtime/errorPresentation'
 import ResourceInstanceSelect from '@/components/resources/ResourceInstanceSelect.vue'
 import UiIcon from '@/components/ui/Icon.vue'
-import { useResourceInstallTarget } from '@/composables/useResourceInstallTarget'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
-import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
+import { useResourceInstallTarget } from '@/composables/useResourceInstallTarget'
+import { instanceWorkspaceApi } from '@/features/instances/api/instanceWorkspaceApi'
 import { getErrorMessage } from '@/utils/error'
 
 const { t } = useI18n()

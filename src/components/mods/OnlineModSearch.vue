@@ -95,9 +95,11 @@
                   <NTag v-if="resourceType !== 'mod'" size="small" :bordered="false" type="info">
                     {{ t(`download.${resourceType}`) }}
                   </NTag>
-                  <NTag v-if="resourceType === 'mod'" v-for="loader in mod.loaders.slice(0, 3)" :key="loader" size="small" :bordered="false">
-                    {{ loaderName(loader) }}
-                  </NTag>
+                  <template v-if="resourceType === 'mod'">
+                    <NTag v-for="loader in mod.loaders.slice(0, 3)" :key="loader" size="small" :bordered="false">
+                      {{ loaderName(loader) }}
+                    </NTag>
+                  </template>
                   <NTag v-for="category in mod.categories.slice(0, 2)" :key="category" size="small" :bordered="false">
                     {{ category }}
                   </NTag>
@@ -225,9 +227,9 @@ import { useRoute, useRouter } from 'vue-router'
 import Modal from '@/components/modals/Modal.vue'
 import ResourceInstanceSelect from '@/components/resources/ResourceInstanceSelect.vue'
 import UiIcon from '@/components/ui/Icon.vue'
-import { useResourceInstallTarget, instanceKey } from '@/composables/useResourceInstallTarget'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
+import { instanceKey, useResourceInstallTarget } from '@/composables/useResourceInstallTarget'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
 import { localModsApi } from '@/features/instances/api/localModsApi'

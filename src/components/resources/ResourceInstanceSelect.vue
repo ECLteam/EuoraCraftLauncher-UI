@@ -7,10 +7,10 @@
     :disabled="!target.ready.value || options.length === 0"
     class="resource-instance-select"
   >
-    <template #option="opt">
+    <template #render-label="{ option }">
       <span class="ris-option">
         <UiIcon name="game-controller" :size="14" />
-        <span>{{ opt.label }}</span>
+        <span>{{ option.label }}</span>
       </span>
     </template>
   </NSelect>
@@ -21,8 +21,7 @@ import { NSelect } from 'naive-ui'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
-import { instanceKey } from '@/composables/useResourceInstallTarget'
-import type { useResourceInstallTarget } from '@/composables/useResourceInstallTarget'
+import { instanceKey, type useResourceInstallTarget } from '@/composables/useResourceInstallTarget'
 
 const props = defineProps<{
   target: ReturnType<typeof useResourceInstallTarget>
