@@ -6,6 +6,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'MapleMono';
+  src: url('/fonts/MapleMono[wght]-VF.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --font-body: 'HarmonyOS Sans SC', sans-serif;
   --font-display: 'HarmonyOS Sans SC', sans-serif;

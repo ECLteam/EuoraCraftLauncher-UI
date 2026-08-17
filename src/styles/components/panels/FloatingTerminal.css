@@ -246,8 +246,9 @@
   padding: 8px 10px;
   background: rgba(127, 127, 127, 0.06);
   color: var(--ecl-text);
-  font-family: var(--font-mono);
+  font-family: 'MapleMono', 'JetBrains Mono', 'HarmonyOS Sans SC', sans-serif;
   font-size: 12px;
+  font-variation-settings: 'wght' 500;
   line-height: 1.55;
 }
 
