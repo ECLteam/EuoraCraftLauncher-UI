@@ -19,6 +19,18 @@ export interface TaskItem {
   timestamp: number
   versionId: string
   loaderType: string
+  /** 进度模式：'bytes' 表示 done/total 为字节数，'files' 表示文件数 */
+  progressType?: 'bytes' | 'files'
+  /** 当前完成量（字节或文件数，取决于 progressType） */
+  done?: number
+  /** 总量（字节或文件数，取决于 progressType） */
+  total?: number
+  /** 下载文件总数 */
+  totalFiles?: number
+  /** 已下载文件数 */
+  downloadedFiles?: number
+  /** 当前下载速度，字节/秒 */
+  speed?: number
 }
 
 const tasks = ref<TaskItem[]>([])
@@ -55,7 +67,21 @@ export function useTaskQueue() {
 
   function updateTask(
     taskId: string,
-    updates: Partial<Pick<TaskItem, 'status' | 'progress' | 'message' | 'subtasks'>>
+    updates: Partial<
+      Pick<
+        TaskItem,
+        | 'status'
+        | 'progress'
+        | 'message'
+        | 'subtasks'
+        | 'progressType'
+        | 'done'
+        | 'total'
+        | 'totalFiles'
+        | 'downloadedFiles'
+        | 'speed'
+      >
+    >
   ) {
     const task = tasks.value.find((t) => t.id === taskId)
     if (!task) return
@@ -63,6 +89,12 @@ export function useTaskQueue() {
     if (updates.progress !== undefined) task.progress = Math.min(100, Math.max(0, updates.progress))
     if (updates.message !== undefined) task.message = updates.message
     if (updates.subtasks !== undefined) task.subtasks = updates.subtasks
+    if (updates.progressType !== undefined) task.progressType = updates.progressType
+    if (updates.done !== undefined) task.done = updates.done
+    if (updates.total !== undefined) task.total = updates.total
+    if (updates.totalFiles !== undefined) task.totalFiles = updates.totalFiles
+    if (updates.downloadedFiles !== undefined) task.downloadedFiles = updates.downloadedFiles
+    if (updates.speed !== undefined) task.speed = updates.speed
   }
 
   function addSubtask(taskId: string, subtask: Subtask) {

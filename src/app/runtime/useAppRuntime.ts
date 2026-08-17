@@ -101,17 +101,44 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
     const done = payload.done ?? 0
     const total = payload.total ?? 1
     const subtask = payload.subtask || ''
+    const progressType = payload.progress_type === 'bytes' || payload.progress_type === 'files' ? payload.progress_type : undefined
 
     if (phase === 'done') {
-      globalTaskQueue.updateTask(taskId, { status: 'completed', progress: 100, message: message || '安装完成' })
+      globalTaskQueue.updateTask(taskId, {
+        status: 'completed',
+        progress: 100,
+        message: message || '安装完成',
+        progressType,
+        done,
+        total,
+        totalFiles: payload.total_files,
+        downloadedFiles: payload.downloaded_files,
+        speed: 0,
+      })
     } else if (phase === 'error') {
-      globalTaskQueue.updateTask(taskId, { status: 'error', message: message || '安装失败' })
+      globalTaskQueue.updateTask(taskId, {
+        status: 'error',
+        message: message || '安装失败',
+        progressType,
+        done,
+        total,
+        totalFiles: payload.total_files,
+        downloadedFiles: payload.downloaded_files,
+        speed: 0,
+      })
     } else {
-      const progress = phase === 'download' && total > 0 ? Math.round((done / total) * 100) : 3
+      // 所有阶段按 done/total 线性计算真实进度，下载阶段使用字节/文件进度
+      const progress = total > 0 ? Math.round((done / total) * 100) : 3
       globalTaskQueue.updateTask(taskId, {
         status: 'running',
-        progress: Math.max(phase === 'download' ? 5 : 3, progress),
+        progress: Math.max(1, Math.min(100, progress)),
         message,
+        progressType,
+        done,
+        total,
+        totalFiles: payload.total_files,
+        downloadedFiles: payload.downloaded_files,
+        speed: payload.speed,
       })
     }
 

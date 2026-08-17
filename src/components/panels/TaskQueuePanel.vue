@@ -73,6 +73,21 @@
             </button>
           </div>
 
+          <!-- 下载统计：文件数 / 字节进度 / 实时速度 -->
+          <div v-if="showTaskStats(task)" class="tq-task-stats">
+            <span v-if="task.totalFiles != null" class="tq-stat tq-stat-files">
+              <UiIcon name="file-text" :size="12" />
+              {{ task.downloadedFiles ?? 0 }} / {{ task.totalFiles }} {{ t('taskQueue.files') }}
+            </span>
+            <span v-if="task.progressType === 'bytes' && task.total" class="tq-stat tq-stat-bytes">
+              {{ formatBytes(task.done ?? 0) }} / {{ formatBytes(task.total) }}
+            </span>
+            <span v-if="task.status === 'running' && task.speed" class="tq-stat tq-stat-speed">
+              <UiIcon name="download" :size="12" />
+              {{ formatSpeed(task.speed) }}
+            </span>
+          </div>
+
           <Transition name="tq-expand">
             <div v-if="task.expanded" class="tq-task-detail">
               <div class="tq-task-message">
@@ -104,7 +119,7 @@ import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
-import { globalTaskQueue } from '@/composables/useTaskQueue'
+import { globalTaskQueue, type TaskItem } from '@/composables/useTaskQueue'
 import { getLoaderLabel } from '@/utils/loader'
 
 defineOptions({ name: 'TaskQueuePanel' })
@@ -116,6 +131,22 @@ const { tasks, panelVisible, activeCount, removeTask, clearCompleted: queueClear
 const completedCount = computed(
   () => tasks.value.filter((t) => t.status === 'completed' || t.status === 'error' || t.status === 'canceled').length
 )
+
+function formatBytes(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '0 B'
+  const units = ['B', 'KB', 'MB', 'GB']
+  const index = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)))
+  const value = bytes / 1024 ** index
+  return `${value >= 100 ? Math.round(value) : value.toFixed(1)} ${units[index]}`
+}
+
+function formatSpeed(speed: number): string {
+  return `${formatBytes(speed)}/s`
+}
+
+function showTaskStats(task: TaskItem): boolean {
+  return task.totalFiles != null || (task.progressType === 'bytes' && !!task.total) || (task.status === 'running' && !!task.speed)
+}
 
 function clearCompleted() {
   queueClearCompleted()
