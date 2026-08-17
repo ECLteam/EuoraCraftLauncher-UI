@@ -101,7 +101,8 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
     const done = payload.done ?? 0
     const total = payload.total ?? 1
     const subtask = payload.subtask || ''
-    const progressType = payload.progress_type === 'bytes' || payload.progress_type === 'files' ? payload.progress_type : undefined
+    const progressType =
+      payload.progress_type === 'bytes' || payload.progress_type === 'files' ? payload.progress_type : undefined
 
     if (phase === 'done') {
       globalTaskQueue.updateTask(taskId, {

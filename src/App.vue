@@ -48,6 +48,9 @@
           <!-- 任务队列全屏面板 -->
           <TaskQueuePanel />
 
+          <!-- 启动器日志悬浮窗（调试界面开关控制，默认隐藏） -->
+          <FloatingLauncherLog />
+
           <!-- 退出确认弹窗 -->
           <ConfirmDialog
             v-model:visible="showQuitConfirmModal"
@@ -101,9 +104,6 @@
         </main>
       </div>
     </div>
-
-    <!-- 日志终端悬浮窗（覆盖整窗） -->
-    <FloatingTerminal floatingIcon="terminal" floatingLabel="日志" />
   </div>
 </template>
 
@@ -120,12 +120,12 @@ import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import ErrorModal from '@/components/modals/ErrorModal.vue'
 import LauncherPopupModal from '@/components/modals/LauncherPopupModal.vue'
 import Modal from '@/components/modals/Modal.vue'
-import FloatingTerminal from '@/components/panels/FloatingTerminal.vue'
 import TaskQueuePanel from '@/components/panels/TaskQueuePanel.vue'
 import { useFullscreenModal } from '@/composables/useFullscreenModal'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
 import { useUserAgreement } from '@/composables/useUserAgreement'
+import FloatingLauncherLog from '@/features/terminal/components/FloatingLauncherLog.vue'
 import { getErrorMessage } from '@/utils/error'
 import { openExternalUrl } from '@/utils/openExternal'
 

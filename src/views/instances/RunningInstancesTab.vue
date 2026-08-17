@@ -20,6 +20,11 @@
             <UiIcon name="refresh" :size="14" :className="loading ? 'spin' : ''" />
             {{ t('versions.running.refresh') }}
           </button>
+
+          <button class="running-terminal" :title="t('versions.running.terminal')" @click="emit('openTerminal')">
+            <UiIcon name="terminal" :size="14" />
+            {{ t('versions.running.terminal') }}
+          </button>
         </div>
       </header>
 
@@ -111,6 +116,7 @@ import { getLoaderImage } from '@/config/version'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
 import type { GameInstance } from '@/types/api'
 
+const emit = defineEmits<{ (e: 'openTerminal'): void }>()
 const { t } = useI18n()
 const message = useLauncherMessage()
 const instances = ref<GameInstance[]>([])
@@ -305,6 +311,26 @@ async function handleConfirm() {
 .running-refresh:disabled {
   cursor: default;
   opacity: 0.55;
+}
+
+.running-terminal {
+  display: inline-flex;
+  height: 29px;
+  align-items: center;
+  gap: 4px;
+  padding: 0 9px;
+  border: 1px solid var(--primary-alpha, color-mix(in srgb, var(--primary), transparent 82%));
+  border-radius: var(--r-sm);
+  background: var(--primary-alpha, color-mix(in srgb, var(--primary), transparent 88%));
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 11px;
+  transition: all var(--duration-fast) ease-out;
+}
+
+.running-terminal:hover {
+  background: var(--primary);
+  color: var(--text-on-primary);
 }
 
 .running-instances-content {

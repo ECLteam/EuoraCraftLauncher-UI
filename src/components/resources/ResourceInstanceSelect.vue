@@ -44,10 +44,7 @@ const currentKey = computed({
 })
 
 function renderLabel(option: { label: string; value: string }): VNode {
-  return h('span', { class: 'ris-option' }, [
-    h(UiIcon, { name: 'game-controller', size: 14 }),
-    h('span', option.label),
-  ])
+  return h('span', { class: 'ris-option' }, [h(UiIcon, { name: 'game-controller', size: 14 }), h('span', option.label)])
 }
 </script>
 

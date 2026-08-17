@@ -74,10 +74,11 @@
       :showFooter="false"
       bodyClass="running-instances-modal-body"
     >
-      <div class="running-instances-modal-content">
-        <RunningInstancesTab v-if="showRunningInstances" />
-      </div>
+      <RunningInstancesTab v-if="showRunningInstances" @openTerminal="openInstanceTerminal" />
     </FullscreenModal>
+
+    <!-- 实例终端：独立全屏面板，叠于实例运行管理之上，关闭后回到下层 -->
+    <InstanceTerminalOverlay v-model:visible="showInstanceTerminal" />
 
     <FullscreenModal
       v-model:visible="account.showAccountModal"
@@ -451,6 +452,7 @@ import { useGameInfoCard } from '@/features/game-home/composables/useGameInfoCar
 import { useGameHomeStore } from '@/features/game-home/stores/gameHomeStore'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
+import InstanceTerminalOverlay from '@/features/terminal/components/InstanceTerminalOverlay.vue'
 import { getLoaderIcon, getLoaderImage } from '@/utils/loader'
 import RunningInstancesTab from '@/views/instances/RunningInstancesTab.vue'
 
@@ -483,9 +485,15 @@ type AccountType = 'microsoft' | 'offline' | 'authlib'
 const showAddAccountModal = ref(false)
 const showWardrobeModal = ref(false)
 const showRunningInstances = ref(false)
+const showInstanceTerminal = ref(false)
 const runningInstanceCount = ref(0)
 let stopListeningForRunningInstances: (() => void) | null = null
 let returningFromWardrobe = false
+
+function openInstanceTerminal(): void {
+  showInstanceTerminal.value = true
+}
+
 const selectedAccountType = ref<AccountType>('microsoft')
 const showOfflineAdvanced = ref(false)
 const isShowcaseMode = backend.runtime.isShowcase

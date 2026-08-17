@@ -28,11 +28,7 @@
             {{ t('mods.search') }}
           </NButton>
         </div>
-        <ResourceInstanceSelect
-          :target="target"
-          class="oms-instance-select"
-          @persist="onInstancePersist"
-        />
+        <ResourceInstanceSelect :target="target" class="oms-instance-select" @persist="onInstancePersist" />
       </div>
 
       <div class="search-filters">
@@ -43,11 +39,7 @@
           filterable
           class="filter-item"
         />
-        <NSelect
-          v-model:value="sortFilter"
-          :options="sortOptions"
-          class="filter-item-small"
-        />
+        <NSelect v-model:value="sortFilter" :options="sortOptions" class="filter-item-small" />
         <span class="search-result-count">
           {{ searched ? t('mods.resultCount', { count: results.length }) : '' }}
         </span>
@@ -85,12 +77,7 @@
         <NSpin :show="loading" class="mods-results-spin">
           <NScrollbar v-if="results.length" class="mods-results-scroll">
             <div class="mod-list">
-              <div
-                v-for="mod in sortedResults"
-                :key="mod.id"
-                class="mod-card ecl-surface"
-                @click="openDetails(mod)"
-              >
+              <div v-for="mod in sortedResults" :key="mod.id" class="mod-card ecl-surface" @click="openDetails(mod)">
                 <div class="mod-card-icon">
                   <NAvatar :size="52" :src="mod.iconUrl" color="var(--ecl-surface-muted)" objectFit="cover">
                     <UiIcon name="cube" :size="22" />
@@ -251,17 +238,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  NAlert,
-  NAvatar,
-  NButton,
-  NEmpty,
-  NInput,
-  NScrollbar,
-  NSelect,
-  NSpin,
-  NTag,
-} from 'naive-ui'
+import { NAlert, NAvatar, NButton, NEmpty, NInput, NScrollbar, NSelect, NSpin, NTag } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -354,7 +331,7 @@ const sortedResults = computed(() => {
     list.sort(
       (a, b) =>
         (b.dateModified ? new Date(b.dateModified).getTime() : 0) -
-        (a.dateModified ? new Date(a.dateModified).getTime() : 0),
+        (a.dateModified ? new Date(a.dateModified).getTime() : 0)
     )
   }
   return list

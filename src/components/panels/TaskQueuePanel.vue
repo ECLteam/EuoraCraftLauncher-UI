@@ -145,7 +145,11 @@ function formatSpeed(speed: number): string {
 }
 
 function showTaskStats(task: TaskItem): boolean {
-  return task.totalFiles != null || (task.progressType === 'bytes' && !!task.total) || (task.status === 'running' && !!task.speed)
+  return (
+    task.totalFiles != null ||
+    (task.progressType === 'bytes' && !!task.total) ||
+    (task.status === 'running' && !!task.speed)
+  )
 }
 
 function clearCompleted() {

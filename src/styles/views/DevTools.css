@@ -273,6 +273,18 @@ h1 {
   gap: 12px;
 }
 
+.tool-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tool-switch-label {
+  color: var(--text-secondary);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 @media (max-width: 560px) {
   .tool-row {
     align-items: flex-start;

@@ -241,17 +241,11 @@
                           <div class="mod-card-identity">
                             <span class="mod-card-icon"><UiIcon name="cube" :size="18" /></span>
                             <div class="mod-card-title">
-                              <strong>{{
-                                mod.name || mod.filename.replace(/\.(jar|disabled)$/, '')
-                              }}</strong>
+                              <strong>{{ mod.name || mod.filename.replace(/\.(jar|disabled)$/, '') }}</strong>
                               <span class="mod-card-filename">{{ mod.filename }}</span>
                             </div>
                           </div>
-                          <span
-                            v-if="mod.loader_type"
-                            class="badge"
-                            :class="'badge-' + mod.loader_type.toLowerCase()"
-                          >
+                          <span v-if="mod.loader_type" class="badge" :class="'badge-' + mod.loader_type.toLowerCase()">
                             {{ getLoaderName(mod.loader_type) }}
                           </span>
                           <span v-else class="badge badge-vanilla">{{ t('versions.manage.vanilla') }}</span>
@@ -278,11 +272,7 @@
                               <UiIcon name="archive" :size="12" />
                               {{ formatFileSize(mod.size) }}
                             </span>
-                            <span
-                              v-if="mod.dependencies.length"
-                              class="mod-deps"
-                              :title="mod.dependencies.join(', ')"
-                            >
+                            <span v-if="mod.dependencies.length" class="mod-deps" :title="mod.dependencies.join(', ')">
                               <UiIcon name="link" :size="12" />
                               {{ mod.dependencies.slice(0, 3).join(', ') }}{{ mod.dependencies.length > 3 ? '…' : '' }}
                             </span>

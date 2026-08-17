@@ -1,0 +1,148 @@
+/* 启动器日志悬浮窗：圆形按钮 / 可拖动窗口 / 全屏 三态共用玻璃拟态 */
+
+.fll-dot {
+  position: fixed;
+  z-index: 9999;
+  display: flex;
+  width: 64px;
+  height: 64px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0;
+  border: 1px solid var(--ecl-border-strong);
+  border-radius: 50%;
+  background: var(--ecl-surface);
+  box-shadow: var(--ecl-shadow-surface);
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+  color: var(--ecl-text);
+  cursor: grab;
+  user-select: none;
+}
+
+.fll-dot:hover {
+  background: var(--ecl-surface-muted);
+}
+
+.fll-dot:active {
+  cursor: grabbing;
+}
+
+.fll-dot-label {
+  max-width: 52px;
+  overflow: hidden;
+  font-size: 10px;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fll-dot-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: flex;
+  min-width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--ecl-danger, #e5484d);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.fll-window {
+  position: fixed;
+  z-index: 9999;
+  display: flex;
+  min-width: 320px;
+  min-height: 220px;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--ecl-border-strong);
+  border-radius: var(--ecl-radius-dialog);
+  background: var(--ecl-surface);
+  box-shadow: var(--ecl-shadow-surface);
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+}
+
+.fll-window--max {
+  inset: 0;
+  border-radius: 0;
+}
+
+.fll-titlebar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 8px 0 12px;
+  border-bottom: 1px solid var(--ecl-border);
+  color: var(--ecl-text-secondary);
+  user-select: none;
+}
+
+.fll-window:not(.fll-window--max) .fll-titlebar {
+  cursor: grab;
+}
+
+.fll-window:not(.fll-window--max) .fll-titlebar:active {
+  cursor: grabbing;
+}
+
+.fll-title {
+  color: var(--ecl-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.fll-title-grip {
+  flex: 1;
+}
+
+.fll-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.fll-btn {
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ecl-text-secondary);
+  cursor: pointer;
+}
+
+.fll-btn:hover {
+  background: var(--ecl-surface-muted);
+  color: var(--ecl-text);
+}
+
+.fll-body {
+  flex: 1;
+  min-height: 0;
+}
+
+.fll-resizer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+}

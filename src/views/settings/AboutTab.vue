@@ -27,12 +27,7 @@
           <div class="thanks-cat-title">{{ t('settings.aboutTab.developer') }}</div>
           <div v-for="item in developers" :key="item.name" class="card-grid">
             <div class="avatar-col">
-              <img
-                v-if="item.img"
-                :src="item.img"
-                :alt="item.name"
-                class="avatar avatar-thanks avatar-img"
-              />
+              <img v-if="item.img" :src="item.img" :alt="item.name" class="avatar avatar-thanks avatar-img" />
               <div v-else class="avatar avatar-thanks">
                 {{ item.initial }}
               </div>
@@ -42,12 +37,7 @@
               <div class="item-desc">{{ t(`settings.aboutTab.desc.${item.descKey}`) }}</div>
             </div>
             <div class="btn-col">
-              <a
-                v-if="item.url"
-                class="about-btn"
-                href="#"
-                @click.prevent="openExternalUrl(item.url!)"
-              >
+              <a v-if="item.url" class="about-btn" href="#" @click.prevent="openExternalUrl(item.url!)">
                 <UiIcon :name="item.icon || 'github'" :size="14" />
                 <span>{{ t(`settings.aboutTab.${item.btnKey}`) }}</span>
               </a>
@@ -74,12 +64,7 @@
             <div v-if="isOpen(si, ci)" class="thanks-collapse-body">
               <div v-for="item in cat.items" :key="item.name" class="card-grid">
                 <div class="avatar-col">
-                  <img
-                    v-if="item.img"
-                    :src="item.img"
-                    :alt="item.name"
-                    class="avatar avatar-thanks avatar-img"
-                  />
+                  <img v-if="item.img" :src="item.img" :alt="item.name" class="avatar avatar-thanks avatar-img" />
                   <div v-else class="avatar avatar-thanks">
                     {{ item.initial }}
                   </div>
@@ -89,12 +74,7 @@
                   <div class="item-desc">{{ t(`settings.aboutTab.desc.${item.descKey}`) }}</div>
                 </div>
                 <div class="btn-col">
-                  <a
-                    v-if="item.url"
-                    class="about-btn"
-                    href="#"
-                    @click.prevent="openExternalUrl(item.url!)"
-                  >
+                  <a v-if="item.url" class="about-btn" href="#" @click.prevent="openExternalUrl(item.url!)">
                     <UiIcon :name="item.icon || 'github'" :size="14" />
                     <span>{{ t(`settings.aboutTab.${item.btnKey}`) }}</span>
                   </a>
@@ -268,7 +248,7 @@ const developers: ThanksItem[] = [
     url: 'https://github.com/Luyanci',
     btnKey: 'github',
     img: imgPath('luyanci.png'),
-  }
+  },
 ]
 
 // 核心开源项目（直接展示）

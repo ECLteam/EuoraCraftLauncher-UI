@@ -44,15 +44,17 @@
       <div class="tool-row" :class="{ 'tool-row--disabled': !debugMode }">
         <div class="tool-info">
           <div class="tool-label-row">
-            <div class="tool-label">{{ t('terminal.title') }}</div>
+            <div class="tool-label">{{ t('dev.log.title') }}</div>
             <span class="mode-badge mode-badge--debug">{{ t('dev.modeDebug') }}</span>
           </div>
-          <div class="tool-desc">{{ t('dev.terminalDesc') }}</div>
+          <div class="tool-desc">{{ t('dev.log.desc') }}</div>
         </div>
         <div class="tool-control">
-          <UiButton size="sm" variant="outline" :disabled="!debugMode" @click="openTerminal">
-            {{ t('terminal.title') }}
-          </UiButton>
+          <NSwitch
+            :value="launcherLogWindowEnabled"
+            :disabled="!debugMode"
+            @update:value="setLauncherLogWindowEnabled"
+          />
           <UiButton
             size="sm"
             variant="outline"
@@ -406,7 +408,10 @@ import { useFlowDebug } from '@/composables/useFlowDebug'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { debugToolsApi } from '@/features/settings/api/debugToolsApi'
 import { terminalApi } from '@/features/terminal/api/terminalApi'
-import { useTerminal } from '@/features/terminal/composables/useTerminal'
+import {
+  launcherLogWindowEnabled,
+  setLauncherLogWindowEnabled,
+} from '@/features/terminal/composables/useLauncherLogWindow'
 
 const { t } = useI18n()
 const message = useLauncherMessage()
@@ -444,11 +449,6 @@ function toggleAnimations(value: boolean): void {
   setAnimationsDisabled(value)
 }
 
-// ── 日志终端：以悬浮窗形式展开后端实时日志 ──
-function openTerminal(): void {
-  useTerminal().openTerminal()
-}
-
 // ── 生成测试子进程：端到端验收实例终端（stdin 交互 + 实时输出） ──
 async function spawnDebugInstance(): Promise<void> {
   spawning.value = true
@@ -470,8 +470,7 @@ async function spawnDebugInstance(): Promise<void> {
       stdin: true,
     })
     if (ok) {
-      useTerminal().switchTerminalView('instances')
-      useTerminal().openTerminal()
+      message.success(t('dev.spawnDebugOk'))
     } else {
       message.error(t('dev.spawnDebugFailed'))
     }

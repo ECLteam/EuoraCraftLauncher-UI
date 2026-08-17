@@ -48,8 +48,7 @@ export function useResourceInstallTarget(resourceType: InstallTargetKey) {
     const preferred =
       installableInstances.value.find(
         (version) =>
-          version.versionId === instanceStore.selectedVersion &&
-          version.path === instanceStore.currentGamePath
+          version.versionId === instanceStore.selectedVersion && version.path === instanceStore.currentGamePath
       ) ?? installableInstances.value[0]
     selectedKey.value = preferred ? instanceKey(preferred) : ''
     ready.value = true
