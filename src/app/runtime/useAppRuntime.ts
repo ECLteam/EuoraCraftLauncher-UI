@@ -172,6 +172,11 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
         if (backend.isShowcaseActive) return
         void applyConfig(payload)
       }),
+      backend.on('config:updated', (payload) => {
+        if (payload.section !== 'launcher') return
+        const launcher = (payload.data as { debug?: boolean } | null) ?? {}
+        isDevMode.value = launcher.debug === true
+      }),
       backend.on('plugin:css_injected', (payload) => {
         const pluginName = payload.plugin || 'unknown'
         const styleKey =

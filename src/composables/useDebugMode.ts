@@ -3,7 +3,7 @@ import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 
 /**
  * 读取并切换启动器全局调试模式。
- * 对应配置文件中 ``launcher.debug``，需重启启动器后完全生效。
+ * 对应配置文件中 ``launcher.debug``，修改后即时生效。
  */
 export function useDebugMode() {
   const settingsStore = useSettingsStore()
