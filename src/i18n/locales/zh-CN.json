@@ -288,6 +288,7 @@
     "shaderpack": "光影包",
     "datapack": "数据包",
     "world": {
+      "title": "存档",
       "importLocal": "导入本地存档",
       "importHint": "选择目标实例后，将归档为 .zip 或 .mcworld 的存档文件导入到该实例。",
       "manageInVersions": "已导入的存档可在「版本管理弹窗 → 存档」中查看与管理。",

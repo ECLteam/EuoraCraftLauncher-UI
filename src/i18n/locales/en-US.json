@@ -288,6 +288,7 @@
     "shaderpack": "Shader Pack",
     "datapack": "Data Pack",
     "world": {
+      "title": "World",
       "importLocal": "Import Local World",
       "importHint": "Pick a target instance, then import a world archived as .zip or .mcworld into it.",
       "manageInVersions": "Imported worlds can be viewed and managed in Version Detail → Worlds.",
