@@ -2,23 +2,17 @@
   <NSelect
     v-model:value="currentKey"
     :options="options"
+    :render-label="renderLabel"
     :placeholder="t('mods.selectInstance')"
     filterable
     :disabled="!target.ready.value || options.length === 0"
     class="resource-instance-select"
-  >
-    <template #render-label="{ option }">
-      <span class="ris-option">
-        <UiIcon name="game-controller" :size="14" />
-        <span>{{ option.label }}</span>
-      </span>
-    </template>
-  </NSelect>
+  />
 </template>
 
 <script setup lang="ts">
 import { NSelect } from 'naive-ui'
-import { computed } from 'vue'
+import { computed, h, type VNode } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
 import { instanceKey, type useResourceInstallTarget } from '@/composables/useResourceInstallTarget'
@@ -48,6 +42,13 @@ const currentKey = computed({
     emit('persist')
   },
 })
+
+function renderLabel(option: { label: string; value: string }): VNode {
+  return h('span', { class: 'ris-option' }, [
+    h(UiIcon, { name: 'game-controller', size: 14 }),
+    h('span', option.label),
+  ])
+}
 </script>
 
 <style scoped>
