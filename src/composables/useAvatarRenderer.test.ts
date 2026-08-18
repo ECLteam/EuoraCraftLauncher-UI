@@ -57,10 +57,10 @@ describe('renderSkinAvatar', () => {
     const second = useAvatarRenderer()
 
     const results = await Promise.all([
-      first.renderAvatar('uuid', 'Player', 'offline', 32),
-      second.renderAvatar('uuid', 'Player', 'offline', 32),
+      first.renderAvatar('uuid', 'Player', 32),
+      second.renderAvatar('uuid', 'Player', 32),
     ])
-    const cached = await first.renderAvatar('uuid', 'Player', 'offline', 32)
+    const cached = await first.renderAvatar('uuid', 'Player', 32)
 
     expect(results).toEqual(['data:image/png;base64,cached', 'data:image/png;base64,cached'])
     expect(cached).toBe('data:image/png;base64,cached')

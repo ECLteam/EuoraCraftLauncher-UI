@@ -1230,7 +1230,7 @@
     "subtitle": "收藏、预览并应用 Minecraft 皮肤与披风",
     "back": "返回账户管理",
     "accountLabel": "账户选择",
-    "selectAccount": "选择 Microsoft 账户",
+    "selectAccount": "选择要下载皮肤的账户",
     "skins": "皮肤",
     "localCapes": "本地披风",
     "officialCapes": "官方披风",
@@ -1280,7 +1280,9 @@
     "skinReset": "账户皮肤已重置",
     "capeApplied": "官方披风已启用",
     "capeRemoved": "官方披风已卸下",
-    "applyFailed": "更新账户外观失败"
+    "applyFailed": "更新账户外观失败",
+    "downloadSkin": "下载账户皮肤",
+    "skinDownloaded": "账户皮肤已下载到衣柜"
   },
   "task": {
     "subtask": {

@@ -48,6 +48,17 @@
                   <template #icon><UiIcon name="upload" :size="14" /></template>
                   {{ t('wardrobe.import') }}
                 </NButton>
+                <NButton
+                  v-if="activeTab === 'skin' && canDownloadSkin"
+                  quaternary
+                  circle
+                  size="small"
+                  :title="t('wardrobe.downloadSkin')"
+                  :loading="applying"
+                  @click="downloadSkin"
+                >
+                  <template #icon><UiIcon name="file-download" :size="16" /></template>
+                </NButton>
               </div>
             </div>
           </div>
@@ -219,7 +230,7 @@
           </div>
         </div>
         <NSelect v-model:value="targetAccountId" :options="accountOptions" :placeholder="t('wardrobe.selectAccount')" />
-        <NAlert v-if="!isStandardSkin" type="warning" :showIcon="false">
+        <NAlert v-if="!canApplySkin" type="warning" :showIcon="false">
           {{ t('wardrobe.standardOnly') }}
         </NAlert>
       </div>
@@ -233,7 +244,13 @@
 
     <Modal v-model:visible="showOptionsModal" :title="t('wardrobe.options')" width="420px">
       <div class="wardrobe-dialog-form">
-        <NButton block :disabled="!targetAccountId" :loading="applying" @click="resetSkin">
+        <NButton
+          v-if="targetAccount?.type === 'microsoft'"
+          block
+          :disabled="!targetAccountId"
+          :loading="applying"
+          @click="resetSkin"
+        >
           {{ t('wardrobe.resetSkin') }}
         </NButton>
         <NAlert type="info" :showIcon="false">{{ t('wardrobe.customCapeUnsupported') }}</NAlert>
@@ -295,12 +312,11 @@ const showUploadModal = ref(false)
 const showOptionsModal = ref(false)
 let targetTextureRequest = 0
 
-const microsoftAccounts = computed(() => props.accounts.filter((account) => account.type === 'microsoft'))
-const accountOptions = computed(() =>
-  microsoftAccounts.value.map((account) => ({ label: account.alias, value: account.id }))
+const accountOptions = computed(() => props.accounts.map((account) => ({ label: account.alias, value: account.id })))
+const targetAccount = computed(() => props.accounts.find((account) => account.id === targetAccountId.value) ?? null)
+const officialCapes = computed(() =>
+  targetAccount.value?.type === 'microsoft' ? (targetAccount.value.capes ?? []) : []
 )
-const targetAccount = computed(() => microsoftAccounts.value.find((account) => account.id === targetAccountId.value))
-const officialCapes = computed(() => targetAccount.value?.capes ?? [])
 const filteredItems = computed(() => items.value.filter((item) => item.kind === activeTab.value))
 const previewSkinUrl = computed(() => selectedSkinUrl.value || accountSkinUrl.value)
 const previewCapeUrl = computed(() => selectedCapeUrl.value || accountCapeUrl.value)
@@ -310,7 +326,8 @@ const previewModel = computed<SkinModel>(() =>
 const isStandardSkin = computed(
   () => selectedLocal.value?.kind === 'skin' && selectedLocal.value.width === 64 && selectedLocal.value.height === 64
 )
-const canApplySkin = computed(() => Boolean(targetAccountId.value && isStandardSkin.value))
+const canApplySkin = computed(() => targetAccount.value?.type === 'microsoft' && isStandardSkin.value)
+const canDownloadSkin = computed(() => Boolean(targetAccountId.value))
 const modelOptions = computed(() => [
   { label: t('wardrobe.classic'), value: 'classic' },
   { label: t('wardrobe.slim'), value: 'slim' },
@@ -360,16 +377,7 @@ async function loadTargetTextures(): Promise<void> {
         officialCapeUrls.value[cape.id] = (await fetchTextureDataUrl(cape.url)) || ''
       })
     )
-    try {
-      const result = await accountsApi.syncAccountSkin(accountId)
-      if (request !== targetTextureRequest) return
-      items.value = [result.item, ...items.value.filter((item) => item.id !== result.item.id)]
-      await selectLocal(result.item)
-    } catch (reason) {
-      if (request !== targetTextureRequest) return
-      accountSkinUrl.value = (await fetchTextureDataUrl(textures.skinUrl || '')) || ''
-      message.warning(reason instanceof Error ? reason.message : t('wardrobe.syncFailed'))
-    }
+    accountSkinUrl.value = (await fetchTextureDataUrl(textures.skinUrl || '')) || ''
   } catch (reason) {
     if (request !== targetTextureRequest) return
     message.warning(reason instanceof Error ? reason.message : t('wardrobe.textureFailed'))
@@ -503,7 +511,7 @@ async function applySkin(): Promise<void> {
 }
 
 async function resetSkin(): Promise<void> {
-  if (!targetAccountId.value) return
+  if (!targetAccountId.value || targetAccount.value?.type !== 'microsoft') return
   applying.value = true
   try {
     await accountsApi.resetMicrosoftSkin(targetAccountId.value)
@@ -566,8 +574,7 @@ watch(
     if (!visible) return
     activeTab.value = 'skin'
     const previousAccountId = targetAccountId.value
-    const defaultAccountId =
-      props.currentAccount?.type === 'microsoft' ? props.currentAccount.id : (microsoftAccounts.value[0]?.id ?? null)
+    const defaultAccountId = props.currentAccount?.id || props.accounts[0]?.id || null
     targetAccountId.value = defaultAccountId
     await loadItems()
     if (previousAccountId === defaultAccountId) await loadTargetTextures()
@@ -575,6 +582,23 @@ watch(
 )
 
 watch(targetAccountId, loadTargetTextures)
+
+async function downloadSkin(): Promise<void> {
+  if (!targetAccountId.value || !canDownloadSkin.value) return
+  applying.value = true
+  try {
+    const result = await accountsApi.syncAccountSkin(targetAccountId.value)
+    items.value = [result.item, ...items.value.filter((item) => item.id !== result.item.id)]
+    await selectLocal(result.item)
+    emit('accountsChanged')
+    await loadTargetTextures()
+    message.success(t('wardrobe.skinDownloaded'))
+  } catch (reason) {
+    message.error(reason instanceof Error ? reason.message : t('wardrobe.applyFailed'))
+  } finally {
+    applying.value = false
+  }
+}
 </script>
 
 <style scoped>

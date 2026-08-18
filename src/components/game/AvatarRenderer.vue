@@ -52,7 +52,7 @@ const fallbackLabel = computed(() => (props.username.trim().charAt(0) || '?').to
 
 async function updateAvatar() {
   const request = ++renderRequest
-  const url = await renderAvatar(props.uuid, props.username, props.typeName, props.size, props.skinUrl, props.accountId)
+  const url = await renderAvatar(props.uuid, props.username, props.size, props.skinUrl, props.accountId)
   if (request !== renderRequest) return
   avatarUrl.value = url || ''
 }

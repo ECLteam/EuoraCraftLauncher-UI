@@ -90,10 +90,7 @@ export const accountsApi = {
   },
 
   async syncAccountSkin(accountId: string): Promise<WardrobeImportResult> {
-    return assertSuccess(
-      await backend.command('wardrobe_sync_account_skin', { account_id: accountId }),
-      '同步账户当前皮肤'
-    )
+    return assertSuccess(await backend.command('wardrobe_sync_account_skin', { account_id: accountId }), '下载皮肤')
   },
 
   async selectWardrobeImage(kind: WardrobeKind): Promise<string | null> {
@@ -134,8 +131,8 @@ export const accountsApi = {
     )
   },
 
-  async resetMicrosoftSkin(accountId: string): Promise<MinecraftAccount> {
-    return assertSuccess(await backend.command('microsoft_reset_skin', { account_id: accountId }), '重置皮肤')
+  async resetMicrosoftSkin(accountId: string): Promise<void> {
+    assertSuccess(await backend.command('microsoft_reset_skin', { account_id: accountId }), '重置皮肤')
   },
 
   async setMicrosoftCape(accountId: string, capeId: string): Promise<MinecraftAccount> {

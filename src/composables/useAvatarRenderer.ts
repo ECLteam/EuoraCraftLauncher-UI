@@ -1,6 +1,5 @@
 import { ref } from 'vue'
 import backend from '@/api/client'
-import type { AccountType } from '@/types/api'
 
 const CACHE_TTL = 30 * 60 * 1000
 const MAX_CACHE_ENTRIES = 100
@@ -123,7 +122,6 @@ export function useAvatarRenderer() {
   async function renderAvatar(
     uuid: string | undefined,
     username: string | undefined,
-    accountType: AccountType | string,
     size: number,
     skinUrl?: string,
     accountId?: string
@@ -138,12 +136,7 @@ export function useAvatarRenderer() {
       const pending = pendingAvatars.get(key)
       if (pending) return await pending
       const request = (async () => {
-        let source = skinUrl?.trim() || ''
-        if (!source && accountId && accountType !== 'offline' && backend.runtime.isAvailable) {
-          const response = await backend.command('accounts_texture_urls', { account_id: accountId })
-          if (response.success) source = response.data?.skinUrl || ''
-        }
-        const texture = source ? await fetchTextureDataUrl(source) : defaultSkin(identifier)
+        const texture = skinUrl?.trim() || defaultSkin(identifier)
         const avatar = texture ? await renderSkinAvatar(texture, size) : null
         if (avatar) {
           setCached(avatarCache, key, avatar)
