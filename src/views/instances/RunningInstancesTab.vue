@@ -228,7 +228,9 @@ async function handleConfirm() {
   height: 100%;
   flex-direction: column;
   overflow: hidden;
-  background: transparent;
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  background: var(--card-bg);
 }
 
 .running-instances-toolbar {
