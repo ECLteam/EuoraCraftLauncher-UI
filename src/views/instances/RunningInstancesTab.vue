@@ -217,19 +217,24 @@ async function handleConfirm() {
 .running-instances-page {
   display: flex;
   min-width: 0;
+  width: 100%;
   height: 100%;
-  overflow: hidden;
+  justify-content: center;
+  padding: 26px;
+  overflow: auto;
 }
 
 .running-instances-library {
   display: flex;
-  flex: 1;
+  flex: none;
   min-width: 0;
+  width: min(1000px, 100%);
   height: 100%;
   flex-direction: column;
   overflow: hidden;
   border-top: var(--card-border-top);
   border-bottom: var(--card-border-bottom);
+  border-radius: var(--r-lg);
   background: var(--card-bg);
 }
 

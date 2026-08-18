@@ -1,17 +1,19 @@
 <template>
   <div class="itm">
-    <header class="itm-header">
-      <UiIcon name="terminal" :size="16" />
-      <strong>{{ t('versions.running.terminal') }}</strong>
-      <span class="itm-grip" />
-      <button class="itm-back" :title="t('terminal.back')" @click="emit('back')">
-        <UiIcon name="arrow-left" :size="15" />
-        <span>{{ t('terminal.back') }}</span>
-      </button>
-    </header>
-    <div class="itm-body">
-      <ProcessInstanceView />
-    </div>
+    <section class="itm-card">
+      <header class="itm-header">
+        <UiIcon name="terminal" :size="16" />
+        <strong>{{ t('versions.running.terminal') }}</strong>
+        <span class="itm-grip" />
+        <button class="itm-back" :title="t('terminal.back')" @click="emit('back')">
+          <UiIcon name="arrow-left" :size="15" />
+          <span>{{ t('terminal.back') }}</span>
+        </button>
+      </header>
+      <div class="itm-body">
+        <ProcessInstanceView />
+      </div>
+    </section>
   </div>
 </template>
 
@@ -34,11 +36,26 @@ onUnmounted(() => globalProcessInstances.dispose())
 <style scoped>
 .itm {
   display: flex;
+  min-width: 0;
   width: 100%;
   height: 100%;
   min-height: 0;
+  justify-content: center;
+  padding: 26px;
+  overflow: hidden;
+}
+
+.itm-card {
+  display: flex;
+  flex: none;
+  min-width: 0;
+  width: min(1000px, 100%);
+  height: 100%;
   flex-direction: column;
   overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--card-bg);
 }
 
 .itm-header {
