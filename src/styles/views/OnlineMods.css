@@ -1,6 +1,6 @@
 /* =============================================
    OnlineMods.css
-   重新设计 v2：卡片网格布局 + 更清晰的视觉层级
+   重新设计 v3：列表式结果 + 更清晰的视觉层级
    遵循项目设计系统 ecl-* token
    ============================================= */
 
@@ -21,10 +21,11 @@
   flex-direction: column;
   gap: 10px;
   padding: 14px 16px;
-  border: 1px solid var(--ecl-border);
-  border-radius: 12px;
-  background: var(--ecl-surface);
-  box-shadow: var(--ecl-shadow-surface);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--ecl-radius-card);
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
   backdrop-filter: blur(12px);
   margin-bottom: 12px;
 }
@@ -150,10 +151,11 @@
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
-  border: 1px solid var(--ecl-border);
-  border-radius: 12px;
-  background: var(--ecl-surface);
-  box-shadow: var(--ecl-shadow-surface);
+  border-top: var(--card-border-top);
+  border-bottom: var(--card-border-bottom);
+  border-radius: var(--ecl-radius-card);
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
   backdrop-filter: blur(12px);
 }
 
@@ -205,9 +207,9 @@
    参考主流 Minecraft 启动器（PCL2 / HMCL / Prism）审美
    ============================================= */
 .mod-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   padding: 14px;
 }
 
@@ -217,10 +219,11 @@
    ============================================= */
 .mod-card {
   display: flex;
-  flex-direction: column;
+  align-items: stretch;
   overflow: hidden;
-  border: 1px solid var(--ecl-border);
-  border-radius: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--ecl-border) 70%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--ecl-border) 70%, transparent);
+  border-radius: var(--ecl-radius-card);
   background: var(--ecl-surface);
   cursor: pointer;
   transition:
@@ -230,15 +233,17 @@
 }
 
 .mod-card:hover {
-  border-color: var(--ecl-border-strong);
+  border-top-color: var(--ecl-border-strong);
+  border-bottom-color: var(--ecl-border-strong);
   box-shadow:
     0 6px 20px color-mix(in srgb, var(--ecl-primary) 8%, transparent),
     var(--ecl-shadow-surface);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .mod-card:active {
-  border-color: var(--ecl-border);
+  border-top-color: var(--ecl-border);
+  border-bottom-color: var(--ecl-border);
   box-shadow: var(--ecl-shadow-surface);
   transform: translateY(0);
 }
@@ -246,10 +251,10 @@
 /* --- 封面区 --- */
 .mod-card-cover {
   position: relative;
-  height: 120px;
+  flex: 0 0 132px;
   overflow: hidden;
   background: var(--ecl-surface-muted);
-  border-bottom: 1px solid var(--ecl-border);
+  border-right: 1px solid var(--ecl-border);
 }
 
 .mod-card-cover .cover-img {
@@ -276,16 +281,18 @@
 .mod-card-cover .cover-platform {
   position: absolute;
   top: 8px;
-  right: 8px;
+  left: 8px;
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
+  max-width: calc(100% - 16px);
 }
 
 .mod-card-cover .cover-platform :deep(.n-tag) {
   backdrop-filter: blur(6px);
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
-  border: none;
+  background: color-mix(in srgb, var(--ecl-surface) 78%, transparent);
+  color: var(--ecl-text);
+  border: 1px solid color-mix(in srgb, var(--ecl-border) 75%, transparent);
 }
 
 /* --- 内容区 --- */
@@ -294,6 +301,7 @@
   flex: 1;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
   padding: 12px 14px;
 }
 
@@ -319,7 +327,7 @@
 }
 
 .mod-card-desc {
-  min-height: 36px;
+  min-height: 32px;
   overflow: hidden;
   color: var(--ecl-text-tertiary);
   font-size: 12px;
@@ -365,19 +373,22 @@
 /* --- 操作区 --- */
 .mod-card-actions {
   display: flex;
-  flex-shrink: 0;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: flex-end;
   gap: 6px;
-  padding: 10px 14px 12px;
-  border-top: 1px solid var(--ecl-border);
+  min-width: 220px;
+  padding: 12px 14px;
+  border-left: 1px solid var(--ecl-border);
 }
 
 .mod-card-actions .n-button {
-  flex: 1;
   justify-content: center;
 }
 
 .mod-card-actions .n-button:first-child {
-  flex: 1.4;
+  min-width: 96px;
 }
 
 /* =============================================
@@ -555,31 +566,32 @@
   }
 
   .mod-list {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 10px;
     padding: 12px;
   }
 }
 
-@media (max-width: 640px) {
-  .mod-list {
-    grid-template-columns: 1fr;
-    gap: 10px;
-    padding: 10px;
+@media (max-width: 900px) {
+  .mod-card {
+    flex-direction: column;
   }
 
   .mod-card-cover {
-    height: 100px;
+    flex-basis: 108px;
+    border-right: none;
+    border-bottom: 1px solid var(--ecl-border);
   }
 
-  .search-result-count {
-    display: none;
+  .mod-card-actions {
+    justify-content: flex-start;
+    min-width: 0;
+    border-top: 1px solid var(--ecl-border);
+    border-left: none;
   }
 }
 
 @media (min-width: 1400px) {
   .mod-list {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     padding: 16px;
   }
 }
