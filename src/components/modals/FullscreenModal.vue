@@ -30,6 +30,8 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onUnmounted, ref, useId, watch } from 'vue'
+import { pinia } from '@/app/stores'
+import { useLayoutStore } from '@/app/stores/layoutStore'
 import { useFullscreenModal } from '@/composables/useFullscreenModal'
 
 defineOptions({ name: 'FullscreenModal' })
@@ -64,6 +66,7 @@ interface Emits {
 }
 
 const fullscreenModal = useFullscreenModal()
+const layoutStore = useLayoutStore(pinia)
 const modalRef = ref<HTMLElement | null>(null)
 const instanceId = useId()
 const modalId = `fullscreen-modal-${instanceId}`
@@ -100,20 +103,11 @@ const onAfterLeave = () => {
 }
 
 const togglePageContent = (isOpen: boolean) => {
-  const pageContent = document.querySelector('.page-container') as HTMLElement | null
-  if (!pageContent) return
-  if (isOpen) {
-    pageContent.classList.add('modal-page-slide-out')
-  } else {
-    pageContent.classList.remove('modal-page-slide-out')
-  }
+  layoutStore.setModalPageSlideOut(isOpen)
 }
 
 const toggleScrollLock = (isOpen: boolean) => {
-  const mainContent = document.querySelector('.main-content') as HTMLElement | null
-  if (mainContent) {
-    mainContent.style.overflow = isOpen && props.lockScroll ? 'hidden' : ''
-  }
+  layoutStore.setMainContentScrollLocked(isOpen && props.lockScroll)
 }
 
 const releasePageLockIfUnused = () => {

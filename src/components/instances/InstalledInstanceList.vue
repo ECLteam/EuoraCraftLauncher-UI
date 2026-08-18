@@ -263,6 +263,7 @@ import { instanceProfileApi, targetFromVersion } from '@/features/instances/api/
 import { filterAndSortInstances, instanceDisplayName } from '@/features/instances/model/instancePresentation'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import type { InstanceCategory, InstanceSortKey, ScannedVersion } from '@/types/api'
+import { formatDate as formatDateUtil } from '@/utils/format'
 
 const props = defineProps<{
   versions: ScannedVersion[]
@@ -421,11 +422,11 @@ function formatDuration(seconds?: number): string {
 }
 
 function formatDate(value?: string | null): string {
-  if (!value) return '从未启动'
-  const date = new Date(value)
-  return Number.isNaN(date.getTime())
-    ? '从未启动'
-    : date.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  return formatDateUtil(
+    value,
+    { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' },
+    '从未启动'
+  )
 }
 
 function updateSearchQuery(event: Event) {

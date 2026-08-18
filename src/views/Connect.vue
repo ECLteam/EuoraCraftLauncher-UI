@@ -474,9 +474,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineComponent, h, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import UiAvatar from '@/components/ui/Avatar.vue'
+import PlayerList from '@/components/connect/PlayerList.vue'
 import UiButton from '@/components/ui/Button.vue'
 import UiCard from '@/components/ui/Card.vue'
 import UiIcon from '@/components/ui/Icon.vue'
@@ -484,66 +484,13 @@ import UiInput from '@/components/ui/Input.vue'
 import UiProgress from '@/components/ui/Progress.vue'
 import UiSelect from '@/components/ui/Select.vue'
 import UiTag from '@/components/ui/Tag.vue'
-import { useFlowDebug } from '@/composables/useFlowDebug'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
+import { useConnectFlowDebug } from '@/features/connect/composables/useConnectFlowDebug'
 import { useConnector } from '@/features/connect/composables/useConnector'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
 import { instanceWorkspaceApi } from '@/features/instances/api/instanceWorkspaceApi'
-import type { ConnectorMatchedInstance, ConnectorPlayer, ConnectorStatus, GameInstance } from '@/types/api'
+import type { ConnectorMatchedInstance, GameInstance } from '@/types/api'
 import { getErrorMessage } from '@/utils/error'
-
-const PlayerList = defineComponent({
-  name: 'ConnectorPlayerList',
-  props: {
-    players: { type: Array as () => ConnectorPlayer[], required: true },
-    hostControls: { type: Boolean, default: false },
-    busy: { type: Boolean, default: false },
-  },
-  emits: { kick: (_player: ConnectorPlayer) => true },
-  setup(props, { emit }) {
-    const { t } = useI18n()
-    return () =>
-      h('section', { class: 'connect-player-section' }, [
-        h('div', { class: 'connect-section-title' }, [
-          h('strong', t('connect.players.title', { count: props.players.length })),
-        ]),
-        props.players.length
-          ? h(
-              'div',
-              { class: 'connect-player-list' },
-              props.players.map((player) =>
-                h('div', { class: 'connect-player-row', key: player.machineId || player.name }, [
-                  h(UiAvatar, {
-                    src: player.iconBase64 ? `data:image/png;base64,${player.iconBase64}` : undefined,
-                    name: player.name,
-                    size: 34,
-                  }),
-                  h('div', { class: 'connect-player-identity' }, [
-                    h('div', [
-                      h('strong', player.name),
-                      player.kind === 'host'
-                        ? h(UiTag, { size: 'tiny', tone: 'info' }, { default: () => t('connect.players.host') })
-                        : null,
-                    ]),
-                    h('span', player.vendor),
-                  ]),
-                  props.hostControls && player.kind !== 'host'
-                    ? h(UiButton, {
-                        variant: 'ghost',
-                        shape: 'square',
-                        icon: 'user-x',
-                        title: t('connect.players.kick'),
-                        disabled: props.busy,
-                        onClick: () => emit('kick', player),
-                      })
-                    : null,
-                ])
-              )
-            )
-          : h('span', { class: 'connect-empty-text' }, t('connect.players.empty')),
-      ])
-  },
-})
 
 const { t } = useI18n()
 type UiTagTone = 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info'
@@ -555,125 +502,6 @@ const roomCode = ref('')
 const launchingKey = ref('')
 const runningInstances = ref<GameInstance[]>([])
 let unsubscribeRunning: (() => void) | null = null
-
-const { flowDebug } = useFlowDebug()
-const debugStageIndex = ref(0)
-const stageOverride = ref<ConnectorStatus | null>(null)
-const hostStepOverride = ref<1 | 2>(1)
-
-type DebugStageKey = 'idle' | 'create-instance' | 'create-port' | 'starting' | 'host' | 'guest'
-const debugStages = computed<{ key: DebugStageKey; label: string }[]>(() => [
-  { key: 'idle', label: t('connect.debug.idle') },
-  { key: 'create-instance', label: t('connect.debug.createInstance') },
-  { key: 'create-port', label: t('connect.debug.createPort') },
-  { key: 'starting', label: t('connect.debug.starting') },
-  { key: 'host', label: t('connect.debug.host') },
-  { key: 'guest', label: t('connect.debug.guest') },
-])
-
-function mockIdleStatus(): ConnectorStatus {
-  return {
-    mode: 'idle',
-    roomCode: null,
-    mcHost: null,
-    mcPort: null,
-    gameInfo: null,
-    players: [],
-    nodes: [],
-    error: null,
-  }
-}
-
-function mockRoomStatus(mode: 'starting' | 'host' | 'guest'): ConnectorStatus {
-  const inRoom = mode !== 'starting'
-  return {
-    mode,
-    roomCode: inRoom ? 'U/1234-5678-9012-3456' : null,
-    mcHost: '127.0.0.1',
-    mcPort: 25565,
-    gameInfo: inRoom ? { gameVersion: '1.20.1', loader: 'fabric', loaderVersion: '0.15.11' } : null,
-    players: inRoom
-      ? [
-          { name: 'HostPlayer', vendor: 'Fabric', iconBase64: null, kind: 'host', machineId: 'host-1' },
-          { name: 'Alice', vendor: 'Fabric', iconBase64: null, kind: 'guest', machineId: 'guest-1' },
-        ]
-      : [],
-    nodes: ['tcp://public.easytier.cn:11010'],
-    error: null,
-  }
-}
-
-function stageIndex(key: DebugStageKey): number {
-  return debugStages.value.findIndex((stage) => stage.key === key)
-}
-
-function applyDebugStage(index: number): void {
-  debugStageIndex.value = index
-  const key = debugStages.value[index]!.key
-  switch (key) {
-    case 'idle':
-      stageOverride.value = mockIdleStatus()
-      hostStepOverride.value = 1
-      break
-    case 'create-instance':
-      stageOverride.value = mockIdleStatus()
-      hostStepOverride.value = 1
-      break
-    case 'create-port':
-      stageOverride.value = mockIdleStatus()
-      hostStepOverride.value = 2
-      break
-    case 'starting':
-      stageOverride.value = mockRoomStatus('starting')
-      break
-    case 'host':
-      stageOverride.value = mockRoomStatus('host')
-      break
-    case 'guest':
-      stageOverride.value = mockRoomStatus('guest')
-      break
-  }
-}
-
-function prevDebugStage(): void {
-  if (debugStageIndex.value > 0) applyDebugStage(debugStageIndex.value - 1)
-}
-
-function nextDebugStage(): void {
-  if (debugStageIndex.value < debugStages.value.length - 1) applyDebugStage(debugStageIndex.value + 1)
-}
-
-function resetLiveStage(): void {
-  stageOverride.value = null
-  updateDebugStageIndexFromStatus()
-}
-
-function updateDebugStageIndexFromStatus(): void {
-  const mode = status.value.mode
-  if (mode === 'idle') debugStageIndex.value = hostStep.value === 2 ? stageIndex('create-port') : stageIndex('idle')
-  else if (mode === 'starting') debugStageIndex.value = stageIndex('starting')
-  else if (mode === 'host') debugStageIndex.value = stageIndex('host')
-  else if (mode === 'guest') debugStageIndex.value = stageIndex('guest')
-}
-
-const displayStatus = computed<ConnectorStatus>(() => {
-  if (flowDebug.value && stageOverride.value) return stageOverride.value
-  return status.value
-})
-
-const displayHostStep = computed<1 | 2>(() =>
-  flowDebug.value && stageOverride.value ? hostStepOverride.value : hostStep.value
-)
-
-const displayDetectedPort = computed<number | null>(() => {
-  if (flowDebug.value && stageOverride.value && hostStepOverride.value === 2) return detectedPort.value ?? 25565
-  return detectedPort.value
-})
-
-const displayScanning = computed<boolean>(() => {
-  if (flowDebug.value && stageOverride.value) return false
-  return scanning.value
-})
 
 const {
   availability,
@@ -698,6 +526,23 @@ const {
   refreshStatus,
   refreshMatches,
 } = useConnector({ onError: (error) => message.error(error) })
+
+const {
+  flowDebug,
+  debugStageIndex,
+  stageOverride,
+  debugStages,
+  displayStatus,
+  displayHostStep,
+  displayDetectedPort,
+  displayScanning,
+  applyDebugStage,
+  prevDebugStage,
+  nextDebugStage,
+  resetLiveStage,
+  updateDebugStageIndexFromStatus,
+  stageIndex,
+} = useConnectFlowDebug({ status, hostStep, detectedPort, scanning })
 
 const runningInstanceOptions = computed(() =>
   runningInstances.value.map((instance) => ({

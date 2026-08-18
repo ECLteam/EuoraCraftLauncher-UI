@@ -707,7 +707,10 @@
         "referenceProject": "Reference Projects"
       },
       "desc": {
-        "aebc": "Author of ECLauncherCore, Florolding, EasyTier-Pyo3, responsible for game launch core, external auth and networking",
+        "aebc08": "Author of ECLauncherCore, Florolding, EasyTier-Pyo3, responsible for game launch core, external auth and networking",
+        "wuchang325": "EuoraCraft Launcher developer",
+        "e2662020": "EuoraCraft Launcher developer",
+        "luyanci": "EuoraCraft Launcher developer",
         "pytauri": "Bridges Python and Tauri, letting the launcher use Python as its backend",
         "vue3": "Progressive JavaScript framework that builds the launcher UI",
         "tauri": "Lightweight desktop framework providing native windows and system integration",
@@ -1117,7 +1120,8 @@
     "launch": "Launch",
     "select": "Select",
     "clear": "Clear",
-    "more": "More"
+    "more": "More",
+    "reset": "Reset"
   },
   "agreement": {
     "title": "User Agreement",

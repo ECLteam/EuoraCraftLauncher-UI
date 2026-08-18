@@ -156,6 +156,7 @@ import type {
   MinecraftVersionItem,
   MinecraftVersionType,
 } from '@/types/api'
+import { formatDate } from '@/utils/format'
 
 const { t } = useI18n()
 const launcherMessage = useLauncherMessage()
@@ -501,12 +502,6 @@ function getVersionIcon(type: string): string {
 
 function getVersionImage(type: string): string {
   return _getVersionImage(type)
-}
-
-function formatDate(dateStr: string): string {
-  if (!dateStr) return '-'
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
 let scrollRafId: number | null = null

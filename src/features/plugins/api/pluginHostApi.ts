@@ -9,8 +9,8 @@ import type {
 } from '@/types/api'
 
 export const pluginHostApi = {
-  async getRoutes(): Promise<PluginRoute[]> {
-    const result = await backend.command('plugin_get_routes')
+  async getRoutes(pluginId?: string): Promise<PluginRoute[]> {
+    const result = await backend.command('plugin_get_routes', { plugin_id: pluginId })
     if (!result.success) throw new Error(result.message || '读取插件路由失败')
     return result.data ?? []
   },

@@ -99,12 +99,11 @@ const themeColors = {
 /**
  * 创建 naive-ui 主题覆盖配置。
  * @param isDark - 是否为深色模式
- * @param primary - 主题主色
+ * @param primaryScale - 已计算好的主色色阶（由调用方基于响应式状态生成一次）
  * @returns naive-ui 主题覆盖对象
  */
-function createThemeOverrides(isDark: boolean, primary: string): GlobalThemeOverrides {
+function createThemeOverrides(isDark: boolean, primaryScale: ReturnType<typeof createPrimaryScale>): GlobalThemeOverrides {
   const baseColors = isDark ? themeColors.dark : themeColors.light
-  const primaryScale = createPrimaryScale(primary, isDark)
 
   return {
     common: {
@@ -242,17 +241,19 @@ export const useThemeStore = defineStore('theme', () => {
     return isDark.value ? darkTheme : null
   })
 
+  /** 主色色阶：由 primaryColor + isDark 派生，仅计算一次供 themeOverrides/colors/updateTheme 复用 */
+  const primaryScale = computed(() => createPrimaryScale(primaryColor.value, isDark.value))
+
   const themeOverrides = computed<GlobalThemeOverrides>(() => {
-    return createThemeOverrides(isDark.value, primaryColor.value)
+    return createThemeOverrides(isDark.value, primaryScale.value)
   })
 
   const colors = computed(() => {
     const baseColors = isDark.value ? themeColors.dark : themeColors.light
-    const primaryScale = createPrimaryScale(primaryColor.value, isDark.value)
 
     return {
       ...baseColors,
-      ...primaryScale,
+      ...primaryScale.value,
     }
   })
 
@@ -278,15 +279,14 @@ export const useThemeStore = defineStore('theme', () => {
       isDark.value = themeMode.value === 'dark'
     }
 
-    const primaryScale = createPrimaryScale(primaryColor.value, isDark.value)
     const bgImageValue = backgroundImage.value ? `url("${backgroundImage.value}")` : 'none'
 
     document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
-    document.documentElement.style.setProperty('--primary', primaryScale.primary)
-    document.documentElement.style.setProperty('--primary-rgb', primaryScale.primaryRgb)
-    document.documentElement.style.setProperty('--primary-hover', primaryScale.primaryHover)
-    document.documentElement.style.setProperty('--primary-active', primaryScale.primaryPressed)
-    document.documentElement.style.setProperty('--primary-alpha', primaryScale.primaryLight)
+    document.documentElement.style.setProperty('--primary', primaryScale.value.primary)
+    document.documentElement.style.setProperty('--primary-rgb', primaryScale.value.primaryRgb)
+    document.documentElement.style.setProperty('--primary-hover', primaryScale.value.primaryHover)
+    document.documentElement.style.setProperty('--primary-active', primaryScale.value.primaryPressed)
+    document.documentElement.style.setProperty('--primary-alpha', primaryScale.value.primaryLight)
     document.documentElement.style.setProperty('--bg-image', bgImageValue)
     document.documentElement.style.setProperty('--bg-opacity', String(backgroundOpacity.value))
     document.documentElement.style.setProperty('--bg-app', transparentBg.value ? 'transparent' : '')

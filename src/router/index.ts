@@ -1,4 +1,6 @@
 import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-router'
+import { pinia } from '@/app/stores'
+import { useLayoutStore } from '@/app/stores/layoutStore'
 
 const routes: RouteRecordRaw[] = [
   { path: '/', name: 'game', component: () => import('@/views/Game.vue') },
@@ -8,8 +10,6 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/Instances.vue'),
   },
   { path: '/connect', name: 'connect', component: () => import('@/views/Connect.vue') },
-  { path: '/versions/manage', redirect: '/versions' },
-  { path: '/versions/running', redirect: '/' },
   { path: '/download', name: 'download', component: () => import('@/views/Download.vue') },
   { path: '/plugins', name: 'plugins', component: () => import('@/views/Plugins.vue') },
   { path: '/online-mods', name: 'online-mods', component: () => import('@/views/OnlineMods.vue') },
@@ -19,7 +19,6 @@ const routes: RouteRecordRaw[] = [
     redirect: '/settings/general',
     children: [
       { path: 'general', name: 'settings-general', component: () => import('@/views/settings/GeneralTab.vue') },
-      { path: 'download', name: 'settings-download', redirect: '/settings/game' },
       { path: 'game', name: 'settings-game', component: () => import('@/views/settings/GameTab.vue') },
       { path: 'about', name: 'settings-about', component: () => import('@/views/settings/AboutTab.vue') },
     ],
@@ -33,18 +32,9 @@ const routes: RouteRecordRaw[] = [
 
 const router = createRouter({ history: createWebHashHistory(), routes })
 
-// 路由切换前重置弹窗状态
+// 路由切换前重置弹窗遗留的页面过渡状态（通过 layoutStore 状态驱动，不直接操作 DOM）
 router.beforeEach(() => {
-  // 移除页面内容的滑出类
-  const pageContent = document.querySelector('.page-container') as HTMLElement
-  if (pageContent) {
-    pageContent.classList.remove('modal-page-slide-out')
-  }
-  // 重置主内容区滚动
-  const mainContent = document.querySelector('.main-content') as HTMLElement
-  if (mainContent) {
-    mainContent.style.overflow = ''
-  }
+  useLayoutStore(pinia).resetTransientState()
 })
 
 export default router

@@ -22,16 +22,37 @@
         class="world-select"
       />
       <NInput v-model:value="query" clearable size="small" placeholder="搜索资源名称、版本或来源" />
-      <NButton size="small" :loading="loading" @click="load">刷新</NButton>
-      <NButton size="small" type="primary" @click="chooseAndInstall">安装资源</NButton>
-      <NButton size="small" secondary @click="onlineVisible = true">在线搜索</NButton>
-      <NButton size="small" secondary :loading="updateLoading" @click="checkUpdates">检查更新</NButton>
-      <NButton size="small" secondary @click="exportManifest">导出清单</NButton>
-      <NButton size="small" type="error" secondary :disabled="selected.size === 0" @click="removeSelected"
-        >移入回收站</NButton
-      >
+      <div class="toolbar-actions">
+        <NButton size="small" :loading="loading" @click="load">
+          <template #icon><UiIcon name="refresh" :size="13" /></template>
+          刷新
+        </NButton>
+        <NButton size="small" type="primary" @click="chooseAndInstall">
+          <template #icon><UiIcon name="plus" :size="13" /></template>
+          安装资源
+        </NButton>
+        <NButton size="small" secondary @click="onlineVisible = true">
+          <template #icon><UiIcon name="search" :size="13" /></template>
+          在线搜索
+        </NButton>
+        <NButton size="small" secondary :loading="updateLoading" @click="checkUpdates">
+          <template #icon><UiIcon name="refresh" :size="13" /></template>
+          检查更新
+        </NButton>
+        <NButton size="small" secondary @click="exportManifest">
+          <template #icon><UiIcon name="file-download" :size="13" /></template>
+          导出清单
+        </NButton>
+        <NButton size="small" type="error" secondary :disabled="selected.size === 0" @click="removeSelected">
+          <template #icon><UiIcon name="trash" :size="13" /></template>
+          移入回收站
+        </NButton>
+      </div>
     </header>
-    <p class="drop-hint">可把资源文件拖到这里安装；删除始终进入系统回收站。</p>
+    <p class="drop-hint">
+      <UiIcon name="upload" :size="12" />
+      可把资源文件拖到这里安装；删除始终进入系统回收站。
+    </p>
     <NSpin :show="loading">
       <div v-if="filtered.length" class="resource-table">
         <div v-for="item in filtered" :key="item.id" class="resource-row">
@@ -88,6 +109,7 @@ import backend from '@/api/client'
 import { unwrapResponse } from '@/app/runtime/errorPresentation'
 import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import Modal from '@/components/modals/Modal.vue'
+import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
 import type { GameResource, GameResourceType, ScannedVersion } from '@/types/api'
@@ -329,6 +351,14 @@ onMounted(load)
   border-bottom: 1px solid var(--ecl-border);
 }
 
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
 .resource-tabs {
   display: flex;
   align-items: center;
@@ -369,7 +399,7 @@ onMounted(load)
   gap: 12px;
   padding: 10px 16px;
   border-bottom: 1px solid var(--ecl-border);
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, transform 0.15s ease;
 }
 
 .resource-row:last-child {
@@ -378,6 +408,10 @@ onMounted(load)
 
 .resource-row:hover {
   background: var(--ecl-hover);
+}
+
+.resource-row:has(.resource-warning) {
+  background: color-mix(in srgb, #e39a35 3%, transparent);
 }
 
 .resource-copy {

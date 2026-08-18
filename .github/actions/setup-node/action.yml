@@ -1,0 +1,28 @@
+name: Setup Node
+description: Set up Node.js and pnpm, checkout the repository and install frontend dependencies
+
+inputs:
+  node-version:
+    description: Node.js version to install
+    required: false
+    default: '22'
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node
+      uses: actions/setup-node@v7
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v6
+      with:
+        version: 10
+
+    - name: Checkout repo
+      uses: actions/checkout@v7
+
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install --frozen-lockfile

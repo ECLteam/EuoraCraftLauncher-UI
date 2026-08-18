@@ -77,35 +77,32 @@
         <NSpin :show="loading" class="mods-results-spin">
           <NScrollbar v-if="results.length" class="mods-results-scroll">
             <div class="mod-list">
-              <div v-for="mod in sortedResults" :key="mod.id" class="mod-card ecl-surface" @click="openDetails(mod)">
-                <div class="mod-card-icon">
-                  <NAvatar :size="52" :src="mod.iconUrl" color="var(--ecl-surface-muted)" objectFit="cover">
-                    <UiIcon name="cube" :size="22" />
-                  </NAvatar>
+              <div v-for="mod in sortedResults" :key="mod.id" class="mod-card" @click="openDetails(mod)">
+                <!-- 封面区 -->
+                <div class="mod-card-cover">
+                  <img v-if="mod.iconUrl" :src="mod.iconUrl" class="cover-img" :alt="mod.displayTitle" loading="lazy" />
+                  <div v-else class="cover-fallback">
+                    <UiIcon name="cube" :size="36" />
+                  </div>
+                  <div v-if="mod.alternatives.length" class="cover-platform">
+                    <NTag
+                      v-for="platform in mod.alternatives"
+                      :key="`${platform.source}:${platform.projectId}`"
+                      size="tiny"
+                      :bordered="false"
+                    >
+                      {{ sourceLabel(platform.source) }}
+                    </NTag>
+                  </div>
                 </div>
 
-                <div class="mod-card-info">
-                  <div class="mod-title-row">
-                    <div class="mod-title">
-                      <h3>{{ mod.displayTitle }}</h3>
-                      <p>{{ mod.displayTitle !== mod.title ? mod.title : mod.author }}</p>
-                    </div>
-                    <div class="platform-tags">
-                      <NTag
-                        v-for="platform in mod.alternatives"
-                        :key="`${platform.source}:${platform.projectId}`"
-                        size="small"
-                        :bordered="false"
-                        :type="platform.source === 'modrinth' ? 'success' : 'warning'"
-                      >
-                        {{ sourceLabel(platform.source) }}
-                      </NTag>
-                    </div>
-                  </div>
+                <!-- 内容区 -->
+                <div class="mod-card-body">
+                  <h3 class="mod-card-title">{{ mod.displayTitle }}</h3>
+                  <p class="mod-card-subtitle">{{ mod.displayTitle !== mod.title ? mod.title : mod.author }}</p>
+                  <p class="mod-card-desc">{{ mod.wiki?.summary || mod.description }}</p>
 
-                  <p class="mod-description">{{ mod.wiki?.summary || mod.description }}</p>
-
-                  <div class="mod-meta-row">
+                  <div class="mod-card-meta">
                     <span class="mod-meta-item">
                       <UiIcon name="user" :size="12" />
                       {{ mod.author }}
@@ -116,22 +113,23 @@
                     </span>
                   </div>
 
-                  <div class="mod-tags">
-                    <NTag v-if="mod.wiki" size="small" :bordered="false" type="info">MC 百科</NTag>
-                    <NTag v-if="resourceType !== 'mod'" size="small" :bordered="false" type="info">
+                  <div class="mod-card-tags">
+                    <NTag v-if="mod.wiki" size="tiny" :bordered="false" type="info">MC 百科</NTag>
+                    <NTag v-if="resourceType !== 'mod'" size="tiny" :bordered="false" type="info">
                       {{ t(`download.${resourceType}`) }}
                     </NTag>
                     <template v-if="resourceType === 'mod'">
-                      <NTag v-for="loader in mod.loaders.slice(0, 3)" :key="loader" size="small" :bordered="false">
+                      <NTag v-for="loader in mod.loaders.slice(0, 3)" :key="loader" size="tiny" :bordered="false">
                         {{ loaderName(loader) }}
                       </NTag>
                     </template>
-                    <NTag v-for="category in mod.categories.slice(0, 3)" :key="category" size="small" :bordered="false">
+                    <NTag v-for="category in mod.categories.slice(0, 2)" :key="category" size="tiny" :bordered="false">
                       {{ category }}
                     </NTag>
                   </div>
                 </div>
 
+                <!-- 操作区 -->
                 <div class="mod-card-actions">
                   <NButton type="primary" size="small" @click.stop="openDetails(mod)">
                     <template #icon><UiIcon name="download" :size="14" /></template>
@@ -172,9 +170,11 @@
       <NSpin :show="detailLoading">
         <div v-if="selectedMod" class="detail-content">
           <div class="detail-hero">
-            <NAvatar :size="72" :src="selectedMod.iconUrl" color="var(--ecl-surface-muted)">
-              <UiIcon name="cube" :size="30" />
-            </NAvatar>
+            <div class="detail-hero-avatar">
+              <NAvatar :size="72" :src="selectedMod.iconUrl" color="var(--ecl-surface-muted)">
+                <UiIcon name="cube" :size="30" />
+              </NAvatar>
+            </div>
             <div class="detail-heading">
               <h2>{{ selectedMod.displayTitle }}</h2>
               <p>{{ selectedMod.title }} · {{ selectedMod.author }}</p>

@@ -1,6 +1,7 @@
 dist/
 node_modules/
 *.tsbuildinfo
+*.py
 vite.config.d.ts
 components.d.ts
 pnpm-lock.yaml

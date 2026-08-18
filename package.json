@@ -16,6 +16,7 @@
     "lint:fix": "eslint src eslint.config.js --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "check:commands": "node scripts/check-command-alignment.mjs",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test"
   },
   "devDependencies": {

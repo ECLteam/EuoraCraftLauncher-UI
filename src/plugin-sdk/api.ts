@@ -1,6 +1,15 @@
 // plugin-sdk API 封装
+//
+// 与主 API 重复的命令调用统一委托给 feature API 模块（accountsApi /
+// instanceInstallApi / pluginHostApi / pluginManagementApi），这些模块最终都
+// 走 src/api/client.ts 的 backend 统一入口，避免命令名与参数结构多处重复声明。
+// 委托结果统一包装回 ApiResponse 形状，保持插件侧调用契约不变。
 
 import backend from '@/api/client'
+import { accountsApi } from '@/features/accounts/api/accountsApi'
+import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
+import { pluginHostApi } from '@/features/plugins/api/pluginHostApi'
+import { pluginManagementApi } from '@/features/plugins/api/pluginManagementApi'
 import type {
   AccountListData,
   ApiResponse,
@@ -21,6 +30,15 @@ import type {
   ScannedVersion,
   SelectResult,
 } from '@/types/api'
+import { getErrorMessage } from '@/utils/error'
+
+/** 将 feature API 的已解包结果包装回 ApiResponse，保持插件侧返回契约。 */
+function toApiResponse<T>(promise: Promise<T>): Promise<ApiResponse<T>> {
+  return promise.then(
+    (data) => ({ success: true, data, timestamp: Date.now() }),
+    (error: unknown) => ({ success: false, message: getErrorMessage(error), timestamp: Date.now() })
+  )
+}
 
 // ── 插件命令 ──
 
@@ -31,7 +49,7 @@ import type {
  * @returns 插件命令返回结果
  */
 export function callPluginCommand<T = unknown>(command: string, params?: JsonDict): Promise<ApiResponse<T>> {
-  return backend.command('plugin_call_command', { command, params }) as Promise<ApiResponse<T>>
+  return pluginHostApi.callCommand(command, params) as Promise<ApiResponse<T>>
 }
 
 // ── 插件设置 ──
@@ -41,7 +59,7 @@ export function callPluginCommand<T = unknown>(command: string, params?: JsonDic
  * @param pluginName - 插件名称
  */
 export function getPluginSettings(pluginName: string): Promise<ApiResponse<PluginSettingsData>> {
-  return backend.command('plugin_get_settings', { plugin_name: pluginName })
+  return toApiResponse(pluginManagementApi.getSettings(pluginName))
 }
 
 /**
@@ -51,17 +69,17 @@ export function getPluginSettings(pluginName: string): Promise<ApiResponse<Plugi
  * @param value - 设置值
  */
 export function updatePluginSetting(pluginName: string, key: string, value: unknown): Promise<ApiResponse<void>> {
-  return backend.command('plugin_update_setting', { plugin_name: pluginName, key, value })
+  return toApiResponse(pluginManagementApi.updateSetting(pluginName, key, value))
 }
 
 // ── 插件路由 ──
 
 /**
  * 获取已注册插件路由列表。
- * @param pluginId - 可选的插件 ID 过滤
+ * @param pluginId - 可选的插件 ID 过滤（后端当前忽略该参数，返回全部路由）
  */
 export function getPluginRoutes(pluginId?: string): Promise<ApiResponse<PluginRoute[]>> {
-  return backend.command('plugin_get_routes', { plugin_id: pluginId })
+  return toApiResponse(pluginHostApi.getRoutes(pluginId))
 }
 
 // ── 启动器配置 ──
@@ -95,7 +113,7 @@ export function getMinecraftVersions(filterType?: string): Promise<ApiResponse<M
 
 /**
  * 扫描指定路径下的版本。
- * @param path - 实例路径，支持单个或多个路径
+ * @param path - 实例路径，支持单个或多个路径；不传时由后端按配置路径扫描
  */
 export function scanGameVersions(path?: string | string[]): Promise<ApiResponse<ScannedVersion[]>> {
   const paths = path ? (Array.isArray(path) ? path : [path]) : undefined
@@ -115,7 +133,7 @@ export function installGameVersion(params: {
   task_id?: string
   game_path: string
 }): Promise<ApiResponse<InstallVersionResult>> {
-  return backend.command('game_install', params)
+  return toApiResponse(instanceInstallApi.install(params))
 }
 
 // ── Java ──
@@ -140,14 +158,14 @@ export function getJavaInstallations(): Promise<ApiResponse<JavaInstallation[]>>
  * 获取账户列表。
  */
 export function getAccountList(): Promise<ApiResponse<AccountListData>> {
-  return backend.command('accounts_list')
+  return toApiResponse(accountsApi.list())
 }
 
 /**
  * 获取当前选中的账户。
  */
 export function getCurrentAccount(): Promise<ApiResponse<MinecraftAccount | null>> {
-  return backend.command('accounts_current')
+  return toApiResponse(accountsApi.current())
 }
 
 // ── 文件系统 ──
@@ -183,7 +201,7 @@ export function checkPathExists(path: string): Promise<ApiResponse<PathInfo>> {
  * 打开目录选择对话框。
  */
 export function selectDirectory(): Promise<ApiResponse<SelectResult>> {
-  return backend.command('select_directory')
+  return toApiResponse(instanceInstallApi.selectDirectory()) as Promise<ApiResponse<SelectResult>>
 }
 
 /**
@@ -205,7 +223,7 @@ export function selectImage(): Promise<ApiResponse<ImageSelection>> {
  * @param path - 文件夹路径
  */
 export function openFolder(path: string): Promise<ApiResponse<void>> {
-  return backend.command('open_folder', { path })
+  return toApiResponse(instanceInstallApi.openFolder(path))
 }
 
 // ── 图片 ──
@@ -224,7 +242,7 @@ export function fetchImageDataUrl(url: string): Promise<ApiResponse<ImageDataUrl
  * 获取所有插件信息。
  */
 export function getPluginList(): Promise<ApiResponse<PluginInfo[]>> {
-  return backend.command('plugin_list')
+  return toApiResponse(pluginManagementApi.list())
 }
 
 /**

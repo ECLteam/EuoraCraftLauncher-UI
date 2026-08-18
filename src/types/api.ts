@@ -3,6 +3,26 @@
  *
  * 后端不关心这些字段的具体含义，只负责存/取 JSON。
  * 社区替换前端时，可以自由增删字段，不需要改后端代码。
+ *
+ * ── IPC 命令名单一来源 ──────────────────────────────────────────────
+ * 本文件导出的 `COMMAND_NAMES` 是前端唯一权威的命令名字符串来源：
+ * 所有调用方（如 features/connect/api/connectorApi.ts）必须引用它，
+ * 禁止在业务代码中散落硬编码命令名。`CommandPayloadMap` /
+ * `CommandResponseMap` 的键与 `COMMAND_NAMES` 一一对应，由文件内
+ * `commandNamesAlignedWithPayloadMap` 的编译期断言保证二者永不脱钩
+ * （`pnpm typecheck` 即完成校验）。
+ *
+ * 后端侧权威是 `ECL/api/registry.py::COMMAND_NAMES`：`ECL/api/connector.py`
+ * 等处理器方法名通过 `command_handlers()` 的 getattr 动态绑定引用之；
+ * `ECL/api/models.py::REQUEST_MODELS` 的键在 `request_schemas()` 中强制
+ * 校验必须落在 registry 已注册命令集合内。前后端命令名对齐的自动验证脚本：
+ * `frontend/scripts/check-command-alignment.mjs`（pnpm check:commands）。
+ *
+ * ── DTO 与后端模型对齐 ──────────────────────────────────────────────
+ * 请求体结构（`CommandPayloadMap` 中带参数的命令）与后端 `ECL/api/models.py`
+ * 的 Pydantic RequestModel 对应。后端 `request_schemas()` 可导出 JSON Schema
+ * 作为字段权威参考；后端模型为 extra="forbid"，前端多传的字段会被拒绝，
+ * 因此新增/修改跨端 DTO 时必须同步更新后端 models.py 与本文件。
  */
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1420,6 +1440,215 @@ export interface CommandPayloadMap {
 }
 
 export type CommandName = keyof CommandPayloadMap
+
+// ═══════════════════════════════════════════════════════════════════
+//  命令名单一权威来源（运行时字符串）
+// ═══════════════════════════════════════════════════════════════════
+// 前端所有 IPC 调用必须引用这里的字符串，禁止硬编码散落。
+// 键与 CommandPayloadMap / CommandResponseMap 一一对应，
+// 由下方 commandNamesAlignedWithPayloadMap 编译期断言强制同步。
+// 后端对应权威：ECL/api/registry.py::COMMAND_NAMES。
+
+export const COMMAND_NAMES = {
+  system_ping: 'system_ping',
+  launcher_errors_pending: 'launcher_errors_pending',
+  launcher_errors_ack: 'launcher_errors_ack',
+  settings_get: 'settings_get',
+  settings_set: 'settings_set',
+  frontend_log: 'frontend_log',
+  system_memory: 'system_memory',
+  connector_status: 'connector_status',
+  connector_host_port: 'connector_host_port',
+  connector_host_instance: 'connector_host_instance',
+  connector_join: 'connector_join',
+  connector_leave: 'connector_leave',
+  connector_kick: 'connector_kick',
+  connector_match_instances: 'connector_match_instances',
+  connector_easytier_status: 'connector_easytier_status',
+  connector_easytier_download: 'connector_easytier_download',
+  connector_scan_ports: 'connector_scan_ports',
+  connector_nat_type: 'connector_nat_type',
+  game_java_scan: 'game_java_scan',
+  game_versions: 'game_versions',
+  game_loader_versions: 'game_loader_versions',
+  game_scan: 'game_scan',
+  game_install: 'game_install',
+  game_uninstall: 'game_uninstall',
+  game_config_get: 'game_config_get',
+  game_config_set: 'game_config_set',
+  game_config_patch: 'game_config_patch',
+  accounts_list: 'accounts_list',
+  accounts_current: 'accounts_current',
+  accounts_add_offline: 'accounts_add_offline',
+  accounts_add_authlib: 'accounts_add_authlib',
+  accounts_select_authlib_profile: 'accounts_select_authlib_profile',
+  authlib_resolve_server: 'authlib_resolve_server',
+  accounts_microsoft_login_config: 'accounts_microsoft_login_config',
+  accounts_authlib_login_config: 'accounts_authlib_login_config',
+  accounts_start_microsoft_login: 'accounts_start_microsoft_login',
+  accounts_poll_microsoft_login: 'accounts_poll_microsoft_login',
+  accounts_cancel_microsoft_login: 'accounts_cancel_microsoft_login',
+  accounts_complete_microsoft_login: 'accounts_complete_microsoft_login',
+  accounts_switch: 'accounts_switch',
+  accounts_remove: 'accounts_remove',
+  accounts_set_favorite: 'accounts_set_favorite',
+  accounts_set_pinned: 'accounts_set_pinned',
+  accounts_refresh_profile: 'accounts_refresh_profile',
+  accounts_texture_urls: 'accounts_texture_urls',
+  wardrobe_list: 'wardrobe_list',
+  wardrobe_sync_account_skin: 'wardrobe_sync_account_skin',
+  wardrobe_import: 'wardrobe_import',
+  wardrobe_update: 'wardrobe_update',
+  wardrobe_delete: 'wardrobe_delete',
+  wardrobe_texture: 'wardrobe_texture',
+  wardrobe_export: 'wardrobe_export',
+  wardrobe_apply_skin: 'wardrobe_apply_skin',
+  microsoft_reset_skin: 'microsoft_reset_skin',
+  microsoft_set_cape: 'microsoft_set_cape',
+  microsoft_reset_cape: 'microsoft_reset_cape',
+  authlib_servers: 'authlib_servers',
+  user_agreement_get: 'user_agreement_get',
+  user_agreement_save: 'user_agreement_save',
+  user_agreement_clear: 'user_agreement_clear',
+  image_fetch_data_url: 'image_fetch_data_url',
+  image_save_url: 'image_save_url',
+  image_save_as: 'image_save_as',
+  image_read_file: 'image_read_file',
+  image_list_files: 'image_list_files',
+  select_directory: 'select_directory',
+  select_java: 'select_java',
+  select_image: 'select_image',
+  select_file: 'select_file',
+  select_files: 'select_files',
+  select_save_file: 'select_save_file',
+  open_folder: 'open_folder',
+  open_url: 'open_url',
+  game_instances: 'game_instances',
+  game_version_stats: 'game_version_stats',
+  game_version_settings_get: 'game_version_settings_get',
+  game_version_settings_set: 'game_version_settings_set',
+  game_instance_profile_get: 'game_instance_profile_get',
+  game_instance_profile_patch: 'game_instance_profile_patch',
+  game_instance_profile_reset: 'game_instance_profile_reset',
+  game_instance_icon_set: 'game_instance_icon_set',
+  game_instance_pin_order_set: 'game_instance_pin_order_set',
+  game_instance_categories_get: 'game_instance_categories_get',
+  game_instance_categories_upsert: 'game_instance_categories_upsert',
+  game_instance_categories_delete: 'game_instance_categories_delete',
+  game_instance_folder_open: 'game_instance_folder_open',
+  game_instance_clone: 'game_instance_clone',
+  game_instance_import: 'game_instance_import',
+  game_instance_export: 'game_instance_export',
+  game_instance_files_check: 'game_instance_files_check',
+  game_instance_files_repair: 'game_instance_files_repair',
+  game_instance_delete_to_trash: 'game_instance_delete_to_trash',
+  game_operation_get: 'game_operation_get',
+  game_operation_cancel: 'game_operation_cancel',
+  game_world_list: 'game_world_list',
+  game_world_detail: 'game_world_detail',
+  game_world_patch: 'game_world_patch',
+  game_world_copy: 'game_world_copy',
+  game_world_import: 'game_world_import',
+  game_world_export: 'game_world_export',
+  game_world_icon_set: 'game_world_icon_set',
+  game_world_delete_to_trash: 'game_world_delete_to_trash',
+  game_world_backup_list: 'game_world_backup_list',
+  game_world_backup_create: 'game_world_backup_create',
+  game_world_backup_restore: 'game_world_backup_restore',
+  game_world_backup_lock: 'game_world_backup_lock',
+  game_world_backup_delete_to_trash: 'game_world_backup_delete_to_trash',
+  game_screenshot_list: 'game_screenshot_list',
+  game_screenshot_thumbnail: 'game_screenshot_thumbnail',
+  game_screenshot_copy: 'game_screenshot_copy',
+  game_screenshot_save_as: 'game_screenshot_save_as',
+  game_screenshot_delete_to_trash: 'game_screenshot_delete_to_trash',
+  game_screenshot_set_cover: 'game_screenshot_set_cover',
+  game_screenshot_set_background: 'game_screenshot_set_background',
+  game_server_list: 'game_server_list',
+  game_server_upsert: 'game_server_upsert',
+  game_server_delete: 'game_server_delete',
+  game_server_reorder: 'game_server_reorder',
+  game_server_status_refresh: 'game_server_status_refresh',
+  game_resource_list: 'game_resource_list',
+  game_resource_install: 'game_resource_install',
+  game_resource_toggle: 'game_resource_toggle',
+  game_resource_delete_to_trash: 'game_resource_delete_to_trash',
+  game_resource_manifest_export: 'game_resource_manifest_export',
+  game_resource_search: 'game_resource_search',
+  game_resource_identify: 'game_resource_identify',
+  game_resource_update_check: 'game_resource_update_check',
+  game_resource_update: 'game_resource_update',
+  game_launch: 'game_launch',
+  game_launch_cancel: 'game_launch_cancel',
+  game_instance_stop: 'game_instance_stop',
+  game_crash_analyze: 'game_crash_analyze',
+  game_crash_output: 'game_crash_output',
+  game_crash_export: 'game_crash_export',
+  export_logs: 'export_logs',
+  logs_get_history: 'logs_get_history',
+  process_instances: 'process_instances',
+  process_input: 'process_input',
+  process_stop: 'process_stop',
+  debug_process_spawn: 'debug_process_spawn',
+  plugin_list: 'plugin_list',
+  plugin_info: 'plugin_info',
+  plugin_enable: 'plugin_enable',
+  plugin_disable: 'plugin_disable',
+  plugin_unload: 'plugin_unload',
+  plugin_reload: 'plugin_reload',
+  plugin_install: 'plugin_install',
+  plugin_get_routes: 'plugin_get_routes',
+  plugin_get_slots: 'plugin_get_slots',
+  plugin_get_vue_slots: 'plugin_get_vue_slots',
+  plugin_get_vue_components: 'plugin_get_vue_components',
+  plugin_call_command: 'plugin_call_command',
+  plugin_get_settings: 'plugin_get_settings',
+  plugin_update_setting: 'plugin_update_setting',
+  plugin_notify_sidebar_state: 'plugin_notify_sidebar_state',
+  get_mods: 'get_mods',
+  toggle_mod: 'toggle_mod',
+  add_mod: 'add_mod',
+  remove_mod: 'remove_mod',
+  open_mods_folder: 'open_mods_folder',
+  detect_modpack_type: 'detect_modpack_type',
+  import_modpack: 'import_modpack',
+  export_modpack: 'export_modpack',
+  list_resourcepacks: 'list_resourcepacks',
+  list_shaderpacks: 'list_shaderpacks',
+  list_saves: 'list_saves',
+  remove_resourcepack: 'remove_resourcepack',
+  remove_shaderpack: 'remove_shaderpack',
+  delete_save: 'delete_save',
+  open_resourcepacks_folder: 'open_resourcepacks_folder',
+  open_shaderpacks_folder: 'open_shaderpacks_folder',
+  open_saves_folder: 'open_saves_folder',
+  search_mods: 'search_mods',
+  get_mod_info: 'get_mod_info',
+  get_mod_versions: 'get_mod_versions',
+  download_mod: 'download_mod',
+  launcher_info: 'launcher_info',
+  info_card_get: 'info_card_get',
+  debug_reset_launcher_data: 'debug_reset_launcher_data',
+  debug_clear_plugins: 'debug_clear_plugins',
+  debug_devtools_open: 'debug_devtools_open',
+  frontend_ready: 'frontend_ready',
+  fs_read_dir: 'fs_read_dir',
+  fs_read_file: 'fs_read_file',
+  fs_exists: 'fs_exists',
+  file_resolve: 'file_resolve',
+} as const
+
+/**
+ * 编译期断言：`COMMAND_NAMES` 的键与 `CommandPayloadMap` 的键完全一致（双向）。
+ *
+ * 新增命令时若忘记补进 `COMMAND_NAMES`（或反向多写），这里会退化为 false，
+ * `pnpm typecheck` 直接报错。运行时恒为 true，无任何逻辑含义。
+ */
+export const commandNamesAlignedWithPayloadMap: CommandName extends keyof typeof COMMAND_NAMES
+  ? keyof typeof COMMAND_NAMES extends CommandName
+    ? true
+    : false
+  : false = true
 
 // ═══════════════════════════════════════════════════════════════════
 //  命令响应映射

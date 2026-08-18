@@ -87,6 +87,8 @@
 import { NButton } from 'naive-ui'
 import { ref, computed, watch, nextTick, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { pinia } from '@/app/stores'
+import { useLayoutStore } from '@/app/stores/layoutStore'
 import UiIcon from '@/components/ui/Icon.vue'
 
 defineOptions({ name: 'Modal' })
@@ -120,6 +122,7 @@ const slots = defineSlots<{
 }>()
 
 const { t } = useI18n()
+const layoutStore = useLayoutStore(pinia)
 
 export type ModalType = 'content' | 'agreement' | 'confirm' | 'alert' | 'warning'
 
@@ -227,18 +230,12 @@ watch(
       })
       document.addEventListener('keydown', keydownHandler)
       if (props.lockScroll) {
-        const mainContent = document.querySelector('.main-content') as HTMLElement | null
-        if (mainContent) {
-          mainContent.style.overflow = 'hidden'
-        }
+        layoutStore.setMainContentScrollLocked(true)
       }
     } else {
       document.removeEventListener('keydown', keydownHandler)
       if (props.lockScroll) {
-        const mainContent = document.querySelector('.main-content') as HTMLElement | null
-        if (mainContent) {
-          mainContent.style.overflow = ''
-        }
+        layoutStore.setMainContentScrollLocked(false)
       }
     }
   },
