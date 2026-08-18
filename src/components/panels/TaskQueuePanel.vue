@@ -120,7 +120,7 @@ import { useI18n } from 'vue-i18n'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { globalTaskQueue, type TaskItem } from '@/composables/useTaskQueue'
-import { getLoaderLabel } from '@/utils/loader'
+import { getLoaderLabel } from '@/config/version'
 
 defineOptions({ name: 'TaskQueuePanel' })
 

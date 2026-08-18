@@ -1,4 +1,5 @@
-import { ref, reactive } from 'vue'
+import { storeToRefs } from 'pinia'
+import { reactive, ref, type Ref, type UnwrapNestedRefs } from 'vue'
 import { useRouter } from 'vue-router'
 import backend from '@/api/client'
 import {
@@ -7,43 +8,44 @@ import {
   LAUNCH_ERROR_HIDE_DELAY,
   STATUS_MESSAGE_AUTO_HIDE,
 } from '@/config/game'
-import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
-import { instancePathConfigApi } from '@/features/instances/api/instancePathConfigApi'
 import { instanceSettingsApi } from '@/features/instances/api/instanceSettingsApi'
 import { createDefaultVersionSettings, parseLaunchArguments } from '@/features/instances/model/instanceSettings'
-import { useSettingsStore } from '@/features/settings/stores/settingsStore'
-import type { ScannedVersion, LaunchProgress } from '@/types/api'
+import { useInstanceStore } from '@/features/instances/stores/instanceStore'
+import type { LaunchProgress } from '@/types/api'
 import { useLauncherMessage } from './useLauncherMessage'
 import { globalLaunchProgress } from './useLaunchProgress'
 
 export interface VersionItem {
   id: string
   type: string
-  versionType: ScannedVersion['versionType']
+  versionType: string
   gamePath: string
 }
 
-const globalVersions = ref<VersionItem[]>([])
-const globalSelectedVersion = ref<string>('')
-const currentGamePath = ref<string>('')
-
-/**
- * 将实例选择同步到游戏页（供实例管理等其他模块调用）。
- * 实例管理页选择的实例会通过此函数同步到游戏页的启动按钮。
- */
-export function setGlobalSelection(versionId: string, gamePath?: string) {
-  globalSelectedVersion.value = versionId
-  currentGamePath.value = gamePath ?? currentGamePath.value
+export interface InstanceManagerStateShape {
+  versions: Ref<VersionItem[]>
+  selectedVersion: Ref<string>
+  currentGamePath: Ref<string>
+  loading: Ref<boolean>
+  launching: Ref<boolean>
+  statusMsg: Ref<string>
+  statusType: Ref<'info' | 'success' | 'error'>
+  loadVersions: () => Promise<void>
+  selectVersion: (id: string, gamePath?: string) => void
+  launchGame: (currentAccount: { id: string } | null) => Promise<void>
+  setGamePath: (path: string) => void
+  showStatus: (msg: string, type?: 'info' | 'success' | 'error') => void
 }
 
-export function useInstanceManager(t: (key: string, ...args: unknown[]) => string) {
+export type InstanceManagerState = UnwrapNestedRefs<InstanceManagerStateShape>
+
+export function useInstanceManager(t: (key: string, ...args: unknown[]) => string): InstanceManagerState {
   const message = useLauncherMessage()
   const router = useRouter()
-  const settingsStore = useSettingsStore()
+  const instanceStore = useInstanceStore()
+  const { versions, selectedVersion, currentGamePath } = storeToRefs(instanceStore)
   const { show: showLaunchProgress, hide: hideLaunchProgress, setProgress: setLaunchProgress } = globalLaunchProgress
 
-  const versions = globalVersions
-  const selectedVersion = globalSelectedVersion
   const loading = ref(false)
   const launching = ref(false)
   const statusMsg = ref<string>('')
@@ -52,105 +54,26 @@ export function useInstanceManager(t: (key: string, ...args: unknown[]) => strin
   async function loadVersions() {
     loading.value = true
     try {
-      await settingsStore.load()
-    } catch {
-      loading.value = false
-      showStatus(t('game.status.scanFailed'), 'error')
-      return
-    }
-    const minecraftPaths = settingsStore.game.minecraft_paths ?? []
-    if (!minecraftPaths.length) {
-      loading.value = false
-      showStatus(t('game.status.noGameDir'), 'error')
-      return
-    }
-
-    const stringPaths = [...new Set(minecraftPaths.map((path) => (typeof path === 'string' ? path : path.path)))]
-    let scannedVersions: ScannedVersion[]
-    try {
-      scannedVersions = await instanceInstallApi.scan(stringPaths)
+      await instanceStore.loadAll()
     } catch {
       loading.value = false
       showStatus(t('game.status.scanFailed'), 'error')
       return
     }
     loading.value = false
-
-    const seen = new Set<string>()
-    versions.value = scannedVersions
-      .filter((v: ScannedVersion) => !v.isBroken)
-      .filter((v: ScannedVersion) => {
-        const id = v.versionId || v.id
-        const gamePath = getVersionGamePath(v, stringPaths[0] ?? '')
-        const key = `${gamePath}\0${id}`
-        if (seen.has(key)) return false
-        seen.add(key)
-        return true
-      })
-      .map((v: ScannedVersion) => ({
-        id: v.versionId || v.id,
-        type: v.primaryLoader || 'Vanilla',
-        versionType: v.versionType,
-        gamePath: getVersionGamePath(v, stringPaths[0] ?? ''),
-      }))
-
-    // 确定当前激活的游戏路径：优先用全局 active_path，其次用之前已选中的路径，最后用第一个
-    const activePath = settingsStore.game.active_path || currentGamePath.value || stringPaths[0] || ''
-    const pathVersions = activePath ? versions.value.filter((v) => v.gamePath === activePath) : []
-
-    // 尝试从该路径的 ecl.json 读取 activeVersion
-    let activeVersionId: string | null = null
-    if (activePath && pathVersions.length > 0) {
-      try {
-        activeVersionId = await instancePathConfigApi.getActiveVersion(activePath)
-      } catch (error) {
-        console.warn('[useInstanceManager] 读取 ecl.json activeVersion 失败:', error)
-      }
-    }
-
-    const selected =
-      (activeVersionId && pathVersions.find((v) => v.id === activeVersionId)) ??
-      pathVersions[0] ??
-      versions.value.find(
-        (version) => version.id === selectedVersion.value && version.gamePath === currentGamePath.value
-      ) ??
-      versions.value.find((version) => version.id === selectedVersion.value) ??
-      versions.value[0]
-    if (selected) {
-      selectVersion(selected.id, selected.gamePath)
+    if (!versions.value.length) {
+      showStatus(t('game.status.noGameDir'), 'error')
     } else {
-      selectedVersion.value = ''
-      currentGamePath.value = ''
+      showStatus(t('game.status.foundVersions', { count: versions.value.length }), 'success')
     }
-
-    showStatus(t('game.status.foundVersions', { count: versions.value.length }), 'success')
-  }
-
-  function getVersionGamePath(version: ScannedVersion, fallback: string): string {
-    if (version.path) return version.path
-    const pathMatch = version.jsonPath?.match(/^(.*)[\\/]versions[\\/]/i)
-    return pathMatch?.[1] || fallback
   }
 
   function selectVersion(id: string, gamePath?: string) {
-    const prevId = selectedVersion.value
-    const prevPath = currentGamePath.value
-    selectedVersion.value = id
-    const selected = gamePath
-      ? versions.value.find((version) => version.id === id && version.gamePath === gamePath)
-      : versions.value.find((version) => version.id === id)
-    const resolvedPath = selected?.gamePath || gamePath || currentGamePath.value
-    currentGamePath.value = resolvedPath
-    // 值未变化时跳过写入，避免每次页面加载都重写 ecl.json
-    if (id && resolvedPath && (id !== prevId || resolvedPath !== prevPath)) {
-      void instancePathConfigApi.setActiveVersion(resolvedPath, id).catch((error) => {
-        console.warn('[useInstanceManager] 写入 ecl.json activeVersion 失败:', error)
-      })
-    }
+    instanceStore.selectVersion(id, gamePath)
   }
 
   function setGamePath(path: string) {
-    currentGamePath.value = path
+    instanceStore.setGamePath(path)
   }
 
   async function launchGame(currentAccount: { id: string } | null) {
@@ -314,5 +237,5 @@ export function useInstanceManager(t: (key: string, ...args: unknown[]) => strin
     launchGame,
     setGamePath,
     showStatus,
-  })
+  }) as InstanceManagerState
 }

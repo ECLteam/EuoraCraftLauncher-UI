@@ -258,11 +258,11 @@ import backend from '@/api/client'
 import InstanceCategoryManager from '@/components/instances/InstanceCategoryManager.vue'
 import InstanceIcon from '@/components/instances/InstanceIcon.vue'
 import UiIcon from '@/components/ui/Icon.vue'
+import { getLoaderClass, getLoaderName } from '@/config/version'
 import { instanceProfileApi, targetFromVersion } from '@/features/instances/api/instanceProfileApi'
 import { filterAndSortInstances, instanceDisplayName } from '@/features/instances/model/instancePresentation'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import type { InstanceCategory, InstanceSortKey, ScannedVersion } from '@/types/api'
-import { getLoaderClass, getLoaderName } from '@/utils/loader'
 
 const props = defineProps<{
   versions: ScannedVersion[]

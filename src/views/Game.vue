@@ -447,21 +447,18 @@ import { useAccountManager } from '@/composables/useAccountManager'
 import { useInstanceManager } from '@/composables/useInstanceManager'
 import { globalLaunchProgress } from '@/composables/useLaunchProgress'
 import { useRecentInstances } from '@/composables/useRecentInstances'
-import { getVersionImage } from '@/config/version'
+import { getLoaderIcon, getLoaderImage, getVersionImage } from '@/config/version'
 import WardrobeModal from '@/features/accounts/components/WardrobeModal.vue'
 import { useGameInfoCard } from '@/features/game-home/composables/useGameInfoCard'
 import { useGameHomeStore } from '@/features/game-home/stores/gameHomeStore'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
-import { useInstanceStore } from '@/features/instances/stores/instanceStore'
 import InstanceTerminalModule from '@/features/terminal/components/InstanceTerminalModule.vue'
-import { getLoaderIcon, getLoaderImage } from '@/utils/loader'
 import RunningInstancesTab from '@/views/instances/RunningInstancesTab.vue'
 
 const { t } = useI18n()
 const router = useRouter()
 const account = useAccountManager(t)
 const version = useInstanceManager(t)
-const instanceStore = useInstanceStore()
 const { recentList, recordLaunch } = useRecentInstances()
 const { progress: launchProgress, smoothPercent } = globalLaunchProgress
 const gameHomeStore = useGameHomeStore()
@@ -634,7 +631,6 @@ function handleLaunch() {
 
 function handleSelectVersion(versionId: string, gamePath?: string) {
   version.selectVersion(versionId, gamePath)
-  instanceStore.selectVersion(versionId, gamePath)
 }
 
 function goToInstallVersion() {

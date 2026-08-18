@@ -520,6 +520,7 @@ import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
+import { getLoaderName } from '@/config/version'
 import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
 import { instanceProfileApi, targetFromVersion } from '@/features/instances/api/instanceProfileApi'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
@@ -538,7 +539,6 @@ import type {
   VersionRunStats,
   WorldEntry,
 } from '@/types/api'
-import { getLoaderName } from '@/utils/loader'
 
 interface Props {
   visible: boolean

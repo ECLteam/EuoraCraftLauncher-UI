@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { setGlobalSelection } from '@/composables/useInstanceManager'
-import { normalizeGamePath, instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
+import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
 import { instancePathConfigApi } from '@/features/instances/api/instancePathConfigApi'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import type { ScannedVersion } from '@/types/api'
+import { normalizeGamePath } from '@/utils/path'
 
 export interface VersionItem {
   id: string
@@ -71,6 +71,12 @@ export const useInstanceStore = defineStore('versions', () => {
     return request
   }
 
+  function getVersionGamePath(version: ScannedVersion, fallback: string): string {
+    if (version.path) return version.path
+    const pathMatch = version.jsonPath?.match(/^(.*)[\\/]versions[\\/]/i)
+    return pathMatch?.[1] || fallback
+  }
+
   async function loadAll(force = false): Promise<void> {
     startWatching()
     await settingsStore.load()
@@ -79,17 +85,50 @@ export const useInstanceStore = defineStore('versions', () => {
       scannedVersions.value = []
       selectedVersion.value = ''
       currentGamePath.value = ''
-      setGlobalSelection('', '')
       return
     }
 
     loadingCount.value += 1
     try {
-      scannedVersions.value = await instanceInstallApi.scan(paths, { force })
+      const scanned = await instanceInstallApi.scan(paths, { force })
+      // 按「游戏目录 + 版本标识」去重，防止同一实例被多个路径重复展示。
+      const seen = new Set<string>()
+      const firstPath = paths[0] ?? ''
+      const deduped = scanned
+        .filter((version) => !version.isBroken)
+        .filter((version) => {
+          const id = version.versionId || version.id
+          const gamePath = getVersionGamePath(version, firstPath)
+          const key = `${gamePath}\0${id}`
+          if (seen.has(key)) return false
+          seen.add(key)
+          return true
+        })
+        .map((version) => ({ ...version, path: getVersionGamePath(version, firstPath) }))
+      scannedVersions.value = deduped
+
+      // 确定当前激活的游戏路径：优先用全局 active_path，其次用之前已选中的路径，最后用第一个
+      const activePath = settingsStore.game.active_path || currentGamePath.value || firstPath || ''
+      const pathVersions = versions.value.filter((version) => version.gamePath === activePath)
+
+      // 尝试从该路径的 ecl.json 读取 activeVersion
+      let activeVersionId: string | null = null
+      if (activePath && pathVersions.length > 0) {
+        try {
+          activeVersionId = await instancePathConfigApi.getActiveVersion(activePath)
+        } catch (error) {
+          console.warn('[instanceStore] 读取 ecl.json activeVersion 失败:', error)
+        }
+      }
+
       const selected =
+        (activeVersionId && pathVersions.find((version) => version.id === activeVersionId)) ??
+        pathVersions[0] ??
         versions.value.find(
           (version) => version.id === selectedVersion.value && version.gamePath === currentGamePath.value
-        ) ?? versions.value[0]
+        ) ??
+        versions.value.find((version) => version.id === selectedVersion.value) ??
+        versions.value[0]
       if (selected) {
         selectVersion(selected.id, selected.gamePath)
       } else {
@@ -107,13 +146,12 @@ export const useInstanceStore = defineStore('versions', () => {
     const selected = gamePath
       ? versions.value.find((version) => version.id === versionId && version.gamePath === gamePath)
       : versions.value.find((version) => version.id === versionId)
-    if (!selected) return
-    selectedVersion.value = selected.id
-    currentGamePath.value = selected.gamePath
-    setGlobalSelection(selected.id, selected.gamePath)
+    const resolvedPath = selected?.gamePath || gamePath || currentGamePath.value
+    selectedVersion.value = selected?.id || versionId
+    currentGamePath.value = resolvedPath
     // 值未变化时跳过写入，避免每次页面加载都重写 ecl.json
-    if (versionId !== prevId || selected.gamePath !== prevPath) {
-      void instancePathConfigApi.setActiveVersion(selected.gamePath, selected.id).catch((error) => {
+    if (versionId && resolvedPath && (versionId !== prevId || resolvedPath !== prevPath)) {
+      void instancePathConfigApi.setActiveVersion(resolvedPath, versionId).catch((error) => {
         console.warn('[instanceStore] 写入 ecl.json activeVersion 失败:', error)
       })
     }
@@ -121,7 +159,6 @@ export const useInstanceStore = defineStore('versions', () => {
 
   function setGamePath(path: string): void {
     currentGamePath.value = path
-    setGlobalSelection(selectedVersion.value, path)
   }
 
   /**
@@ -150,11 +187,10 @@ export const useInstanceStore = defineStore('versions', () => {
     const matched = activeVersionId ? pathVersions.find((v) => v.id === activeVersionId) : null
     const target = matched ?? pathVersions[0]
     if (target) {
-      selectedVersion.value = target.id
-      setGlobalSelection(target.id, target.gamePath)
+      selectVersion(target.id, target.gamePath)
     } else {
       selectedVersion.value = ''
-      setGlobalSelection('', gamePath)
+      currentGamePath.value = gamePath
     }
   }
 
@@ -164,9 +200,7 @@ export const useInstanceStore = defineStore('versions', () => {
     instanceInstallApi.invalidateScanCache(path)
     if (normalizeGamePath(currentGamePath.value) === key) {
       const next = versions.value[0]
-      selectedVersion.value = next?.id ?? ''
-      currentGamePath.value = next?.gamePath ?? ''
-      setGlobalSelection(next?.id ?? '', next?.gamePath ?? '')
+      selectVersion(next?.id ?? '', next?.gamePath ?? '')
     }
   }
 

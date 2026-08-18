@@ -7,6 +7,7 @@ import type {
   ScannedVersion,
   SelectResult,
 } from '@/types/api'
+import { normalizeGamePath } from '@/utils/path'
 
 export type InstallableLoader = 'fabric' | 'forge' | 'neoforge' | 'quilt'
 export type VersionsChangedHandler = (payload: { gamePath: string }) => void
@@ -14,14 +15,6 @@ export type VersionsChangedHandler = (payload: { gamePath: string }) => void
 const scanCache = new Map<string, ScannedVersion[]>()
 const versionsChangedHandlers = new Set<VersionsChangedHandler>()
 let isListeningForVersionChanges = false
-
-export function normalizeGamePath(path: string): string {
-  return path
-    .trim()
-    .replace(/[\\/]+/g, '/')
-    .replace(/\/$/, '')
-    .toLocaleLowerCase()
-}
 
 function cloneVersions(versions: ScannedVersion[]): ScannedVersion[] {
   return versions.map((version) => ({ ...version }))
