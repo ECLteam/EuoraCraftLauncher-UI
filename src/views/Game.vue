@@ -452,8 +452,11 @@ import WardrobeModal from '@/features/accounts/components/WardrobeModal.vue'
 import { useGameInfoCard } from '@/features/game-home/composables/useGameInfoCard'
 import { useGameHomeStore } from '@/features/game-home/stores/gameHomeStore'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
+import { instanceDisplayName } from '@/features/instances/model/instancePresentation'
+import { useInstanceStore } from '@/features/instances/stores/instanceStore'
 import InstanceTerminalModule from '@/features/terminal/components/InstanceTerminalModule.vue'
 import { getAccountTypeLabelKey, getAccountTypeShortLabelKey } from '@/utils/enums'
+import { normalizeGamePath } from '@/utils/path'
 import RunningInstancesTab from '@/views/instances/RunningInstancesTab.vue'
 
 const { t } = useI18n()
@@ -620,10 +623,14 @@ function openVersionSettings() {
 
 function handleLaunch() {
   if (version.selectedVersion) {
-    const v = version.versions.find(
-      (item) => item.id === version.selectedVersion && item.gamePath === version.currentGamePath
+    const instanceStore = useInstanceStore()
+    const scanned = instanceStore.scannedVersions.find(
+      (item) =>
+        item.versionId === version.selectedVersion &&
+        normalizeGamePath(item.path) === normalizeGamePath(version.currentGamePath)
     )
-    recordLaunch(version.selectedVersion, v?.id || version.selectedVersion, version.currentGamePath)
+    const instanceName = scanned ? instanceDisplayName(scanned) : version.selectedVersion
+    recordLaunch(version.selectedVersion, instanceName, version.currentGamePath)
   }
   version.launchGame(account.currentAccount)
 }
