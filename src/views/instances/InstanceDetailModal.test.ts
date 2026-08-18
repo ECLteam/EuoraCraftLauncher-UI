@@ -1,6 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { i18n } from '@/i18n'
+import type { BackendMockState } from '@/test/mockBackend'
 import type { ScannedVersion } from '@/types/api'
 import InstanceDetailModal from './InstanceDetailModal.vue'
 import type * as NaiveUi from 'naive-ui'
@@ -14,14 +15,15 @@ const mocks = vi.hoisted(() => ({
   getStats: vi.fn(),
   onStatsChanged: vi.fn(),
   analyzeCrash: vi.fn(),
-  backendCommand: vi.fn(),
 }))
+const mock = vi.hoisted<{ state?: BackendMockState }>(() => ({ state: undefined }))
+vi.mock('@/api/client', async () => {
+  const { createMockBackend } = await import('@/test/mockBackend')
+  mock.state = createMockBackend()
+  return mock.state.backend
+})
 
-vi.mock('@/api/client', () => ({
-  default: {
-    command: mocks.backendCommand,
-  },
-}))
+const { mocks: backendMocks } = mock.state!
 
 vi.mock('@/features/instances/api/instanceSettingsApi', () => ({
   instanceSettingsApi: {
@@ -109,7 +111,7 @@ describe('InstanceDetailModal', () => {
       totalRunDurationSeconds: 3665,
     })
     mocks.onStatsChanged.mockReturnValue(vi.fn())
-    mocks.backendCommand.mockResolvedValue({ success: true, data: { path: 'D:/Logs/latest.log' } })
+    backendMocks.command.mockResolvedValue({ success: true, data: { path: 'D:/Logs/latest.log' } })
     mocks.analyzeCrash.mockResolvedValue({
       reportId: 'b'.repeat(32),
       versionId: '1.21.5',
@@ -156,12 +158,12 @@ describe('InstanceDetailModal', () => {
     await analyzeButton?.trigger('click')
     await flushPromises()
 
-    expect(mocks.backendCommand).toHaveBeenCalledWith('select_file', { purpose: 'crash-analysis' })
+    expect(backendMocks.command).toHaveBeenCalledWith('select_file', { purpose: 'crash-analysis' })
     expect(mocks.analyzeCrash).toHaveBeenCalledWith('D:/Logs/latest.log', 'D:/Games/.minecraft', '1.21.5')
   })
 
   it('does nothing when crash log selection is cancelled', async () => {
-    mocks.backendCommand.mockImplementation(async (command: string) =>
+    backendMocks.command.mockImplementation(async (command: string) =>
       command === 'select_file' ? { success: true, data: { path: '' } } : { success: true, data: [] }
     )
     const wrapper = mountModal('overview')

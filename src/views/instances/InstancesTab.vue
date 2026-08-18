@@ -144,7 +144,7 @@ import {
   getVersionIcon as _getVersionIcon,
   getVersionImage as _getVersionImage,
   getVersionBadgeClass as _getVersionBadgeClass,
-  VERSION_LABEL_KEY_MAP,
+  getVersionLabelKey,
 } from '@/config/version'
 import { instanceInstallApi, type InstallableLoader } from '@/features/instances/api/instanceInstallApi'
 import { useInstanceInstallStore } from '@/features/instances/stores/instanceInstallStore'
@@ -488,7 +488,7 @@ async function startInstall() {
 }
 
 function getVersionTypeLabel(type: string): string {
-  return t(VERSION_LABEL_KEY_MAP[type] ?? type) || type
+  return t(getVersionLabelKey(type)) || type
 }
 
 function getVersionBadgeClass(type: string): string {

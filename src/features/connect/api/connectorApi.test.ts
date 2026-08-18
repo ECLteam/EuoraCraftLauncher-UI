@@ -1,17 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { okResponse } from '@/test/mockBackend'
+import { okResponse, type BackendMockState } from '@/test/mockBackend'
 import { connectorApi } from './connectorApi'
 
-const command = vi.hoisted(() => vi.fn())
+const mock = vi.hoisted<{ state?: BackendMockState }>(() => ({ state: undefined }))
+vi.mock('@/api/client', async () => {
+  const { createMockBackend } = await import('@/test/mockBackend')
+  mock.state = createMockBackend()
+  return mock.state.backend
+})
 
-vi.mock('@/api/client', () => ({
-  default: { command },
-}))
+const { mocks } = mock.state!
 
 describe('connectorApi', () => {
   beforeEach(() => {
-    command.mockReset()
-    command.mockResolvedValue(okResponse({ status: 'ok' }))
+    mocks.command.mockReset()
+    mocks.command.mockResolvedValue(okResponse({ status: 'ok' }))
   })
 
   it.each([
@@ -34,7 +37,7 @@ describe('connectorApi', () => {
   ] as const)('%s uses the typed IPC contract', async (method, args, expectedCommand, expectedPayload) => {
     await (connectorApi[method] as (...params: never[]) => Promise<unknown>)(...(args as unknown as never[]))
 
-    if (expectedPayload === undefined) expect(command).toHaveBeenCalledWith(expectedCommand)
-    else expect(command).toHaveBeenCalledWith(expectedCommand, expectedPayload)
+    if (expectedPayload === undefined) expect(mocks.command).toHaveBeenCalledWith(expectedCommand)
+    else expect(mocks.command).toHaveBeenCalledWith(expectedCommand, expectedPayload)
   })
 })

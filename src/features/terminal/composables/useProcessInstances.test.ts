@@ -1,26 +1,17 @@
 ﻿import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { globalProcessInstances as inst } from './useProcessInstances'
 
-type EventHandler = (payload: unknown) => void
-
 const hoisted = vi.hoisted(() => {
-  const handlers: Record<string, EventHandler> = {}
   const getInstancesMock = vi.fn()
   const sendInputMock = vi.fn()
   const stopMock = vi.fn()
-  return { handlers, getInstancesMock, sendInputMock, stopMock }
+  return { getInstancesMock, sendInputMock, stopMock }
 })
 
-vi.mock('@/api/client', () => ({
-  default: {
-    on: vi.fn((event: string, cb: EventHandler) => {
-      hoisted.handlers[event] = cb
-      return () => {
-        delete hoisted.handlers[event]
-      }
-    }),
-  },
-}))
+vi.mock('@/api/client', async () => {
+  const { createMockBackend } = await import('@/test/mockBackend')
+  return createMockBackend().backend
+})
 
 vi.mock('../api/terminalApi', () => ({
   terminalApi: {

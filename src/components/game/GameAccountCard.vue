@@ -46,6 +46,7 @@ import { useI18n } from 'vue-i18n'
 import AvatarRenderer from '@/components/game/AvatarRenderer.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import type { MinecraftAccount } from '@/types/api'
+import { getAccountTypeLabelKey } from '@/utils/enums'
 
 const props = defineProps<{
   account: MinecraftAccount | null
@@ -70,9 +71,7 @@ const accountOptions = computed(() =>
 )
 
 function getAccountTypeLabel(type: MinecraftAccount['type']) {
-  if (type === 'microsoft') return t('game.microsoftAccount')
-  if (type === 'authlib') return t('game.authlibAccount')
-  return t('game.offlineAccount')
+  return t(getAccountTypeLabelKey(type))
 }
 
 function selectAccount(accountId: string | number) {

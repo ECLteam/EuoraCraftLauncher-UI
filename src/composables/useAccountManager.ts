@@ -8,6 +8,7 @@ import type {
   MicrosoftLoginStage,
   MicrosoftLoginStatusEvent,
 } from '@/types/api'
+import { getAccountTypeLabelKey } from '@/utils/enums'
 import { openExternalUrl } from '@/utils/openExternal'
 import { useClipboard } from './useClipboard'
 import { useLauncherMessage } from './useLauncherMessage'
@@ -99,12 +100,7 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     void handleMicrosoftLoginStatus(event)
   })
 
-  const accountTypeLabel = computed(() => {
-    const type = currentAccount.value?.type
-    if (type === 'microsoft') return t('game.microsoftAccount')
-    if (type === 'authlib') return t('game.authlibAccount')
-    return t('game.offlineAccount')
-  })
+  const accountTypeLabel = computed(() => t(getAccountTypeLabelKey(currentAccount.value?.type)))
 
   async function loadAccounts() {
     try {

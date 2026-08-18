@@ -1,19 +1,25 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { i18n } from '@/i18n'
+import type { BackendMockState } from '@/test/mockBackend'
 import ErrorModal from './ErrorModal.vue'
 import errorModalSource from './ErrorModal.vue?raw'
 
 const mocks = vi.hoisted(() => ({
-  command: vi.fn(),
   success: vi.fn(),
   error: vi.fn(),
 }))
-
-vi.mock('@/api/client', () => ({ default: { command: mocks.command } }))
+const mock = vi.hoisted<{ state?: BackendMockState }>(() => ({ state: undefined }))
+vi.mock('@/api/client', async () => {
+  const { createMockBackend } = await import('@/test/mockBackend')
+  mock.state = createMockBackend()
+  return mock.state.backend
+})
 vi.mock('@/composables/useLauncherMessage', () => ({
   useLauncherMessage: () => ({ success: mocks.success, error: mocks.error }),
 }))
+
+const { mocks: backendMocks } = mock.state!
 
 describe('ErrorModal', () => {
   beforeEach(() => vi.clearAllMocks())
@@ -79,7 +85,7 @@ describe('ErrorModal', () => {
   })
 
   it('loads output on demand and exports the crash report', async () => {
-    mocks.command.mockImplementation(async (command: string) => {
+    backendMocks.command.mockImplementation(async (command: string) => {
       if (command === 'game_crash_output') {
         return { success: true, data: { name: 'game-output.log', content: 'captured game output' } }
       }
@@ -120,8 +126,8 @@ describe('ErrorModal', () => {
     )
     exportButton?.click()
     await flushPromises()
-    expect(mocks.command).toHaveBeenCalledWith('select_save_file', { purpose: 'crash-report' })
-    expect(mocks.command).toHaveBeenCalledWith('game_crash_export', {
+    expect(backendMocks.command).toHaveBeenCalledWith('select_save_file', { purpose: 'crash-report' })
+    expect(backendMocks.command).toHaveBeenCalledWith('game_crash_export', {
       report_id: 'c'.repeat(32),
       output_path: 'D:/Reports/crash.zip',
     })
@@ -130,7 +136,7 @@ describe('ErrorModal', () => {
   })
 
   it('does not export when the save dialog is cancelled', async () => {
-    mocks.command.mockResolvedValue({ success: true, data: { path: '' } })
+    backendMocks.command.mockResolvedValue({ success: true, data: { path: '' } })
     const wrapper = mount(ErrorModal, {
       attachTo: document.body,
       global: { plugins: [i18n] },
@@ -143,8 +149,8 @@ describe('ErrorModal', () => {
     exportButton?.click()
     await flushPromises()
 
-    expect(mocks.command).toHaveBeenCalledWith('select_save_file', { purpose: 'launcher-logs' })
-    expect(mocks.command).not.toHaveBeenCalledWith('export_logs', expect.anything())
+    expect(backendMocks.command).toHaveBeenCalledWith('select_save_file', { purpose: 'launcher-logs' })
+    expect(backendMocks.command).not.toHaveBeenCalledWith('export_logs', expect.anything())
     expect(mocks.error).not.toHaveBeenCalled()
     wrapper.unmount()
   })

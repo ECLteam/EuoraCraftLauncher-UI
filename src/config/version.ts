@@ -71,6 +71,11 @@ export const VERSION_LABEL_KEY_MAP: Record<string, string> = Object.fromEntries(
   VERSION_TYPES.map((v) => [v.id, v.labelKey])
 )
 
+/** 版本类型 -> i18n key，未知类型原样返回 */
+export function getVersionLabelKey(type: string | null | undefined): string {
+  return VERSION_LABEL_KEY_MAP[type ?? ''] ?? type ?? ''
+}
+
 /** 版本筛选分类 */
 export const VERSION_FILTERS = [
   { id: 'all', labelKey: 'versions.download.allVersions', icon: 'cube' },
@@ -122,9 +127,6 @@ for (const l of LOADERS) {
   LOADER_CLASS_MAP[l.value] = l.class
 }
 
-/** 加载器标签映射（与名称相同，预留扩展） */
-export const LOADER_LABEL_MAP: Record<string, string> = { ...LOADER_NAME_MAP }
-
 /** 安装页面可选的加载器列表（排除 OptiFine 和 LiteLoader） */
 export const INSTALLABLE_LOADERS = LOADERS.filter((l) => !['optifine', 'liteloader'].includes(l.value))
 
@@ -173,7 +175,7 @@ export function getLoaderName(loader: string | null | undefined): string {
 export function getLoaderLabel(loader: string | null | undefined): string {
   if (!loader) return '原版'
   const key = normalizeLoaderKey(loader)
-  return LOADER_LABEL_MAP[key] || loader
+  return LOADER_NAME_MAP[key] || loader
 }
 
 export function getLoaderClass(loader: string | null | undefined): string {

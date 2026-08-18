@@ -1,4 +1,6 @@
+import { defineStore, storeToRefs } from 'pinia'
 import { ref } from 'vue'
+import { pinia } from '@/app/stores'
 
 const STORAGE_KEY = 'euoracraft_recent_instances'
 const MAX_ITEMS = 5
@@ -43,9 +45,13 @@ export function getPathDisplayName(gamePath: string): string {
   return parts[parts.length - 1] || gamePath
 }
 
-const recentList = ref<RecentInstance[]>(loadFromStorage())
+/**
+ * 最近启动实例全局状态（Pinia）。
+ * 由 useRecentInstances() 包装暴露，保持原有 ref 语义（recentList.value 等）。
+ */
+export const useRecentInstancesStore = defineStore('recentInstances', () => {
+  const recentList = ref<RecentInstance[]>(loadFromStorage())
 
-export function useRecentInstances() {
   function recordLaunch(versionId: string, versionName: string, gamePath: string) {
     // 用 (versionId, gamePath) 作为唯一键，不同路径的同名版本算不同条目
     const filtered = recentList.value.filter((item) => !(item.versionId === versionId && item.gamePath === gamePath))
@@ -67,5 +73,16 @@ export function useRecentInstances() {
     recentList,
     recordLaunch,
     getRecentInstances,
+  }
+})
+
+/** 最近启动实例组合式 API（保持原有返回形状） */
+export function useRecentInstances() {
+  const store = useRecentInstancesStore(pinia)
+  const { recentList } = storeToRefs(store)
+  return {
+    recentList,
+    recordLaunch: store.recordLaunch,
+    getRecentInstances: store.getRecentInstances,
   }
 }

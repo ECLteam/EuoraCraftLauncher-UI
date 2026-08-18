@@ -12,6 +12,19 @@ import type {
   MicrosoftPollData,
 } from '@/types/api'
 
+export type AsyncStatus = 'idle' | 'loading' | 'ready' | 'error'
+
+/**
+ * 创建一组「状态 + 是否加载中」的响应式对。
+ * 账户 Store 内多个异步数据源（账户列表/Authlib 服务器/登录配置）共用此模式，
+ * 避免重复声明 status ref 与 isLoading computed。
+ */
+function createAsyncState(initial: AsyncStatus = 'idle') {
+  const status = ref<AsyncStatus>(initial)
+  const isLoading = computed(() => status.value === 'loading')
+  return { status, isLoading }
+}
+
 export const useAccountStore = defineStore('accounts', () => {
   const accounts = ref<MinecraftAccount[]>([])
   const currentAccount = ref<MinecraftAccount | null>(null)
@@ -23,16 +36,11 @@ export const useAccountStore = defineStore('accounts', () => {
   const authlibLoginConfig = ref<AuthlibLoginConfigData>({
     available: false,
   })
-  const status = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
-  const authlibStatus = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
-  const microsoftLoginConfigStatus = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
-  const authlibLoginConfigStatus = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const { status, isLoading } = createAsyncState()
+  const { status: authlibStatus, isLoading: isAuthlibLoading } = createAsyncState()
+  const { status: microsoftLoginConfigStatus, isLoading: isMicrosoftLoginConfigLoading } = createAsyncState()
+  const { status: authlibLoginConfigStatus, isLoading: isAuthlibLoginConfigLoading } = createAsyncState()
   const error = ref('')
-
-  const isLoading = computed(() => status.value === 'loading')
-  const isAuthlibLoading = computed(() => authlibStatus.value === 'loading')
-  const isMicrosoftLoginConfigLoading = computed(() => microsoftLoginConfigStatus.value === 'loading')
-  const isAuthlibLoginConfigLoading = computed(() => authlibLoginConfigStatus.value === 'loading')
 
   function accountIdentity(account: MinecraftAccount): string {
     const accountUuid = account.uuid?.replaceAll('-', '').trim().toLowerCase()
@@ -82,21 +90,31 @@ export const useAccountStore = defineStore('accounts', () => {
     currentAccount.value = await accountsApi.current()
   }
 
+  /**
+   * 执行变更操作后刷新账户列表。
+   * 多个「先调用后端 API、再 load()」的动作共用此模式，避免重复样板代码。
+   */
+  async function runAndReload<T>(action: () => Promise<T>, reload: () => Promise<void> = load): Promise<T> {
+    const result = await action()
+    await reload()
+    return result
+  }
+
   async function addOffline(username: string, uuid?: string): Promise<void> {
-    await accountsApi.addOffline(username, uuid)
-    await load()
+    await runAndReload(() => accountsApi.addOffline(username, uuid))
   }
 
   async function addAuthlib(serverUrl: string, email: string, password: string): Promise<MinecraftAccount> {
-    const account = await accountsApi.addAuthlib(serverUrl, email, password)
-    await Promise.all([load(), loadAuthlibServers(true)])
-    return account
+    return runAndReload(
+      () => accountsApi.addAuthlib(serverUrl, email, password),
+      async () => {
+        await Promise.all([load(), loadAuthlibServers(true)])
+      }
+    )
   }
 
   async function selectAuthlibProfile(accountId: string, profileId: string): Promise<MinecraftAccount> {
-    const account = await accountsApi.selectAuthlibProfile(accountId, profileId)
-    await load()
-    return account
+    return runAndReload(() => accountsApi.selectAuthlibProfile(accountId, profileId))
   }
 
   function resolveAuthlibServer(serverUrl: string): Promise<string> {
@@ -104,18 +122,15 @@ export const useAccountStore = defineStore('accounts', () => {
   }
 
   async function switchAccount(accountId: string): Promise<void> {
-    await accountsApi.switch(accountId)
-    await load()
+    await runAndReload(() => accountsApi.switch(accountId))
   }
 
   async function removeAccount(accountId: string): Promise<void> {
-    await accountsApi.remove(accountId)
-    await load()
+    await runAndReload(() => accountsApi.remove(accountId))
   }
 
   async function refreshAccount(accountId: string): Promise<void> {
-    await accountsApi.refresh(accountId)
-    await load()
+    await runAndReload(() => accountsApi.refresh(accountId))
   }
 
   async function loadAuthlibServers(force = false): Promise<void> {
@@ -174,13 +189,11 @@ export const useAccountStore = defineStore('accounts', () => {
   }
 
   async function setFavorite(accountId: string, favorite: boolean): Promise<void> {
-    await accountsApi.setFavorite(accountId, favorite)
-    await load()
+    await runAndReload(() => accountsApi.setFavorite(accountId, favorite))
   }
 
   async function setPinned(accountId: string, pinned: boolean): Promise<void> {
-    await accountsApi.setPinned(accountId, pinned)
-    await load()
+    await runAndReload(() => accountsApi.setPinned(accountId, pinned))
   }
 
   function onMicrosoftLoginStatus(handler: (event: MicrosoftLoginStatusEvent) => void): () => void {

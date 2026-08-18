@@ -1,4 +1,6 @@
+import { defineStore, storeToRefs } from 'pinia'
 import { readonly, ref } from 'vue'
+import { pinia } from '@/app/stores'
 import { LAUNCH_MIN_PROGRESS_DURATION, LAUNCH_STAGES } from '@/config/game'
 
 interface LaunchProgressState {
@@ -10,23 +12,9 @@ interface LaunchProgressState {
   canceled: boolean
 }
 
-const state = ref<LaunchProgressState>({
-  visible: false,
-  stage: '',
-  percent: 0,
-  message: '',
-  cancelable: true,
-  canceled: false,
-})
-
 const STAGES = LAUNCH_STAGES
 const PROGRESS_PER_MILLISECOND = 100 / LAUNCH_MIN_PROGRESS_DURATION
 const PROGRESS_EPSILON = 0.001
-
-let _progressCeiling = 0
-let _animFrameId: number | null = null
-let _hideRequested = false
-const _smoothPercent = ref(0)
 
 // 每个阶段只放开一段进度。耗时任务会匀速前进到上限，然后等待下一阶段。
 const STAGE_PROGRESS_CEILINGS: Partial<Record<keyof typeof STAGES, number>> = {
@@ -53,67 +41,86 @@ const STAGE_PROGRESS_CEILINGS: Partial<Record<keyof typeof STAGES, number>> = {
   success: 100,
 }
 
-function _stopAnimLoop() {
-  if (_animFrameId !== null) {
-    cancelAnimationFrame(_animFrameId)
-    _animFrameId = null
-  }
-}
+/**
+ * 启动进度全局状态（Pinia）。
+ * 由 useLaunchProgress() 包装暴露，保持原有 API（progress.value.visible 等）。
+ */
+export const useLaunchProgressStore = defineStore('launchProgress', () => {
+  const state = ref<LaunchProgressState>({
+    visible: false,
+    stage: '',
+    percent: 0,
+    message: '',
+    cancelable: true,
+    canceled: false,
+  })
+  const smoothPercent = ref(0)
 
-function _hideImmediately() {
-  _stopAnimLoop()
-  _hideRequested = false
-  state.value.visible = false
-  state.value.canceled = false
-}
+  // 非响应式内部状态（动画句柄/进度上限/延迟隐藏标记）
+  let progressCeiling = 0
+  let animFrameId: number | null = null
+  let hideRequested = false
 
-function _applyPercent(percent: number) {
-  _smoothPercent.value = percent
-  state.value.percent = percent
-}
-
-function _finishAnimationIfNeeded() {
-  if (_hideRequested && _smoothPercent.value >= 100 - PROGRESS_EPSILON) {
-    _hideImmediately()
-  }
-}
-
-function _startAnimLoop() {
-  if (_animFrameId !== null || !state.value.visible || _smoothPercent.value < 0) return
-
-  let previousTime = performance.now()
-  const step = (time: number) => {
-    const elapsed = Math.max(0, time - previousTime)
-    previousTime = time
-    const current = _smoothPercent.value
-    const destination = _progressCeiling
-
-    if (current >= destination - PROGRESS_EPSILON) {
-      _applyPercent(destination)
-      _animFrameId = null
-      _finishAnimationIfNeeded()
-      return
+  function stopAnimLoop() {
+    if (animFrameId !== null) {
+      cancelAnimationFrame(animFrameId)
+      animFrameId = null
     }
-
-    _applyPercent(Math.min(destination, current + elapsed * PROGRESS_PER_MILLISECOND))
-    if (_smoothPercent.value >= destination - PROGRESS_EPSILON) {
-      _applyPercent(destination)
-      _animFrameId = null
-      _finishAnimationIfNeeded()
-      return
-    }
-
-    _animFrameId = requestAnimationFrame(step)
   }
-  _animFrameId = requestAnimationFrame(step)
-}
 
-export function useLaunchProgress() {
-  const show = (options?: { cancelable?: boolean }) => {
-    _stopAnimLoop()
-    _progressCeiling = STAGE_PROGRESS_CEILINGS.prepare ?? 0
-    _hideRequested = false
-    _applyPercent(0)
+  function hideImmediately() {
+    stopAnimLoop()
+    hideRequested = false
+    state.value.visible = false
+    state.value.canceled = false
+  }
+
+  function applyPercent(percent: number) {
+    smoothPercent.value = percent
+    state.value.percent = percent
+  }
+
+  function finishAnimationIfNeeded() {
+    if (hideRequested && smoothPercent.value >= 100 - PROGRESS_EPSILON) {
+      hideImmediately()
+    }
+  }
+
+  function startAnimLoop() {
+    if (animFrameId !== null || !state.value.visible || smoothPercent.value < 0) return
+
+    let previousTime = performance.now()
+    const step = (time: number) => {
+      const elapsed = Math.max(0, time - previousTime)
+      previousTime = time
+      const current = smoothPercent.value
+      const destination = progressCeiling
+
+      if (current >= destination - PROGRESS_EPSILON) {
+        applyPercent(destination)
+        animFrameId = null
+        finishAnimationIfNeeded()
+        return
+      }
+
+      applyPercent(Math.min(destination, current + elapsed * PROGRESS_PER_MILLISECOND))
+      if (smoothPercent.value >= destination - PROGRESS_EPSILON) {
+        applyPercent(destination)
+        animFrameId = null
+        finishAnimationIfNeeded()
+        return
+      }
+
+      animFrameId = requestAnimationFrame(step)
+    }
+    animFrameId = requestAnimationFrame(step)
+  }
+
+  function show(options?: { cancelable?: boolean }) {
+    stopAnimLoop()
+    progressCeiling = STAGE_PROGRESS_CEILINGS.prepare ?? 0
+    hideRequested = false
+    applyPercent(0)
     state.value = {
       visible: true,
       stage: STAGES.prepare,
@@ -122,22 +129,22 @@ export function useLaunchProgress() {
       cancelable: options?.cancelable ?? true,
       canceled: false,
     }
-    _startAnimLoop()
+    startAnimLoop()
   }
 
-  const hide = () => {
+  function hide() {
     // 启动已经完成但动画尚未走满时，延迟隐藏以保证固定的最短展示时长。
-    if (_progressCeiling >= 100 && _smoothPercent.value < 100 - PROGRESS_EPSILON) {
-      _hideRequested = true
-      _startAnimLoop()
+    if (progressCeiling >= 100 && smoothPercent.value < 100 - PROGRESS_EPSILON) {
+      hideRequested = true
+      startAnimLoop()
       return
     }
-    _hideImmediately()
+    hideImmediately()
   }
 
-  const cancel = () => {
-    _stopAnimLoop()
-    _hideRequested = false
+  function cancel() {
+    stopAnimLoop()
+    hideRequested = false
     state.value.canceled = true
     state.value.visible = false
     state.value.percent = 0
@@ -145,7 +152,7 @@ export function useLaunchProgress() {
     state.value.message = '已取消'
   }
 
-  const setProgress = (percent: number, stageKey?: keyof typeof STAGES, message?: string) => {
+  function setProgress(percent: number, stageKey?: keyof typeof STAGES, message?: string) {
     if (state.value.canceled) return
 
     const clamped = percent < 0 ? percent : Math.min(100, Math.max(0, percent))
@@ -153,18 +160,18 @@ export function useLaunchProgress() {
     const stageCeiling = stageKey ? STAGE_PROGRESS_CEILINGS[stageKey] : undefined
 
     if (clamped < 0 || stageKey === 'error') {
-      _progressCeiling = clamped
-      _hideRequested = false
-      _applyPercent(clamped)
+      progressCeiling = clamped
+      hideRequested = false
+      applyPercent(clamped)
     } else if (stageKey === 'completed' || stageKey === 'launched' || stageKey === 'success') {
       // 后端已确认 Java 进程创建成功时立即收束。平滑动画只用于真实后端阶段之间，
-      // 不能为了补足固定时长让“启动成功”后的进度条继续运行。
-      _progressCeiling = 100
-      _applyPercent(100)
-      _stopAnimLoop()
+      // 不能为了补足固定时长让"启动成功"后的进度条继续运行。
+      progressCeiling = 100
+      applyPercent(100)
+      stopAnimLoop()
     } else {
       // 后端进度只放开上限；显示值始终按固定速度前进，且不会回退。
-      _progressCeiling = Math.max(_progressCeiling, _smoothPercent.value, clamped, stageCeiling ?? clamped)
+      progressCeiling = Math.max(progressCeiling, smoothPercent.value, clamped, stageCeiling ?? clamped)
     }
 
     if (stageKey) {
@@ -176,22 +183,22 @@ export function useLaunchProgress() {
     if (message !== undefined) {
       state.value.message = message
     }
-    _startAnimLoop()
+    startAnimLoop()
   }
 
-  const setStage = (stageKey: keyof typeof STAGES | string) => {
+  function setStage(stageKey: keyof typeof STAGES | string) {
     if (state.value.canceled) return
     state.value.stage = STAGES[stageKey as keyof typeof STAGES] || stageKey
   }
 
-  const setMessage = (message: string) => {
+  function setMessage(message: string) {
     if (state.value.canceled) return
     state.value.message = message
   }
 
   return {
-    progress: readonly(state),
-    smoothPercent: readonly(_smoothPercent),
+    state,
+    smoothPercent,
     show,
     hide,
     cancel,
@@ -199,6 +206,23 @@ export function useLaunchProgress() {
     setStage,
     setMessage,
     STAGES,
+  }
+})
+
+/** 启动进度组合式 API（保持原有返回形状：progress.value.visible 等） */
+export function useLaunchProgress() {
+  const store = useLaunchProgressStore(pinia)
+  const { state, smoothPercent } = storeToRefs(store)
+  return {
+    progress: readonly(state),
+    smoothPercent: readonly(smoothPercent),
+    show: store.show,
+    hide: store.hide,
+    cancel: store.cancel,
+    setProgress: store.setProgress,
+    setStage: store.setStage,
+    setMessage: store.setMessage,
+    STAGES: store.STAGES,
   }
 }
 

@@ -1,4 +1,6 @@
-import { ref, readonly, computed } from 'vue'
+import { defineStore, storeToRefs } from 'pinia'
+import { computed, readonly, ref } from 'vue'
+import { pinia } from '@/app/stores'
 
 export interface Subtask {
   id: string
@@ -33,20 +35,21 @@ export interface TaskItem {
   speed?: number
 }
 
-const tasks = ref<TaskItem[]>([])
-const panelVisible = ref(false)
+/**
+ * 任务队列全局状态（Pinia）。
+ * 由 useTaskQueue() 包装暴露，保持原有 ref 语义（tasks.value 等）。
+ */
+export const useTaskQueueStore = defineStore('taskQueue', () => {
+  const tasks = ref<TaskItem[]>([])
+  const panelVisible = ref(false)
 
-let _taskIdCounter = 0
+  let taskIdCounter = 0
 
-function generateTaskId(): string {
-  _taskIdCounter++
-  return `task_${Date.now()}_${_taskIdCounter}`
-}
+  function generateTaskId(): string {
+    taskIdCounter++
+    return `task_${Date.now()}_${taskIdCounter}`
+  }
 
-const activeCount = computed(() => tasks.value.filter((t) => t.status === 'running' || t.status === 'pending').length)
-const hasActiveTasks = computed(() => activeCount.value > 0)
-
-export function useTaskQueue() {
   function addTask(
     task: Omit<TaskItem, 'id' | 'timestamp' | 'subtasks' | 'expanded' | 'progress' | 'message' | 'status'>
   ): string {
@@ -130,8 +133,11 @@ export function useTaskQueue() {
     panelVisible.value = false
   }
 
+  const activeCount = computed(() => tasks.value.filter((t) => t.status === 'running' || t.status === 'pending').length)
+  const hasActiveTasks = computed(() => activeCount.value > 0)
+
   return {
-    tasks: readonly(tasks),
+    tasks,
     panelVisible,
     activeCount,
     hasActiveTasks,
@@ -144,6 +150,27 @@ export function useTaskQueue() {
     openPanel,
     closePanel,
     generateTaskId,
+  }
+})
+
+/** 任务队列组合式 API（保持原有返回形状：tasks.value 等 ref 语义） */
+export function useTaskQueue() {
+  const store = useTaskQueueStore(pinia)
+  const { tasks, panelVisible, activeCount, hasActiveTasks } = storeToRefs(store)
+  return {
+    tasks: readonly(tasks),
+    panelVisible,
+    activeCount,
+    hasActiveTasks,
+    addTask: store.addTask,
+    updateTask: store.updateTask,
+    addSubtask: store.addSubtask,
+    removeTask: store.removeTask,
+    clearCompleted: store.clearCompleted,
+    togglePanel: store.togglePanel,
+    openPanel: store.openPanel,
+    closePanel: store.closePanel,
+    generateTaskId: store.generateTaskId,
   }
 }
 

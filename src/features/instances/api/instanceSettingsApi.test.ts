@@ -1,28 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { BackendMockState } from '@/test/mockBackend'
 import { instanceSettingsApi } from './instanceSettingsApi'
 
-const backendMocks = vi.hoisted(() => ({
-  get: vi.fn(),
-  set: vi.fn(),
-  command: vi.fn(),
-}))
+const mock = vi.hoisted<{ state?: BackendMockState }>(() => ({ state: undefined }))
+vi.mock('@/api/client', async () => {
+  const { createMockBackend } = await import('@/test/mockBackend')
+  mock.state = createMockBackend()
+  return mock.state.backend
+})
 
-vi.mock('@/api/client', () => ({
-  default: {
-    config: {
-      get: backendMocks.get,
-      set: backendMocks.set,
-    },
-    command: backendMocks.command,
-  },
-}))
+const { mocks } = mock.state!
 
 describe('instanceSettingsApi', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    backendMocks.get.mockResolvedValue({ success: true, data: {} })
-    backendMocks.set.mockResolvedValue({ success: true })
-    backendMocks.command.mockResolvedValue({ success: true, data: {} })
+    mocks.get.mockResolvedValue({ success: true, data: {} })
+    mocks.set.mockResolvedValue({ success: true })
+    mocks.command.mockResolvedValue({ success: true, data: {} })
   })
 
   it('将独立设置保存到版本自己的设置文件', async () => {
@@ -39,7 +33,7 @@ describe('instanceSettingsApi', () => {
       }
     )
 
-    expect(backendMocks.command).toHaveBeenCalledWith('game_version_settings_set', {
+    expect(mocks.command).toHaveBeenCalledWith('game_version_settings_set', {
       game_path: 'D:\\Games\\.minecraft',
       version_id: '1.21.5',
       data: expect.objectContaining({
@@ -51,7 +45,7 @@ describe('instanceSettingsApi', () => {
   })
 
   it('从版本自己的设置文件读取该版本独立设置', async () => {
-    backendMocks.command.mockResolvedValue({
+    mocks.command.mockResolvedValue({
       success: true,
       data: {
         isolated: true,
@@ -66,7 +60,7 @@ describe('instanceSettingsApi', () => {
 
     const result = await instanceSettingsApi.get({ versionId: '1.21.5', path: 'D:\\Games\\.minecraft' })
 
-    expect(backendMocks.command).toHaveBeenCalledWith('game_version_settings_get', {
+    expect(mocks.command).toHaveBeenCalledWith('game_version_settings_get', {
       game_path: 'D:\\Games\\.minecraft',
       version_id: '1.21.5',
     })
@@ -74,7 +68,7 @@ describe('instanceSettingsApi', () => {
   })
 
   it('版本设置文件为空时回退读取旧版 setting.json 配置', async () => {
-    backendMocks.get.mockResolvedValue({
+    mocks.get.mockResolvedValue({
       success: true,
       data: {
         'd:/games/.minecraft::1.20.1': {
@@ -106,7 +100,7 @@ describe('instanceSettingsApi', () => {
   })
 
   it('保存后清除 setting.json 中的旧版该版本配置', async () => {
-    backendMocks.get.mockResolvedValue({
+    mocks.get.mockResolvedValue({
       success: true,
       data: {
         'd:/games/.minecraft::1.20.1': {
@@ -134,6 +128,6 @@ describe('instanceSettingsApi', () => {
       }
     )
 
-    expect(backendMocks.set).toHaveBeenCalledWith('version_settings', {})
+    expect(mocks.set).toHaveBeenCalledWith('version_settings', {})
   })
 })

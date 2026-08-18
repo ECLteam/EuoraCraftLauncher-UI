@@ -1,21 +1,28 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { BackendMockState } from '@/test/mockBackend'
 import { installFrontendLogging } from './frontendLogger'
 
-const mocks = vi.hoisted(() => ({
-  isDesktop: true,
-  command: vi.fn(),
+const mock = vi.hoisted<{ state?: BackendMockState; runtimeState: { isDesktop: boolean } }>(() => ({
+  state: undefined,
+  runtimeState: { isDesktop: true },
 }))
-
-vi.mock('@/api/client', () => ({
-  default: {
-    runtime: {
-      get isDesktop() {
-        return mocks.isDesktop
-      },
+vi.mock('@/api/client', async () => {
+  const { createMockBackend } = await import('@/test/mockBackend')
+  mock.state = createMockBackend()
+  // 覆盖 runtime.isDesktop 为可变 getter，便于测试切换桌面/非桌面环境
+  mock.state.backend.default.runtime = {
+    isShowcase: false,
+    get isDesktop() {
+      return mock.runtimeState.isDesktop
     },
-    command: mocks.command,
-  },
-}))
+    get isDev() {
+      return false
+    },
+  }
+  return mock.state.backend
+})
+
+const { mocks } = mock.state!
 
 function flush(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0))
@@ -24,7 +31,7 @@ function flush(): Promise<void> {
 describe('installFrontendLogging', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mocks.isDesktop = true
+    mock.runtimeState.isDesktop = true
     mocks.command.mockResolvedValue({ success: true })
     installFrontendLogging()
   })
@@ -60,7 +67,7 @@ describe('installFrontendLogging', () => {
   })
 
   it('非桌面环境不产生任何 IPC 调用', async () => {
-    mocks.isDesktop = false
+    mock.runtimeState.isDesktop = false
     console.error('不应转发')
     console.warn('不应转发')
     await flush()

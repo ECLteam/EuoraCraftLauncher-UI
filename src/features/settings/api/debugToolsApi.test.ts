@@ -1,13 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import backend from '@/api/client'
 import { DISMISSED_POPUPS_STORAGE_KEY } from '@/app/runtime/useLauncherPopupQueue'
+import type { BackendMockState } from '@/test/mockBackend'
 import { debugToolsApi } from './debugToolsApi'
 
-vi.mock('@/api/client', () => ({
-  default: {
-    command: vi.fn(),
-  },
-}))
+const mock = vi.hoisted<{ state?: BackendMockState }>(() => ({ state: undefined }))
+vi.mock('@/api/client', async () => {
+  const { createMockBackend } = await import('@/test/mockBackend')
+  mock.state = createMockBackend()
+  return mock.state.backend
+})
 
 describe('debugToolsApi', () => {
   beforeEach(() => {

@@ -1,31 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { BackendMockState } from '@/test/mockBackend'
 import { instanceInstallApi } from './instanceInstallApi'
 
-const backendMocks = vi.hoisted(() => ({
-  command: vi.fn(),
-  on: vi.fn(),
-  versionChangedHandler: undefined as ((payload: { gamePath: string }) => void) | undefined,
-}))
+const mock = vi.hoisted<{ state?: BackendMockState }>(() => ({ state: undefined }))
+vi.mock('@/api/client', async () => {
+  const { createMockBackend } = await import('@/test/mockBackend')
+  mock.state = createMockBackend()
+  return mock.state.backend
+})
 
-vi.mock('@/api/client', () => ({
-  default: {
-    command: backendMocks.command,
-    on: (event: string, handler: (payload: { gamePath: string }) => void) => {
-      backendMocks.on(event, handler)
-      backendMocks.versionChangedHandler = handler
-      return () => undefined
-    },
-  },
-}))
+const { mocks } = mock.state!
 
 describe('instanceInstallApi scan cache', () => {
   beforeEach(() => {
-    backendMocks.command.mockReset()
+    mocks.command.mockReset()
     instanceInstallApi.invalidateScanCache()
   })
 
   it('复用扫描结果，并在强制刷新或后端变更事件后重新请求', async () => {
-    backendMocks.command.mockResolvedValue({
+    mocks.command.mockResolvedValue({
       success: true,
       data: [{ versionId: '1.21.1', path: 'D:\\Minecraft' }],
     })
@@ -34,19 +27,19 @@ describe('instanceInstallApi scan cache', () => {
 
     await instanceInstallApi.scan(['D:\\Minecraft'])
     await instanceInstallApi.scan(['D:\\Minecraft'])
-    expect(backendMocks.command).toHaveBeenCalledTimes(1)
+    expect(mocks.command).toHaveBeenCalledTimes(1)
 
     await instanceInstallApi.scan(['D:\\Minecraft'], { force: true })
-    expect(backendMocks.command).toHaveBeenCalledTimes(2)
-    expect(backendMocks.command).toHaveBeenLastCalledWith('game_scan', {
+    expect(mocks.command).toHaveBeenCalledTimes(2)
+    expect(mocks.command).toHaveBeenLastCalledWith('game_scan', {
       paths: ['D:\\Minecraft'],
       force: true,
     })
 
-    backendMocks.versionChangedHandler?.({ gamePath: 'D:/Minecraft' })
+    mocks.handlers['game:versions_changed']?.({ gamePath: 'D:/Minecraft' })
     expect(changed).toHaveBeenCalledWith({ gamePath: 'D:/Minecraft' })
     await instanceInstallApi.scan(['D:\\Minecraft'])
-    expect(backendMocks.command).toHaveBeenCalledTimes(3)
+    expect(mocks.command).toHaveBeenCalledTimes(3)
 
     stop()
   })

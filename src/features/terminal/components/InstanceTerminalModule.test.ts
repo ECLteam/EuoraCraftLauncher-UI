@@ -1,21 +1,23 @@
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { i18n } from '@/i18n'
+import type { BackendMockState } from '@/test/mockBackend'
 import { globalProcessInstances } from '../composables/useProcessInstances'
 import InstanceTerminalModule from './InstanceTerminalModule.vue'
 
-const mocks = vi.hoisted(() => ({
-  on: vi.fn(),
-  getProcessInstances: vi.fn(),
-}))
-
-vi.mock('@/api/client', () => ({
-  default: { on: mocks.on },
-}))
+const terminalMocks = vi.hoisted(() => ({ getProcessInstances: vi.fn() }))
+const mock = vi.hoisted<{ state?: BackendMockState }>(() => ({ state: undefined }))
+vi.mock('@/api/client', async () => {
+  const { createMockBackend } = await import('@/test/mockBackend')
+  mock.state = createMockBackend()
+  return mock.state.backend
+})
 
 vi.mock('../api/terminalApi', () => ({
-  terminalApi: { getProcessInstances: mocks.getProcessInstances },
+  terminalApi: { getProcessInstances: terminalMocks.getProcessInstances },
 }))
+
+const { mocks } = mock.state!
 
 describe('InstanceTerminalModule', () => {
   let initSpy: ReturnType<typeof vi.spyOn>
@@ -23,8 +25,7 @@ describe('InstanceTerminalModule', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mocks.on.mockImplementation(() => vi.fn())
-    mocks.getProcessInstances.mockResolvedValue([])
+    terminalMocks.getProcessInstances.mockResolvedValue([])
     initSpy = vi.spyOn(globalProcessInstances, 'init')
     disposeSpy = vi.spyOn(globalProcessInstances, 'dispose')
   })
@@ -44,7 +45,7 @@ describe('InstanceTerminalModule', () => {
     expect(initSpy).toHaveBeenCalledTimes(1)
     expect(mocks.on).toHaveBeenCalledWith('process:instance_log', expect.any(Function))
     expect(mocks.on).toHaveBeenCalledWith('process:instances_changed', expect.any(Function))
-    expect(mocks.getProcessInstances).toHaveBeenCalled()
+    expect(terminalMocks.getProcessInstances).toHaveBeenCalled()
 
     wrapper.unmount()
     expect(disposeSpy).toHaveBeenCalledTimes(1)

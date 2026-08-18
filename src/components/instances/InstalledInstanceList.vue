@@ -258,7 +258,7 @@ import backend from '@/api/client'
 import InstanceCategoryManager from '@/components/instances/InstanceCategoryManager.vue'
 import InstanceIcon from '@/components/instances/InstanceIcon.vue'
 import UiIcon from '@/components/ui/Icon.vue'
-import { getLoaderClass, getLoaderName } from '@/config/version'
+import { getLoaderClass, getLoaderName, getVersionLabelKey } from '@/config/version'
 import { instanceProfileApi, targetFromVersion } from '@/features/instances/api/instanceProfileApi'
 import { filterAndSortInstances, instanceDisplayName } from '@/features/instances/model/instancePresentation'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
@@ -408,14 +408,9 @@ function loaderVersionText(version: ScannedVersion): string {
 }
 
 function versionTypeName(versionType: ScannedVersion['versionType']): string {
-  const names: Partial<Record<ScannedVersion['versionType'], string>> = {
-    release: '正式版',
-    snapshot: '快照版',
-    april_fools: '愚人节版本',
-    old_alpha: '远古 Alpha',
-    old_beta: '远古 Beta',
-  }
-  return names[versionType] || 'Minecraft'
+  const key = getVersionLabelKey(versionType)
+  // 未知类型（getVersionLabelKey 原样返回）时保持旧行为显示 Minecraft
+  return key === versionType ? 'Minecraft' : t(key)
 }
 
 function formatDuration(seconds?: number): string {

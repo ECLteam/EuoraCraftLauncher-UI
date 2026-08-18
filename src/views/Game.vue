@@ -453,6 +453,7 @@ import { useGameInfoCard } from '@/features/game-home/composables/useGameInfoCar
 import { useGameHomeStore } from '@/features/game-home/stores/gameHomeStore'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
 import InstanceTerminalModule from '@/features/terminal/components/InstanceTerminalModule.vue'
+import { getAccountTypeLabelKey, getAccountTypeShortLabelKey } from '@/utils/enums'
 import RunningInstancesTab from '@/views/instances/RunningInstancesTab.vue'
 
 const { t } = useI18n()
@@ -511,9 +512,9 @@ const selectedAccountType = ref<AccountType>('microsoft')
 const showOfflineAdvanced = ref(false)
 const isShowcaseMode = backend.runtime.isShowcase
 const accountTypeOptions = computed(() => [
-  { value: 'microsoft', label: t('game.microsoftAccount') },
-  { value: 'offline', label: t('game.offlineAccount') },
-  { value: 'authlib', label: t('game.authlibAccount') },
+  { value: 'microsoft', label: t(getAccountTypeLabelKey('microsoft')) },
+  { value: 'offline', label: t(getAccountTypeLabelKey('offline')) },
+  { value: 'authlib', label: t(getAccountTypeLabelKey('authlib')) },
 ])
 function renderAuthlibProfileLabel(option: SelectOption) {
   return h('div', { class: 'authlib-profile-option-label' }, [
@@ -570,9 +571,7 @@ async function selectAuthlibProfileFromModal() {
 }
 
 function accountTypeName(type: string): string {
-  if (type === 'microsoft') return t('game.accountTypeMicrosoft')
-  if (type === 'authlib') return t('game.accountTypeAuthlib')
-  return t('game.accountTypeOffline')
+  return t(getAccountTypeShortLabelKey(type))
 }
 
 const lpState = computed(() => {

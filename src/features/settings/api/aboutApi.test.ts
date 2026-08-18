@@ -1,25 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import backend from '@/api/client'
+import type { BackendMockState } from '@/test/mockBackend'
 import { aboutApi } from './aboutApi'
 
-const mocks = vi.hoisted(() => ({
-  command: vi.fn(),
-  runtime: {
-    isDesktop: true,
-  },
-}))
+const mock = vi.hoisted<{ state?: BackendMockState }>(() => ({ state: undefined }))
+vi.mock('@/api/client', async () => {
+  const { createMockBackend } = await import('@/test/mockBackend')
+  mock.state = createMockBackend()
+  return mock.state.backend
+})
 
-vi.mock('@/api/client', () => ({
-  default: {
-    runtime: mocks.runtime,
-    command: mocks.command,
-  },
-}))
+const { backend: backendMock, mocks } = mock.state!
 
 describe('aboutApi', () => {
   beforeEach(() => {
     mocks.command.mockReset()
-    mocks.runtime.isDesktop = true
+    backendMock.default.runtime.isDesktop = true
   })
 
   it('桌面模式通过 launcher_info 获取启动器版本', async () => {
@@ -37,7 +33,7 @@ describe('aboutApi', () => {
   })
 
   it('非桌面模式不会调用 IPC', async () => {
-    mocks.runtime.isDesktop = false
+    backendMock.default.runtime.isDesktop = false
 
     await expect(aboutApi.getLauncherInfo()).resolves.toBeNull()
     expect(backend.command).not.toHaveBeenCalled()

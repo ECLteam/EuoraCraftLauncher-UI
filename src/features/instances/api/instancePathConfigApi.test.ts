@@ -1,9 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { BackendMockState } from '@/test/mockBackend'
 import { instancePathConfigApi } from './instancePathConfigApi'
 
-const mocks = vi.hoisted(() => ({ command: vi.fn() }))
+const mock = vi.hoisted<{ state?: BackendMockState }>(() => ({ state: undefined }))
+vi.mock('@/api/client', async () => {
+  const { createMockBackend } = await import('@/test/mockBackend')
+  mock.state = createMockBackend()
+  return mock.state.backend
+})
 
-vi.mock('@/api/client', () => ({ default: { command: mocks.command } }))
+const { mocks } = mock.state!
 
 describe('instancePathConfigApi', () => {
   beforeEach(() => {
