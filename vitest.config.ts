@@ -1,10 +1,14 @@
+import { resolve } from 'node:path'
+import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vitest/config'
-import { sharedAlias, sharedPlugins } from './vite.shared'
 
 export default defineConfig({
-  plugins: sharedPlugins,
+  plugins: [vue()],
   resolve: {
-    alias: sharedAlias,
+    alias: {
+      '@': resolve(__dirname, './src'),
+      vue: 'vue/dist/vue.esm-bundler.js',
+    },
   },
   test: {
     environment: 'jsdom',

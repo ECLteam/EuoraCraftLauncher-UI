@@ -1,13 +1,13 @@
 // vite.config.ts
 import { readFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import { resolve } from 'path'
 import AutoImport from 'unplugin-auto-import/vite'
 import checker from 'vite-plugin-checker'
 import inspect from 'vite-plugin-inspect'
 import Components from 'unplugin-vue-components/vite'
-import { sharedAlias, sharedPlugins } from './vite.shared'
 
 const packageVersion = (
   JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf8')) as {
@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.VITE_APP_VERSION': JSON.stringify(packageVersion ?? ''),
     },
     plugins: [
-      ...sharedPlugins,
+      vue(),
       // 自动导入 Vue / Router / Pinia / i18n / VueUse 的组合式 API，避免重复手写 import
       AutoImport({
         imports: ['vue', 'vue-router', 'pinia', 'vue-i18n', '@vueuse/core'],
@@ -45,7 +45,10 @@ export default defineConfig(({ mode }) => {
     ],
     publicDir: 'public',
     resolve: {
-      alias: sharedAlias,
+      alias: {
+        '@': resolve(__dirname, './src'),
+        vue: 'vue/dist/vue.esm-bundler.js',
+      },
     },
     server: {
       port: 5173,
