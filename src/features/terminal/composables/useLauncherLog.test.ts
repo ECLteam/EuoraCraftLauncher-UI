@@ -27,7 +27,7 @@ describe('useLauncherLog 启动器日志状态', () => {
     launcherLogs.value = []
     launcherAutoScroll.value = true
     launcherQuery.value = ''
-    launcherLevelsVisible.DEBUG = false
+    launcherLevelsVisible.DEBUG = true
     launcherLevelsVisible.INFO = true
     launcherLevelsVisible.WARNING = true
     launcherLevelsVisible.ERROR = true
@@ -51,20 +51,20 @@ describe('useLauncherLog 启动器日志状态', () => {
     expect(launcherLogs.value).toHaveLength(0)
   })
 
-  it('默认隐藏 DEBUG，其余级别可见时可展示对应行', () => {
+  it('默认显示 DEBUG 及常规级别日志', () => {
     const { pushLog } = useLauncherLog()
     pushLog(log({ level: 'DEBUG' }))
     pushLog(log({ level: 'INFO' }))
-    expect(launcherVisibleLogs.value.map((entry) => entry.level)).toEqual(['INFO'])
+    expect(launcherVisibleLogs.value.map((entry) => entry.level)).toEqual(['DEBUG', 'INFO'])
   })
 
   it('toggleLevel 切换级别可见性', () => {
     const { toggleLevel } = useLauncherLog()
-    expect(launcherLevelsVisible.DEBUG).toBe(false)
-    toggleLevel('DEBUG')
     expect(launcherLevelsVisible.DEBUG).toBe(true)
     toggleLevel('DEBUG')
     expect(launcherLevelsVisible.DEBUG).toBe(false)
+    toggleLevel('DEBUG')
+    expect(launcherLevelsVisible.DEBUG).toBe(true)
   })
 
   it('按关键词过滤消息/文件/级别（大小写不敏感）', () => {
@@ -82,7 +82,7 @@ describe('useLauncherLog 启动器日志状态', () => {
     expect(launcherVisibleLogs.value).toHaveLength(3)
   })
 
-  it('LEVELS 暴露的标准后端级别集合', () => {
-    expect([...LAUNCHER_LOG_LEVELS]).toEqual(['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
+  it('LEVELS 暴露的后端级别集合', () => {
+    expect([...LAUNCHER_LOG_LEVELS]).toEqual(['DEBUG', 'INFO', 'WARNING', 'ERROR'])
   })
 })

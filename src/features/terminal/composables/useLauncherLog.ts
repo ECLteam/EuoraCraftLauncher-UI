@@ -14,11 +14,11 @@ export const launcherAutoScroll = ref(true)
 /** 关键词过滤，匹配消息/模块/文件名/级别（大小写不敏感） */
 export const launcherQuery = ref('')
 
-export const LAUNCHER_LOG_LEVELS: readonly LauncherLogLevel[] = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+export const LAUNCHER_LOG_LEVELS: readonly LauncherLogLevel[] = ['DEBUG', 'INFO', 'WARNING', 'ERROR']
 
-/** 各级别是否展示，默认隐藏 DEBUG 以避免刷屏 */
+/** 各级别是否展示 */
 export const launcherLevelsVisible = reactive<Record<LauncherLogLevel, boolean>>({
-  DEBUG: false,
+  DEBUG: true,
   INFO: true,
   WARNING: true,
   ERROR: true,
