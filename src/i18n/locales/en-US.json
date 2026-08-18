@@ -1388,6 +1388,7 @@
   },
   "terminal": {
     "close": "Close",
+    "back": "Back",
     "instances": {
       "title": "Process Instances",
       "emptyTitle": "No instances",

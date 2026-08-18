@@ -7,7 +7,7 @@
         :class="{ inactive: runningInstanceCount === 0 }"
         type="button"
         :title="t('versions.runningManagement')"
-        @click="showRunningInstances = true"
+        @click="openRunningInstances"
       >
         <UiIcon name="power" :size="20" />
         <span>{{ t('versions.runningManagement') }}</span>
@@ -70,15 +70,16 @@
 
     <FullscreenModal
       v-model:visible="showRunningInstances"
-      :title="t('versions.runningTab')"
+      :title="runningModalTitle"
       :showFooter="false"
       bodyClass="running-instances-modal-body"
     >
-      <RunningInstancesTab v-if="showRunningInstances" @openTerminal="openInstanceTerminal" />
+      <RunningInstancesTab
+        v-if="showRunningInstances && runningView === 'management'"
+        @openTerminal="openInstanceTerminal"
+      />
+      <InstanceTerminalModule v-else-if="showRunningInstances" @back="closeInstanceTerminal" />
     </FullscreenModal>
-
-    <!-- 实例终端：独立全屏面板，叠于实例运行管理之上，关闭后回到下层 -->
-    <InstanceTerminalOverlay v-model:visible="showInstanceTerminal" />
 
     <FullscreenModal
       v-model:visible="account.showAccountModal"
@@ -429,7 +430,7 @@ import {
   type SelectOption,
 } from 'naive-ui'
 import { storeToRefs } from 'pinia'
-import { computed, h, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import backend from '@/api/client'
@@ -452,7 +453,7 @@ import { useGameInfoCard } from '@/features/game-home/composables/useGameInfoCar
 import { useGameHomeStore } from '@/features/game-home/stores/gameHomeStore'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
-import InstanceTerminalOverlay from '@/features/terminal/components/InstanceTerminalOverlay.vue'
+import InstanceTerminalModule from '@/features/terminal/components/InstanceTerminalModule.vue'
 import { getLoaderIcon, getLoaderImage } from '@/utils/loader'
 import RunningInstancesTab from '@/views/instances/RunningInstancesTab.vue'
 
@@ -485,13 +486,28 @@ type AccountType = 'microsoft' | 'offline' | 'authlib'
 const showAddAccountModal = ref(false)
 const showWardrobeModal = ref(false)
 const showRunningInstances = ref(false)
-const showInstanceTerminal = ref(false)
+const runningView = ref<'management' | 'terminal'>('management')
 const runningInstanceCount = ref(0)
 let stopListeningForRunningInstances: (() => void) | null = null
 let returningFromWardrobe = false
 
+const runningModalTitle = computed(() =>
+  runningView.value === 'terminal'
+    ? `${t('versions.running.terminal')} · ${t('versions.runningTab')}`
+    : t('versions.runningTab')
+)
+
+function openRunningInstances(): void {
+  runningView.value = 'management'
+  showRunningInstances.value = true
+}
+
 function openInstanceTerminal(): void {
-  showInstanceTerminal.value = true
+  runningView.value = 'terminal'
+}
+
+function closeInstanceTerminal(): void {
+  runningView.value = 'management'
 }
 
 const selectedAccountType = ref<AccountType>('microsoft')
@@ -633,6 +649,14 @@ async function refreshRunningInstanceCount() {
     console.warn('[GameHome] 读取运行实例数量失败:', error)
   }
 }
+
+// 启动流程结束后主动刷新一次数量，避免事件延迟导致按钮状态不及时
+watch(
+  () => launchProgress.value.visible,
+  (visible, prev) => {
+    if (prev && !visible) void refreshRunningInstanceCount()
+  }
+)
 
 onMounted(() => {
   version.loadVersions()

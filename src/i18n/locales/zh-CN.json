@@ -1302,6 +1302,7 @@
   },
   "terminal": {
     "close": "关闭",
+    "back": "返回",
     "instances": {
       "title": "子进程实例",
       "emptyTitle": "暂无实例",
