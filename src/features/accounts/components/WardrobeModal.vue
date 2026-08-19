@@ -208,7 +208,20 @@
         </section>
 
         <section class="wardrobe-preview ecl-surface">
-          <SkinViewer3D :skinUrl="previewSkinUrl" :capeUrl="previewCapeUrl" :model="previewModel" />
+          <div class="wardrobe-preview-options">
+            <span class="wardrobe-preview-label">{{ t('wardrobe.skinRendering') }}</span>
+            <div class="wardrobe-preview-toggles">
+              <NCheckbox v-model:checked="showElytra" size="small">{{ t('wardrobe.showElytra') }}</NCheckbox>
+              <NCheckbox v-model:checked="showNameTag" size="small">{{ t('wardrobe.showNameTag') }}</NCheckbox>
+            </div>
+          </div>
+          <SkinViewer3D
+            :skinUrl="previewSkinUrl"
+            :capeUrl="previewCapeUrl"
+            :model="previewModel"
+            :elytra="showElytra"
+            :nameTag="showNameTag ? (targetAccount?.alias ?? '') : ''"
+          />
         </section>
       </main>
     </div>
@@ -274,9 +287,10 @@
 </template>
 
 <script setup lang="ts">
-import { NAlert, NButton, NButtonGroup, NEmpty, NInput, NPopconfirm, NSelect, NSpin, NTag } from 'naive-ui'
+import { NAlert, NButton, NButtonGroup, NCheckbox, NEmpty, NInput, NPopconfirm, NSelect, NSpin, NTag } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import backend from '@/api/client'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
@@ -284,6 +298,7 @@ import { clearAvatarCache, fetchTextureDataUrl } from '@/composables/useAvatarRe
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { accountsApi } from '@/features/accounts/api/accountsApi'
 import SkinViewer3D from '@/features/accounts/components/SkinViewer3D.vue'
+import { detectSkinModel } from '@/features/accounts/composables/useSkinModelDetector'
 import { useAccountStore } from '@/features/accounts/stores/accountStore'
 import type { MinecraftAccount, MicrosoftCape, SkinModel, WardrobeItem } from '@/types/api'
 
@@ -312,9 +327,12 @@ const selectedSkinUrl = ref('')
 const selectedCapeUrl = ref('')
 const accountSkinUrl = ref('')
 const accountCapeUrl = ref('')
+const accountModel = ref<SkinModel>('classic')
 const targetAccountId = ref<string | null>(null)
 const editName = ref('')
 const editModel = ref<SkinModel>('classic')
+const showElytra = ref(false)
+const showNameTag = ref(false)
 const loading = ref(false)
 const importing = ref(false)
 const saving = ref(false)
@@ -335,7 +353,7 @@ const filteredItems = computed(() => items.value.filter((item) => item.kind === 
 const previewSkinUrl = computed(() => selectedSkinUrl.value || accountSkinUrl.value)
 const previewCapeUrl = computed(() => selectedCapeUrl.value || accountCapeUrl.value)
 const previewModel = computed<SkinModel>(() =>
-  selectedLocal.value?.kind === 'skin' ? (selectedLocal.value.model ?? editModel.value) : 'classic'
+  selectedLocal.value?.kind === 'skin' ? (selectedLocal.value.model ?? editModel.value) : accountModel.value
 )
 const isStandardSkin = computed(
   () => selectedLocal.value?.kind === 'skin' && selectedLocal.value.width === 64 && selectedLocal.value.height === 64
@@ -385,6 +403,7 @@ async function loadTargetTextures(): Promise<void> {
   try {
     const textures = await accountsApi.textureUrls(accountId)
     if (request !== targetTextureRequest) return
+    accountModel.value = textures.skinModel ?? 'classic'
     accountCapeUrl.value = (await fetchTextureDataUrl(textures.capeUrl || '')) || ''
     await Promise.all(
       officialCapes.value.map(async (cape) => {
@@ -420,7 +439,16 @@ async function importItem(): Promise<void> {
   try {
     const path = await accountsApi.selectWardrobeImage(kind)
     if (!path) return
-    const result = await accountsApi.importWardrobe(path, kind, kind === 'skin' ? 'classic' : undefined)
+    let model: SkinModel | undefined
+    if (kind === 'skin') {
+      try {
+        const dataUrl = await backend.file.toUrl(path)
+        model = dataUrl ? await detectSkinModel(dataUrl) : 'classic'
+      } catch {
+        model = 'classic'
+      }
+    }
+    const result = await accountsApi.importWardrobe(path, kind, model)
     await loadItems()
     const item = items.value.find((candidate) => candidate.id === result.item.id) ?? result.item
     await selectLocal(item)
@@ -617,10 +645,20 @@ async function downloadSkin(): Promise<void> {
   applying.value = true
   try {
     const result = await accountsApi.syncAccountSkin(targetAccountId.value)
-    items.value = [result.item, ...items.value.filter((item) => item.id !== result.item.id)]
-    await selectLocal(result.item)
+    let item = result.item
+    if (item.kind === 'skin') {
+      try {
+        const dataUrl = await accountsApi.wardrobeTexture(item.id)
+        const model = dataUrl ? await detectSkinModel(dataUrl) : 'classic'
+        if (model !== item.model) item = await accountsApi.updateWardrobe(item.id, undefined, model)
+      } catch {
+        // 检测失败时保留后端返回的模型
+      }
+    }
+    items.value = [item, ...items.value.filter((candidate) => candidate.id !== item.id)]
     emit('accountsChanged')
     await loadTargetTextures()
+    await selectLocal(item)
     message.success(t('wardrobe.skinDownloaded'))
   } catch (reason) {
     message.error(reason instanceof Error ? reason.message : t('wardrobe.applyFailed'))
@@ -780,7 +818,30 @@ async function downloadSkin(): Promise<void> {
 }
 
 .wardrobe-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-xs);
   padding: var(--s-sm);
+}
+
+.wardrobe-preview-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 24px;
+}
+
+.wardrobe-preview-label {
+  padding-left: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.wardrobe-preview-toggles {
+  display: flex;
+  align-items: center;
+  gap: var(--s-md);
 }
 
 .wardrobe-dialog-form {

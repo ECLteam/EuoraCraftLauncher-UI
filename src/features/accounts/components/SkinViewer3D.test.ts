@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import { CrouchAnimation, RunningAnimation } from 'skinview3d'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import SkinViewer3D from './SkinViewer3D.vue'
@@ -6,11 +7,12 @@ import SkinViewer3D from './SkinViewer3D.vue'
 const viewerMocks = vi.hoisted(() => ({
   loadSkin: vi.fn(async () => undefined),
   loadCape: vi.fn(async () => undefined),
+  loadPanorama: vi.fn(),
   resetSkin: vi.fn(),
   resetCape: vi.fn(),
   dispose: vi.fn(),
   playerRotation: { y: 0 },
-  current: null as { autoRotate: boolean } | null,
+  current: null as { autoRotate: boolean; animation: unknown; nameTag: unknown } | null,
 }))
 
 vi.mock('vue-i18n', () => ({
@@ -23,9 +25,12 @@ vi.mock('skinview3d', () => ({
     height = 0
     autoRotate = false
     autoRotateSpeed = 0
+    animation: unknown = null
+    nameTag: unknown = null
     playerObject = { rotation: viewerMocks.playerRotation }
     loadSkin = viewerMocks.loadSkin
     loadCape = viewerMocks.loadCape
+    loadPanorama = viewerMocks.loadPanorama
     resetSkin = viewerMocks.resetSkin
     resetCape = viewerMocks.resetCape
     dispose = viewerMocks.dispose
@@ -34,6 +39,12 @@ vi.mock('skinview3d', () => ({
       viewerMocks.current = this
     }
   },
+  IdleAnimation: class {},
+  WalkingAnimation: class {},
+  RunningAnimation: class {},
+  CrouchAnimation: class {},
+  WaveAnimation: class {},
+  FlyingAnimation: class {},
 }))
 
 describe('SkinViewer3D', () => {
@@ -59,7 +70,7 @@ describe('SkinViewer3D', () => {
     await nextTick()
 
     expect(viewerMocks.loadSkin).toHaveBeenCalledWith('skin-a', { model: 'slim' })
-    expect(viewerMocks.loadCape).toHaveBeenCalledWith('cape-a')
+    expect(viewerMocks.loadCape).toHaveBeenCalledWith('cape-a', { backEquipment: 'cape' })
 
     await wrapper.setProps({ skinUrl: 'skin-b', capeUrl: '' })
     await nextTick()
@@ -68,6 +79,29 @@ describe('SkinViewer3D', () => {
 
     wrapper.unmount()
     expect(viewerMocks.dispose).toHaveBeenCalledOnce()
+  })
+
+  it('开启鞘翅渲染时以鞘翅方式加载披风纹理', async () => {
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        observe() {}
+        disconnect() {}
+      }
+    )
+    const wrapper = mount(SkinViewer3D, {
+      props: { capeUrl: 'cape-a', elytra: true },
+    })
+    await nextTick()
+    await nextTick()
+
+    expect(viewerMocks.loadCape).toHaveBeenCalledWith('cape-a', { backEquipment: 'elytra' })
+
+    await wrapper.setProps({ elytra: false })
+    await nextTick()
+    expect(viewerMocks.loadCape).toHaveBeenCalledWith('cape-a', { backEquipment: 'cape' })
+
+    wrapper.unmount()
   })
 
   it('支持手动左右旋转并暂停或继续自动旋转', async () => {
@@ -91,5 +125,66 @@ describe('SkinViewer3D', () => {
     expect(viewerMocks.current?.autoRotate).toBe(false)
     await wrapper.get('[data-testid="toggle-auto-rotate"]').trigger('click')
     expect(viewerMocks.current?.autoRotate).toBe(true)
+  })
+
+  it('支持切换动作动画', async () => {
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        observe() {}
+        disconnect() {}
+      }
+    )
+    const wrapper = mount(SkinViewer3D)
+    await nextTick()
+    await nextTick()
+
+    await wrapper.get('[data-testid="animation-run"]').trigger('click')
+    expect(viewerMocks.current?.animation).toBeInstanceOf(RunningAnimation)
+    await wrapper.get('[data-testid="animation-crouch"]').trigger('click')
+    expect(viewerMocks.current?.animation).toBeInstanceOf(CrouchAnimation)
+  })
+
+  it('加载场景背景并支持显示玩家标签', async () => {
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        observe() {}
+        disconnect() {}
+      }
+    )
+    const wrapper = mount(SkinViewer3D, { props: { nameTag: 'Steve' } })
+    await nextTick()
+    await nextTick()
+
+    expect(viewerMocks.loadPanorama).toHaveBeenCalledWith('/img/skinview3d.jpg')
+    expect(viewerMocks.current?.nameTag).toBe('Steve')
+
+    await wrapper.setProps({ nameTag: '' })
+    await nextTick()
+    expect(viewerMocks.current?.nameTag).toBeNull()
+
+    wrapper.unmount()
+  })
+
+  it('渲染鞘翅时显示滑翔动作按钮', async () => {
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        observe() {}
+        disconnect() {}
+      }
+    )
+    const wrapper = mount(SkinViewer3D)
+    await nextTick()
+    await nextTick()
+
+    expect(wrapper.find('[data-testid="animation-flying"]').exists()).toBe(false)
+
+    await wrapper.setProps({ elytra: true })
+    await nextTick()
+    expect(wrapper.find('[data-testid="animation-flying"]').exists()).toBe(true)
+
+    wrapper.unmount()
   })
 })
