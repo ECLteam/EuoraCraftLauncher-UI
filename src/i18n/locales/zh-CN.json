@@ -1215,8 +1215,7 @@
     "installSuccess": "安装完成，共处理 {count} 个模组文件",
     "selectWorld": "选择目标存档",
     "noWorld": "当前实例暂无存档",
-    "dropToInstall": "松开以安装到当前实例",
-    "viewOnModPage": "在 Mod 页查看"
+    "dropToInstall": "松开以安装到当前实例"
   },
   "auth": {
     "authlib": "Authlib 注入",

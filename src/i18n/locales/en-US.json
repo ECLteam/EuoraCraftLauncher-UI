@@ -1306,8 +1306,7 @@
     "installSuccess": "Installation complete; {count} mod files processed",
     "selectWorld": "Select target world",
     "noWorld": "This instance has no worlds",
-    "dropToInstall": "Release to install to the current instance",
-    "viewOnModPage": "View on Mod page"
+    "dropToInstall": "Release to install to the current instance"
   },
   "auth": {
     "authlib": "Authlib Injector",
