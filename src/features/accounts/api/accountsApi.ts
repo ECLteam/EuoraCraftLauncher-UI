@@ -138,24 +138,24 @@ export const accountsApi = {
 
   async applyWardrobeSkin(itemId: string, accountId: string): Promise<MinecraftAccount> {
     return assertSuccess(
-      await backend.command('wardrobe_apply_skin', { item_id: itemId, account_id: accountId }),
+      await backend.command('wardrobe_apply_skin', { item_id: itemId, account_id: accountId }, 20_000),
       '上传 Microsoft 皮肤'
     )
   },
 
   async resetMicrosoftSkin(accountId: string): Promise<void> {
-    assertSuccess(await backend.command('microsoft_reset_skin', { account_id: accountId }), '重置皮肤')
+    assertSuccess(await backend.command('microsoft_reset_skin', { account_id: accountId }, 20_000), '重置皮肤')
   },
 
   async setMicrosoftCape(accountId: string, capeId: string): Promise<MinecraftAccount> {
     return assertSuccess(
-      await backend.command('microsoft_set_cape', { account_id: accountId, cape_id: capeId }),
+      await backend.command('microsoft_set_cape', { account_id: accountId, cape_id: capeId }, 20_000),
       '切换披风'
     )
   },
 
   async resetMicrosoftCape(accountId: string): Promise<MinecraftAccount> {
-    return assertSuccess(await backend.command('microsoft_reset_cape', { account_id: accountId }), '卸下披风')
+    return assertSuccess(await backend.command('microsoft_reset_cape', { account_id: accountId }, 20_000), '卸下披风')
   },
 
   async listAuthlibServers(): Promise<AuthlibServer[]> {

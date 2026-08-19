@@ -56,16 +56,43 @@ function checkEnv(): boolean {
 // ── IPC 调用 ──────────────────────────────────────────────────────
 
 /**
+ * 为 IPC 调用附加超时，超时后拒绝并提示用户检查网络。
+ * @param promise - 原始调用 Promise
+ * @param timeoutMs - 超时毫秒数，不传则不限制
+ * @returns 原始 Promise 或超时拒绝的 Promise
+ */
+function withTimeout<T>(promise: Promise<T>, timeoutMs?: number): Promise<T> {
+  if (!timeoutMs) return promise
+  return new Promise<T>((resolve, reject) => {
+    const timer = window.setTimeout(
+      () => reject(new Error(`操作超时（${Math.round(timeoutMs / 1000)} 秒），请检查网络后重试`)),
+      timeoutMs
+    )
+    promise.then(
+      (value) => {
+        clearTimeout(timer)
+        resolve(value)
+      },
+      (error) => {
+        clearTimeout(timer)
+        reject(error)
+      }
+    )
+  })
+}
+
+/**
  * 统一调用后端方法并包装为 ApiResponse。
  * @param command - 独立的后端命令名
  * @param payload - 命令参数对象
+ * @param timeoutMs - 可选超时毫秒数，超时后按失败处理
  * @returns 包含 success/data/message 的标准响应
  */
-async function call<T = unknown>(command: string, payload: unknown = {}): Promise<ApiResponse<T>> {
+async function call<T = unknown>(command: string, payload: unknown = {}, timeoutMs?: number): Promise<ApiResponse<T>> {
   const start = performance.now()
   try {
     if (!checkEnv()) throw new Error('PyTauri 环境未就绪')
-    const raw = await transport.invoke(command, payload)
+    const raw = await withTimeout(transport.invoke(command, payload), timeoutMs)
     const dur = (performance.now() - start).toFixed(1)
     if (!raw || typeof raw !== 'object') {
       return { success: false, message: '后端返回了非对象响应', timestamp: Date.now() }
@@ -265,13 +292,15 @@ export const backend = {
    * 调用后端动作命令。
    * @param name - 命令名称
    * @param params - 命令参数
+   * @param timeoutMs - 可选超时毫秒数，超时后按失败处理
    * @returns 命令执行结果
    */
   command<K extends keyof CommandPayloadMap>(
     name: K,
-    params?: CommandPayloadMap[K]
+    params?: CommandPayloadMap[K],
+    timeoutMs?: number
   ): Promise<ApiResponse<CommandResponseMap[K]>> {
-    return call(String(name), params ?? {})
+    return call(String(name), params ?? {}, timeoutMs)
   },
 
   /**
