@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { BackendCommandError, createLauncherErrorQueue, launcherErrorQueue, unwrapResponse } from './errorPresentation'
+import {
+  BackendCommandError,
+  createLauncherErrorQueue,
+  launcherErrorQueue,
+  setErrorNotifier,
+  unwrapResponse,
+} from './errorPresentation'
 
 describe('launcher error presentation', () => {
   it('queues serious errors in order and deduplicates by error id', () => {
@@ -47,6 +53,24 @@ describe('launcher error presentation', () => {
         'Save'
       )
     ).toThrow(BackendCommandError)
+  })
+
+  it('notifies ordinary failures via the injected notifier and suppresses duplicates', () => {
+    const notified: string[] = []
+    setErrorNotifier((message) => notified.push(message))
+    try {
+      expect(() =>
+        unwrapResponse(
+          { success: false, message: 'Invalid value', errorCode: 'INVALID', presentation: 'message' },
+          'Save'
+        )
+      ).toThrow(BackendCommandError)
+    } finally {
+      setErrorNotifier(() => {})
+    }
+    expect(notified).toEqual(['Invalid value'])
+    expect(launcherErrorQueue.consumeSuppressedMessage('Invalid value')).toBe(true)
+    expect(launcherErrorQueue.consumeSuppressedMessage('Invalid value')).toBe(false)
   })
 
   it('queues modal failures and suppresses the duplicate message once', () => {

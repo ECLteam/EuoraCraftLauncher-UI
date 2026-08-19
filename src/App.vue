@@ -113,6 +113,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { loadShowcaseTasks } from '@/api/transport/showcase/fixtures'
 import { desktopWindow } from '@/app/runtime/desktopWindow'
+import { setErrorNotifier } from '@/app/runtime/errorPresentation'
 import { useAppRuntime } from '@/app/runtime/useAppRuntime'
 import SideBar from '@/components/layout/SideBar.vue'
 import TitleBar from '@/components/layout/TitleBar.vue'
@@ -140,6 +141,9 @@ const {
 } = useUserAgreement()
 const fullscreenModal = useFullscreenModal()
 const message = useLauncherMessage()
+
+// 让 unwrapResponse 的 message 级失败统一走顶部通知，避免调用方遗漏导致用户无感知
+setErrorNotifier((msg) => message.errorRaw(msg))
 
 const showAgreementModal = ref(false)
 const showQuitConfirmModal = ref(false)

@@ -54,11 +54,15 @@ export function createLauncherErrorQueue() {
     }
   }
 
+  function suppressMessage(message: string): void {
+    suppressedMessages.set(message, Date.now() + MESSAGE_SUPPRESSION_MS)
+  }
+
   function enqueue(payload: LauncherErrorEvent): boolean {
     const error = normalizeError(payload)
     if (!error || seenIds.has(error.error_id)) return false
     remember(error.error_id)
-    suppressedMessages.set(error.message, Date.now() + MESSAGE_SUPPRESSION_MS)
+    suppressMessage(error.message)
     queue.value.push(error)
     return true
   }
@@ -74,10 +78,19 @@ export function createLauncherErrorQueue() {
     return expiresAt >= Date.now()
   }
 
-  return { activeError, visible, enqueue, dismissActive, consumeSuppressedMessage }
+  return { activeError, visible, enqueue, dismissActive, consumeSuppressedMessage, suppressMessage }
 }
 
 export const launcherErrorQueue = createLauncherErrorQueue()
+
+let notifyError: ((message: string) => void) | null = null
+
+/**
+ * 注入全局错误通知器，用于呈现 message 级别的失败。
+ */
+export function setErrorNotifier(notifier: (message: string) => void): void {
+  notifyError = notifier
+}
 
 export function unwrapResponse<T>(response: ApiResponse<T>, operation: string): T {
   if (response.success) return response.data as T
@@ -89,6 +102,10 @@ export function unwrapResponse<T>(response: ApiResponse<T>, operation: string): 
       message: error.message,
       detail: error.detail,
     })
+  } else {
+    // 先记录抑制，再显示顶部通知（绕过抑制检查），避免调用方 catch 后重复提示同一错误
+    launcherErrorQueue.suppressMessage(error.message)
+    notifyError?.(error.message)
   }
   throw error
 }

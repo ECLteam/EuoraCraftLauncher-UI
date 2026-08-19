@@ -62,8 +62,14 @@ export function useLauncherMessage() {
     if (duration && duration > 0) entry.timer = setTimeout(() => removeEntry(entry.key), duration + 100)
   }
 
-  function show(type: LauncherMessageType, content: string, argument?: LauncherMessageArgument): MessageReactive {
-    if (type === 'error' && launcherErrorQueue.consumeSuppressedMessage(content)) {
+  function show(
+    type: LauncherMessageType,
+    content: string,
+    argument?: LauncherMessageArgument,
+    bypassSuppression = false
+  ): MessageReactive {
+    // 绕过抑制用于 unwrapResponse 的兜底通知：该通知本身是首次呈现，不应被已记录的抑制吞掉
+    if (!bypassSuppression && type === 'error' && launcherErrorQueue.consumeSuppressedMessage(content)) {
       return { type: 'error', destroy: () => undefined } as MessageReactive
     }
     if (!message) return { type, destroy: () => undefined } as MessageReactive
@@ -122,6 +128,8 @@ export function useLauncherMessage() {
     warning: (content: string, options?: LauncherMessageArgument) => show('warning', content, options),
     info: (content: string, options?: LauncherMessageArgument) => show('info', content, options),
     loading: (content: string, options?: LauncherMessageArgument) => show('loading', content, options),
+    // 绕过抑制检查直接显示，供 unwrapResponse 的兜底通知使用
+    errorRaw: (content: string, options?: LauncherMessageArgument) => show('error', content, options, true),
     clear: () => {
       activeMessages.forEach((entry) => {
         if (entry.timer) clearTimeout(entry.timer)
