@@ -644,17 +644,9 @@ async function downloadSkin(): Promise<void> {
   if (!targetAccountId.value || !canDownloadSkin.value) return
   applying.value = true
   try {
+    // 后端已按账户皮肤变体写入模型，前端不再重新检测覆盖，避免细手臂被误判为经典。
     const result = await accountsApi.syncAccountSkin(targetAccountId.value)
-    let item = result.item
-    if (item.kind === 'skin') {
-      try {
-        const dataUrl = await accountsApi.wardrobeTexture(item.id)
-        const model = dataUrl ? await detectSkinModel(dataUrl) : 'classic'
-        if (model !== item.model) item = await accountsApi.updateWardrobe(item.id, undefined, model)
-      } catch {
-        // 检测失败时保留后端返回的模型
-      }
-    }
+    const item = result.item
     items.value = [item, ...items.value.filter((candidate) => candidate.id !== item.id)]
     emit('accountsChanged')
     await loadTargetTextures()
