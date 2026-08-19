@@ -94,6 +94,9 @@
       <SettingRow :label="t('settings.disableSslVerify')" :description="t('settings.disableSslVerifyDesc')">
         <NSwitch :value="disableSslVerify" @update:value="handleDisableSslVerifyChange" />
       </SettingRow>
+      <SettingRow :label="t('settings.ignoreProxy')" :description="t('settings.ignoreProxyDesc')">
+        <NSwitch :value="ignoreProxy" @update:value="handleIgnoreProxyChange" />
+      </SettingRow>
     </SettingSection>
 
     <div id="plugin-slot-settings-general-section-after" class="plugin-slot-container"></div>
@@ -150,6 +153,7 @@ const {
 const { topNavEnabled, toggleTopNav } = useTopNav()
 const { debugMode, setDebugMode } = useDebugMode()
 const disableSslVerify = computed(() => settingsStore.launcher.disable_ssl_verify === true)
+const ignoreProxy = computed(() => settingsStore.launcher.ignore_proxy !== false)
 
 const currentSettings = computed(() => ({
   mode: themeMode.value,
@@ -323,6 +327,10 @@ async function handleDebugModeChange(value: boolean) {
 
 async function handleDisableSslVerifyChange(value: boolean) {
   await run(async () => settingsStore.patchLauncher({ disable_ssl_verify: value }))
+}
+
+async function handleIgnoreProxyChange(value: boolean) {
+  await run(async () => settingsStore.patchLauncher({ ignore_proxy: value }))
 }
 
 function handleLanguageUpdate(languageCode: string) {
