@@ -1352,14 +1352,15 @@
     "instances": {
       "title": "子进程实例",
       "emptyTitle": "暂无实例",
-      "emptyDesc": "插件启动的子进程会显示在这",
+      "emptyDesc": "插件或游戏启动的进程会显示在这",
       "selectHint": "选择左侧实例查看实时输出",
       "inputPlaceholder": "输入内容后回车发送",
       "send": "发送",
       "stop": "停止",
       "noStdin": "该实例未开启标准输入，仅可观察输出",
       "stopped": "已停止",
-      "running": "运行中"
+      "running": "运行中",
+      "gameType": "游戏"
     }
   }
 }

@@ -16,7 +16,7 @@
       >
         <span class="piv-item-dot" :class="{ 'piv-item-dot--stop': !item.running }" />
         <span class="piv-item-name" :title="item.name">{{ item.name }}</span>
-        <span class="piv-item-type">{{ item.type }}</span>
+        <span class="piv-item-type">{{ typeLabel(item.type) }}</span>
       </button>
     </div>
 
@@ -86,6 +86,10 @@ const canSend = computed(() => {
   const instance = activeInstance.value
   return !!instance && instance.stdin && instance.running && inputText.value.trim().length > 0
 })
+
+function typeLabel(type: string): string {
+  return type === 'Minecraft' ? t('terminal.instances.gameType') : type
+}
 
 function onEnter(): void {
   if (!canSend.value) return
