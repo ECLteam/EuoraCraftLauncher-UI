@@ -28,10 +28,7 @@ export const accountsApi = {
   },
 
   async addOffline(username: string, uuid?: string, skin?: string): Promise<MinecraftAccount> {
-    return assertSuccess(
-      await backend.command('accounts_add_offline', { username, uuid, skin }),
-      '添加离线账户'
-    )
+    return assertSuccess(await backend.command('accounts_add_offline', { username, uuid, skin }), '添加离线账户')
   },
 
   async defaultSkins(): Promise<DefaultSkin[]> {

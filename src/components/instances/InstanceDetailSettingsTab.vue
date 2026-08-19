@@ -32,10 +32,7 @@
 
       <div class="settings-subgroup">
         <div class="settings-subgroup__title">{{ t('versions.detail.memoryAllocation') }}</div>
-        <SettingRow
-          :label="t('versions.detail.customMemory')"
-          :description="t('versions.detail.customMemoryDesc')"
-        >
+        <SettingRow :label="t('versions.detail.customMemory')" :description="t('versions.detail.customMemoryDesc')">
           <NSwitch v-model:value="versionSettings.customMemory" />
         </SettingRow>
         <SettingRow v-if="versionSettings.customMemory" :label="t('versions.detail.memorySize')">
@@ -54,18 +51,12 @@
 
       <div class="settings-subgroup">
         <div class="settings-subgroup__title">{{ t('versions.detail.javaRuntime') }}</div>
-        <SettingRow
-          :label="t('versions.detail.customJava')"
-          :description="t('versions.detail.customJavaDesc')"
-        >
+        <SettingRow :label="t('versions.detail.customJava')" :description="t('versions.detail.customJavaDesc')">
           <NSwitch v-model:value="versionSettings.customJava" />
         </SettingRow>
         <SettingRow v-if="versionSettings.customJava" :label="t('versions.detail.javaPath')">
           <NInputGroup class="java-path-control">
-            <NInput
-              v-model:value="versionSettings.javaPath"
-              :placeholder="t('versions.detail.javaPathPlaceholder')"
-            />
+            <NInput v-model:value="versionSettings.javaPath" :placeholder="t('versions.detail.javaPathPlaceholder')" />
             <NButton :loading="javaSelecting" @click="selectJava">
               {{ t('common.browse') }}
             </NButton>
@@ -75,10 +66,7 @@
 
       <div class="settings-subgroup">
         <div class="settings-subgroup__title">{{ t('versions.detail.jvmArgs') }}</div>
-        <SettingRow
-          :label="t('versions.detail.customJvmArgs')"
-          :description="t('versions.detail.customJvmArgsDesc')"
-        >
+        <SettingRow :label="t('versions.detail.customJvmArgs')" :description="t('versions.detail.customJvmArgsDesc')">
           <NInput
             v-model:value="versionSettings.jvmArgs"
             class="argument-input"
@@ -91,10 +79,7 @@
 
       <div class="settings-subgroup">
         <div class="settings-subgroup__title">{{ t('versions.detail.gameArgs') }}</div>
-        <SettingRow
-          :label="t('versions.detail.customGameArgs')"
-          :description="t('versions.detail.customGameArgsDesc')"
-        >
+        <SettingRow :label="t('versions.detail.customGameArgs')" :description="t('versions.detail.customGameArgsDesc')">
           <NInput
             v-model:value="versionSettings.gameArgs"
             class="argument-input"

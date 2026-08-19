@@ -27,7 +27,9 @@ export const connectorApi = {
   },
 
   join(code: string): Promise<{ mcHost: string; mcPort: number }> {
-    return backend.command(COMMAND_NAMES.connector_join, { code }).then((response) => unwrapResponse(response, '加入联机房间'))
+    return backend
+      .command(COMMAND_NAMES.connector_join, { code })
+      .then((response) => unwrapResponse(response, '加入联机房间'))
   },
 
   leave(): Promise<{ status: string }> {
@@ -59,10 +61,14 @@ export const connectorApi = {
   },
 
   scanPorts(): Promise<{ port: number | null }> {
-    return backend.command(COMMAND_NAMES.connector_scan_ports).then((response) => unwrapResponse(response, '扫描本地端口'))
+    return backend
+      .command(COMMAND_NAMES.connector_scan_ports)
+      .then((response) => unwrapResponse(response, '扫描本地端口'))
   },
 
   natType(): Promise<NatTypeResult> {
-    return backend.command(COMMAND_NAMES.connector_nat_type).then((response) => unwrapResponse(response, '检测 NAT 类型'))
+    return backend
+      .command(COMMAND_NAMES.connector_nat_type)
+      .then((response) => unwrapResponse(response, '检测 NAT 类型'))
   },
 }

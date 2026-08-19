@@ -26,9 +26,7 @@
     <div v-else class="info-grid">
       <div class="info-item">
         <span class="info-label">{{ t('versions.detail.launchCount') }}</span>
-        <span class="info-value">{{
-          t('versions.detail.launchCountValue', { count: runStats.launchCount })
-        }}</span>
+        <span class="info-value">{{ t('versions.detail.launchCountValue', { count: runStats.launchCount }) }}</span>
       </div>
       <div class="info-item">
         <span class="info-label">{{ t('versions.detail.lastRunDuration') }}</span>

@@ -116,11 +116,7 @@
                   >
                     <UiIcon name="external-link" :size="13" />
                   </button>
-                  <button
-                    class="btn-action btn-delete"
-                    :title="t('common.delete')"
-                    @click="handleDeleteMod(mod)"
-                  >
+                  <button class="btn-action btn-delete" :title="t('common.delete')" @click="handleDeleteMod(mod)">
                     <UiIcon name="trash" :size="13" />
                   </button>
                   <NSwitch :value="mod.enabled" size="small" @update:value="handleToggleMod(mod)" />
@@ -239,21 +235,17 @@ async function handleToggleMod(mod: ModItem) {
 }
 
 function handleDeleteMod(mod: ModItem) {
-  openConfirm(
-    t('common.delete'),
-    t('versions.mods.deleteConfirm', { name: mod.name || mod.filename }),
-    async () => {
-      const gamePath = getGamePath()
-      if (!gamePath) return
-      try {
-        await localModsApi.remove(gamePath, mod.filename)
-        mods.value = mods.value.filter((m) => m.filename !== mod.filename)
-        message.success(t('versions.mods.modDeleted'))
-      } catch (error) {
-        message.error(error instanceof Error ? error.message : t('versions.mods.modDeleteFailed'))
-      }
+  openConfirm(t('common.delete'), t('versions.mods.deleteConfirm', { name: mod.name || mod.filename }), async () => {
+    const gamePath = getGamePath()
+    if (!gamePath) return
+    try {
+      await localModsApi.remove(gamePath, mod.filename)
+      mods.value = mods.value.filter((m) => m.filename !== mod.filename)
+      message.success(t('versions.mods.modDeleted'))
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : t('versions.mods.modDeleteFailed'))
     }
-  )
+  })
 }
 
 async function handleAddMod() {

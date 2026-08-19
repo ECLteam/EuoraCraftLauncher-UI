@@ -7,9 +7,7 @@
           >磁盘目录仍为 {{ version?.versionId }}</small
         ></label
       >
-      <label
-        ><span>分类</span><NSelect v-model:value="profileForm.categoryId" :options="categoryOptions"
-      /></label>
+      <label><span>分类</span><NSelect v-model:value="profileForm.categoryId" :options="categoryOptions" /></label>
       <label class="profile-form-wide"
         ><span>描述</span
         ><NInput

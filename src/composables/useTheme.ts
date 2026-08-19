@@ -66,7 +66,10 @@ function rgba(color: string, alpha: number): string {
  * @param isDark - 是否为深色模式（决定悬停/按下色的混色方向）
  * @returns 包含主色、悬停色、按下色、浅色及 RGB 值的色阶对象
  */
-function createPrimaryScale(baseColor: string, isDark: boolean): {
+function createPrimaryScale(
+  baseColor: string,
+  isDark: boolean
+): {
   primary: string
   primaryHover: string
   primaryPressed: string
@@ -102,7 +105,10 @@ const themeColors = {
  * @param primaryScale - 已计算好的主色色阶（由调用方基于响应式状态生成一次）
  * @returns naive-ui 主题覆盖对象
  */
-function createThemeOverrides(isDark: boolean, primaryScale: ReturnType<typeof createPrimaryScale>): GlobalThemeOverrides {
+function createThemeOverrides(
+  isDark: boolean,
+  primaryScale: ReturnType<typeof createPrimaryScale>
+): GlobalThemeOverrides {
   const baseColors = isDark ? themeColors.dark : themeColors.light
 
   return {

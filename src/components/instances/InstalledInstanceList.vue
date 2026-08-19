@@ -422,11 +422,7 @@ function formatDuration(seconds?: number): string {
 }
 
 function formatDate(value?: string | null): string {
-  return formatDateUtil(
-    value,
-    { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' },
-    '从未启动'
-  )
+  return formatDateUtil(value, { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }, '从未启动')
 }
 
 function updateSearchQuery(event: Event) {

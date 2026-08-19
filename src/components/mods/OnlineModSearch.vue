@@ -406,9 +406,15 @@ function pageCacheKey(targetPage: number): string {
   const inst = instance.value
   const loader = props.resourceType === 'mod' ? loaderFilter.value || inst?.primaryLoader || '' : ''
   const gameVersion = versionFilter.value || inst?.vanillaName || ''
-  return [props.resourceType, query.value.trim(), sourceFilter.value, gameVersion, loader, sortFilter.value, targetPage].join(
-    '\u0000'
-  )
+  return [
+    props.resourceType,
+    query.value.trim(),
+    sourceFilter.value,
+    gameVersion,
+    loader,
+    sortFilter.value,
+    targetPage,
+  ].join('\u0000')
 }
 
 function saveState(): void {
@@ -446,10 +452,7 @@ function restoreState(): boolean {
   return true
 }
 
-const {
-  data: versionCatalogData,
-  fetchData: fetchVersionCatalog,
-} = useAutoRefreshCache<MinecraftVersionCatalog>(
+const { data: versionCatalogData, fetchData: fetchVersionCatalog } = useAutoRefreshCache<MinecraftVersionCatalog>(
   CACHE_KEYS.VERSIONS,
   () => instanceInstallApi.getCatalog(),
   { ttl: 10 * 60 * 1000, group: CACHE_GROUPS.VERSION, persistent: true, autoRefresh: false }

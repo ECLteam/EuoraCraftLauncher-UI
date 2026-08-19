@@ -399,7 +399,9 @@ onMounted(load)
   gap: 12px;
   padding: 10px 16px;
   border-bottom: 1px solid var(--ecl-border);
-  transition: background 0.15s ease, transform 0.15s ease;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
 }
 
 .resource-row:last-child {
