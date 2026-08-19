@@ -154,6 +154,14 @@
                 <div class="account-actions">
                   <button
                     class="account-action-btn"
+                    :title="t('game.accountDetails')"
+                    @click="openAccountDetails(savedAccount)"
+                  >
+                    <UiIcon name="info" :size="14" />
+                  </button>
+
+                  <button
+                    class="account-action-btn"
                     :class="{ active: savedAccount.favorite }"
                     :title="savedAccount.favorite ? t('game.status.favoriteRemoved') : t('game.status.favoriteAdded')"
                     @click="account.toggleFavorite(savedAccount.id)"
@@ -380,6 +388,67 @@
             </div>
           </div>
         </Modal>
+
+        <Modal
+          v-model:visible="showAccountDetailsModal"
+          :title="t('game.accountDetails')"
+          :showFooter="false"
+          bodyClass="account-details-modal-body"
+          width="420px"
+        >
+          <div v-if="detailAccount" class="account-details-body">
+            <div class="account-details-header">
+              <AvatarRenderer
+                :uuid="detailAccount.uuid"
+                :username="detailAccount.alias"
+                :typeName="detailAccount.type"
+                :skinUrl="detailAccount.skinUrl"
+                :accountId="detailAccount.id"
+                :size="56"
+              />
+              <div class="account-details-heading">
+                <strong class="account-details-name">{{ detailAccount.alias }}</strong>
+                <span v-if="detailAccount.email" class="account-details-email">{{ detailAccount.email }}</span>
+              </div>
+            </div>
+            <div class="account-details-grid">
+              <div class="account-detail-item">
+                <span class="account-detail-label">{{ t('game.accountType') }}</span>
+                <span class="account-detail-value">{{ accountTypeName(detailAccount.type) }}</span>
+              </div>
+              <div v-if="detailTextures?.skinModel" class="account-detail-item">
+                <span class="account-detail-label">{{ t('game.skinType') }}</span>
+                <span class="account-detail-value">{{ t(`wardrobe.${detailTextures.skinModel}`) }}</span>
+              </div>
+              <div v-if="activeCapeName" class="account-detail-item">
+                <span class="account-detail-label">{{ t('game.capeName') }}</span>
+                <span class="account-detail-value">{{ activeCapeName }}</span>
+              </div>
+              <div v-if="detailAccount.uuid" class="account-detail-item">
+                <span class="account-detail-label">UUID</span>
+                <span class="account-detail-value account-detail-mono">{{ detailAccount.uuid }}</span>
+              </div>
+              <div v-if="detailAccount.auth_server" class="account-detail-item">
+                <span class="account-detail-label">{{ t('game.authServer') }}</span>
+                <span class="account-detail-value">{{ detailAccount.auth_server }}</span>
+              </div>
+              <div class="account-detail-item">
+                <span class="account-detail-label">{{ t('game.accountStatus') }}</span>
+                <span class="account-detail-value account-detail-tags">
+                  <NTag v-if="detailAccount.isCurrent" size="small" type="success" :bordered="false">
+                    {{ t('game.current') }}
+                  </NTag>
+                  <NTag v-if="detailAccount.favorite" size="small" type="warning" :bordered="false">
+                    {{ t('game.favorite') }}
+                  </NTag>
+                  <NTag v-if="detailAccount.pinned" size="small" :bordered="false">
+                    {{ t('game.pinned') }}
+                  </NTag>
+                </span>
+              </div>
+            </div>
+          </div>
+        </Modal>
       </div>
     </FullscreenModal>
 
@@ -477,6 +546,7 @@ import { useInstanceManager } from '@/composables/useInstanceManager'
 import { globalLaunchProgress } from '@/composables/useLaunchProgress'
 import { useRecentInstances } from '@/composables/useRecentInstances'
 import { getLoaderIcon, getLoaderImage, getVersionImage } from '@/config/version'
+import { accountsApi } from '@/features/accounts/api/accountsApi'
 import WardrobeModal from '@/features/accounts/components/WardrobeModal.vue'
 import { useGameInfoCard } from '@/features/game-home/composables/useGameInfoCard'
 import { useGameHomeStore } from '@/features/game-home/stores/gameHomeStore'
@@ -484,6 +554,7 @@ import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
 import { instanceDisplayName } from '@/features/instances/model/instancePresentation'
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
 import InstanceTerminalModule from '@/features/terminal/components/InstanceTerminalModule.vue'
+import type { AccountTextures, MinecraftAccount } from '@/types/api'
 import { getAccountTypeLabelKey, getAccountTypeShortLabelKey } from '@/utils/enums'
 import { normalizeGamePath } from '@/utils/path'
 import RunningInstancesTab from '@/views/instances/RunningInstancesTab.vue'
@@ -516,6 +587,9 @@ type AccountType = 'microsoft' | 'offline' | 'authlib'
 const showAddAccountModal = ref(false)
 const showWardrobeModal = ref(false)
 const showRunningInstances = ref(false)
+const showAccountDetailsModal = ref(false)
+const detailAccount = ref<MinecraftAccount | null>(null)
+const detailTextures = ref<AccountTextures | null>(null)
 const runningView = ref<'management' | 'terminal'>('management')
 const runningInstanceCount = ref(0)
 let stopListeningForRunningInstances: (() => void) | null = null
@@ -571,6 +645,22 @@ function openAddAccountModal() {
 function openWardrobeModal() {
   returningFromWardrobe = false
   showWardrobeModal.value = true
+}
+
+const activeCapeName = computed(() => {
+  const cape = detailAccount.value?.capes?.find((candidate) => candidate.state.toUpperCase() === 'ACTIVE')
+  return cape?.name || cape?.id || ''
+})
+
+async function openAccountDetails(account: MinecraftAccount): Promise<void> {
+  detailAccount.value = account
+  detailTextures.value = null
+  showAccountDetailsModal.value = true
+  try {
+    detailTextures.value = await accountsApi.textureUrls(account.id)
+  } catch {
+    // 材质读取失败时仍可查看基础账户信息
+  }
 }
 
 async function returnToAccountManagement() {

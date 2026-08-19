@@ -384,6 +384,7 @@ export function createShowcaseTransport(): BackendTransport {
         return success()
       case 'accounts_texture_urls': {
         const account = accounts.accounts.find((item) => item.id === payload.account_id)
+        if (account?.type === 'microsoft') return success({ skinUrl: account.skinUrl, skinModel: 'slim' })
         return success({ skinUrl: account?.skinUrl })
       }
       case 'wardrobe_list':

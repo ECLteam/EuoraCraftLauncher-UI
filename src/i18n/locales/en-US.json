@@ -225,6 +225,13 @@
     "accountTypeMicrosoft": "Microsoft",
     "accountTypeAuthlib": "Authlib",
     "authlibAccount": "Authlib External Auth",
+    "accountDetails": "Account Details",
+    "authServer": "Auth Server",
+    "accountStatus": "Status",
+    "skinType": "Skin Type",
+    "capeName": "Cape Name",
+    "favorite": "Favorited",
+    "pinned": "Pinned",
     "login": {
       "title": "Microsoft Account Login",
       "step1": "Please visit the following link in your browser",

@@ -16,6 +16,7 @@
       </div>
       <div class="account-details">
         <div class="account-name">{{ account?.alias || t('game.noAccount') }}</div>
+        <div v-if="account?.email" class="account-email">{{ account.email }}</div>
         <div class="account-type">
           {{ account ? accountTypeLabel : t('game.clickManageToAdd') }}
         </div>
@@ -119,7 +120,8 @@ function selectAccount(accountId: string | number) {
 }
 
 .account-name,
-.account-type {
+.account-type,
+.account-email {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -129,6 +131,12 @@ function selectAccount(accountId: string | number) {
   color: var(--ecl-text);
   font-size: 14px;
   font-weight: 650;
+}
+
+.account-email {
+  margin-top: 1px;
+  color: var(--ecl-text-secondary);
+  font-size: 11px;
 }
 
 .account-type {

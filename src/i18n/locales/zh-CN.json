@@ -225,6 +225,13 @@
     "accountTypeMicrosoft": "微软",
     "accountTypeAuthlib": "Authlib",
     "authlibAccount": "Authlib 外置登录",
+    "accountDetails": "账户详情",
+    "authServer": "认证服务器",
+    "accountStatus": "状态",
+    "skinType": "皮肤类型",
+    "capeName": "披风名称",
+    "favorite": "已收藏",
+    "pinned": "已置顶",
     "login": {
       "title": "微软账户登录",
       "step1": "请在浏览器中访问以下链接",

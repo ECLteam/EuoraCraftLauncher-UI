@@ -69,6 +69,7 @@ export const showcaseAccounts: AccountListData = {
       uuid: '8667ba71b85a4004af54457a9734eed7',
       skinUrl: `${import.meta.env.BASE_URL}img/skins/Alex.png`,
       isCurrent: true,
+      capes: [{ id: 'migrator', name: 'Migrator Cape', state: 'ACTIVE', url: '' }],
     },
     {
       id: 'showcase-offline',
