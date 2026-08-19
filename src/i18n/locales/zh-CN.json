@@ -202,6 +202,9 @@
     "customUuidHint": "留空时将根据用户名自动生成离线 UUID。",
     "invalidOfflineUuid": "UUID 格式无效，请输入 32 位十六进制字符或标准带连字符格式。",
     "offlineNoPassword": "离线账户无需密码",
+    "offlineSkinLabel": "默认皮肤:",
+    "offlineSkinPlaceholder": "选择皮肤",
+    "changeSkin": "更换皮肤",
     "close": "关闭",
     "noAccount": "无账号",
     "clickManageToAdd": "点击管理添加账户",
@@ -276,7 +279,9 @@
       "favoriteFailed": "设置收藏失败",
       "pinAdded": "已置顶",
       "pinRemoved": "已取消置顶",
-      "pinFailed": "设置置顶失败"
+      "pinFailed": "设置置顶失败",
+      "skinChanged": "皮肤已更新",
+      "skinChangeFailed": "皮肤更新失败"
     }
   },
   "download": {

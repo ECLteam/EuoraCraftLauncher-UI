@@ -394,6 +394,18 @@
   border-radius: var(--r-sm);
 }
 
+.offline-skin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.offline-skin-field label {
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .offline-advanced-panel label {
   color: var(--text-primary);
   font-size: 12px;

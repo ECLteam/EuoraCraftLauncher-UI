@@ -35,12 +35,19 @@ export function useResourceInstallTarget(resourceType: InstallTargetKey, autoSel
     const config = unwrapResponse(await backend.config.get('download'), '读取下载设置')
     const cfg = config as { resourceInstallCache?: Record<string, { gamePath: string; versionId: string }> }
     const cached = cfg?.resourceInstallCache?.[resourceType]
-    if (cached?.gamePath && cached?.versionId) {
-      const hit = installableInstances.value.find(
-        (version) => version.path === cached.gamePath && version.versionId === cached.versionId
-      )
-      if (hit) {
-        selectedKey.value = instanceKey(hit)
+    if (cached) {
+      if (cached.gamePath && cached.versionId) {
+        const hit = installableInstances.value.find(
+          (version) => version.path === cached.gamePath && version.versionId === cached.versionId
+        )
+        if (hit) {
+          selectedKey.value = instanceKey(hit)
+          ready.value = true
+          return
+        }
+      } else {
+        // 用户曾显式选择"无"，恢复为无实例
+        selectedKey.value = ''
         ready.value = true
         return
       }
@@ -52,10 +59,7 @@ export function useResourceInstallTarget(resourceType: InstallTargetKey, autoSel
             version.versionId === instanceStore.selectedVersion && version.path === instanceStore.currentGamePath
         ) ?? installableInstances.value[0]
       selectedKey.value = preferred ? instanceKey(preferred) : ''
-      // 自动选中的实例也持久化，保证重启后实例选择与搜索结果缓存一致
-      if (preferred) {
-        await persist(preferred)
-      }
+      // 自动选中不写入缓存，只有用户显式选择才会被记住
     }
     ready.value = true
   }
@@ -69,7 +73,6 @@ export function useResourceInstallTarget(resourceType: InstallTargetKey, autoSel
   }
 
   async function persist(instance: ScannedVersion | null = selectedInstance.value): Promise<void> {
-    if (!instance) return
     const current = (unwrapResponse(await backend.config.get('download'), '读取下载设置') ?? {}) as {
       resourceInstallCache?: Record<string, { gamePath: string; versionId: string }>
     }
@@ -77,7 +80,10 @@ export function useResourceInstallTarget(resourceType: InstallTargetKey, autoSel
       ...current,
       resourceInstallCache: {
         ...(current.resourceInstallCache ?? {}),
-        [resourceType]: { gamePath: instance.path, versionId: instance.versionId },
+        // 选"无"时写空记录，代表显式选择"不绑定实例"，便于切页后恢复
+        [resourceType]: instance
+          ? { gamePath: instance.path, versionId: instance.versionId }
+          : { gamePath: '', versionId: '' },
       },
     })
   }

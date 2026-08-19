@@ -3,6 +3,7 @@ import { ref, computed, reactive } from 'vue'
 import { useAccountStore } from '@/features/accounts/stores/accountStore'
 import type {
   AuthlibProfile,
+  DefaultSkin,
   MinecraftAccount,
   MicrosoftLoginData,
   MicrosoftLoginStage,
@@ -42,6 +43,31 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     return value && !OFFLINE_UUID_PATTERN.test(value) ? t('game.invalidOfflineUuid') : ''
   })
   const addingOffline = ref(false)
+
+  // 离线账户默认皮肤（resources/Skins），新增与更换时共用。
+  const offlineSkins = ref<DefaultSkin[]>([])
+  const offlineSkinsLoading = ref(false)
+  const selectedOfflineSkinId = ref('')
+
+  async function loadOfflineSkins() {
+    if (offlineSkins.value.length > 0) return
+    offlineSkinsLoading.value = true
+    try {
+      offlineSkins.value = await accountStore.defaultSkins()
+    } catch (reason) {
+      // 皮肤列表加载失败不阻断账户新增，仅回退为无皮肤。
+      console.warn('[AccountManager] 读取默认皮肤失败:', reason)
+    } finally {
+      offlineSkinsLoading.value = false
+    }
+  }
+
+  const offlineSkinOptions = computed(() =>
+    offlineSkins.value.map((skin) => ({
+      value: skin.id,
+      label: skin.name,
+    }))
+  )
 
   // Authlib
   const showAuthlibForm = ref(false)
@@ -128,6 +154,7 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     loadAuthlibServers()
     loadMicrosoftLoginConfig()
     loadAuthlibLoginConfig()
+    loadOfflineSkins()
   }
 
   async function addOfflineAccount() {
@@ -144,14 +171,25 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     addingOffline.value = true
     try {
       const customUuid = newOfflineUuid.value.trim() || undefined
-      await accountStore.addOffline(username, customUuid)
+      const skin = selectedOfflineSkinId.value || undefined
+      await accountStore.addOffline(username, customUuid, skin)
       message.success(t('game.status.accountAdded'))
       newOfflineUsername.value = ''
       newOfflineUuid.value = ''
+      selectedOfflineSkinId.value = ''
     } catch (reason) {
       message.error(reason instanceof Error ? reason.message : t('game.status.accountAddFailed'))
     } finally {
       addingOffline.value = false
+    }
+  }
+
+  async function changeOfflineSkin(accountId: string, skinId: string) {
+    try {
+      await accountStore.setOfflineSkin(accountId, skinId || undefined)
+      message.success(t('game.status.skinChanged'))
+    } catch (reason) {
+      message.error(reason instanceof Error ? reason.message : t('game.status.skinChangeFailed'))
     }
   }
 
@@ -456,6 +494,11 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     newOfflineUuid,
     offlineUuidError,
     addingOffline,
+    offlineSkins,
+    offlineSkinsLoading,
+    offlineSkinOptions,
+    selectedOfflineSkinId,
+    loadOfflineSkins,
     // Authlib
     showAuthlibForm,
     authlibServerUrl,
@@ -500,6 +543,7 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     loadAuthlibLoginConfig,
     openAccountModal,
     addOfflineAccount,
+    changeOfflineSkin,
     switchAccount,
     removeAccount,
     confirmRemoveAccount,

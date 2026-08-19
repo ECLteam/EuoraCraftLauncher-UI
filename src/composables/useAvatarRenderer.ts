@@ -3,7 +3,7 @@ import backend from '@/api/client'
 
 const CACHE_TTL = 30 * 60 * 1000
 const MAX_CACHE_ENTRIES = 100
-const AVATAR_RENDER_VERSION = 4
+const AVATAR_RENDER_VERSION = 5
 
 const DEFAULT_SKINS = {
   steve:
@@ -115,6 +115,17 @@ function defaultSkin(identifier: string): string {
   return Math.abs(hashCode(identifier)) % 2 === 0 ? DEFAULT_SKINS.steve : DEFAULT_SKINS.alex
 }
 
+async function resolveAuthlibSkinUrl(accountId: string): Promise<string | null> {
+  try {
+    const response = await backend.command('accounts_texture_urls', { account_id: accountId })
+    const skinUrl = response.success ? response.data?.skinUrl : null
+    return typeof skinUrl === 'string' && skinUrl.trim() ? skinUrl : null
+  } catch (reason) {
+    console.warn('[Avatar] 外置登录皮肤读取失败，使用默认皮肤:', reason)
+    return null
+  }
+}
+
 export function useAvatarRenderer() {
   const loading = ref(false)
   const error = ref(false)
@@ -124,7 +135,8 @@ export function useAvatarRenderer() {
     username: string | undefined,
     size: number,
     skinUrl?: string,
-    accountId?: string
+    accountId?: string,
+    accountType?: string
   ): Promise<string | null> {
     loading.value = true
     error.value = false
@@ -136,8 +148,12 @@ export function useAvatarRenderer() {
       const pending = pendingAvatars.get(key)
       if (pending) return await pending
       const request = (async () => {
-        const texture = skinUrl?.trim() || defaultSkin(identifier)
-        const avatar = texture ? await renderSkinAvatar(texture, size) : null
+        let texture = skinUrl?.trim()
+        if (!texture && accountId && accountType === 'authlib') {
+          texture = (await resolveAuthlibSkinUrl(accountId)) || undefined
+        }
+        const resolved = texture || defaultSkin(identifier)
+        const avatar = await renderSkinAvatar(resolved, size)
         if (avatar) {
           setCached(avatarCache, key, avatar)
           return avatar

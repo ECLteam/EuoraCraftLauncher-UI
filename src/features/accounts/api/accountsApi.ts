@@ -12,6 +12,7 @@ import type {
   MicrosoftPollData,
   AccountTextures,
   SkinModel,
+  DefaultSkin,
   WardrobeImportResult,
   WardrobeItem,
   WardrobeKind,
@@ -26,8 +27,22 @@ export const accountsApi = {
     return assertSuccess(await backend.command('accounts_current'), '读取当前账户') ?? null
   },
 
-  async addOffline(username: string, uuid?: string): Promise<MinecraftAccount> {
-    return assertSuccess(await backend.command('accounts_add_offline', { username, uuid }), '添加离线账户')
+  async addOffline(username: string, uuid?: string, skin?: string): Promise<MinecraftAccount> {
+    return assertSuccess(
+      await backend.command('accounts_add_offline', { username, uuid, skin }),
+      '添加离线账户'
+    )
+  },
+
+  async defaultSkins(): Promise<DefaultSkin[]> {
+    return assertSuccess(await backend.command('accounts_default_skins'), '读取默认皮肤') ?? []
+  },
+
+  async setOfflineSkin(accountId: string, skin?: string): Promise<AccountListData> {
+    return assertSuccess(
+      await backend.command('accounts_set_offline_skin', { account_id: accountId, skin }),
+      '设置离线皮肤'
+    )
   },
 
   async addAuthlib(serverUrl: string, email: string, password: string): Promise<MinecraftAccount> {

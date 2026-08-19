@@ -118,7 +118,7 @@ describe('useAccountManager Microsoft login', () => {
 
     await account.addOfflineAccount()
 
-    expect(accountsApi.addOffline).toHaveBeenCalledWith('CustomPlayer', '0123456789abcdef0123456789abcdef')
+    expect(accountsApi.addOffline).toHaveBeenCalledWith('CustomPlayer', '0123456789abcdef0123456789abcdef', undefined)
     expect(account.newOfflineUuid).toBe('')
   })
 

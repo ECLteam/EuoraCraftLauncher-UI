@@ -202,6 +202,9 @@
     "customUuidHint": "Leave blank to generate an offline UUID from the username.",
     "invalidOfflineUuid": "Invalid UUID. Enter 32 hexadecimal characters or the standard hyphenated format.",
     "offlineNoPassword": "Offline accounts don't need a password",
+    "offlineSkinLabel": "Default skin:",
+    "offlineSkinPlaceholder": "Select a skin",
+    "changeSkin": "Change skin",
     "close": "Close",
     "noAccount": "No Account",
     "clickManageToAdd": "Click Manage to add account",
@@ -276,7 +279,9 @@
       "favoriteFailed": "Failed to set favorite",
       "pinAdded": "Pinned",
       "pinRemoved": "Unpinned",
-      "pinFailed": "Failed to set pin"
+      "pinFailed": "Failed to set pin",
+      "skinChanged": "Skin updated",
+      "skinChangeFailed": "Failed to update skin"
     }
   },
   "download": {

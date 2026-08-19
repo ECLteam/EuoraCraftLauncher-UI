@@ -22,6 +22,10 @@ vi.mock('@/features/accounts/api/accountsApi', () => ({
     cancelMicrosoftLogin: vi.fn(),
     completeMicrosoftLogin: vi.fn(),
     onMicrosoftLoginStatus: vi.fn(),
+    setFavorite: vi.fn(),
+    setPinned: vi.fn(),
+    defaultSkins: vi.fn(),
+    setOfflineSkin: vi.fn(),
   },
 }))
 
@@ -89,7 +93,39 @@ describe('accountStore', () => {
 
     await store.addOffline('Alex', '01234567-89ab-cdef-0123-456789abcdef')
 
-    expect(accountsApi.addOffline).toHaveBeenCalledWith('Alex', '01234567-89ab-cdef-0123-456789abcdef')
+    expect(accountsApi.addOffline).toHaveBeenCalledWith('Alex', '01234567-89ab-cdef-0123-456789abcdef', undefined)
+  })
+
+  it('添加离线账户时转发可选皮肤', async () => {
+    const store = useAccountStore()
+    vi.mocked(accountsApi.addOffline).mockResolvedValue(account)
+
+    await store.addOffline('Steve', undefined, 'alice')
+
+    expect(accountsApi.addOffline).toHaveBeenCalledWith('Steve', undefined, 'alice')
+    expect(accountsApi.defaultSkins).not.toHaveBeenCalled()
+  })
+
+  it('读取默认皮肤列表时转发到后端', async () => {
+    const store = useAccountStore()
+    vi.mocked(accountsApi.defaultSkins).mockResolvedValue([
+      { id: 'alice', name: 'Alice', skinUrl: 'data:image/png;base64,AAAA' },
+    ])
+
+    const skins = await store.defaultSkins()
+
+    expect(skins).toHaveLength(1)
+    expect(accountsApi.defaultSkins).toHaveBeenCalledOnce()
+  })
+
+  it('设置离线皮肤后刷新账户列表', async () => {
+    const store = useAccountStore()
+    vi.mocked(accountsApi.setOfflineSkin).mockResolvedValue({ accounts: [account], current: account })
+
+    await store.setOfflineSkin('alex', 'alice')
+
+    expect(accountsApi.setOfflineSkin).toHaveBeenCalledWith('alex', 'alice')
+    expect(accountsApi.list).toHaveBeenCalledOnce()
   })
 
   it('将微软登录取消请求转发到后端', async () => {

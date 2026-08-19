@@ -503,10 +503,17 @@ export interface MinecraftAccount {
   favorite?: boolean
   pinned?: boolean
   skinUrl?: string
+  skinId?: string
   capes?: MicrosoftCape[]
   auth_server?: string
   profile_selection_required?: boolean
   available_profiles?: AuthlibProfile[]
+}
+
+export interface DefaultSkin {
+  id: string
+  name: string
+  skinUrl: string
 }
 
 export interface MicrosoftCape {
@@ -1141,7 +1148,9 @@ export interface CommandPayloadMap {
   // 账户
   accounts_list: undefined
   accounts_current: undefined
-  accounts_add_offline: { username: string; uuid?: string }
+  accounts_add_offline: { username: string; uuid?: string; skin?: string }
+  accounts_default_skins: undefined
+  accounts_set_offline_skin: { account_id: string; skin?: string }
   accounts_add_authlib: {
     server_url: string
     email: string
@@ -1486,6 +1495,8 @@ export const COMMAND_NAMES = {
   accounts_list: 'accounts_list',
   accounts_current: 'accounts_current',
   accounts_add_offline: 'accounts_add_offline',
+  accounts_default_skins: 'accounts_default_skins',
+  accounts_set_offline_skin: 'accounts_set_offline_skin',
   accounts_add_authlib: 'accounts_add_authlib',
   accounts_select_authlib_profile: 'accounts_select_authlib_profile',
   authlib_resolve_server: 'authlib_resolve_server',
@@ -1700,6 +1711,8 @@ export interface CommandResponseMap {
   accounts_list: AccountListData
   accounts_current: MinecraftAccount | null
   accounts_add_offline: MinecraftAccount
+  accounts_default_skins: DefaultSkin[]
+  accounts_set_offline_skin: AccountListData
   accounts_add_authlib: MinecraftAccount
   accounts_select_authlib_profile: MinecraftAccount
   authlib_resolve_server: string

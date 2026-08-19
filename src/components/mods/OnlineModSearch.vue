@@ -55,7 +55,7 @@
             class="filter-item"
           />
         </div>
-        <div class="filter-group">
+        <div v-if="resourceType === 'mod'" class="filter-group">
           <span class="filter-label">{{ t('mods.loaderType') }}</span>
           <NSelect
             v-model:value="loaderFilter"
@@ -492,6 +492,8 @@ const sortOptions = [
 
 // 实例就绪后自动加载热门列表
 let popularLoaded = false
+// 标记首屏视图（恢复缓存或热门列表）是否已加载，避免实例切换 watch 重复触发首次启动
+let listBootstrapped = false
 watch(
   () => target.ready.value,
   (readyVal) => {
@@ -527,8 +529,23 @@ watch(
         void loadPopular()
       }
     }
+    listBootstrapped = true
   },
   { immediate: true }
+)
+
+// 实例切换后按新实例的派生条件（版本/加载器）刷新列表；用户手动条件仍优先
+watch(
+  () => target.selectedKey.value,
+  (nextKey, prevKey) => {
+    if (!target.ready.value || !listBootstrapped || nextKey === prevKey) return
+    page.value = 1
+    if (query.value.trim()) {
+      void handleSearch(true)
+    } else {
+      void loadPopular(true)
+    }
+  }
 )
 
 const sourceWarnings = computed(() =>

@@ -13,6 +13,11 @@
   flex-shrink: 0;
 }
 
+.error-modal-container .modal-title {
+  color: var(--danger);
+  font-weight: 700;
+}
+
 .error-modal-body {
   padding: var(--s-lg);
   display: flex;

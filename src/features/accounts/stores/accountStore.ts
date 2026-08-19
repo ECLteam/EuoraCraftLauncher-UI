@@ -4,6 +4,7 @@ import { accountsApi } from '@/features/accounts/api/accountsApi'
 import type {
   AuthlibLoginConfigData,
   AuthlibServer,
+  DefaultSkin,
   MinecraftAccount,
   MicrosoftCompleteData,
   MicrosoftLoginConfigData,
@@ -100,8 +101,16 @@ export const useAccountStore = defineStore('accounts', () => {
     return result
   }
 
-  async function addOffline(username: string, uuid?: string): Promise<void> {
-    await runAndReload(() => accountsApi.addOffline(username, uuid))
+  async function addOffline(username: string, uuid?: string, skin?: string): Promise<void> {
+    await runAndReload(() => accountsApi.addOffline(username, uuid, skin))
+  }
+
+  async function defaultSkins(): Promise<DefaultSkin[]> {
+    return accountsApi.defaultSkins()
+  }
+
+  async function setOfflineSkin(accountId: string, skin?: string): Promise<void> {
+    await runAndReload(() => accountsApi.setOfflineSkin(accountId, skin))
   }
 
   async function addAuthlib(serverUrl: string, email: string, password: string): Promise<MinecraftAccount> {
@@ -218,6 +227,8 @@ export const useAccountStore = defineStore('accounts', () => {
     load,
     loadCurrent,
     addOffline,
+    defaultSkins,
+    setOfflineSkin,
     addAuthlib,
     selectAuthlibProfile,
     resolveAuthlibServer,

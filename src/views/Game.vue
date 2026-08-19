@@ -170,6 +170,22 @@
                     <UiIcon name="pin" :size="14" />
                   </button>
 
+                  <NPopselect
+                    v-if="savedAccount.type === 'offline'"
+                    :value="savedAccount.skinId || null"
+                    :options="account.offlineSkinOptions"
+                    trigger="click"
+                    :onUpdateValue="(value) => account.changeOfflineSkin(savedAccount.id, String(value ?? ''))"
+                  >
+                    <button
+                      class="account-action-btn"
+                      :class="{ active: !!savedAccount.skinId }"
+                      :title="t('game.changeSkin')"
+                    >
+                      <UiIcon name="shirt" :size="14" />
+                    </button>
+                  </NPopselect>
+
                   <NButton
                     class="account-delete"
                     quaternary
@@ -248,6 +264,18 @@
                 :placeholder="t('game.enterUsername')"
                 @keyup.enter="addOfflineFromModal"
               />
+              <div v-if="account.offlineSkinOptions.length" class="offline-skin-field">
+                <label for="offline-skin-select">{{ t('game.offlineSkinLabel') }}</label>
+                <NSelect
+                  id="offline-skin-select"
+                  v-model:value="account.selectedOfflineSkinId"
+                  :options="account.offlineSkinOptions"
+                  :placeholder="t('game.offlineSkinPlaceholder')"
+                  size="small"
+                  clearable
+                  :loading="account.offlineSkinsLoading"
+                />
+              </div>
               <button
                 type="button"
                 class="offline-advanced-toggle"
@@ -422,6 +450,7 @@ import {
   NButton,
   NEmpty,
   NInput,
+  NPopselect,
   NRadioButton,
   NRadioGroup,
   NSelect,
@@ -532,9 +561,11 @@ function openAddAccountModal() {
   selectedAccountType.value = account.pendingAuthlibAccountId ? 'authlib' : 'microsoft'
   showOfflineAdvanced.value = false
   account.newOfflineUuid = ''
+  account.selectedOfflineSkinId = ''
   showAddAccountModal.value = true
   void account.loadMicrosoftLoginConfig()
   void account.loadAuthlibServers()
+  account.loadOfflineSkins()
 }
 
 function openWardrobeModal() {
