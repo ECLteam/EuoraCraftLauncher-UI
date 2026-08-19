@@ -39,6 +39,17 @@
                   <template #icon><UiIcon name="menu" :size="16" /></template>
                 </NButton>
                 <NButton
+                  v-if="activeTab === 'official'"
+                  quaternary
+                  circle
+                  size="small"
+                  :title="t('wardrobe.refreshCapes')"
+                  :loading="refreshingCapes"
+                  @click="refreshOfficialCapes"
+                >
+                  <template #icon><UiIcon name="refresh" :size="16" /></template>
+                </NButton>
+                <NButton
                   v-if="activeTab !== 'official'"
                   size="small"
                   type="primary"
@@ -273,6 +284,7 @@ import { clearAvatarCache, fetchTextureDataUrl } from '@/composables/useAvatarRe
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { accountsApi } from '@/features/accounts/api/accountsApi'
 import SkinViewer3D from '@/features/accounts/components/SkinViewer3D.vue'
+import { useAccountStore } from '@/features/accounts/stores/accountStore'
 import type { MinecraftAccount, MicrosoftCape, SkinModel, WardrobeItem } from '@/types/api'
 
 const props = defineProps<{
@@ -289,6 +301,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const message = useLauncherMessage()
+const accountStore = useAccountStore()
 const items = ref<WardrobeItem[]>([])
 const textureUrls = ref<Record<string, string>>({})
 const officialCapeUrls = ref<Record<string, string>>({})
@@ -307,6 +320,7 @@ const importing = ref(false)
 const saving = ref(false)
 const deletingId = ref('')
 const applying = ref(false)
+const refreshingCapes = ref(false)
 const showEditModal = ref(false)
 const showUploadModal = ref(false)
 const showOptionsModal = ref(false)
@@ -561,6 +575,21 @@ async function resetCape(): Promise<void> {
     message.error(reason instanceof Error ? reason.message : t('wardrobe.applyFailed'))
   } finally {
     applying.value = false
+  }
+}
+
+async function refreshOfficialCapes(): Promise<void> {
+  if (!targetAccountId.value) return
+  refreshingCapes.value = true
+  try {
+    await accountsApi.refresh(targetAccountId.value)
+    await accountStore.load()
+    await loadTargetTextures()
+    message.success(t('wardrobe.capesRefreshed'))
+  } catch (reason) {
+    message.error(reason instanceof Error ? reason.message : t('wardrobe.refreshFailed'))
+  } finally {
+    refreshingCapes.value = false
   }
 }
 

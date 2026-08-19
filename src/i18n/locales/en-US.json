@@ -1391,7 +1391,10 @@
     "capeRemoved": "Official cape removed",
     "applyFailed": "Failed to update account appearance",
     "downloadSkin": "Download account skin",
-    "skinDownloaded": "Account skin downloaded to wardrobe"
+    "skinDownloaded": "Account skin downloaded to wardrobe",
+    "refreshCapes": "Refresh official capes",
+    "capesRefreshed": "Official capes refreshed",
+    "refreshFailed": "Failed to refresh official capes"
   },
   "task": {
     "subtask": {

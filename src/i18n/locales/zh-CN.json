@@ -1300,7 +1300,10 @@
     "capeRemoved": "官方披风已卸下",
     "applyFailed": "更新账户外观失败",
     "downloadSkin": "下载账户皮肤",
-    "skinDownloaded": "账户皮肤已下载到衣柜"
+    "skinDownloaded": "账户皮肤已下载到衣柜",
+    "refreshCapes": "刷新官方披风",
+    "capesRefreshed": "官方披风已刷新",
+    "refreshFailed": "刷新官方披风失败"
   },
   "task": {
     "subtask": {
