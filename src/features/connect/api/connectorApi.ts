@@ -60,10 +60,16 @@ export const connectorApi = {
       .then((response) => unwrapResponse(response, '下载 EasyTier'))
   },
 
-  scanPorts(): Promise<{ port: number | null }> {
+  detectPorts(): Promise<{ ports: number[] }> {
     return backend
-      .command(COMMAND_NAMES.connector_scan_ports)
-      .then((response) => unwrapResponse(response, '扫描本地端口'))
+      .command(COMMAND_NAMES.connector_detect_ports)
+      .then((response) => unwrapResponse(response, '探测本地端口'))
+  },
+
+  searchMcPort(ports: number[]): Promise<{ port: number | null }> {
+    return backend
+      .command(COMMAND_NAMES.connector_search_mc_port, { ports })
+      .then((response) => unwrapResponse(response, '搜索 MC 端口'))
   },
 
   natType(): Promise<NatTypeResult> {

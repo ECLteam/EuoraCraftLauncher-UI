@@ -54,6 +54,8 @@ export interface LauncherConfig {
   /** 由 ECL_CONFIG_launcher_showcase 环境变量控制，启用后使用 mock 数据替代真实后端 */
   showcase?: boolean
   disable_ssl_verify?: boolean
+  /** 忽略系统/环境代理，让所有网络请求直连 */
+  ignore_proxy?: boolean
 }
 
 export interface BackgroundConfig {
@@ -1114,7 +1116,8 @@ export interface CommandPayloadMap {
   connector_match_instances: undefined
   connector_easytier_status: undefined
   connector_easytier_download: undefined
-  connector_scan_ports: undefined
+  connector_detect_ports: undefined
+  connector_search_mc_port: { ports: number[] }
   connector_nat_type: undefined
 
   // Java
@@ -1481,7 +1484,8 @@ export const COMMAND_NAMES = {
   connector_match_instances: 'connector_match_instances',
   connector_easytier_status: 'connector_easytier_status',
   connector_easytier_download: 'connector_easytier_download',
-  connector_scan_ports: 'connector_scan_ports',
+  connector_detect_ports: 'connector_detect_ports',
+  connector_search_mc_port: 'connector_search_mc_port',
   connector_nat_type: 'connector_nat_type',
   game_java_scan: 'game_java_scan',
   game_versions: 'game_versions',
@@ -1693,7 +1697,8 @@ export interface CommandResponseMap {
   connector_match_instances: ConnectorMatchResult
   connector_easytier_status: EasyTierStatus
   connector_easytier_download: EasyTierStatus
-  connector_scan_ports: { port: number | null }
+  connector_detect_ports: { ports: number[] }
+  connector_search_mc_port: { port: number | null }
   connector_nat_type: NatTypeResult
 
   game_java_scan: JavaInstallation[]

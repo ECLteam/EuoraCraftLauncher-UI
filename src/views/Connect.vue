@@ -196,7 +196,11 @@
                     <div class="connect-port-scan">
                       <div v-if="displayScanning" class="connect-scan-state">
                         <UiIcon name="spinner" :size="18" class="spin" />
-                        <span>{{ t('connect.create.scanning') }}</span>
+                        <span>{{
+                          scanPhase === 'detecting'
+                            ? t('connect.create.detecting')
+                            : t('connect.create.searching')
+                        }}</span>
                       </div>
                       <div v-else-if="displayDetectedPort" class="connect-detected-port">
                         <div>
@@ -514,6 +518,7 @@ const {
   natBusy,
   matching,
   scanning,
+  scanPhase,
   detectedPort,
   hostPort,
   join,

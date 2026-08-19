@@ -32,7 +32,8 @@ describe('connectorApi', () => {
     ['matchInstances', [], 'connector_match_instances', undefined],
     ['easyTierStatus', [], 'connector_easytier_status', undefined],
     ['downloadEasyTier', [], 'connector_easytier_download', undefined],
-    ['scanPorts', [], 'connector_scan_ports', undefined],
+    ['detectPorts', [], 'connector_detect_ports', undefined],
+    ['searchMcPort', [[25565]], 'connector_search_mc_port', { ports: [25565] }],
     ['natType', [], 'connector_nat_type', undefined],
   ] as const)('%s uses the typed IPC contract', async (method, args, expectedCommand, expectedPayload) => {
     await (connectorApi[method] as (...params: never[]) => Promise<unknown>)(...(args as unknown as never[]))

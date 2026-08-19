@@ -13,6 +13,7 @@ import { getErrorMessage } from '@/utils/error'
 const STATUS_POLL_MS = 2_000
 const EASYTIER_POLL_MS = 1_000
 const PORT_SCAN_MS = 1_000
+const MAX_SEARCH_MISSES = 5
 
 function idleStatus(): ConnectorStatus {
   return {
@@ -44,6 +45,9 @@ export function useConnector(options: UseConnectorOptions = {}) {
   const matching = ref(false)
   const scanning = ref(false)
   const detectedPort = ref<number | null>(null)
+  const scanPhase = ref<'detecting' | 'searching'>('detecting')
+  const candidatePorts = ref<number[]>([])
+  let searchMisses = 0
 
   let statusTimer: ReturnType<typeof setInterval> | null = null
   let easyTierTimer: ReturnType<typeof setInterval> | null = null
@@ -122,6 +126,9 @@ export function useConnector(options: UseConnectorOptions = {}) {
     if (succeeded) {
       matchResult.value = null
       detectedPort.value = null
+      candidatePorts.value = []
+      scanPhase.value = 'detecting'
+      searchMisses = 0
     }
     return succeeded
   }
@@ -156,17 +163,30 @@ export function useConnector(options: UseConnectorOptions = {}) {
 
   async function scanPortOnce(): Promise<void> {
     try {
-      const result = await connectorApi.scanPorts()
+      if (scanPhase.value === 'detecting') {
+        const result = await connectorApi.detectPorts()
+        if (result.ports.length > 0) {
+          candidatePorts.value = result.ports
+          scanPhase.value = 'searching'
+          searchMisses = 0
+        }
+        return
+      }
+      const result = await connectorApi.searchMcPort(candidatePorts.value)
       if (result.port !== null) {
         detectedPort.value = result.port
-        scanning.value = false
-        clearTimer(portScanTimer)
-        portScanTimer = null
+        stopPortScan()
+        return
+      }
+      searchMisses += 1
+      // 连续未命中说明候选端口可能过期（游戏在探测后才开启局域网），重新探测
+      if (searchMisses >= MAX_SEARCH_MISSES) {
+        candidatePorts.value = []
+        scanPhase.value = 'detecting'
+        searchMisses = 0
       }
     } catch (error) {
-      scanning.value = false
-      clearTimer(portScanTimer)
-      portScanTimer = null
+      stopPortScan()
       report(error)
     }
   }
@@ -174,6 +194,9 @@ export function useConnector(options: UseConnectorOptions = {}) {
   function startPortScan(): void {
     clearTimer(portScanTimer)
     detectedPort.value = null
+    candidatePorts.value = []
+    scanPhase.value = 'detecting'
+    searchMisses = 0
     scanning.value = true
     void scanPortOnce()
     portScanTimer = setInterval(() => void scanPortOnce(), PORT_SCAN_MS)
@@ -243,6 +266,7 @@ export function useConnector(options: UseConnectorOptions = {}) {
     natBusy,
     matching,
     scanning,
+    scanPhase,
     detectedPort,
     refreshStatus,
     refreshEasyTier,

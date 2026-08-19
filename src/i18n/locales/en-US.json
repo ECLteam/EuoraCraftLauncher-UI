@@ -75,7 +75,8 @@
       "manualPortEntry": "Input port",
       "back": "Back",
       "lanHint": "Make sure the game is open to LAN; the port will be detected automatically.",
-      "scanning": "Scanning Java processes and LAN ports...",
+      "detecting": "Detecting local ports...",
+      "searching": "Searching for the Minecraft port...",
       "detectedPort": "Detected port",
       "noPort": "No open LAN port was detected",
       "manualPort": "Or enter port manually",
@@ -840,7 +841,9 @@
     "debugMode": "Debug Mode",
     "debugModeDesc": "Controls the launcher config file's debug mode (launcher.debug). Applies immediately.",
     "disableSslVerify": "Disable SSL Certificate Verification",
-    "disableSslVerifyDesc": "Globally disables HTTPS certificate verification; shared requests apply immediately, Microsoft login applies after restart"
+    "disableSslVerifyDesc": "Globally disables HTTPS certificate verification; shared requests apply immediately, Microsoft login applies after restart",
+    "ignoreProxy": "Ignore System Proxy",
+    "ignoreProxyDesc": "Makes all network requests connect directly, bypassing system or environment proxies; enable this when a broken proxy causes requests to fail. Applies after restart"
   },
   "error": {
     "id": "Error ID",
@@ -1396,6 +1399,15 @@
     "applyFailed": "Failed to update account appearance",
     "downloadSkin": "Download account skin",
     "skinDownloaded": "Account skin downloaded to wardrobe",
+    "showElytra": "Render elytra",
+    "showNameTag": "Show name tag",
+    "skinRendering": "Skin Rendering",
+    "animationIdle": "Idle",
+    "animationWalk": "Walk",
+    "animationRun": "Run",
+    "animationCrouch": "Crouch",
+    "animationWave": "Wave",
+    "animationFlying": "Glide",
     "refreshCapes": "Refresh official capes",
     "capesRefreshed": "Official capes refreshed",
     "refreshFailed": "Failed to refresh official capes"

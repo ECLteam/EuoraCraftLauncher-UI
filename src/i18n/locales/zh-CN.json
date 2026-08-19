@@ -75,7 +75,8 @@
       "manualPortEntry": "输入端口",
       "back": "上一步",
       "lanHint": "请确保游戏已开启「对局域网开放」，系统会自动探测端口。",
-      "scanning": "正在扫描 Java 进程和局域网端口...",
+      "detecting": "正在探测本地端口...",
+      "searching": "正在搜索 Minecraft 端口...",
       "detectedPort": "检测到端口",
       "noPort": "暂未检测到开放的局域网端口",
       "manualPort": "或手动输入端口",
@@ -840,7 +841,9 @@
     "debugMode": "调试模式",
     "debugModeDesc": "控制启动器配置文件的调试模式",
     "disableSslVerify": "关闭 SSL 证书校验",
-    "disableSslVerifyDesc": "全局关闭 HTTPS 证书校验；共享网络请求即时生效，微软登录需重启后应用"
+    "disableSslVerifyDesc": "全局关闭 HTTPS 证书校验；共享网络请求即时生效，微软登录需重启后应用",
+    "ignoreProxy": "忽略系统代理",
+    "ignoreProxyDesc": "让所有网络请求直连，不经过系统或环境代理；代理异常导致请求失败时建议开启，需重启后应用"
   },
   "error": {
     "id": "错误编号",
@@ -1305,6 +1308,15 @@
     "applyFailed": "更新账户外观失败",
     "downloadSkin": "下载账户皮肤",
     "skinDownloaded": "账户皮肤已下载到衣柜",
+    "showElytra": "渲染鞘翅",
+    "showNameTag": "显示玩家标签",
+    "skinRendering": "皮肤渲染",
+    "animationIdle": "待机",
+    "animationWalk": "走路",
+    "animationRun": "跑步",
+    "animationCrouch": "下蹲",
+    "animationWave": "挥手",
+    "animationFlying": "滑翔",
     "refreshCapes": "刷新官方披风",
     "capesRefreshed": "官方披风已刷新",
     "refreshFailed": "刷新官方披风失败"

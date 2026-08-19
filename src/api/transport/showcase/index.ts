@@ -272,8 +272,10 @@ export function createShowcaseTransport(): BackendTransport {
       case 'connector_easytier_download':
         easyTierStatus = { installed: true, status: 'installed', progress: 100, speed: 0, error: null }
         return success(structuredClone(easyTierStatus))
-      case 'connector_scan_ports':
+      case 'connector_detect_ports':
         portScanCount += 1
+        return success({ ports: portScanCount >= 2 ? [25565] : [] })
+      case 'connector_search_mc_port':
         return success({ port: portScanCount >= 2 ? 25565 : null })
       case 'connector_nat_type':
         return success({ type: 'cone', publicIp: '203.0.113.42', publicPort: 51820 })

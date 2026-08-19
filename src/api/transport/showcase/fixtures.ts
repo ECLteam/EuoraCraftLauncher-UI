@@ -15,6 +15,7 @@ export const showcaseConfig: Record<string, unknown> = {
     version: '0.2.0-showcase',
     version_type: 'dev',
     debug: true,
+    ignore_proxy: true,
   },
   game: {
     minecraft_paths: [
