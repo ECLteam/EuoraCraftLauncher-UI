@@ -646,7 +646,8 @@ function goToManualPort(): void {
     return
   }
   hostStep.value = 2
-  stopPortScan()
+  // 进入端口界面后自动开始探测，避免直接显示「未检测到」的结论状态
+  void nextTick(() => startPortScan())
 }
 
 function validPort(): number | null {

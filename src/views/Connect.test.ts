@@ -192,6 +192,18 @@ describe('Connect view', () => {
     expect(state.startPortScan).toHaveBeenCalled()
   })
 
+  it('starts port detection after entering the manual port step', async () => {
+    const state = connectorState(idleStatus())
+    const wrapper = mountConnect(state)
+
+    const button = wrapper.findAll('button').find((candidate) => candidate.text().includes('输入端口'))
+    expect(button).toBeDefined()
+    await button?.trigger('click')
+    await flushPromises()
+
+    expect(state.startPortScan).toHaveBeenCalled()
+  })
+
   it('creates a room with a manually entered port', async () => {
     const state = connectorState(idleStatus())
     mocks.listRunningInstances.mockResolvedValue([runningInstance])
