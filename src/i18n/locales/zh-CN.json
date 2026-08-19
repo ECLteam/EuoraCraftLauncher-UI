@@ -1002,6 +1002,11 @@
       }
     }
   },
+  "errorBoundary": {
+    "title": "页面加载出现问题",
+    "description": "当前模块暂时无法显示，但不影响其他功能使用。",
+    "retry": "重新加载"
+  },
   "common": {
     "confirm": "确认",
     "cancel": "取消",

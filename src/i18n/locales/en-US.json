@@ -1092,6 +1092,11 @@
       }
     }
   },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "description": "This section can't be displayed right now. Other features remain available.",
+    "retry": "Reload"
+  },
   "common": {
     "confirm": "Confirm",
     "cancel": "Cancel",

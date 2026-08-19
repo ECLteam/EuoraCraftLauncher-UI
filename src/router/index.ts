@@ -1,21 +1,34 @@
-import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-router'
+import { h, type Component } from 'vue'
+import { createRouter, createWebHashHistory, type RouteComponent, type RouteRecordRaw } from 'vue-router'
 import { pinia } from '@/app/stores'
 import { useLayoutStore } from '@/app/stores/layoutStore'
+import ErrorBoundary from '@/components/ErrorBoundary.vue'
+
+type LazyComponent = () => Promise<{ default: Component }>
+
+// 用错误边界包裹懒加载页面，页面渲染出错时显示降级提示而非白屏
+function withErrorBoundary(loader: LazyComponent): () => Promise<RouteComponent> {
+  return async () => {
+    const mod = await loader()
+    return {
+      render: () => h(ErrorBoundary, null, { default: () => h(mod.default) }),
+    }
+  }
+}
 
 const routes: RouteRecordRaw[] = [
-  { path: '/', name: 'game', component: () => import('@/views/Game.vue') },
+  { path: '/', name: 'game', component: withErrorBoundary(() => import('@/views/Game.vue')) },
   {
     path: '/versions',
     name: 'versions-manage',
-    component: () => import('@/views/Instances.vue'),
+    component: withErrorBoundary(() => import('@/views/Instances.vue')),
   },
-  { path: '/connect', name: 'connect', component: () => import('@/views/Connect.vue') },
-  { path: '/download', name: 'download', component: () => import('@/views/Download.vue') },
-  { path: '/plugins', name: 'plugins', component: () => import('@/views/Plugins.vue') },
-  { path: '/online-mods', name: 'online-mods', component: () => import('@/views/OnlineMods.vue') },
+  { path: '/connect', name: 'connect', component: withErrorBoundary(() => import('@/views/Connect.vue')) },
+  { path: '/download', name: 'download', component: withErrorBoundary(() => import('@/views/Download.vue')) },
+  { path: '/plugins', name: 'plugins', component: withErrorBoundary(() => import('@/views/Plugins.vue')) },
   {
     path: '/settings',
-    component: () => import('@/views/Settings.vue'),
+    component: withErrorBoundary(() => import('@/views/Settings.vue')),
     redirect: '/settings/general',
     children: [
       { path: 'general', name: 'settings-general', component: () => import('@/views/settings/GeneralTab.vue') },
@@ -23,7 +36,12 @@ const routes: RouteRecordRaw[] = [
       { path: 'about', name: 'settings-about', component: () => import('@/views/settings/AboutTab.vue') },
     ],
   },
-  { path: '/dev', name: 'dev', component: () => import('@/views/DevTools.vue'), meta: { devOnly: true } },
+  {
+    path: '/dev',
+    name: 'dev',
+    component: withErrorBoundary(() => import('@/views/DevTools.vue')),
+    meta: { devOnly: true },
+  },
   {
     path: '/:pathMatch(.*)*',
     redirect: '/',
