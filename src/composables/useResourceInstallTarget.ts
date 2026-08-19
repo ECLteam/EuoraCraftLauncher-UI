@@ -17,7 +17,7 @@ export function parseInstanceKey(key: string): { path: string; versionId: string
   return { path, versionId }
 }
 
-export function useResourceInstallTarget(resourceType: InstallTargetKey) {
+export function useResourceInstallTarget(resourceType: InstallTargetKey, autoSelect = true) {
   const instanceStore = useInstanceStore()
   const selectedKey = ref('')
   const ready = ref(false)
@@ -45,12 +45,18 @@ export function useResourceInstallTarget(resourceType: InstallTargetKey) {
         return
       }
     }
-    const preferred =
-      installableInstances.value.find(
-        (version) =>
-          version.versionId === instanceStore.selectedVersion && version.path === instanceStore.currentGamePath
-      ) ?? installableInstances.value[0]
-    selectedKey.value = preferred ? instanceKey(preferred) : ''
+    if (autoSelect) {
+      const preferred =
+        installableInstances.value.find(
+          (version) =>
+            version.versionId === instanceStore.selectedVersion && version.path === instanceStore.currentGamePath
+        ) ?? installableInstances.value[0]
+      selectedKey.value = preferred ? instanceKey(preferred) : ''
+      // 自动选中的实例也持久化，保证重启后实例选择与搜索结果缓存一致
+      if (preferred) {
+        await persist(preferred)
+      }
+    }
     ready.value = true
   }
 
@@ -58,8 +64,11 @@ export function useResourceInstallTarget(resourceType: InstallTargetKey) {
     selectedKey.value = instanceKey(version)
   }
 
-  async function persist(): Promise<void> {
-    const instance = selectedInstance.value
+  function clearTarget(): void {
+    selectedKey.value = ''
+  }
+
+  async function persist(instance: ScannedVersion | null = selectedInstance.value): Promise<void> {
     if (!instance) return
     const current = (unwrapResponse(await backend.config.get('download'), '读取下载设置') ?? {}) as {
       resourceInstallCache?: Record<string, { gamePath: string; versionId: string }>
@@ -83,6 +92,7 @@ export function useResourceInstallTarget(resourceType: InstallTargetKey) {
     selectedKey,
     selectedInstance,
     setTarget,
+    clearTarget,
     persist,
     loadCache,
   }

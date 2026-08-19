@@ -1,5 +1,12 @@
 import backend from '@/api/client'
-import type { CommandPayloadMap, ModInfo, ModInstallResult, ModSearchResult, ModVersion } from '@/types/api'
+import type {
+  CommandPayloadMap,
+  ModInfo,
+  ModInstallResult,
+  ModSearchResult,
+  ModSourceConfig,
+  ModVersion,
+} from '@/types/api'
 
 function requireData<T>(response: { success: boolean; data?: T; message?: string }, operation: string): T {
   if (!response.success || response.data === undefined) throw new Error(response.message || `${operation}失败`)
@@ -9,6 +16,10 @@ function requireData<T>(response: { success: boolean; data?: T; message?: string
 export const modApi = {
   async search(payload: CommandPayloadMap['search_mods']): Promise<ModSearchResult> {
     return requireData(await backend.command('search_mods', payload), '搜索模组')
+  },
+
+  async sourceConfig(): Promise<ModSourceConfig> {
+    return requireData(await backend.command('mod_source_config'), '读取资源来源配置')
   },
 
   async info(payload: CommandPayloadMap['get_mod_info']): Promise<ModInfo> {

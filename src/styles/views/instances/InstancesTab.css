@@ -2,10 +2,10 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--card-bg);
-  border-top: var(--card-border-top);
-  border-bottom: var(--card-border-bottom);
-  border-radius: var(--r-sm);
+  border: 1px solid var(--ecl-border);
+  border-radius: var(--ecl-radius-card);
+  background: var(--ecl-surface);
+  box-shadow: var(--ecl-shadow-surface);
   overflow: hidden;
 }
 

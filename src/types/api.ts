@@ -771,6 +771,10 @@ export interface ModSourceStatus {
   total: number
 }
 
+export interface ModSourceConfig {
+  curseforge: { available: boolean }
+}
+
 export interface ModSearchResult {
   items: ModSearchItem[]
   sources: Record<string, ModSourceStatus>
@@ -1400,7 +1404,9 @@ export interface CommandPayloadMap {
     resource_type?: string
     limit?: number
     offset?: number
+    sort?: string
   }
+  mod_source_config: undefined
   get_mod_info: { mod_id: string; source: string; resource_type?: string }
   get_mod_versions: {
     mod_id: string
@@ -1623,6 +1629,7 @@ export const COMMAND_NAMES = {
   open_shaderpacks_folder: 'open_shaderpacks_folder',
   open_saves_folder: 'open_saves_folder',
   search_mods: 'search_mods',
+  mod_source_config: 'mod_source_config',
   get_mod_info: 'get_mod_info',
   get_mod_versions: 'get_mod_versions',
   download_mod: 'download_mod',
@@ -1855,6 +1862,7 @@ export interface CommandResponseMap {
   open_saves_folder: void
 
   search_mods: ModSearchResult
+  mod_source_config: ModSourceConfig
   get_mod_info: ModInfo
   get_mod_versions: ModVersion[]
   download_mod: ModInstallResult

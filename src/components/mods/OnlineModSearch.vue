@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div
     class="oms-root"
     @dragover.prevent
@@ -19,30 +19,74 @@
             class="query-input"
             :placeholder="t('mods.searchPlaceholder')"
             clearable
-            @keydown.enter="handleSearch"
+            @keydown.enter="handleSearch()"
           >
             <template #prefix><UiIcon name="search" :size="15" /></template>
           </NInput>
-          <NButton type="primary" :loading="loading" @click="handleSearch">
+          <NButton type="primary" :loading="loading" @click="handleSearch()">
             <template #icon><UiIcon name="search" :size="15" /></template>
             {{ t('mods.search') }}
           </NButton>
         </div>
-        <ResourceInstanceSelect :target="target" class="oms-instance-select" @persist="onInstancePersist" />
       </div>
 
       <div class="search-filters">
-        <NSelect
-          v-model:value="categoryFilter"
-          :options="categoryOptions"
-          :placeholder="t('mods.category')"
-          filterable
-          class="filter-item"
+        <div class="filter-group">
+          <span class="filter-label">{{ t('mods.source') }}</span>
+          <NSelect
+            v-model:value="sourceFilter"
+            :options="sourceOptions"
+            :placeholder="t('mods.allSources')"
+            size="small"
+            class="filter-item-small"
+          />
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">{{ t('mods.sort') }}</span>
+          <NSelect v-model:value="sortFilter" :options="sortOptions" size="small" class="filter-item-small" />
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">{{ t('mods.version') }}</span>
+          <NSelect
+            v-model:value="versionFilter"
+            :options="gameVersionOptions"
+            :placeholder="t('mods.allVersions')"
+            size="small"
+            class="filter-item"
+          />
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">{{ t('mods.loaderType') }}</span>
+          <NSelect
+            v-model:value="loaderFilter"
+            :options="loaderOptions"
+            :placeholder="t('mods.allLoaders')"
+            placement="bottom-end"
+            size="small"
+            class="filter-item"
+          />
+        </div>
+      </div>
+
+      <div class="instance-selector-row">
+        <span class="instance-selector-label">{{ t('mods.selectInstance') }}</span>
+        <ResourceInstanceSelect
+          :target="target"
+          :placeholder="t('mods.selectInstanceHint')"
+          :showNoneOption="true"
+          :noneLabel="t('mods.noneInstance')"
+          class="oms-instance-select"
+          @persist="onInstancePersist"
         />
-        <NSelect v-model:value="sortFilter" :options="sortOptions" class="filter-item-small" />
-        <span class="search-result-count">
-          {{ searched ? t('mods.resultCount', { count: results.length }) : '' }}
-        </span>
+        <div class="instance-selector-actions">
+          <NButton quaternary circle size="small" title="刷新" @click="refreshResults">
+            <template #icon><UiIcon name="refresh" :size="15" /></template>
+          </NButton>
+          <NButton size="small" quaternary @click="resetConditions">
+            <template #icon><UiIcon name="close" :size="14" /></template>
+            {{ t('mods.resetConditions') }}
+          </NButton>
+        </div>
       </div>
     </div>
 
@@ -67,87 +111,101 @@
     </div>
 
     <div class="mods-results-panel">
-      <div v-if="results.length" class="mods-results-header">
-        <span>{{ t('mods.resultCount', { count: results.length }) }}</span>
-        <span v-if="effectiveQuery && effectiveQuery !== query.trim()" class="translated-query">
-          {{ t('mods.translatedQuery', { query: effectiveQuery }) }}
-        </span>
-      </div>
       <div class="mods-results-content">
-        <NSpin :show="loading" class="mods-results-spin">
+        <NSpin :show="loading" :description="t('mods.searching')" class="mods-results-spin">
           <NScrollbar v-if="results.length" class="mods-results-scroll">
             <div class="mod-list">
-              <div v-for="mod in sortedResults" :key="mod.id" class="mod-card" @click="openDetails(mod)">
-                <!-- 封面区 -->
-                <div class="mod-card-cover">
-                  <img v-if="mod.iconUrl" :src="mod.iconUrl" class="cover-img" :alt="mod.displayTitle" loading="lazy" />
-                  <div v-else class="cover-fallback">
-                    <UiIcon name="cube" :size="36" />
-                  </div>
-                  <div v-if="mod.alternatives.length" class="cover-platform">
-                    <NTag
-                      v-for="platform in mod.alternatives"
-                      :key="`${platform.source}:${platform.projectId}`"
-                      size="tiny"
-                      :bordered="false"
-                    >
-                      {{ sourceLabel(platform.source) }}
-                    </NTag>
-                  </div>
+              <div v-for="mod in results" :key="mod.id" class="mod-row" @click="openDetails(mod)">
+                <!-- 标识图标：小方块，只做识别不抢版面 -->
+                <div class="mod-row-icon">
+                  <img v-if="mod.iconUrl" :src="mod.iconUrl" :alt="mod.displayTitle" loading="lazy" />
+                  <UiIcon v-else name="cube" :size="18" />
                 </div>
 
-                <!-- 内容区 -->
-                <div class="mod-card-body">
-                  <h3 class="mod-card-title">{{ mod.displayTitle }}</h3>
-                  <p class="mod-card-subtitle">{{ mod.displayTitle !== mod.title ? mod.title : mod.author }}</p>
-                  <p class="mod-card-desc">{{ mod.wiki?.summary || mod.description }}</p>
-
-                  <div class="mod-card-meta">
-                    <span class="mod-meta-item">
-                      <UiIcon name="user" :size="12" />
-                      {{ mod.author }}
+                <!-- 主信息：单行紧凑 -->
+                <div class="mod-row-main">
+                  <div class="mod-row-title">
+                    <span class="mod-row-name">
+                      {{ mod.displayTitle }}{{ mod.title && mod.displayTitle !== mod.title ? ` | ${mod.title}` : '' }}
                     </span>
-                    <span class="mod-meta-item">
-                      <UiIcon name="download" :size="12" />
-                      {{ formatDownloads(mod.downloads) }}
-                    </span>
-                  </div>
-
-                  <div class="mod-card-tags">
-                    <NTag v-if="mod.wiki" size="tiny" :bordered="false" type="info">MC 百科</NTag>
-                    <NTag v-if="resourceType !== 'mod'" size="tiny" :bordered="false" type="info">
-                      {{ t(`download.${resourceType}`) }}
-                    </NTag>
-                    <template v-if="resourceType === 'mod'">
-                      <NTag v-for="loader in mod.loaders.slice(0, 3)" :key="loader" size="tiny" :bordered="false">
-                        {{ loaderName(loader) }}
+                    <div class="mod-row-tags">
+                      <NTag v-if="mod.wiki" size="tiny" :bordered="false" type="info">MCMOD百科</NTag>
+                      <NTag v-if="resourceType !== 'mod'" size="tiny" :bordered="false" type="info">
+                        {{ t(`download.${resourceType}`) }}
                       </NTag>
-                    </template>
-                    <NTag v-for="category in mod.categories.slice(0, 2)" :key="category" size="tiny" :bordered="false">
-                      {{ category }}
-                    </NTag>
+                      <template v-if="resourceType === 'mod'">
+                        <NTag
+                          v-for="loader in mod.loaders.slice(0, 2)"
+                          :key="`l:${loader}`"
+                          size="tiny"
+                          :bordered="false"
+                        >
+                          {{ loaderName(loader) }}
+                        </NTag>
+                      </template>
+                      <NTag
+                        v-for="category in mod.categories.slice(0, 1)"
+                        :key="`c:${category}`"
+                        size="tiny"
+                        :bordered="false"
+                      >
+                        {{ category }}
+                      </NTag>
+                    </div>
+                  </div>
+                  <p class="mod-row-desc" :title="mod.wiki?.summary || mod.description">
+                    {{ mod.wiki?.summary || mod.description }}
+                  </p>
+                  <div class="mod-row-meta">
+                    <span v-if="mod.gameVersions[0]" class="mod-meta-item">
+                      {{ mod.gameVersions[0]
+                      }}{{ mod.gameVersions.length > 1 ? `+${mod.gameVersions.length - 1}` : '' }}
+                    </span>
+                    <span class="mod-meta-item">↓ {{ formatDownloads(mod.downloads) }}</span>
+                    <span v-if="mod.dateModified" class="mod-meta-item">{{
+                      formatRelativeTime(mod.dateModified)
+                    }}</span>
+                    <span class="mod-meta-item">{{ mod.author }}</span>
+                    <span class="mod-meta-item mod-meta-source">{{ sourceLabel(mod.source) }}</span>
                   </div>
                 </div>
 
-                <!-- 操作区 -->
-                <div class="mod-card-actions">
-                  <NButton type="primary" size="small" @click.stop="openDetails(mod)">
-                    <template #icon><UiIcon name="download" :size="14" /></template>
+                <!-- 操作区：紧凑 -->
+                <div class="mod-row-actions">
+                  <NButton type="primary" size="tiny" @click.stop="openDetails(mod)">
+                    <template #icon><UiIcon name="download" :size="13" /></template>
                     {{ t('mods.install') }}
                   </NButton>
-                  <NButton size="small" secondary @click.stop="openDetails(mod)">
-                    {{ t('mods.chooseVersion') }}
-                  </NButton>
-                  <NButton
-                    v-if="resourceType === 'mod' && isDownloadHost"
-                    size="tiny"
-                    quaternary
-                    @click.stop="openInModPage(mod)"
-                  >
-                    {{ t('mods.viewOnModPage') }}
+                  <NButton size="tiny" quaternary circle @click.stop="openDetails(mod)">
+                    <template #icon><UiIcon name="more" :size="15" /></template>
                   </NButton>
                 </div>
               </div>
+            </div>
+            <div v-if="totalPages > 1" class="mods-pagination">
+              <NButton size="small" quaternary circle :disabled="page <= 1" @click="goToPage(1)">
+                <template #icon><UiIcon name="chevrons-left" :size="14" /></template>
+              </NButton>
+              <NButton size="small" quaternary :disabled="page <= 1" @click="goToPage(page - 10)">
+                <template #icon><UiIcon name="chevron-left" :size="14" /></template>
+                {{ t('mods.prev10Pages') }}
+              </NButton>
+              <NButton size="small" quaternary :disabled="page <= 1" @click="goToPage(page - 1)">
+                <template #icon><UiIcon name="chevron-left" :size="14" /></template>
+                {{ t('mods.prevPage') }}
+              </NButton>
+              <span class="mods-pagination-info">{{ page }} / {{ totalPages }}</span>
+              <NButton size="small" quaternary :disabled="page >= totalPages" @click="goToPage(page + 1)">
+                {{ t('mods.nextPage') }}
+                <template #icon><UiIcon name="chevron-right" :size="14" /></template>
+              </NButton>
+              <NButton size="small" quaternary :disabled="page >= totalPages" @click="goToPage(page + 10)">
+                {{ t('mods.next10Pages') }}
+                <template #icon><UiIcon name="chevron-right" :size="14" /></template>
+              </NButton>
+              <NButton size="small" quaternary circle :disabled="page >= totalPages" @click="goToPage(totalPages)">
+                <template #icon><UiIcon name="chevrons-right" :size="14" /></template>
+              </NButton>
             </div>
           </NScrollbar>
           <NEmpty
@@ -185,7 +243,7 @@
                 </NButton>
                 <NButton v-if="selectedMod.wiki" size="small" secondary @click="openUrl(selectedMod.wiki.url)">
                   <template #icon><UiIcon name="file-text" :size="14" /></template>
-                  MC 百科
+                  MCMOD百科
                 </NButton>
               </div>
             </div>
@@ -242,6 +300,8 @@ import { NAlert, NAvatar, NButton, NEmpty, NInput, NScrollbar, NSelect, NSpin, N
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import { globalCache, CACHE_GROUPS, CACHE_KEYS } from '@/cache'
+import { useAutoRefreshCache } from '@/cache/composable'
 import Modal from '@/components/modals/Modal.vue'
 import ResourceInstanceSelect from '@/components/resources/ResourceInstanceSelect.vue'
 import UiIcon from '@/components/ui/Icon.vue'
@@ -249,11 +309,15 @@ import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceKey, useResourceInstallTarget } from '@/composables/useResourceInstallTarget'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
+import { LOADERS } from '@/config/version'
+import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
 import { localModsApi } from '@/features/instances/api/localModsApi'
 import { modApi } from '@/features/mods/api/modApi'
 import type {
   GameResourceType,
+  MinecraftVersionCatalog,
+  MinecraftVersionItem,
   ModInfo,
   ModSearchItem,
   ModSourceReference,
@@ -261,7 +325,6 @@ import type {
   ModVersion,
 } from '@/types/api'
 import { getErrorMessage } from '@/utils/error'
-import { formatErrors, v } from '@/utils/validate'
 
 const props = withDefaults(
   defineProps<{
@@ -274,20 +337,23 @@ const emit = defineEmits<{
   (e: 'installed'): void
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const message = useLauncherMessage()
 const route = useRoute()
 const router = useRouter()
 const { loading, run } = useAsyncAction({ showSuccess: false, showError: false })
 
-const target = useResourceInstallTarget(props.resourceType)
+const target = useResourceInstallTarget(props.resourceType, true)
 const instance = target.selectedInstance
 
 const query = ref('')
 const searched = ref(false)
 const results = ref<ModSearchItem[]>([])
 const sourceStatuses = ref<Record<string, ModSourceStatus>>({})
-const effectiveQuery = ref('')
+const PAGE_SIZE = 20
+const page = ref(1)
+const total = ref(0)
+const totalPages = computed(() => Math.max(1, Math.ceil(total.value / PAGE_SIZE)))
 const detailsVisible = ref(false)
 const detailLoading = ref(false)
 const selectedMod = ref<ModSearchItem | null>(null)
@@ -297,7 +363,6 @@ const selectedSourceKey = ref('')
 const selectedFileId = ref<string | null>(null)
 const installing = ref(false)
 const installProgress = ref('')
-const querySchema = v.string().min(1, t('mods.queryRequired')).max(100, t('mods.queryTooLong'))
 
 const dragging = ref(false)
 let dragDepth = 0
@@ -306,36 +371,124 @@ const selectedWorldId = ref<string | null>(null)
 const worldOptions = ref<Array<{ label: string; value: string }>>([])
 const worldsLoading = ref(false)
 
-// New filter state
-const categoryFilter = ref('')
-const sortFilter = ref('relevance')
-const categoryOptions = computed(() => [
-  { label: t('mods.allCategories'), value: '' },
-  ...Array.from(new Set(results.value.flatMap((r) => r.categories)))
-    .filter(Boolean)
-    .map((cat) => ({ label: cat, value: cat })),
+// 筛选与排序（作为搜索参数传给后端）
+const versionFilter = ref('')
+const loaderFilter = ref('')
+const sourceFilter = ref('')
+const sortFilter = ref('')
+
+// 搜索结果缓存：状态缓存持久化上次视图，页缓存加速翻页
+interface ModSearchCacheState {
+  instanceKey: string
+  query: string
+  source: string
+  version: string
+  loader: string
+  sort: string
+  page: number
+  results: ModSearchItem[]
+  total: number
+  sources: Record<string, ModSourceStatus>
+}
+
+const STATE_CACHE_TTL = 24 * 60 * 60 * 1000
+
+function stateCacheKey(): string {
+  return `mod-search-state:${props.resourceType}`
+}
+
+const pageCache = new Map<
+  string,
+  { results: ModSearchItem[]; total: number; sources: Record<string, ModSourceStatus> }
+>()
+
+function pageCacheKey(targetPage: number): string {
+  const inst = instance.value
+  const loader = props.resourceType === 'mod' ? loaderFilter.value || inst?.primaryLoader || '' : ''
+  const gameVersion = versionFilter.value || inst?.vanillaName || ''
+  return [props.resourceType, query.value.trim(), sourceFilter.value, gameVersion, loader, sortFilter.value, targetPage].join(
+    '\u0000'
+  )
+}
+
+function saveState(): void {
+  globalCache.set<ModSearchCacheState>(
+    stateCacheKey(),
+    {
+      instanceKey: target.selectedKey.value,
+      query: query.value.trim(),
+      source: sourceFilter.value,
+      version: versionFilter.value,
+      loader: loaderFilter.value,
+      sort: sortFilter.value,
+      page: page.value,
+      results: results.value,
+      total: total.value,
+      sources: sourceStatuses.value,
+    },
+    { ttl: STATE_CACHE_TTL, persistent: false }
+  )
+}
+
+function restoreState(): boolean {
+  const cached = globalCache.get<ModSearchCacheState>(stateCacheKey())
+  if (!cached || cached.instanceKey !== target.selectedKey.value) return false
+  query.value = cached.query
+  sourceFilter.value = cached.source
+  versionFilter.value = cached.version
+  loaderFilter.value = cached.loader
+  sortFilter.value = cached.sort
+  page.value = cached.page
+  results.value = cached.results
+  total.value = cached.total
+  sourceStatuses.value = cached.sources
+  searched.value = true
+  return true
+}
+
+const {
+  data: versionCatalogData,
+  fetchData: fetchVersionCatalog,
+} = useAutoRefreshCache<MinecraftVersionCatalog>(
+  CACHE_KEYS.VERSIONS,
+  () => instanceInstallApi.getCatalog(),
+  { ttl: 10 * 60 * 1000, group: CACHE_GROUPS.VERSION, persistent: true, autoRefresh: false }
+)
+
+const versionCatalog = computed<MinecraftVersionItem[]>(() => versionCatalogData.value?.release ?? [])
+
+const gameVersionOptions = computed(() => {
+  if (versionCatalog.value.length) {
+    return [
+      { label: t('mods.allVersions'), value: '' },
+      ...versionCatalog.value.map((v) => ({ label: v.id, value: v.id })),
+    ]
+  }
+  return [
+    { label: t('mods.allVersions'), value: '' },
+    ...uniqueOptions(results.value.flatMap((item) => item.gameVersions)),
+  ]
+})
+
+const loaderOptions = computed(() => {
+  const modLoaders = LOADERS.filter((l) => !['vanilla', 'optifine', 'liteloader'].includes(l.value))
+  return [{ label: t('mods.allLoaders'), value: '' }, ...modLoaders.map((l) => ({ label: l.label, value: l.value }))]
+})
+
+const curseforgeAvailable = ref(true)
+const sourceOptions = computed(() => [
+  { label: t('mods.allSources'), value: '' },
+  { label: 'Modrinth', value: 'modrinth' },
+  { label: 'CurseForge', value: 'curseforge', disabled: !curseforgeAvailable.value },
 ])
 const sortOptions = [
+  { label: t('mods.sortDefault'), value: '' },
   { label: t('mods.sortRelevance'), value: 'relevance' },
   { label: t('mods.sortDownloads'), value: 'downloads' },
+  { label: t('mods.sortFollows'), value: 'follows' },
+  { label: t('mods.sortNewest'), value: 'newest' },
   { label: t('mods.sortUpdated'), value: 'updated' },
 ]
-
-const isDownloadHost = computed(() => route.name !== 'online-mods')
-
-const sortedResults = computed(() => {
-  const list = [...results.value]
-  if (sortFilter.value === 'downloads') {
-    list.sort((a, b) => b.downloads - a.downloads)
-  } else if (sortFilter.value === 'updated') {
-    list.sort(
-      (a, b) =>
-        (b.dateModified ? new Date(b.dateModified).getTime() : 0) -
-        (a.dateModified ? new Date(a.dateModified).getTime() : 0)
-    )
-  }
-  return list
-})
 
 // 实例就绪后自动加载热门列表
 let popularLoaded = false
@@ -343,6 +496,14 @@ watch(
   () => target.ready.value,
   (readyVal) => {
     if (!readyVal) return
+    void fetchVersionCatalog()
+    void modApi
+      .sourceConfig()
+      .then((config) => {
+        curseforgeAvailable.value = config.curseforge?.available ?? true
+        if (!curseforgeAvailable.value && sourceFilter.value === 'curseforge') sourceFilter.value = ''
+      })
+      .catch(() => {})
     const queryQ = typeof route.query.q === 'string' ? route.query.q : ''
     const queryInstance = typeof route.query.instance === 'string' ? route.query.instance : ''
     if (queryInstance) {
@@ -351,14 +512,20 @@ watch(
         target.setTarget(hit)
         void target.persist()
       }
+      // 应用一次后清除 query，避免切换页面时反复覆盖用户的选择
+      const restQuery = { ...route.query }
+      delete restQuery.instance
+      void router.replace({ query: restQuery })
     }
-    // 有搜索参数：自动搜索；无参数：加载热门列表
+    // 有搜索参数：自动搜索；无参数：恢复缓存视图或加载热门列表
     if (queryQ) {
       query.value = queryQ
       void handleSearch()
     } else if (!popularLoaded) {
       popularLoaded = true
-      void loadPopular()
+      if (!restoreState()) {
+        void loadPopular()
+      }
     }
   },
   { immediate: true }
@@ -367,7 +534,7 @@ watch(
 const sourceWarnings = computed(() =>
   Object.entries(sourceStatuses.value)
     .filter(([, status]) => !status.available && status.error)
-    .map(([name, status]) => ({ name: name === 'mcmod' ? 'MC 百科' : sourceLabel(name), error: status.error }))
+    .map(([name, status]) => ({ name: name === 'mcmod' ? 'MCMOD百科' : sourceLabel(name), error: status.error }))
 )
 
 const versionOptions = computed(() =>
@@ -403,6 +570,12 @@ function sourceLabel(value: string): string {
   return value
 }
 
+function uniqueOptions(values: string[]): Array<{ label: string; value: string }> {
+  return Array.from(new Set(values))
+    .filter(Boolean)
+    .map((value) => ({ label: value, value }))
+}
+
 function loaderName(value: string): string {
   if (value === 'neoforge') return 'NeoForge'
   return value.charAt(0).toUpperCase() + value.slice(1)
@@ -410,6 +583,25 @@ function loaderName(value: string): string {
 
 function formatDownloads(value: number): string {
   return new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 }).format(value)
+}
+
+const TIME_UNITS: Array<{ unit: Intl.RelativeTimeFormatUnit; seconds: number }> = [
+  { unit: 'year', seconds: 365 * 24 * 3600 },
+  { unit: 'month', seconds: 30 * 24 * 3600 },
+  { unit: 'week', seconds: 7 * 24 * 3600 },
+  { unit: 'day', seconds: 24 * 3600 },
+  { unit: 'hour', seconds: 3600 },
+  { unit: 'minute', seconds: 60 },
+]
+
+function formatRelativeTime(value: string): string {
+  const delta = new Date(value).getTime() - Date.now()
+  if (!Number.isFinite(delta)) return ''
+  const absSeconds = Math.abs(delta) / 1000
+  let matched = TIME_UNITS.find((entry) => absSeconds >= entry.seconds)
+  if (!matched) matched = { unit: 'minute', seconds: 60 }
+  const amount = Math.round(delta / 1000 / matched.seconds)
+  return new Intl.RelativeTimeFormat(locale.value).format(amount, matched.unit)
 }
 
 function onInstancePersist(): void {
@@ -440,60 +632,79 @@ watch(
   }
 )
 
-async function handleSearch() {
-  const trimmed = query.value.trim()
-  const validated = querySchema.safeParse(trimmed)
-  if (!validated.success) {
-    message.error(formatErrors(validated.errors))
-    return
+async function fetchPage(targetPage: number, force = false) {
+  const key = pageCacheKey(targetPage)
+  if (!force) {
+    const cached = pageCache.get(key)
+    if (cached) {
+      results.value = cached.results
+      total.value = cached.total
+      sourceStatuses.value = cached.sources
+      page.value = targetPage
+      return
+    }
   }
-  if (!instance.value) {
-    message.warning(t('mods.selectInstanceFirst'))
-    return
-  }
-
-  searched.value = true
   const inst = instance.value
-  const loader = props.resourceType === 'mod' ? inst.primaryLoader : ''
+  const loader = props.resourceType === 'mod' ? loaderFilter.value || inst?.primaryLoader || '' : ''
   const response = await run(() =>
     modApi.search({
-      query: trimmed,
-      source: 'modrinth',
-      game_version: inst.vanillaName,
+      query: query.value.trim(),
+      source: sourceFilter.value || 'modrinth',
+      game_version: versionFilter.value || inst?.vanillaName || '',
       loader_type: loader,
       resource_type: props.resourceType,
-      limit: 24,
-      offset: 0,
+      limit: PAGE_SIZE,
+      offset: (targetPage - 1) * PAGE_SIZE,
+      sort: sortFilter.value,
     })
   ).catch((error) => {
     message.error(getErrorMessage(error))
     return undefined
   })
-  results.value = response?.items ?? []
-  sourceStatuses.value = response?.sources ?? {}
-  effectiveQuery.value = response?.query ?? trimmed
-  searched.value = true
+  if (!response) return
+  const items = response.items ?? []
+  const totalCount = response.total ?? items.length
+  const sources = response.sources ?? {}
+  results.value = items
+  total.value = totalCount
+  sourceStatuses.value = sources
+  page.value = targetPage
+  pageCache.set(key, { results: items, total: totalCount, sources })
+  saveState()
 }
 
-async function loadPopular() {
-  const inst = instance.value
-  if (!inst) return
+async function handleSearch(force = false) {
+  const trimmed = query.value.trim()
+  if (trimmed.length > 100) {
+    message.error(t('mods.queryTooLong'))
+    return
+  }
+
   searched.value = true
-  const loader = props.resourceType === 'mod' ? inst.primaryLoader : ''
-  const response = await run(() =>
-    modApi.search({
-      query: '',
-      source: 'modrinth',
-      game_version: inst.vanillaName,
-      loader_type: loader,
-      resource_type: props.resourceType,
-      limit: 30,
-      offset: 0,
-    })
-  ).catch(() => undefined)
-  results.value = response?.items ?? []
-  sourceStatuses.value = response?.sources ?? {}
-  effectiveQuery.value = ''
+  query.value = trimmed
+  await fetchPage(1, force)
+}
+
+async function loadPopular(force = false) {
+  searched.value = true
+  query.value = ''
+  await fetchPage(1, force)
+}
+
+async function goToPage(targetPage: number) {
+  if (targetPage < 1 || targetPage > totalPages.value || targetPage === page.value) return
+  await fetchPage(targetPage)
+}
+
+function refreshResults(): void {
+  void (query.value.trim() ? handleSearch(true) : loadPopular(true))
+}
+
+function resetConditions(): void {
+  versionFilter.value = ''
+  loaderFilter.value = ''
+  sourceFilter.value = ''
+  sortFilter.value = ''
 }
 
 async function openDetails(mod: ModSearchItem) {
@@ -597,10 +808,6 @@ async function installSelected() {
 async function openUrl(url: string) {
   if (!url) return
   await modApi.openUrl(url).catch((error) => message.error(getErrorMessage(error)))
-}
-
-function openInModPage(mod: ModSearchItem) {
-  void router.push({ name: 'online-mods', query: { q: mod.title, type: 'mod' } })
 }
 
 function handleDragEnter() {

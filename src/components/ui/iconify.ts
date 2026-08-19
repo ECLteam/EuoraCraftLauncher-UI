@@ -68,6 +68,10 @@ export const ICON_MAP: Record<string, string> = {
   // 方向
   'chevron-down': 'chevron-down',
   'chevron-up': 'chevron-up',
+  'chevron-left': 'chevron-left',
+  'chevron-right': 'chevron-right',
+  'chevrons-left': 'chevrons-left',
+  'chevrons-right': 'chevrons-right',
   'arrow-right': 'chevron-right',
   'arrow-left': 'chevron-left',
   'rotate-left': 'rotate-2',

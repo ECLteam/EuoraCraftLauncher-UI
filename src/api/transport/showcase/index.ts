@@ -624,6 +624,8 @@ export function createShowcaseTransport(): BackendTransport {
           query,
         })
       }
+      case 'mod_source_config':
+        return success({ curseforge: { available: false } })
       case 'get_mods':
         return success([
           {

@@ -1,33 +1,28 @@
 /* =============================================
    OnlineMods.css
-   重新设计 v3：列表式结果 + 更清晰的视觉层级
+   重新设计 v4：紧凑单行结果 + PCL 风格筛选栏
    遵循项目设计系统 ecl-* token
    ============================================= */
 
 /* =============================================
-   Page Layout
-   ============================================= */
-.online-mods-page {
-  min-height: 0;
-  padding: 2px;
-}
-
-/* =============================================
    Search Toolbar — 单行紧凑工具栏
    ============================================= */
+/* 下拉菜单最小宽度，避免选项被截断（teleport 到 body，需 :global 绕过 scoped） */
+:global(.n-base-select-menu) {
+  min-width: 200px !important;
+}
+
 .mods-search-toolbar {
   display: flex;
   flex-shrink: 0;
   flex-direction: column;
   gap: 10px;
-  padding: 14px 16px;
-  border-top: var(--card-border-top);
-  border-bottom: var(--card-border-bottom);
+  padding: 12px 14px;
+  border: 1px solid var(--ecl-border);
   border-radius: var(--ecl-radius-card);
-  background: var(--card-bg);
-  box-shadow: var(--card-shadow);
-  backdrop-filter: blur(12px);
-  margin-bottom: 12px;
+  background: var(--ecl-surface);
+  box-shadow: var(--ecl-shadow-surface);
+  margin-bottom: 10px;
 }
 
 .search-controls {
@@ -52,38 +47,81 @@
 .oms-instance-select {
   flex-shrink: 0;
   min-width: 200px;
-  max-width: 260px;
+  max-width: 240px;
 }
 
 /* =============================================
-   Search Filters — 第二行筛选栏
+   Search Filters — 五个条件 + 刷新
    ============================================= */
 .search-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px 8px;
   align-items: center;
   padding-top: 2px;
 }
 
+.filter-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.filter-label {
+  flex-shrink: 0;
+  color: var(--ecl-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 .filter-item {
   flex: 0 1 auto;
-  min-width: 140px;
-  max-width: 220px;
+  min-width: 104px;
+  max-width: 160px;
 }
 
 .filter-item-small {
   flex: 0 1 auto;
-  min-width: 100px;
-  max-width: 160px;
+  min-width: 84px;
+  max-width: 120px;
 }
 
-.search-result-count {
-  flex: 1;
-  text-align: right;
+/* =============================================
+   Instance Selector Row — 独立一行
+   ============================================= */
+.instance-selector-row {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--ecl-border);
+  margin-top: 2px;
+}
+
+.instance-selector-label {
+  flex-shrink: 0;
   color: var(--ecl-text-secondary);
   font-size: 12px;
   font-weight: 500;
+}
+
+.oms-instance-select {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+}
+
+.oms-instance-select :deep(.resource-instance-select) {
+  width: 100%;
+}
+
+.instance-selector-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
 }
 
 /* =============================================
@@ -151,37 +189,27 @@
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
-  border-top: var(--card-border-top);
-  border-bottom: var(--card-border-bottom);
+  border: 1px solid var(--ecl-border);
   border-radius: var(--ecl-radius-card);
-  background: var(--card-bg);
-  box-shadow: var(--card-shadow);
-  backdrop-filter: blur(12px);
+  background: var(--ecl-surface);
+  box-shadow: var(--ecl-shadow-surface);
 }
 
-/* =============================================
-   Results Header
-   ============================================= */
-.mods-results-header {
+/* --- 分页 --- */
+.mods-pagination {
   display: flex;
-  flex-shrink: 0;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 12px;
-  min-height: 40px;
-  padding: 0 16px;
-  border-bottom: 1px solid var(--ecl-border);
-  color: var(--ecl-text-secondary);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  padding: 10px 0 14px;
 }
 
-.translated-query {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.mods-pagination-info {
+  min-width: 56px;
+  text-align: center;
+  color: var(--ecl-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 /* =============================================
@@ -196,6 +224,7 @@
 .mods-results-spin,
 .mods-results-spin :deep(.n-spin-content) {
   height: 100%;
+  min-height: 240px;
 }
 
 .mods-results-scroll {
@@ -203,147 +232,118 @@
 }
 
 /* =============================================
-   Mod List — 卡片网格布局
-   参考主流 Minecraft 启动器（PCL2 / HMCL / Prism）审美
+   Mod List — 紧凑单行
+   参考主流 Minecraft 启动器（PCL / Zalith）列表审美
    ============================================= */
 .mod-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px;
+  padding: 6px 6px 10px;
 }
 
-/* =============================================
-   Mod Card — 垂直卡片布局
-   封面图 + 标题 + 描述 + 元信息 + 操作
-   ============================================= */
-.mod-card {
+/* --- 单行条目 --- */
+.mod-row {
   display: flex;
-  align-items: stretch;
-  overflow: hidden;
-  border-top: 1px solid color-mix(in srgb, var(--ecl-border) 70%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--ecl-border) 70%, transparent);
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--ecl-border) 60%, transparent);
   border-radius: var(--ecl-radius-card);
-  background: var(--ecl-surface);
   cursor: pointer;
   transition:
-    transform var(--duration-fast) var(--ease-smooth),
-    border-color var(--duration-fast) var(--ease-smooth),
-    box-shadow var(--duration-normal) var(--ease-smooth);
+    background var(--duration-fast) var(--ease-smooth),
+    transform var(--duration-fast) var(--ease-smooth);
 }
 
-.mod-card:hover {
-  border-top-color: var(--ecl-border-strong);
-  border-bottom-color: var(--ecl-border-strong);
-  box-shadow:
-    0 6px 20px color-mix(in srgb, var(--ecl-primary) 8%, transparent),
-    var(--ecl-shadow-surface);
-  transform: translateY(-1px);
+.mod-row:last-child {
+  border-bottom: none;
 }
 
-.mod-card:active {
-  border-top-color: var(--ecl-border);
-  border-bottom-color: var(--ecl-border);
-  box-shadow: var(--ecl-shadow-surface);
-  transform: translateY(0);
+.mod-row:hover {
+  background: var(--glass-item-hover);
 }
 
-/* --- 封面区 --- */
-.mod-card-cover {
-  position: relative;
-  flex: 0 0 132px;
+.mod-row:active {
+  background: var(--glass-item-active-bg);
+}
+
+/* --- 标识图标：小方块，只做识别不抢版面 --- */
+.mod-row-icon {
+  display: flex;
+  flex: 0 0 40px;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
   overflow: hidden;
+  border-radius: 8px;
   background: var(--ecl-surface-muted);
-  border-right: 1px solid var(--ecl-border);
+  color: var(--ecl-text-tertiary);
 }
 
-.mod-card-cover .cover-img {
+.mod-row-icon img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform var(--duration-normal) var(--ease-smooth);
 }
 
-.mod-card:hover .mod-card-cover .cover-img {
-  transform: scale(1.04);
-}
-
-.mod-card-cover .cover-fallback {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  color: var(--ecl-text-tertiary);
-  background: linear-gradient(135deg, var(--ecl-surface-muted), var(--ecl-surface));
-}
-
-.mod-card-cover .cover-platform {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  max-width: calc(100% - 16px);
-}
-
-.mod-card-cover .cover-platform :deep(.n-tag) {
-  backdrop-filter: blur(6px);
-  background: color-mix(in srgb, var(--ecl-surface) 78%, transparent);
-  color: var(--ecl-text);
-  border: 1px solid color-mix(in srgb, var(--ecl-border) 75%, transparent);
-}
-
-/* --- 内容区 --- */
-.mod-card-body {
+/* --- 主信息：单行紧凑 --- */
+.mod-row-main {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 6px;
+  gap: 3px;
   min-width: 0;
-  padding: 12px 14px;
 }
 
-.mod-card-title {
-  margin: 0;
+.mod-row-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mod-row-name {
+  overflow: hidden;
   color: var(--ecl-text);
-  font-size: 15px;
-  font-weight: 650;
-  line-height: 1.3;
-  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.mod-card-subtitle {
+.mod-row-tags {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+}
+
+.mod-row-tags :deep(.n-tag) {
+  transition: opacity var(--duration-fast) var(--ease-smooth);
+}
+
+.mod-row-tags :deep(.n-tag:hover) {
+  opacity: 0.85;
+}
+
+.mod-row-desc {
+  overflow: hidden;
   margin: 0;
-  color: var(--ecl-text-secondary);
-  font-size: 11px;
-  line-height: 1.2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.mod-card-desc {
-  min-height: 32px;
-  overflow: hidden;
   color: var(--ecl-text-tertiary);
   font-size: 12px;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* --- 元信息行 --- */
-.mod-card-meta {
+.mod-row-meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
-  margin-top: 2px;
+  gap: 8px;
+  color: var(--ecl-text-tertiary);
+  font-size: 11px;
 }
 
 .mod-meta-item {
@@ -354,41 +354,27 @@
   font-size: 11px;
 }
 
-/* --- 标签行 --- */
-.mod-card-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 2px;
+/* --- 来源徽标：推至元信息行右侧，呼应 PCL 来源角标 --- */
+.mod-meta-item.mod-meta-source {
+  margin-left: auto;
+  color: var(--ecl-text-secondary);
 }
 
-.mod-card-tags :deep(.n-tag) {
-  transition: opacity var(--duration-fast) var(--ease-smooth);
-}
-
-.mod-card-tags :deep(.n-tag:hover) {
-  opacity: 0.85;
-}
-
-/* --- 操作区 --- */
-.mod-card-actions {
+/* --- 操作区：紧凑，参考 PCL-CE 列表项按钮 --- */
+.mod-row-actions {
   display: flex;
   flex: 0 0 auto;
-  flex-wrap: wrap;
-  align-content: center;
-  justify-content: flex-end;
-  gap: 6px;
-  min-width: 220px;
-  padding: 12px 14px;
-  border-left: 1px solid var(--ecl-border);
+  align-items: center;
+  gap: 4px;
 }
 
-.mod-card-actions .n-button {
-  justify-content: center;
+.mod-row-actions :deep(.n-button) {
+  --n-height: 26px;
+  --n-padding: 0 10px;
 }
 
-.mod-card-actions .n-button:first-child {
-  min-width: 96px;
+.mod-row-actions :deep(.n-button--circle) {
+  --n-padding: 0;
 }
 
 /* =============================================
@@ -557,41 +543,25 @@
     max-width: none;
   }
 
-  .search-filters {
-    gap: 8px;
-  }
-
   .filter-item {
-    min-width: 120px;
+    min-width: 110px;
   }
 
   .mod-list {
+    padding: 6px 6px 10px;
+  }
+}
+
+@media (max-width: 720px) {
+  .mod-row-tags {
+    display: none;
+  }
+
+  .mod-row-desc {
+    display: none;
+  }
+
+  .mod-row {
     gap: 10px;
-    padding: 12px;
-  }
-}
-
-@media (max-width: 900px) {
-  .mod-card {
-    flex-direction: column;
-  }
-
-  .mod-card-cover {
-    flex-basis: 108px;
-    border-right: none;
-    border-bottom: 1px solid var(--ecl-border);
-  }
-
-  .mod-card-actions {
-    justify-content: flex-start;
-    min-width: 0;
-    border-top: 1px solid var(--ecl-border);
-    border-left: none;
-  }
-}
-
-@media (min-width: 1400px) {
-  .mod-list {
-    padding: 16px;
   }
 }

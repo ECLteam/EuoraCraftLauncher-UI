@@ -672,7 +672,7 @@ async function handleInstanceAction(action: string, version: ScannedVersion) {
 // ── 版本安装 ──
 
 function navigateToInstall() {
-  router.push('/versions/versions')
+  router.push({ name: 'download', query: { tab: 'instances' } })
 }
 </script>
 

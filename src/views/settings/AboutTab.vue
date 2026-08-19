@@ -402,7 +402,7 @@ const services: ThanksItem[] = [
     img: imgPath('curseforge.png'),
   },
   {
-    name: 'MC百科',
+    name: 'MCMOD百科',
     initial: 'MC',
     descKey: 'mcmod',
     url: URLS.mcmod,

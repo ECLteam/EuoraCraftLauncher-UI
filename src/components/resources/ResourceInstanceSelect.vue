@@ -3,7 +3,7 @@
     v-model:value="currentKey"
     :options="options"
     :renderLabel="renderLabel"
-    :placeholder="t('mods.selectInstance')"
+    :placeholder="placeholder || t('mods.selectInstance')"
     filterable
     :disabled="!target.ready.value || options.length === 0"
     class="resource-instance-select"
@@ -17,9 +17,15 @@ import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
 import { instanceKey, type useResourceInstallTarget } from '@/composables/useResourceInstallTarget'
 
-const props = defineProps<{
-  target: ReturnType<typeof useResourceInstallTarget>
-}>()
+const props = withDefaults(
+  defineProps<{
+    target: ReturnType<typeof useResourceInstallTarget>
+    placeholder?: string
+    showNoneOption?: boolean
+    noneLabel?: string
+  }>(),
+  { placeholder: '', showNoneOption: false, noneLabel: '' }
+)
 
 const emit = defineEmits<{
   (e: 'persist'): void
@@ -27,24 +33,35 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const options = computed(() =>
-  props.target.installableInstances.value.map((version) => ({
+const options = computed(() => {
+  const list = props.target.installableInstances.value.map((version) => ({
     label: `${version.displayName} · ${version.vanillaName} · ${version.primaryLoader}`,
     value: instanceKey(version),
   }))
-)
+  if (props.showNoneOption) {
+    return [{ label: props.noneLabel || t('mods.noneInstance'), value: '' }, ...list]
+  }
+  return list
+})
 
 const currentKey = computed({
   get: () => props.target.selectedKey.value,
   set: (key: string) => {
-    const version = props.target.installableInstances.value.find((v) => instanceKey(v) === key)
-    if (version) props.target.setTarget(version)
+    if (!key) {
+      props.target.clearTarget()
+    } else {
+      const version = props.target.installableInstances.value.find((v) => instanceKey(v) === key)
+      if (version) props.target.setTarget(version)
+    }
     emit('persist')
   },
 })
 
 function renderLabel(option: { label: string; value: string }): VNode {
-  return h('span', { class: 'ris-option' }, [h(UiIcon, { name: 'game-controller', size: 14 }), h('span', option.label)])
+  return h('span', { class: 'ris-option' }, [
+    h(UiIcon, { name: 'game-controller', size: 14 }),
+    h('span', { class: 'ris-option-label' }, option.label),
+  ])
 }
 </script>
 
@@ -53,15 +70,27 @@ function renderLabel(option: { label: string; value: string }): VNode {
   width: 320px;
 }
 
-.ris-option {
+/* renderLabel 输出的元素不带 scoped 属性，需用 :global 使样式生效 */
+:global(.ris-option) {
   display: flex;
   align-items: center;
   gap: 6px;
   min-width: 0;
 }
 
-.ris-option :deep(svg) {
+:global(.ris-option .icon) {
+  flex-shrink: 0;
+}
+
+:global(.ris-option svg) {
   flex-shrink: 0;
   color: var(--primary);
+}
+
+:global(.ris-option-label) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
