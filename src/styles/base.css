@@ -68,8 +68,8 @@
   --divider: #e0e0e0;
 
   --card-bg: rgba(255, 255, 255, 0.88);
-  --card-border-top: 1px solid rgba(255, 255, 255, 0.9);
-  --card-border-bottom: 1px solid rgba(21, 31, 52, 0.08);
+  --card-border-top: 1px solid var(--ecl-border);
+  --card-border-bottom: 1px solid var(--ecl-border);
   --card-shadow: 0 1px 2px rgba(21, 31, 52, 0.05);
 
   --shadow-xs: 0 1px 2px rgba(21, 31, 52, 0.05);
@@ -214,8 +214,8 @@
   --divider: rgba(255, 255, 255, 0.08);
 
   --card-bg: rgba(35, 38, 45, 0.88);
-  --card-border-top: 1px solid rgba(255, 255, 255, 0.08);
-  --card-border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  --card-border-top: 1px solid var(--ecl-border);
+  --card-border-bottom: 1px solid var(--ecl-border);
 
   --glow-focus: 0 0 0 2px rgba(var(--primary-rgb), 0.35);
   --glow-focus-pink: 0 0 0 2px rgba(var(--primary-rgb), 0.35);

@@ -1,10 +1,7 @@
 .ui-card {
   background: var(--card-bg);
   border-radius: var(--r-sm);
-  border-top: var(--card-border-top);
-  border-bottom: var(--card-border-bottom);
-  border-left: none;
-  border-right: none;
+  border: 1px solid var(--ecl-border);
   overflow: hidden;
   display: flex;
   flex-direction: column;

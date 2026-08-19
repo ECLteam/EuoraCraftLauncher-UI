@@ -9,8 +9,7 @@
   display: flex;
   flex: 1;
   overflow: hidden;
-  border-top: var(--card-border-top);
-  border-bottom: var(--card-border-bottom);
+  border: 1px solid var(--ecl-border);
   border-radius: var(--r-sm);
   background: var(--card-bg);
 }

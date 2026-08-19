@@ -73,8 +73,7 @@ const { t } = useI18n()
   align-items: center;
   gap: 20px;
   padding: 32px 28px 24px;
-  border-top: var(--card-border-top);
-  border-bottom: var(--card-border-bottom);
+  border: 1px solid var(--ecl-border);
   border-radius: var(--r-sm);
   background: var(--card-bg);
 }

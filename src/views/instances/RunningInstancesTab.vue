@@ -232,8 +232,7 @@ async function handleConfirm() {
   height: 100%;
   flex-direction: column;
   overflow: hidden;
-  border-top: var(--card-border-top);
-  border-bottom: var(--card-border-bottom);
+  border: 1px solid var(--ecl-border);
   border-radius: var(--r-lg);
   background: var(--card-bg);
 }
