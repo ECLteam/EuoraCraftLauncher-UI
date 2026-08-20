@@ -57,70 +57,65 @@
     <div class="mods-panel-content">
       <NSpin :show="modsLoading" class="mods-spin">
         <template v-if="filteredMods.length">
-          <div class="mods-grid">
+          <div class="mods-list">
+            <div class="mods-list-header" aria-hidden="true">
+              <span>{{ t('versions.mods.modName') }}</span>
+              <span>{{ t('versions.mods.modVersion') }}</span>
+              <span>{{ t('versions.mods.loader') }}</span>
+              <span>{{ t('versions.mods.fileSize') }}</span>
+              <span>{{ t('versions.mods.status') }}</span>
+            </div>
             <article
               v-for="mod in filteredMods"
               :key="mod.filename"
-              :class="['mod-card', { 'is-disabled': !mod.enabled }]"
+              :class="['mod-list-row', { 'is-disabled': !mod.enabled }]"
             >
-              <div class="mod-card-head">
-                <div class="mod-card-identity">
-                  <span class="mod-card-icon"><UiIcon name="cube" :size="18" /></span>
-                  <div class="mod-card-title">
-                    <strong>{{ mod.name || mod.filename.replace(/\.(jar|disabled)$/, '') }}</strong>
-                    <span class="mod-card-filename">{{ mod.filename }}</span>
-                  </div>
+              <div class="mod-list-identity">
+                <span class="mod-list-icon"><UiIcon name="cube" :size="17" /></span>
+                <div class="mod-list-title">
+                  <strong>{{ modDisplayName(mod) }}</strong>
+                  <span v-if="hasTranslatedName(mod)" class="mod-original-name">{{ mod.name }}</span>
+                  <span class="mod-list-filename">{{ mod.filename }}</span>
                 </div>
+              </div>
+
+              <div class="mod-list-version">
+                <strong>{{ mod.version || t('versions.mods.unknownVersion') }}</strong>
+                <span>{{ mod.author || t('versions.mods.unknownAuthor') }}</span>
+              </div>
+
+              <div class="mod-list-loader">
                 <span v-if="mod.loader_type" class="badge" :class="'badge-' + mod.loader_type.toLowerCase()">
                   {{ getLoaderName(mod.loader_type) }}
                 </span>
                 <span v-else class="badge badge-vanilla">{{ t('versions.manage.vanilla') }}</span>
               </div>
 
-              <div class="mod-card-meta">
-                <span class="meta-item" :title="t('versions.mods.modVersion')">
-                  <UiIcon name="tags" :size="12" />
-                  {{ mod.version || t('versions.mods.unknownVersion') }}
-                </span>
-                <span class="meta-item" :title="t('versions.mods.author')">
-                  <UiIcon name="user" :size="12" />
-                  {{ mod.author || t('versions.mods.unknownAuthor') }}
-                </span>
-                <span v-if="mod.game_version" class="meta-item" :title="t('versions.mods.gameVersion')">
-                  <UiIcon name="globe" :size="12" />
-                  {{ mod.game_version }}
-                </span>
+              <div class="mod-list-file" :title="mod.dependencies.join(', ')">
+                <strong>{{ formatFileSize(mod.size) }}</strong>
+                <span>{{
+                  mod.dependencies.length
+                    ? t('versions.mods.dependencyCount', { count: mod.dependencies.length })
+                    : t('versions.mods.noDependencies')
+                }}</span>
               </div>
 
-              <div class="mod-card-foot">
-                <div class="mod-card-info">
-                  <span class="mod-size">
-                    <UiIcon name="archive" :size="12" />
-                    {{ formatFileSize(mod.size) }}
-                  </span>
-                  <span v-if="mod.dependencies.length" class="mod-deps" :title="mod.dependencies.join(', ')">
-                    <UiIcon name="link" :size="12" />
-                    {{ mod.dependencies.slice(0, 3).join(', ') }}{{ mod.dependencies.length > 3 ? '…' : '' }}
-                  </span>
-                  <span v-else class="mod-deps mod-deps-empty">
-                    <UiIcon name="link" :size="12" />
-                    {{ t('versions.mods.noDependencies') }}
-                  </span>
-                </div>
-                <div class="mod-card-actions">
-                  <button
-                    v-if="mod.project_id"
-                    class="btn-action"
-                    :title="t('versions.mods.checkOnline')"
-                    @click="handleOpenOnline(mod)"
-                  >
-                    <UiIcon name="external-link" :size="13" />
-                  </button>
-                  <button class="btn-action btn-delete" :title="t('common.delete')" @click="handleDeleteMod(mod)">
-                    <UiIcon name="trash" :size="13" />
-                  </button>
-                  <NSwitch :value="mod.enabled" size="small" @update:value="handleToggleMod(mod)" />
-                </div>
+              <div class="mod-list-actions">
+                <span :class="['mod-status', { enabled: mod.enabled }]">
+                  {{ t(mod.enabled ? 'versions.mods.enabled' : 'versions.mods.disabled') }}
+                </span>
+                <button
+                  v-if="mod.project_id || mod.mcmod_url"
+                  class="btn-action"
+                  :title="t('versions.mods.checkOnline')"
+                  @click="handleOpenOnline(mod)"
+                >
+                  <UiIcon name="external-link" :size="13" />
+                </button>
+                <button class="btn-action btn-delete" :title="t('common.delete')" @click="handleDeleteMod(mod)">
+                  <UiIcon name="trash" :size="13" />
+                </button>
+                <NSwitch :value="mod.enabled" size="small" @update:value="handleToggleMod(mod)" />
               </div>
             </article>
           </div>
@@ -199,7 +194,9 @@ const filteredMods = computed(() => {
   // 搜索
   const q = modSearchQuery.value.trim().toLowerCase()
   if (q) {
-    list = list.filter((m) => m.filename.toLowerCase().includes(q) || (m.name && m.name.toLowerCase().includes(q)))
+    list = list.filter((m) =>
+      [m.filename, m.name, m.display_name, m.english_name].some((value) => value?.toLowerCase().includes(q))
+    )
   }
   return list
 })
@@ -228,14 +225,14 @@ async function handleToggleMod(mod: ModItem) {
     const result = await localModsApi.toggle(gamePath, mod.filename)
     mod.enabled = result.enabled
     const actionText = result.enabled ? t('versions.mods.toggleEnabled') : t('versions.mods.toggleDisabled')
-    message.success(t('versions.mods.modToggled', { name: mod.name || mod.filename, action: actionText }))
+    message.success(t('versions.mods.modToggled', { name: modDisplayName(mod), action: actionText }))
   } catch (error) {
     message.error(error instanceof Error ? error.message : t('versions.mods.modToggleFailed'))
   }
 }
 
 function handleDeleteMod(mod: ModItem) {
-  openConfirm(t('common.delete'), t('versions.mods.deleteConfirm', { name: mod.name || mod.filename }), async () => {
+  openConfirm(t('common.delete'), t('versions.mods.deleteConfirm', { name: modDisplayName(mod) }), async () => {
     const gamePath = getGamePath()
     if (!gamePath) return
     try {
@@ -314,10 +311,19 @@ function formatFileSize(bytes: number): string {
   return `${value >= 100 ? Math.round(value) : value.toFixed(1)} ${units[index]}`
 }
 
+function modDisplayName(mod: ModItem): string {
+  return mod.display_name || mod.name || mod.filename.replace(/\.(jar|disabled)$/, '')
+}
+
+function hasTranslatedName(mod: ModItem): boolean {
+  return Boolean(mod.display_name && mod.name && mod.display_name !== mod.name)
+}
+
 async function handleOpenOnline(mod: ModItem) {
-  if (!mod.project_id) return
+  const url = mod.mcmod_url || (mod.project_id ? `https://modrinth.com/mod/${mod.project_id}` : '')
+  if (!url) return
   try {
-    await modApi.openUrl(`https://modrinth.com/mod/${mod.project_id}`)
+    await modApi.openUrl(url)
   } catch (error) {
     message.error(error instanceof Error ? error.message : t('versions.mods.openOnlineFailed'))
   }

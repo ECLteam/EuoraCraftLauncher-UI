@@ -126,6 +126,8 @@ export interface DownloadConfig {
   mirror_source: 'official' | 'bmclapi'
   /** 按资源类型记忆的「上一次安装实例」缓存：key 为资源类型(mod/resourcepack/shaderpack/datapack/world) */
   resourceInstallCache?: Record<string, { gamePath: string; versionId: string }>
+  /** 按资源类型记忆的「另存为」目录。 */
+  resourceSaveDirectories?: Record<string, string>
 }
 
 export interface LocaleConfig {
@@ -320,8 +322,21 @@ export interface EasyTierStatus {
 
 export interface NatTypeResult {
   type: 'cone' | 'symmetric' | 'blocked' | 'unknown'
+  detailType:
+    | 'openInternet'
+    | 'noPat'
+    | 'fullCone'
+    | 'restricted'
+    | 'portRestricted'
+    | 'symmetricEasy'
+    | 'symmetric'
+    | 'symmetricFirewall'
+    | 'udpBlocked'
+    | 'unknown'
   publicIp: string | null
   publicPort: number | null
+  publicPortEnd: number | null
+  supportsIpv6: boolean
 }
 
 export interface ConnectorModEntry {
@@ -725,6 +740,9 @@ export interface PathInfo {
 export interface ModItem {
   filename: string
   name: string
+  display_name: string
+  english_name: string
+  mcmod_url: string
   version: string
   author: string
   loader_type: string
@@ -818,6 +836,14 @@ export interface ModVersion {
   datePublished?: string
   downloads: number
   releaseType: 'release' | 'beta' | 'alpha'
+  dependencies?: ModDependency[]
+}
+
+export interface ModDependency {
+  versionId?: string | null
+  projectId?: string | null
+  filename?: string | null
+  dependencyType: 'required' | 'optional' | 'incompatible' | 'embedded' | string
 }
 
 export interface ModInstallResult {
@@ -1224,6 +1250,8 @@ export interface CommandPayloadMap {
       | 'resource-manifest'
       | 'screenshot'
       | 'mod-file'
+    default_directory?: string
+    default_name?: string
   }
   open_folder: { path: string }
   open_url: { url: string }

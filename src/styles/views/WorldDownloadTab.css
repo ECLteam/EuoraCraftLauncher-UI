@@ -19,6 +19,10 @@
   gap: 10px;
 }
 
+.world-toolbar :deep(.resource-instance-select) {
+  width: 320px;
+}
+
 .world-drop-overlay {
   position: absolute;
   z-index: 20;

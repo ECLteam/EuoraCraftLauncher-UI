@@ -32,7 +32,10 @@ export function useResourceInstallTarget(resourceType: InstallTargetKey, autoSel
     const filter = compatibleFilter.value
     if (!filter) return installableInstances.value
     return installableInstances.value.filter(
-      (version) => filter.gameVersions.includes(version.vanillaName) && filter.loaders.includes(version.primaryLoader)
+      (version) =>
+        (filter.gameVersions.length === 0 || filter.gameVersions.includes(version.vanillaName)) &&
+        (filter.loaders.length === 0 ||
+          filter.loaders.some((loader) => loader.toLocaleLowerCase() === version.primaryLoader.toLocaleLowerCase()))
     )
   })
 
@@ -84,12 +87,20 @@ export function useResourceInstallTarget(resourceType: InstallTargetKey, autoSel
 
   function setCompatibleFilter(filter: { gameVersions: string[]; loaders: string[] } | null): void {
     compatibleFilter.value = filter
-    // 当前选中实例不再兼容时，自动回退到第一个兼容实例
+    // 当前选中实例不再兼容时清空选择，避免未经用户确认改装到另一个实例。
     if (filter) {
       const current = selectedInstance.value
       if (current && !compatibleInstances.value.some((version) => instanceKey(version) === selectedKey.value)) {
-        selectedKey.value = compatibleInstances.value[0] ? instanceKey(compatibleInstances.value[0]) : ''
+        selectedKey.value = ''
       }
+    }
+  }
+
+  async function refreshInstances(): Promise<void> {
+    const previousKey = selectedKey.value
+    await instanceStore.loadAll(true)
+    if (previousKey && !installableInstances.value.some((version) => instanceKey(version) === previousKey)) {
+      selectedKey.value = ''
     }
   }
 
@@ -122,6 +133,7 @@ export function useResourceInstallTarget(resourceType: InstallTargetKey, autoSel
     setTarget,
     clearTarget,
     setCompatibleFilter,
+    refreshInstances,
     persist,
     loadCache,
   }

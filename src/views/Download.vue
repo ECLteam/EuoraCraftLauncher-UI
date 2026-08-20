@@ -23,7 +23,7 @@
       <OnlineModSearch v-else-if="activeTab === 'resourcepack'" :resourceType="'resourcepack'" />
       <OnlineModSearch v-else-if="activeTab === 'shaderpack'" :resourceType="'shaderpack'" />
       <OnlineModSearch v-else-if="activeTab === 'datapack'" :resourceType="'datapack'" />
-      <WorldDownloadTab v-else-if="activeTab === 'world'" />
+      <OnlineModSearch v-else-if="activeTab === 'world'" resourceType="world" fixedSource="curseforge" />
     </main>
   </div>
 </template>
@@ -33,7 +33,6 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import OnlineModSearch from '@/components/mods/OnlineModSearch.vue'
-import WorldDownloadTab from '@/components/resources/WorldDownloadTab.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import InstancesTab from '@/views/instances/InstancesTab.vue'
 

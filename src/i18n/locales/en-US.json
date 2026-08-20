@@ -51,7 +51,16 @@
       "cone": "Full cone",
       "symmetric": "Symmetric",
       "blocked": "Blocked",
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "openInternet": "Open Internet",
+      "noPat": "Public address (no port translation)",
+      "fullCone": "Full-cone NAT",
+      "restricted": "Restricted-cone NAT",
+      "portRestricted": "Port-restricted-cone NAT",
+      "symmetricEasy": "Predictable symmetric NAT",
+      "symmetricFirewall": "Symmetric UDP firewall",
+      "udpBlocked": "UDP unavailable",
+      "ipv6Available": "Public IPv6 available"
     },
     "easyTier": {
       "title": "EasyTier multiplayer component",
@@ -92,7 +101,6 @@
       "prev": "Previous",
       "next": "Next",
       "idle": "Idle",
-      "createInstance": "Instance",
       "createPort": "Port",
       "starting": "Starting",
       "host": "Host",
@@ -145,7 +153,8 @@
       "instance": "Select an instance",
       "port": "Enter a valid port from 1 to 65535",
       "roomCode": "Enter a room code",
-      "pasteFailed": "Unable to read clipboard"
+      "pasteFailed": "Unable to read clipboard",
+      "copyFailed": "Unable to write to the clipboard"
     },
     "side": {
       "title": "Connection Status",
@@ -158,6 +167,9 @@
       "hint": "Current room details",
       "game": "Game Version",
       "creator": "Creator"
+    },
+    "roomActions": {
+      "title": "Room Actions"
     }
   },
   "game": {
@@ -492,7 +504,9 @@
       "gameVersion": "Game Version",
       "fileSize": "File Size",
       "dependencies": "Dependencies",
+      "dependencyCount": "{count} dependencies",
       "noDependencies": "No dependencies",
+      "status": "Status & Actions",
       "checkOnline": "View Online",
       "unknownVersion": "Unknown version",
       "unknownAuthor": "Unknown author",
@@ -679,53 +693,50 @@
     "gameSettings": "Game Settings",
     "about": "About",
     "aboutTab": {
-      "github": "GitHub",
-      "website": "Website",
-      "mirror": "Mirror",
-      "source": "Source",
-      "license": "License",
-      "openSource": "Open Source",
-      "group": "ECLteam Organization",
-      "developer": "Developer",
-      "people": "people",
-      "versionLabel": "Launcher Version",
-      "demoMode": "Demo Mode",
-      "frontendVersion": "Frontend Version",
-      "versionType": {
-        "dev": "Dev",
-        "alpha": "Dev",
-        "beta": "Beta",
-        "rc": "Release Candidate",
-        "release": "Release"
+      "actions": {
+        "github": "GitHub",
+        "website": "Website",
+        "mirror": "Mirror",
+        "source": "Source",
+        "license": "License",
+        "openSource": "Open Source"
       },
-      "technicalStack": "Tech Stack",
-      "licenses": "Licenses & Copyright",
-      "legal": "Legal Info",
-      "backendDeps": "Backend Dependencies",
-      "frontendDeps": "Frontend Dependencies",
-      "services": "Services & Community",
-      "reference": "Reference Projects",
-      "contributors": "Contributors",
-      "frontend": "Frontend",
-      "backendDesktop": "Desktop & Backend",
-      "engineering": "Engineering",
-      "legalText1": "Not an official MINECRAFT product. Not approved by or associated with MOJANG or MICROSOFT.",
-      "legalText2": "Minecraft is a trademark of Mojang Synergies AB.",
-      "categories": {
-        "runtime": "Runtime & Frameworks",
-        "accountAuth": "Accounts & Auth",
-        "coreFramework": "Core Frameworks",
-        "uiComponents": "UI Components",
-        "toolsAnim": "Tools & Animation",
-        "renderDisplay": "Rendering & Display",
-        "mirrors": "Mirrors & Platforms",
-        "referenceProject": "Reference Projects"
+      "sections": {
+        "team": "ECLTeam",
+        "specialThanks": "Special Thanks",
+        "technologyStack": "Technology Stack",
+        "licenses": "Licenses & Copyright",
+        "legal": "Legal Info"
       },
-      "desc": {
+      "version": {
+        "label": "Launcher Version",
+        "demoMode": "Demo Mode",
+        "frontendLabel": "Frontend Version",
+        "types": {
+          "dev": "Dev",
+          "alpha": "Dev",
+          "beta": "Beta",
+          "rc": "Release Candidate",
+          "release": "Release"
+        }
+      },
+      "technologyCategories": {
+        "runtimeFrameworks": "Runtime & Frameworks",
+        "backendRuntime": "Backend Runtime",
+        "accountAuthentication": "Accounts & Authentication",
+        "frontendFrameworks": "Frontend Frameworks",
+        "uiStyling": "UI & Styling",
+        "frontendUtilities": "Frontend Utilities & Animation",
+        "rendering": "Rendering & Display",
+        "fontsAndIcons": "Fonts & Icons",
+        "engineering": "Engineering & Quality"
+      },
+      "descriptions": {
         "aebc08": "Author of ECLauncherCore, Florolding, EasyTier-Pyo3, responsible for game launch core, external auth and networking",
         "wuchang325": "EuoraCraft Launcher developer",
         "e2662020": "EuoraCraft Launcher developer",
         "luyanci": "EuoraCraft Launcher developer",
+        "theMyceliumOfAntan": "Supports project development and improvements",
         "pytauri": "Bridges Python and Tauri, letting the launcher use Python as its backend",
         "vue3": "Progressive JavaScript framework that builds the launcher UI",
         "tauri": "Lightweight desktop framework providing native windows and system integration",
@@ -748,7 +759,16 @@
         "mcmod": "Chinese Minecraft mod wiki providing mod info and search",
         "hmcl": "Open-source Minecraft launcher whose Java scanning was referenced",
         "scaffolding": "Multiplayer protocol reference implementation serving as networking base",
-        "yushijinhun": "Author of Authlib-Injector, providing external authentication support"
+        "backendDependency": "Launcher backend and desktop runtime dependency",
+        "frontendDependency": "Launcher frontend runtime and build dependency",
+        "engineeringDependency": "Used for code quality, testing, and application packaging",
+        "harmonyOsSans": "Primary Chinese interface font used by the launcher",
+        "mapleMono": "Monospace font used for terminals, logs, and code content",
+        "tablerIcons": "Provides launcher interface icons offline through Iconify"
+      },
+      "legal": {
+        "disclaimer": "Not an official MINECRAFT product. Not approved by or associated with MOJANG or MICROSOFT.",
+        "trademark": "Minecraft is a trademark of Mojang Synergies AB."
       }
     },
     "downloadSettings": "Download Settings",
@@ -1275,18 +1295,18 @@
     "openFolder": "Open Mods Folder",
     "filterLoader": "Filter Loader",
     "allLoaders": "All Loaders",
-    "searchPlaceholder": "Search mod name...",
+    "searchPlaceholder": "Search {resource} name...",
     "enabled": "Enabled",
     "disabled": "Disabled",
     "removed": "{name} removed",
     "added": "{name} added",
     "onlineSearch": "Online Search",
     "search": "Search",
-    "noResults": "No mods found",
+    "noResults": "No matching {resource} found",
     "install": "Install",
     "downloads": "downloads",
     "queryTooLong": "Search term is too long",
-    "searchHint": "Select an instance and search Modrinth, CurseForge and MC Wiki",
+    "searchHint": "Select an instance and search for {resource} online",
     "searching": "Searching...",
     "sort": "Sort by",
     "sortDefault": "Default",
@@ -1316,16 +1336,22 @@
     "compatibleVersion": "Compatible file",
     "downloadSource": "Download source",
     "noCompatibleVersion": "No file supports this instance",
-    "dependencyHint": "Required dependencies are resolved and installed automatically.",
     "installTo": "Install to: {instance}",
     "resolvingDependencies": "Resolving dependencies",
     "downloadingFile": "Downloading file",
-    "installSuccess": "Installation complete; {count} mod files processed",
+    "installSuccess": "Installation complete; {count} {resource} item(s) processed",
     "selectWorld": "Select target world",
     "noWorld": "This instance has no worlds",
     "dropToInstall": "Release to install to the current instance",
     "selectCompatibleInstance": "Compatible instance:",
-    "noCompatibleInstance": "No compatible instance for this mod",
+    "filterVersion": "Version",
+    "none": "None",
+    "testGroup": "Snapshot",
+    "installVersionTitle": "Install Mod",
+    "installResourceTitle": "Install {resource}",
+    "installVersionPrompt": "Install {mod} {version} to “{instance}”?",
+    "requiredDependencies": "Required dependencies",
+    "dependencyOpenHint": "Select a dependency to open its {version} version page",
     "saveAsSuccess": "Saved to {path}"
   },
   "auth": {

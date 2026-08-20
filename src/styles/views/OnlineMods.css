@@ -87,6 +87,19 @@
   max-width: 120px;
 }
 
+.fixed-source-label {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid var(--ecl-border);
+  border-radius: var(--r-sm);
+  background: var(--ecl-surface);
+  color: var(--ecl-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
 /* =============================================
    Instance Selector Row — 独立一行
    ============================================= */
@@ -147,27 +160,6 @@
   font-weight: 600;
   backdrop-filter: blur(4px);
   pointer-events: none;
-}
-
-/* =============================================
-   Datapack World Selector
-   ============================================= */
-.datapack-world-row {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: 10px;
-  padding: 4px 2px;
-}
-
-.datapack-world-select {
-  width: 260px;
-  max-width: 100%;
-}
-
-.datapack-world-hint {
-  color: var(--ecl-text-tertiary);
-  font-size: 12px;
 }
 
 /* =============================================
@@ -412,25 +404,30 @@
   margin: 0 auto;
 }
 
-/* --- 顶部紧凑介绍卡片：图标 + 名称 + 简介合并 --- */
+/* --- 模组信息卡片：独占一行，标题行 + 简介 --- */
 .mod-intro-card {
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 16px;
+  flex-direction: column;
+  padding: 12px 14px;
   background: var(--ecl-surface);
   border: 1px solid var(--ecl-border);
   border-radius: var(--ecl-radius-card);
   box-shadow: var(--ecl-shadow-surface);
 }
 
+.mod-intro-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
 .mod-intro-avatar {
   flex-shrink: 0;
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   overflow: hidden;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
 }
 
 .mod-intro-avatar img {
@@ -454,16 +451,29 @@
   min-width: 0;
 }
 
-.mod-intro-heading h2 {
-  margin: 0 0 3px;
-  color: var(--ecl-text);
-  font-size: 18px;
-  line-height: 1.3;
+.mod-intro-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
-.mod-intro-heading > p {
+.mod-intro-title-row h2 {
+  flex-shrink: 1;
+  min-width: 0;
   overflow: hidden;
   margin: 0;
+  color: var(--ecl-text);
+  font-size: 15px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mod-intro-subtitle {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
   color: var(--ecl-text-secondary);
   font-size: 12px;
   text-overflow: ellipsis;
@@ -472,37 +482,123 @@
 
 .mod-intro-tags {
   display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 8px;
-}
-
-.mod-intro-description {
-  display: -webkit-box;
-  overflow: hidden;
-  margin: 8px 0 0;
-  color: var(--ecl-text-secondary);
-  font-size: 13px;
-  line-height: 1.6;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
 }
 
 .mod-intro-links {
   display: flex;
-  flex-wrap: wrap;
+  flex-shrink: 0;
+  align-items: center;
   gap: 8px;
-  margin-top: 10px;
 }
 
-/* --- 兼容实例区 / 版本列表区 --- */
-.mod-version-section,
-.mod-instance-section {
-  padding: 16px;
+/* --- 简介：标题行下方简单一行 --- */
+.mod-intro-description {
+  overflow: hidden;
+  margin: 8px 0 0;
+  color: var(--ecl-text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- 条件筛选区：兼容实例 + 游戏版本 + 加载器 + 版本类型 --- */
+/* 遵循下载页筛选栏样式：紧凑布局 + 小标签 + 窄下拉 */
+.mod-filter-section {
+  padding: 8px 12px;
   background: var(--ecl-surface);
   border: 1px solid var(--ecl-border);
   border-radius: var(--ecl-radius-card);
   box-shadow: var(--ecl-shadow-surface);
+}
+
+.mod-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  align-items: center;
+}
+
+.mod-filter-row .filter-item {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  max-width: none;
+}
+
+.mod-filter-row .filter-item .filter-title {
+  flex-shrink: 0;
+  color: var(--ecl-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* 版本/加载器下拉：固定宽度，避免挤压标题图标（n-select 为子组件内部元素，需 :deep 命中） */
+.mod-filter-row .filter-item :deep(.n-select) {
+  flex: 0 0 auto;
+  width: 130px;
+  min-width: 0;
+  max-width: none;
+}
+
+/* 实例选择：占满筛选行剩余空间，下拉框伸展到行尾以完整展示实例信息 */
+.mod-filter-row .filter-item.mod-filter-instance {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.mod-filter-row .filter-item.mod-filter-instance :deep(.n-select) {
+  flex: 1 1 0;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+}
+
+.mod-filter-instance :deep(.resource-instance-select) {
+  flex: 1 1 0;
+  width: 100%;
+  min-width: 0;
+}
+
+.mod-filter-instance :deep(.n-button) {
+  flex: 0 0 auto;
+}
+
+.single-loader {
+  flex: 0 1 auto;
+  min-width: 60px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ecl-text);
+  background: var(--ecl-surface);
+  border: 1px solid var(--ecl-border);
+  border-radius: 6px;
+}
+
+.filter-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ecl-text);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* --- 版本列表区：不再使用卡片，直接平铺 --- */
+.mod-version-section {
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .mod-section-title {
@@ -515,8 +611,7 @@
   font-weight: 650;
 }
 
-.mod-version-section label,
-.mod-instance-section label {
+.mod-version-section label {
   display: block;
   margin-bottom: 8px;
   color: var(--ecl-text);
@@ -528,68 +623,135 @@
   margin-bottom: 14px;
 }
 
-/* --- 版本列表：逐条列出支持的版本 --- */
+/* --- 按 Minecraft 版本和加载器直接排列的可折叠分组 --- */
 .version-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  max-height: 320px;
-  overflow-y: auto;
+  gap: 10px;
 }
 
-.version-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 8px 12px;
-  color: var(--ecl-text);
-  text-align: left;
-  cursor: pointer;
-  background: var(--ecl-surface-muted);
+.version-accordion-group {
+  flex: 0 0 auto;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--ecl-surface) 92%, var(--primary) 8%);
   border: 1px solid var(--ecl-border);
-  border-radius: 8px;
+  border-radius: 9px;
   transition:
     border-color 0.15s ease,
     background-color 0.15s ease;
 }
 
-.version-row:hover {
+.version-accordion-group:hover,
+.version-accordion-group.selected {
   border-color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 8%, var(--ecl-surface-muted));
 }
 
-.version-row.selected {
-  border-color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 14%, var(--ecl-surface-muted));
+.version-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 14px;
+  color: var(--ecl-text, #1d2433);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 20px;
+  text-align: left;
+  cursor: pointer;
+  visibility: visible;
+  opacity: 1;
+  background: color-mix(in srgb, var(--ecl-surface) 96%, transparent);
+  border: 0;
+}
+
+.version-group-title {
+  position: relative;
+  z-index: 1;
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  font: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  visibility: visible;
+  opacity: 1;
+  -webkit-text-fill-color: currentcolor;
+}
+
+.version-group-chevron {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--ecl-text-secondary, #5d6678);
+  visibility: visible;
+  opacity: 1;
+  transition: transform 0.18s ease;
+}
+
+.version-group-chevron.expanded {
+  transform: rotate(180deg);
+}
+
+.version-group-files {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 0 8px 8px;
+}
+
+.version-file-row {
+  display: grid;
+  grid-template-columns: minmax(110px, auto) minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  color: var(--ecl-text);
+  text-align: left;
+  cursor: pointer;
+  background: var(--ecl-surface);
+  border: 1px solid transparent;
+  border-radius: 7px;
+}
+
+.version-file-row.direct-action {
+  grid-template-columns: minmax(110px, auto) minmax(0, 1fr);
+}
+
+.version-file-row:hover,
+.version-file-row.selected {
+  border-color: color-mix(in srgb, var(--primary) 55%, var(--ecl-border));
+  background: color-mix(in srgb, var(--primary) 8%, var(--ecl-surface));
 }
 
 .version-number {
-  flex-shrink: 0;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 650;
 }
 
+/* 测试版分组内区分不同快照的 [26w29a] 前缀徽标 */
+.version-test-prefix {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  font-size: 11px;
+  font-weight: 600;
+}
+
 .version-filename {
-  flex: 1;
   min-width: 0;
   overflow: hidden;
   color: var(--ecl-text-secondary);
-  font-size: 12px;
+  font-size: 11px;
   font-family: var(--ecl-font-mono);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.version-meta {
-  flex-shrink: 0;
-  color: var(--ecl-text-tertiary);
-  font-size: 11px;
-}
-
-.version-check {
-  flex-shrink: 0;
-  color: var(--primary);
 }
 
 .version-hint {
@@ -598,13 +760,48 @@
   font-size: 11px;
 }
 
-.no-compatible-hint {
-  margin: 10px 0 0;
-  color: var(--warning);
+.version-check {
+  flex-shrink: 0;
+  color: var(--primary);
+}
+
+/* --- 版本点击后的安装确认与前置模组 --- */
+.version-install-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.version-install-prompt {
+  margin: 0;
+  color: var(--ecl-text);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.version-install-world {
+  display: grid;
+  gap: 6px;
+}
+
+.version-install-world-label {
+  color: var(--ecl-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.version-install-world-hint {
+  color: var(--ecl-text-tertiary);
   font-size: 12px;
 }
 
-/* --- 底部操作 --- */
+.version-install-progress {
+  margin: 0;
+  color: var(--primary);
+  font-size: 12px;
+}
+
+/* --- 非 Mod 在线资源仍保留原有底部操作 --- */
 .mod-detail-footer {
   display: flex;
   align-items: center;
@@ -667,8 +864,19 @@
     padding: 16px;
   }
 
-  .mod-intro-card {
-    flex-direction: column;
-    align-items: flex-start;
+  .mod-intro-description {
+    margin: 8px 0 0;
+  }
+
+  .mod-intro-links {
+    display: none;
+  }
+
+  .version-file-row {
+    grid-template-columns: minmax(90px, auto) minmax(0, 1fr) 18px;
+  }
+
+  .version-file-row.direct-action {
+    grid-template-columns: minmax(90px, auto) minmax(0, 1fr);
   }
 }
