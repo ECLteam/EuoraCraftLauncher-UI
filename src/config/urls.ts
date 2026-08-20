@@ -37,7 +37,7 @@ export const URLS = {
     repo: 'https://github.com/tauri-apps/tauri',
     license: 'https://github.com/tauri-apps/tauri/blob/dev/LICENSE_APACHE-2.0',
   },
-  naiveUI: {
+  naiveUi: {
     repo: 'https://github.com/tusen-ai/naive-ui',
     license: 'https://github.com/tusen-ai/naive-ui/blob/main/LICENSE',
   },
@@ -85,7 +85,7 @@ export const URLS = {
     repo: 'https://github.com/EasyTier/EasyTier',
     license: 'https://github.com/EasyTier/EasyTier/blob/main/LICENSE',
   },
-  easyTierPyO3: {
+  easyTierPyo3: {
     repo: 'https://github.com/ECLteam/EasyTier-PyO3',
     license: 'https://github.com/ECLteam/EasyTier-PyO3/blob/main/LICENSE',
   },
