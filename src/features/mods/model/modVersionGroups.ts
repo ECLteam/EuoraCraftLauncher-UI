@@ -26,7 +26,7 @@ function uniqueValues(values: string[]): string[] {
 }
 
 /**
- * 像 PCL 一样按单个 Minecraft 版本建立可折叠分组；项目存在多个加载器时，
+ * 按单个 Minecraft 版本建立可折叠分组；项目存在多个加载器时，
  * 再将同一版本拆成各自的加载器分组。支持多个版本或加载器的文件会出现在多个组中。
  * resolve 可将测试版映射到对应正式版，实现"1.21.8 测试版"这类归并分组。
  */
@@ -84,7 +84,7 @@ export function snapshotFamily(id: string): string | null {
   return match?.[1] ?? null
 }
 
-/** 按发布日期把愚人节版锚定到下一个正式版，使其紧跟对应正式版分组，与 HMCL 的定位一致 */
+/** 按发布日期把愚人节版锚定到下一个正式版，使其紧跟对应正式版分组 */
 export function aprilFoolsAnchor(
   gameVersion: string,
   releases: Array<{ id: string; releaseTime: string }>,
