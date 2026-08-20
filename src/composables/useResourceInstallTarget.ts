@@ -21,10 +21,20 @@ export function useResourceInstallTarget(resourceType: InstallTargetKey, autoSel
   const instanceStore = useInstanceStore()
   const selectedKey = ref('')
   const ready = ref(false)
+  // 兼容性筛选条件：由详情弹窗按所选模组的版本/加载器设置，空时不过滤
+  const compatibleFilter = ref<{ gameVersions: string[]; loaders: string[] } | null>(null)
 
   const installableInstances = computed<ScannedVersion[]>(() =>
     instanceStore.scannedVersions.filter((version) => !version.isBroken)
   )
+
+  const compatibleInstances = computed<ScannedVersion[]>(() => {
+    const filter = compatibleFilter.value
+    if (!filter) return installableInstances.value
+    return installableInstances.value.filter(
+      (version) => filter.gameVersions.includes(version.vanillaName) && filter.loaders.includes(version.primaryLoader)
+    )
+  })
 
   const selectedInstance = computed<ScannedVersion | null>(
     () => installableInstances.value.find((version) => instanceKey(version) === selectedKey.value) ?? null
@@ -72,6 +82,17 @@ export function useResourceInstallTarget(resourceType: InstallTargetKey, autoSel
     selectedKey.value = ''
   }
 
+  function setCompatibleFilter(filter: { gameVersions: string[]; loaders: string[] } | null): void {
+    compatibleFilter.value = filter
+    // 当前选中实例不再兼容时，自动回退到第一个兼容实例
+    if (filter) {
+      const current = selectedInstance.value
+      if (current && !compatibleInstances.value.some((version) => instanceKey(version) === selectedKey.value)) {
+        selectedKey.value = compatibleInstances.value[0] ? instanceKey(compatibleInstances.value[0]) : ''
+      }
+    }
+  }
+
   async function persist(instance: ScannedVersion | null = selectedInstance.value): Promise<void> {
     const current = (unwrapResponse(await backend.config.get('download'), '读取下载设置') ?? {}) as {
       resourceInstallCache?: Record<string, { gamePath: string; versionId: string }>
@@ -95,10 +116,12 @@ export function useResourceInstallTarget(resourceType: InstallTargetKey, autoSel
   return {
     ready,
     installableInstances,
+    compatibleInstances,
     selectedKey,
     selectedInstance,
     setTarget,
     clearTarget,
+    setCompatibleFilter,
     persist,
     loadCache,
   }

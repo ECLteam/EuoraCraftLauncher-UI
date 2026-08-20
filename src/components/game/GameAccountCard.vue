@@ -16,7 +16,7 @@
       </div>
       <div class="account-details">
         <div class="account-name">{{ account?.alias || t('game.noAccount') }}</div>
-        <div v-if="account?.email" class="account-email">{{ account.email }}</div>
+        <!--<div v-if="account?.email" class="account-email">{{ account.email }}</div>-->
         <div class="account-type">
           {{ account ? accountTypeLabel : t('game.clickManageToAdd') }}
         </div>

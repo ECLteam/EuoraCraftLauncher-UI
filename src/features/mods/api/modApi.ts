@@ -34,6 +34,10 @@ export const modApi = {
     return requireData(await backend.command('download_mod', payload), '安装模组')
   },
 
+  async downloadToPath(payload: CommandPayloadMap['download_mod_to_path']): Promise<{ filename: string }> {
+    return requireData(await backend.command('download_mod_to_path', payload), '另存模组')
+  },
+
   async openUrl(url: string): Promise<void> {
     const response = await backend.command('open_url', { url })
     if (!response.success) throw new Error(response.message || '打开链接失败')

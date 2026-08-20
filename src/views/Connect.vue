@@ -197,9 +197,7 @@
                       <div v-if="displayScanning" class="connect-scan-state">
                         <UiIcon name="spinner" :size="18" class="spin" />
                         <span>{{
-                          scanPhase === 'detecting'
-                            ? t('connect.create.detecting')
-                            : t('connect.create.searching')
+                          scanPhase === 'detecting' ? t('connect.create.detecting') : t('connect.create.searching')
                         }}</span>
                       </div>
                       <div v-else-if="displayDetectedPort" class="connect-detected-port">

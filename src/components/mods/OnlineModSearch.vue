@@ -169,17 +169,6 @@
                     <span class="mod-meta-item mod-meta-source">{{ sourceLabel(mod.source) }}</span>
                   </div>
                 </div>
-
-                <!-- 操作区：紧凑 -->
-                <div class="mod-row-actions">
-                  <NButton type="primary" size="tiny" @click.stop="openDetails(mod)">
-                    <template #icon><UiIcon name="download" :size="13" /></template>
-                    {{ t('mods.install') }}
-                  </NButton>
-                  <NButton size="tiny" quaternary circle @click.stop="openDetails(mod)">
-                    <template #icon><UiIcon name="more" :size="15" /></template>
-                  </NButton>
-                </div>
               </div>
             </div>
             <div v-if="totalPages > 1" class="mods-pagination">
@@ -219,90 +208,161 @@
       </div>
     </div>
 
-    <Modal
+    <FullscreenModal
       v-model:visible="detailsVisible"
-      wrapperClass="mod-detail-modal"
       :title="selectedMod?.displayTitle || t('mods.details')"
-      :width="'min(680px, calc(100vw - 36px))'"
+      wrapperClass="mod-detail-fullscreen"
+      bodyClass="mod-detail-body"
     >
-      <NSpin :show="detailLoading">
-        <div v-if="selectedMod" class="detail-content">
-          <div class="detail-hero">
-            <div class="detail-hero-avatar">
-              <NAvatar :size="72" :src="selectedMod.iconUrl" color="var(--ecl-surface-muted)">
-                <UiIcon name="cube" :size="30" />
-              </NAvatar>
-            </div>
-            <div class="detail-heading">
-              <h2>{{ selectedMod.displayTitle }}</h2>
-              <p>{{ selectedMod.title }} · {{ selectedMod.author }}</p>
-              <div class="detail-links">
-                <NButton v-if="activeSourceRef" size="small" secondary @click="openUrl(activeSourceRef.projectUrl)">
-                  <template #icon><UiIcon name="external-link" :size="14" /></template>
-                  {{ sourceLabel(activeSourceRef.source) }}
-                </NButton>
-                <NButton v-if="selectedMod.wiki" size="small" secondary @click="openUrl(selectedMod.wiki.url)">
-                  <template #icon><UiIcon name="file-text" :size="14" /></template>
-                  MCMOD百科
-                </NButton>
+      <div class="mod-detail-shell">
+        <NSpin :show="detailLoading">
+          <div v-if="selectedMod" class="mod-detail-content">
+            <!-- 顶部紧凑介绍卡片：图标 + 名称 + 简介合并 -->
+            <section class="mod-intro-card">
+              <div class="mod-intro-avatar">
+                <img
+                  v-if="detailIcon && !iconError"
+                  :src="detailIcon"
+                  :alt="selectedMod.displayTitle"
+                  @error="iconError = true"
+                />
+                <UiIcon v-else name="cube" :size="22" />
               </div>
-            </div>
-          </div>
+              <div class="mod-intro-heading">
+                <h2>{{ selectedMod.displayTitle }}</h2>
+                <p>{{ selectedMod.title }} · {{ selectedMod.author }}</p>
+                <div class="mod-intro-tags">
+                  <NTag v-if="resourceType !== 'mod'" size="small" :bordered="false" type="info">
+                    {{ t(`download.${resourceType}`) }}
+                  </NTag>
+                  <template v-if="resourceType === 'mod'">
+                    <NTag
+                      v-for="loader in selectedMod.loaders.slice(0, 4)"
+                      :key="`l:${loader}`"
+                      size="small"
+                      :bordered="false"
+                    >
+                      {{ loaderName(loader) }}
+                    </NTag>
+                  </template>
+                  <NTag
+                    v-for="category in selectedMod.categories.slice(0, 3)"
+                    :key="`c:${category}`"
+                    size="small"
+                    :bordered="false"
+                  >
+                    {{ category }}
+                  </NTag>
+                </div>
+                <p class="mod-intro-description">
+                  {{ selectedMod.wiki?.summary || selectedMod.description || detailInfo?.description }}
+                </p>
+                <div class="mod-intro-links">
+                  <NButton v-if="activeSourceRef" size="small" secondary @click="openUrl(activeSourceRef.projectUrl)">
+                    <template #icon><UiIcon name="external-link" :size="14" /></template>
+                    {{ sourceLabel(activeSourceRef.source) }}
+                  </NButton>
+                  <NButton v-if="selectedMod.wiki" size="small" secondary @click="openUrl(selectedMod.wiki.url)">
+                    <template #icon><UiIcon name="file-text" :size="14" /></template>
+                    MCMOD百科
+                  </NButton>
+                </div>
+              </div>
+            </section>
 
-          <p class="detail-description">
-            {{ selectedMod.wiki?.summary || selectedMod.description || detailInfo?.description }}
-          </p>
-
-          <div class="version-picker">
-            <template v-if="selectedMod.alternatives.length > 1">
-              <label>{{ t('mods.downloadSource') }}</label>
-              <NSelect
-                v-model:value="selectedSourceKey"
-                class="detail-source-select"
-                :options="detailSourceOptions"
-                @update:value="loadSelectedSource"
+            <!-- 中间：兼容实例选择 -->
+            <section class="mod-instance-section">
+              <div class="mod-section-title">
+                <UiIcon name="game-controller" :size="15" />
+                {{ t('mods.selectCompatibleInstance') }}
+              </div>
+              <ResourceInstanceSelect
+                :target="target"
+                :placeholder="t('mods.selectInstanceHint')"
+                compatibleOnly
+                @persist="onInstancePersist"
               />
-            </template>
-            <label>{{ t('mods.compatibleVersion') }}</label>
-            <NSelect
-              v-model:value="selectedFileId"
-              :options="versionOptions"
-              :loading="detailLoading"
-              :placeholder="versions.length ? t('mods.chooseVersion') : t('mods.noCompatibleVersion')"
-            />
-            <p class="version-hint">{{ t('mods.dependencyHint') }}</p>
+              <p v-if="!compatibleInstances.length" class="no-compatible-hint">{{ t('mods.noCompatibleInstance') }}</p>
+            </section>
+
+            <!-- 下方：版本列表，逐条列出支持的版本，点击选中 -->
+            <section class="mod-version-section">
+              <div class="mod-section-title">
+                <UiIcon name="layers" :size="15" />
+                {{ t('mods.chooseVersion') }}
+              </div>
+              <template v-if="selectedMod.alternatives.length > 1">
+                <label>{{ t('mods.downloadSource') }}</label>
+                <NSelect
+                  v-model:value="selectedSourceKey"
+                  class="detail-source-select"
+                  :options="detailSourceOptions"
+                  @update:value="loadSelectedSource"
+                />
+              </template>
+              <div v-if="versions.length" class="version-list">
+                <button
+                  v-for="version in versions"
+                  :key="version.id"
+                  type="button"
+                  class="version-row"
+                  :class="{ selected: selectedFileId === version.id }"
+                  @click="selectedFileId = version.id"
+                >
+                  <span class="version-number">{{ version.versionNumber }}</span>
+                  <span class="version-filename">{{ version.filename }}</span>
+                  <span class="version-meta">
+                    {{ version.gameVersions.join(' · ') }}
+                    <template v-if="version.loaders.length">
+                      · {{ version.loaders.map(loaderName).join('/') }}
+                    </template>
+                  </span>
+                  <UiIcon v-if="selectedFileId === version.id" name="check" :size="15" class="version-check" />
+                </button>
+              </div>
+              <p v-else class="version-hint">{{ t('mods.noCompatibleVersion') }}</p>
+              <p class="version-hint">{{ t('mods.dependencyHint') }}</p>
+            </section>
           </div>
-        </div>
-      </NSpin>
+        </NSpin>
+      </div>
 
       <template #footer>
-        <div class="detail-footer">
-          <span v-if="instance" class="install-target">
-            {{ t('mods.installTo', { instance: instance.displayName }) }}
-          </span>
-          <NButton
-            type="primary"
-            :loading="installing"
-            :disabled="!selectedFileId || !instance || !installTargetReady"
-            @click="installSelected"
-          >
-            <template #icon><UiIcon name="download" :size="15" /></template>
-            {{ installProgress || t('mods.install') }}
+        <div class="mod-detail-footer">
+          <NButton secondary :disabled="!selectedFileId" :loading="savingAs" @click="handleSaveAs">
+            <template #icon><UiIcon name="save" :size="15" /></template>
+            {{ t('common.saveAs') }}
           </NButton>
+          <div class="mod-detail-install">
+            <span v-if="instance" class="install-target">
+              {{ t('mods.installTo', { instance: instance.displayName }) }}
+            </span>
+            <NButton
+              type="primary"
+              :loading="installing"
+              :disabled="!selectedFileId || !instance || !installTargetReady"
+              @click="installSelected"
+            >
+              <template #icon><UiIcon name="download" :size="15" /></template>
+              {{ installProgress || t('mods.install') }}
+            </NButton>
+          </div>
         </div>
       </template>
-    </Modal>
+    </FullscreenModal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { NAlert, NAvatar, NButton, NEmpty, NInput, NScrollbar, NSelect, NSpin, NTag } from 'naive-ui'
+import { NAlert, NButton, NEmpty, NInput, NScrollbar, NSelect, NSpin, NTag } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import backend from '@/api/client'
+import { unwrapResponse } from '@/app/runtime/errorPresentation'
 import { globalCache, CACHE_GROUPS, CACHE_KEYS } from '@/cache'
 import { useAutoRefreshCache } from '@/cache/composable'
-import Modal from '@/components/modals/Modal.vue'
+import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import ResourceInstanceSelect from '@/components/resources/ResourceInstanceSelect.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
@@ -345,6 +405,7 @@ const { loading, run } = useAsyncAction({ showSuccess: false, showError: false }
 
 const target = useResourceInstallTarget(props.resourceType, true)
 const instance = target.selectedInstance
+const compatibleInstances = target.compatibleInstances
 
 const query = ref('')
 const searched = ref(false)
@@ -363,6 +424,7 @@ const selectedSourceKey = ref('')
 const selectedFileId = ref<string | null>(null)
 const installing = ref(false)
 const installProgress = ref('')
+const savingAs = ref(false)
 
 const dragging = ref(false)
 let dragDepth = 0
@@ -557,13 +619,6 @@ const sourceWarnings = computed(() =>
     .map(([name, status]) => ({ name: name === 'mcmod' ? 'MCMOD百科' : sourceLabel(name), error: status.error }))
 )
 
-const versionOptions = computed(() =>
-  versions.value.map((version) => ({
-    label: `${version.versionNumber || version.name} · ${version.filename}`,
-    value: version.id,
-  }))
-)
-
 function sourceKey(value: ModSourceReference): string {
   return `${value.source}:${value.projectId}`
 }
@@ -578,6 +633,13 @@ const detailSourceOptions = computed(() =>
 const activeSourceRef = computed(
   () => selectedMod.value?.alternatives.find((platform) => sourceKey(platform) === selectedSourceKey.value) ?? null
 )
+
+// 弹窗内图标优先取项目详情（更完整），搜索命中兜底
+const detailIcon = computed(() => detailInfo.value?.iconUrl || selectedMod.value?.iconUrl || '')
+const iconError = ref(false)
+watch(detailIcon, () => {
+  iconError.value = false
+})
 
 const installTargetReady = computed(() => {
   if (props.resourceType !== 'datapack') return true
@@ -739,20 +801,36 @@ async function openDetails(mod: ModSearchItem) {
   detailInfo.value = null
   versions.value = []
   selectedFileId.value = null
+  // 先按所选模组的版本/加载器收紧实例列表，再打开弹窗触发版本加载
+  target.setCompatibleFilter({ gameVersions: mod.gameVersions, loaders: mod.loaders })
   detailsVisible.value = true
-  await loadSelectedSource()
 }
+
+// 弹窗关闭后清除兼容筛选，避免影响搜索页工具栏的实例选择
+watch(detailsVisible, (val) => {
+  if (!val) target.setCompatibleFilter(null)
+})
+
+// 打开弹窗、切换下载源或切换兼容实例时，按当前实例重新加载版本
+watch(
+  () => [detailsVisible.value, selectedSourceKey.value, instance.value?.path, instance.value?.versionId],
+  () => {
+    if (detailsVisible.value && selectedMod.value && activeSourceRef.value) {
+      void loadSelectedSource()
+    }
+  }
+)
 
 async function loadSelectedSource() {
   const inst = instance.value
   const platform = activeSourceRef.value
-  if (!inst || !platform) return
+  if (!platform) return
   detailInfo.value = null
   versions.value = []
   selectedFileId.value = null
   detailLoading.value = true
   try {
-    const loader = props.resourceType === 'mod' ? inst.primaryLoader : ''
+    const loader = props.resourceType === 'mod' ? (inst?.primaryLoader ?? '') : ''
     const [info, files] = await Promise.all([
       modApi.info({
         mod_id: platform.projectId,
@@ -762,7 +840,7 @@ async function loadSelectedSource() {
       modApi.versions({
         mod_id: platform.projectId,
         source: platform.source,
-        game_version: inst.vanillaName,
+        game_version: inst?.vanillaName ?? '',
         loader_type: loader,
         resource_type: props.resourceType,
       }),
@@ -828,6 +906,30 @@ async function installSelected() {
 async function openUrl(url: string) {
   if (!url) return
   await modApi.openUrl(url).catch((error) => message.error(getErrorMessage(error)))
+}
+
+async function handleSaveAs() {
+  const mod = selectedMod.value
+  const platform = activeSourceRef.value
+  const fileId = selectedFileId.value
+  if (!mod || !platform || !fileId) return
+  const selected = unwrapResponse(await backend.command('select_save_file', { purpose: 'mod-file' }), '选择保存位置')
+  if (!selected.path) return
+  savingAs.value = true
+  try {
+    await modApi.downloadToPath({
+      mod_id: platform.projectId,
+      source: platform.source,
+      file_id: fileId,
+      save_path: selected.path,
+      resource_type: props.resourceType,
+    })
+    message.success(t('mods.saveAsSuccess', { path: selected.path }))
+  } catch (error) {
+    message.error(getErrorMessage(error))
+  } finally {
+    savingAs.value = false
+  }
 }
 
 function handleDragEnter() {

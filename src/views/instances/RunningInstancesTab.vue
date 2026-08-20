@@ -544,9 +544,6 @@ async function handleConfirm() {
   height: 72px;
   margin-bottom: var(--s-xs);
   place-items: center;
-  border-radius: var(--r-lg);
-  background: var(--bg-base-alt);
-  color: var(--text-tertiary);
 }
 
 .running-empty strong {

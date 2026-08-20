@@ -23,8 +23,9 @@ const props = withDefaults(
     placeholder?: string
     showNoneOption?: boolean
     noneLabel?: string
+    compatibleOnly?: boolean
   }>(),
-  { placeholder: '', showNoneOption: false, noneLabel: '' }
+  { placeholder: '', showNoneOption: false, noneLabel: '', compatibleOnly: false }
 )
 
 const emit = defineEmits<{
@@ -34,7 +35,9 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const options = computed(() => {
-  const list = props.target.installableInstances.value.map((version) => ({
+  const list = (
+    props.compatibleOnly ? props.target.compatibleInstances.value : props.target.installableInstances.value
+  ).map((version) => ({
     label: `${version.displayName} · ${version.vanillaName} · ${version.primaryLoader}`,
     value: instanceKey(version),
   }))
