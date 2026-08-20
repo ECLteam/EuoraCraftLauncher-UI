@@ -7,6 +7,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AboutEntryRow: typeof import('./src/components/settings/AboutEntryRow.vue')['default']
     Avatar: typeof import('./src/components/ui/Avatar.vue')['default']
     AvatarRenderer: typeof import('./src/components/game/AvatarRenderer.vue')['default']
     Button: typeof import('./src/components/ui/Button.vue')['default']
@@ -14,7 +15,6 @@ declare module 'vue' {
     ConfirmDialog: typeof import('./src/components/modals/ConfirmDialog.vue')['default']
     ErrorBoundary: typeof import('./src/components/ErrorBoundary.vue')['default']
     ErrorModal: typeof import('./src/components/modals/ErrorModal.vue')['default']
-    FloatingTerminal: typeof import('./src/components/panels/FloatingTerminal.vue')['default']
     FullscreenModal: typeof import('./src/components/modals/FullscreenModal.vue')['default']
     GameAccountCard: typeof import('./src/components/game/GameAccountCard.vue')['default']
     GameInfoCard: typeof import('./src/components/game/GameInfoCard.vue')['default']
@@ -38,11 +38,11 @@ declare module 'vue' {
     LaunchProgressCard: typeof import('./src/components/game/LaunchProgressCard.vue')['default']
     MarkdownContent: typeof import('./src/components/ui/MarkdownContent.vue')['default']
     Modal: typeof import('./src/components/modals/Modal.vue')['default']
-    ModCard: typeof import('./src/components/mods/ModCard.vue')['default']
     OnlineModSearch: typeof import('./src/components/mods/OnlineModSearch.vue')['default']
     PageHeader: typeof import('./src/components/layout/PageHeader.vue')['default']
     PlayerList: typeof import('./src/components/connect/PlayerList.vue')['default']
     Progress: typeof import('./src/components/ui/Progress.vue')['default']
+    RequiredModDependencies: typeof import('./src/components/mods/RequiredModDependencies.vue')['default']
     ResourceInstanceSelect: typeof import('./src/components/resources/ResourceInstanceSelect.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
