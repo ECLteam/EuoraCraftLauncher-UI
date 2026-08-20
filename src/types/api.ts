@@ -1130,12 +1130,17 @@ export interface CommandPayloadMap {
     game_version: string
     source?: 'official' | 'bmclapi'
   }
+  game_fabric_api_versions: {
+    loader: 'fabric'
+    game_version: string
+  }
   game_scan: { paths?: string[]; force?: boolean }
   game_install: {
     version_id: string
     version_name?: string
     loader_type?: 'fabric' | 'forge' | 'neoforge' | 'quilt'
     loader_version?: string
+    fabric_api_version?: string
     task_id?: string
     game_path: string
     java_path?: string
@@ -1211,7 +1216,14 @@ export interface CommandPayloadMap {
   select_file: { purpose?: 'crash-analysis' | 'modpack' | 'world-import' } | undefined
   select_files: { purpose?: 'resource-files' }
   select_save_file: {
-    purpose: 'crash-report' | 'launcher-logs' | 'world-export' | 'instance-export' | 'resource-manifest' | 'screenshot'
+    purpose:
+      | 'crash-report'
+      | 'launcher-logs'
+      | 'world-export'
+      | 'instance-export'
+      | 'resource-manifest'
+      | 'screenshot'
+      | 'mod-file'
   }
   open_folder: { path: string }
   open_url: { url: string }
@@ -1439,6 +1451,14 @@ export interface CommandPayloadMap {
     world_id?: string
     task_id?: string
   }
+  download_mod_to_path: {
+    mod_id: string
+    source: 'modrinth' | 'curseforge'
+    file_id: string
+    save_path: string
+    resource_type?: string
+    task_id?: string
+  }
 
   // 启动器信息 / 页信息卡
   launcher_info: undefined
@@ -1490,6 +1510,7 @@ export const COMMAND_NAMES = {
   game_java_scan: 'game_java_scan',
   game_versions: 'game_versions',
   game_loader_versions: 'game_loader_versions',
+  game_fabric_api_versions: 'game_fabric_api_versions',
   game_scan: 'game_scan',
   game_install: 'game_install',
   game_uninstall: 'game_uninstall',
@@ -1648,6 +1669,7 @@ export const COMMAND_NAMES = {
   get_mod_info: 'get_mod_info',
   get_mod_versions: 'get_mod_versions',
   download_mod: 'download_mod',
+  download_mod_to_path: 'download_mod_to_path',
   launcher_info: 'launcher_info',
   info_card_get: 'info_card_get',
   debug_reset_launcher_data: 'debug_reset_launcher_data',
@@ -1705,6 +1727,7 @@ export interface CommandResponseMap {
 
   game_versions: MinecraftVersion[] | MinecraftVersionCatalog
   game_loader_versions: string[]
+  game_fabric_api_versions: string[]
   game_scan: ScannedVersion[]
   game_install: InstallVersionResult
   game_uninstall: void
@@ -1884,6 +1907,7 @@ export interface CommandResponseMap {
   get_mod_info: ModInfo
   get_mod_versions: ModVersion[]
   download_mod: ModInstallResult
+  download_mod_to_path: { filename: string }
 
   launcher_info: LauncherInfo
   info_card_get: InfoCardData

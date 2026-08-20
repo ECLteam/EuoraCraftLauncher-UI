@@ -523,7 +523,9 @@
       "forge": "Forge",
       "quilt": "Quilt",
       "loaderVersion": "加载器版本",
+      "fabricApiVersion": "Fabric API 版本",
       "latest": "最新",
+      "latestDefault": "默认安装最新版本",
       "startInstall": "开始安装",
       "installing": "正在安装...",
       "installQueued": "安装任务已开始",
@@ -1230,7 +1232,10 @@
     "installSuccess": "安装完成，共处理 {count} 个模组文件",
     "selectWorld": "选择目标存档",
     "noWorld": "当前实例暂无存档",
-    "dropToInstall": "松开以安装到当前实例"
+    "dropToInstall": "松开以安装到当前实例",
+    "selectCompatibleInstance": "选择兼容的实例：",
+    "noCompatibleInstance": "没有兼容此模组的实例",
+    "saveAsSuccess": "已保存到 {path}"
   },
   "auth": {
     "authlib": "Authlib 注入",
