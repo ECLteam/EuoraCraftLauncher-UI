@@ -5,29 +5,18 @@ import { ref } from 'vue'
 import UiSelect from '@/components/ui/Select.vue'
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
 import { i18n } from '@/i18n'
-import type {
-  ConnectorMatchResult,
-  ConnectorStatus,
-  EasyTierStatus,
-  GameInstance,
-  NatTypeResult,
-  ScannedVersion,
-} from '@/types/api'
+import type { ConnectorStatus, EasyTierStatus, GameInstance, NatTypeResult, ScannedVersion } from '@/types/api'
 import Connect from './Connect.vue'
 
 const mocks = vi.hoisted(() => ({
   useConnector: vi.fn(),
-  launchServer: vi.fn(),
   listRunningInstances: vi.fn(),
   onRunningChanged: vi.fn(),
+  writeClipboard: vi.fn(),
 }))
 
 vi.mock('@/features/connect/composables/useConnector', () => ({
   useConnector: mocks.useConnector,
-}))
-
-vi.mock('@/features/instances/api/instanceWorkspaceApi', () => ({
-  instanceWorkspaceApi: { launchServer: mocks.launchServer },
 }))
 
 vi.mock('@/features/instances/api/instanceRuntimeApi', () => ({
@@ -88,11 +77,9 @@ function connectorState(status: ConnectorStatus, available = true) {
       available ? { installed: true, status: 'installed', progress: 100, speed: 0, error: null } : null
     ),
     natType: ref<NatTypeResult | null>(null),
-    matchResult: ref<ConnectorMatchResult | null>(null),
     busy: ref(false),
     easyTierBusy: ref(false),
     natBusy: ref(false),
-    matching: ref(false),
     scanning: ref(false),
     detectedPort: ref(null),
     retryAvailability: vi.fn(),
@@ -105,7 +92,7 @@ function connectorState(status: ConnectorStatus, available = true) {
     downloadEasyTier: vi.fn(),
     startPortScan: vi.fn(),
     stopPortScan: vi.fn(),
-    refreshMatches: vi.fn(),
+    refreshStatus: vi.fn().mockResolvedValue(true),
   }
 }
 
@@ -125,9 +112,13 @@ function mountConnect(state: ReturnType<typeof connectorState>) {
 describe('Connect view', () => {
   beforeEach(() => {
     mocks.useConnector.mockReset()
-    mocks.launchServer.mockReset().mockResolvedValue(undefined)
     mocks.listRunningInstances.mockReset().mockResolvedValue([])
     mocks.onRunningChanged.mockReset().mockReturnValue(undefined)
+    mocks.writeClipboard.mockReset().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: mocks.writeClipboard },
+    })
   })
 
   it('keeps the room choices visible when the backend is unavailable', () => {
@@ -136,6 +127,36 @@ describe('Connect view', () => {
     expect(wrapper.text()).toContain('加入联机房间')
     expect(wrapper.text()).toContain('创建房间')
     expect(wrapper.get('#connect-room-code').attributes('disabled')).toBeDefined()
+  })
+
+  it('加入房间进行中禁用创建房间功能', async () => {
+    const state = connectorState(idleStatus())
+    state.busy.value = true
+    const wrapper = mountConnect(state)
+    await flushPromises()
+
+    const createCard = wrapper
+      .findAll('.connect-main-card')
+      .find((candidate) => candidate.text().includes('从已启动的实例创建联机房间'))
+
+    expect(createCard?.attributes('aria-disabled')).toBe('true')
+    expect(createCard?.findComponent(UiSelect).props('disabled')).toBe(true)
+    expect(createCard?.findAll('button').every((button) => button.attributes('disabled') !== undefined)).toBe(true)
+  })
+
+  it('加入房间成功后主动刷新一次成员', async () => {
+    const state = connectorState(idleStatus())
+    const wrapper = mountConnect(state)
+    await wrapper.get('#connect-room-code').setValue('U/TEST-ROOM')
+
+    await wrapper
+      .findAll('button')
+      .find((candidate) => candidate.text().includes('加入房间'))
+      ?.trigger('click')
+    await flushPromises()
+
+    expect(state.join).toHaveBeenCalledWith('U/TEST-ROOM')
+    expect(state.refreshStatus).toHaveBeenCalledTimes(1)
   })
 
   it('renders launch failures as a stable starting-state card', () => {
@@ -248,7 +269,7 @@ describe('Connect view', () => {
     expect(state.kick).toHaveBeenCalledWith(guest)
   })
 
-  it('quick-launches a matched guest instance against the forwarded address', async () => {
+  it('成员页不再显示游戏与模组匹配功能', () => {
     const state = connectorState({
       ...idleStatus(),
       mode: 'guest',
@@ -257,29 +278,25 @@ describe('Connect view', () => {
       mcPort: 25566,
       gameInfo: { gameVersion: '1.21.5', loader: 'Fabric', loaderVersion: '0.16.10' },
     })
-    state.matchResult.value = {
-      mods: [],
-      instances: [
-        {
-          gamePath: scannedVersion.path,
-          versionId: scannedVersion.versionId,
-          name: scannedVersion.displayName,
-          gameVersion: scannedVersion.vanillaName,
-          loader: scannedVersion.primaryLoader,
-          loaderVersion: scannedVersion.loaderVersion ?? null,
-          matched: true,
-          modCount: 0,
-        },
-      ],
-    }
     const wrapper = mountConnect(state)
 
-    const button = wrapper.findAll('button').find((candidate) => candidate.text().includes('快捷启动'))
-    await button?.trigger('click')
+    expect(wrapper.text()).not.toContain('游戏与模组匹配')
+    expect(wrapper.text()).not.toContain('快捷启动')
+  })
 
-    expect(mocks.launchServer).toHaveBeenCalledWith(
-      { game_path: scannedVersion.path, version_id: scannedVersion.versionId },
-      '127.0.0.1:25566'
+  it('成员页可以复制服务器地址', async () => {
+    const wrapper = mountConnect(
+      connectorState({
+        ...idleStatus(),
+        mode: 'guest',
+        roomCode: 'U/TEST-ROOM',
+        mcHost: '127.0.0.1',
+        mcPort: 25566,
+      })
     )
+
+    await wrapper.get('.connect-copy-value button').trigger('click')
+
+    expect(mocks.writeClipboard).toHaveBeenCalledWith('127.0.0.1:25566')
   })
 })

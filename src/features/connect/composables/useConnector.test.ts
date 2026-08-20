@@ -6,7 +6,6 @@ import { useConnector } from './useConnector'
 const api = vi.hoisted(() => ({
   status: vi.fn(),
   easyTierStatus: vi.fn(),
-  matchInstances: vi.fn(),
 }))
 
 vi.mock('@/features/connect/api/connectorApi', () => ({
@@ -50,7 +49,6 @@ describe('useConnector polling lifecycle', () => {
       speed: 0,
       error: null,
     })
-    api.matchInstances.mockResolvedValue({ mods: [], instances: [] })
   })
 
   afterEach(() => {

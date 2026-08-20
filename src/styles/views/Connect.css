@@ -125,6 +125,11 @@
   min-width: 0;
 }
 
+.connect-main-card--disabled {
+  opacity: 0.62;
+  transition: opacity 0.16s ease;
+}
+
 .connect-idle-primary {
   display: flex;
   max-width: 820px;
@@ -135,28 +140,28 @@
 }
 
 .connect-room-layout {
-  display: flex;
-  min-height: 100%;
-  gap: 14px;
-  align-items: flex-start;
-  justify-content: center;
-  max-width: 1120px;
-  margin: 14px auto;
+  display: grid;
+  width: min(100%, 1040px);
+  min-height: calc(100% - 20px);
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 16px;
+  align-items: stretch;
+  margin: 10px auto;
 }
 
 .connect-room-main {
   display: flex;
   min-width: 0;
-  flex: 3;
+  min-height: 410px;
   flex-direction: column;
 }
 
 .connect-side-panel {
   display: flex;
+  width: 280px;
   min-width: 0;
-  flex: 1;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
 .connect-side-card {
@@ -168,6 +173,117 @@
   min-width: 0;
   flex-direction: column;
   gap: 10px;
+}
+
+.connect-room-owner {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.connect-room-owner__identity {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.connect-room-owner__identity strong {
+  overflow: hidden;
+  color: var(--ecl-text);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.connect-room-owner__identity span {
+  color: var(--ecl-text-tertiary);
+  font-size: 9px;
+}
+
+.connect-room-summary-card,
+.connect-room-main {
+  box-shadow: 0 6px 22px color-mix(in srgb, var(--ecl-shadow-color, #172036) 9%, transparent);
+}
+
+.connect-room-summary-card :deep(.card-header),
+.connect-room-main :deep(.card-header) {
+  background: color-mix(in srgb, var(--primary) 4%, var(--card-bg));
+}
+
+.connect-room-summary-divider {
+  height: 1px;
+  background: var(--ecl-border);
+}
+
+.connect-card-heading--compact {
+  gap: 7px;
+}
+
+.connect-card-heading--compact > svg {
+  color: var(--primary);
+}
+
+.connect-room-code-block {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 9px;
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--ecl-border));
+  border-radius: var(--ecl-radius-control);
+  background: color-mix(in srgb, var(--primary) 6%, var(--ecl-surface-muted));
+}
+
+.connect-room-code-block > span {
+  color: var(--ecl-text-tertiary);
+  font-size: 9px;
+}
+
+.connect-room-code-block > div {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+}
+
+.connect-room-code-block code {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+  color: var(--ecl-text);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.connect-room-operation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.connect-room-operation-title {
+  margin-bottom: 2px;
+  color: var(--ecl-text-secondary);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.connect-room-operation-list :deep(.ui-btn) {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.connect-members-heading__icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 9px;
+  color: var(--primary);
 }
 
 .connect-side-status {
@@ -186,6 +302,28 @@
 
 .connect-side-status-row > span {
   color: var(--ecl-text-secondary);
+}
+
+.connect-copy-value {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.connect-copy-value code {
+  max-width: 150px;
+}
+
+.connect-side-status-row code {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ecl-text);
+  font-size: 10px;
+  font-weight: 550;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .connect-node-list {
@@ -495,8 +633,7 @@
   gap: 12px;
 }
 
-.connect-form > label,
-.connect-subtitle {
+.connect-form > label {
   color: var(--ecl-text-secondary);
   font-size: 10px;
   font-weight: 600;
@@ -753,12 +890,12 @@
 .connect-room-card :deep(.card-body) {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 0;
+  padding: 0;
 }
 
 .connect-room-card :deep(.connect-player-section) {
-  padding-top: 12px;
-  border-top: 1px solid var(--ecl-border);
+  flex: 1;
 }
 
 .connect-room-code-panel {
@@ -786,52 +923,47 @@
   white-space: nowrap;
 }
 
-:deep(.connect-section-title) {
-  justify-content: space-between;
-}
-
-:deep(.connect-section-title) strong {
-  color: var(--ecl-text);
-  font-size: 11px;
-}
-
-:deep(.connect-player-section),
-.connect-match-section,
-.connect-mod-list,
-.connect-instance-matches {
+:deep(.connect-player-section) {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 8px 12px 14px;
 }
 
-:deep(.connect-player-list),
-.connect-match-items {
+:deep(.connect-player-list) {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
-:deep(.connect-player-row),
-.connect-match-item {
+:deep(.connect-player-row) {
   display: flex;
   min-width: 0;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
-}
-
-.connect-match-item {
-  border: 1px solid var(--ecl-border);
-  border-radius: var(--ecl-radius-control);
-  background: var(--ecl-surface-muted);
+  padding: 10px 12px;
 }
 
 :deep(.connect-player-row) {
-  border-bottom: 1px solid var(--ecl-border);
+  min-height: 60px;
+  border: 1px solid transparent;
+  border-radius: var(--ecl-radius-control);
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease;
 }
 
-:deep(.connect-player-row):last-child {
-  border-bottom: none;
+:deep(.connect-player-row:hover) {
+  border-color: color-mix(in srgb, var(--primary) 18%, var(--ecl-border));
+  background: color-mix(in srgb, var(--primary) 4%, var(--ecl-surface-muted));
+}
+
+:deep(.connect-player-row.is-host) {
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
+}
+
+:deep(.connect-player-row .ui-avatar) {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 10%, transparent);
 }
 
 :deep(.connect-player-identity) {
@@ -856,79 +988,32 @@
   white-space: nowrap;
 }
 
-.connect-match-item strong {
-  overflow: hidden;
-  color: var(--ecl-text);
-  font-size: 11px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-:deep(.connect-player-identity) > span,
-.connect-match-item span {
+:deep(.connect-player-identity) > span {
   color: var(--ecl-text-tertiary);
   font-size: 9px;
 }
 
-.connect-match-section {
-  padding-top: 2px;
-  border-top: 1px solid var(--ecl-border);
+:deep(.connect-player-presence) {
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 14%, transparent);
 }
 
-.connect-inline-loading {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 12px 0;
-  color: var(--ecl-text-secondary);
-  font-size: 10px;
-}
+@media (max-width: 780px) {
+  .connect-room-layout {
+    grid-template-columns: 1fr;
+  }
 
-.connect-mod-items {
-  max-height: 150px;
-  overflow-y: auto;
-  border: 1px solid var(--ecl-border);
-  border-radius: var(--ecl-radius-control);
-}
+  .connect-room-sidebar {
+    width: 100%;
+  }
 
-.connect-mod-item {
-  display: grid;
-  min-height: 32px;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 9px;
-  border-bottom: 1px solid var(--ecl-border);
-  font-size: 10px;
-}
-
-.connect-mod-item:last-child {
-  border-bottom: none;
-}
-
-.connect-mod-item > span:first-child {
-  overflow: hidden;
-  color: var(--ecl-text);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.connect-mod-item code {
-  color: var(--ecl-text-tertiary);
-  font-size: 9px;
-}
-
-.connect-match-item > div {
-  display: flex;
-  min-width: 0;
-  flex: 1;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.connect-match-item.matched {
-  border-color: color-mix(in srgb, var(--success) 35%, transparent);
-  background: color-mix(in srgb, var(--success) 7%, var(--ecl-surface-muted));
+  .connect-room-main {
+    min-height: 360px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -1000,8 +1085,7 @@
     grid-column: 1 / -1;
   }
 
-  .connect-match-item {
-    align-items: stretch;
-    flex-direction: column;
+  .connect-room-sidebar {
+    display: flex;
   }
 }

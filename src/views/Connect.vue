@@ -128,7 +128,11 @@
                   </div>
                 </UiCard>
 
-                <UiCard class="connect-main-card">
+                <UiCard
+                  class="connect-main-card"
+                  :class="{ 'connect-main-card--disabled': busy }"
+                  :aria-disabled="busy"
+                >
                   <template #header>
                     <div class="connect-card-heading">
                       <UiIcon name="server" :size="18" />
@@ -142,7 +146,7 @@
                         size="sm"
                         icon="wifi"
                         :loading="natBusy"
-                        :disabled="availability !== 'available'"
+                        :disabled="availability !== 'available' || busy"
                         @click="detectNatWithNotify"
                       >
                         {{ t('connect.nat.detect') }}
@@ -159,14 +163,14 @@
                         :options="runningInstanceOptions"
                         :placeholder="t('connect.create.instancePlaceholder')"
                         searchable
-                        :disabled="!serviceReady"
+                        :disabled="createRoomDisabled"
                       />
-                      <UiButton variant="outline" icon="edit" :disabled="!serviceReady" @click="goToManualPort">
+                      <UiButton variant="outline" icon="edit" :disabled="createRoomDisabled" @click="goToManualPort">
                         {{ t('connect.create.manualPortEntry') }}
                       </UiButton>
                       <UiButton
                         icon="arrow-right"
-                        :disabled="!serviceReady || !selectedInstanceKey"
+                        :disabled="createRoomDisabled || !selectedInstanceKey"
                         @click="goToPortStep"
                       >
                         {{ t('connect.create.next') }}
@@ -183,7 +187,12 @@
                             <UiIcon name="game" :size="14" />
                             {{ instance.name || instance.versionId }}
                           </span>
-                          <UiButton size="sm" variant="outline" @click="quickCreate(instance)">
+                          <UiButton
+                            size="sm"
+                            variant="outline"
+                            :disabled="createRoomDisabled"
+                            @click="quickCreate(instance)"
+                          >
                             {{ t('connect.create.createRoom') }}
                           </UiButton>
                         </li>
@@ -208,14 +217,16 @@
                             {{ t('connect.create.runningGame', { name: selectedInstance.name }) }}
                           </span>
                         </div>
-                        <UiButton :loading="busy" :disabled="!serviceReady" @click="createDetectedPort">
+                        <UiButton :loading="busy" :disabled="createRoomDisabled" @click="createDetectedPort">
                           {{ t('connect.create.createRoom') }}
                         </UiButton>
                       </div>
                       <div v-else class="connect-scan-state">
                         <UiIcon name="info" :size="18" />
                         <span>{{ t('connect.create.noPort') }}</span>
-                        <UiButton size="sm" variant="text" @click="startPortScan">{{ t('common.refresh') }}</UiButton>
+                        <UiButton size="sm" variant="text" :disabled="createRoomDisabled" @click="startPortScan">
+                          {{ t('common.refresh') }}
+                        </UiButton>
                       </div>
                     </div>
                     <label for="connect-port">{{ t('connect.create.manualPort') }}</label>
@@ -226,14 +237,14 @@
                         type="number"
                         placeholder="25565"
                         :aria-label="t('connect.create.manualPort')"
-                        :disabled="!serviceReady"
+                        :disabled="createRoomDisabled"
                         @enter="createManualPort"
                       />
-                      <UiButton :loading="busy" :disabled="!serviceReady" @click="createManualPort">
+                      <UiButton :loading="busy" :disabled="createRoomDisabled" @click="createManualPort">
                         {{ t('connect.create.createRoom') }}
                       </UiButton>
                     </div>
-                    <button class="connect-mode-link" type="button" @click="goBackToInstanceStep">
+                    <button class="connect-mode-link" type="button" :disabled="busy" @click="goBackToInstanceStep">
                       <UiIcon name="arrow-left" :size="16" />
                       <span>{{ t('connect.create.back') }}</span>
                     </button>
@@ -259,212 +270,96 @@
             </div>
           </UiCard>
 
-          <div v-else-if="displayStatus.mode === 'host'" class="connect-room-layout">
+          <div v-else class="connect-room-layout" :class="`connect-room-layout--${displayStatus.mode}`">
             <UiCard class="connect-main-card connect-room-card connect-room-main">
               <template #header>
-                <div class="connect-card-heading">
-                  <UiIcon name="users" :size="18" />
+                <div class="connect-card-heading connect-members-heading">
+                  <span class="connect-members-heading__icon"><UiIcon name="users" :size="18" /></span>
                   <div>
                     <strong>{{ t('connect.players.title', { count: displayStatus.players.length }) }}</strong>
-                    <span>{{ t('connect.host.description') }}</span>
+                    <span>
+                      {{ t(displayStatus.mode === 'host' ? 'connect.host.description' : 'connect.guest.description') }}
+                    </span>
                   </div>
                 </div>
               </template>
-              <PlayerList :players="displayStatus.players" :hostControls="true" :busy="busy" @kick="kick" />
-              <div class="connect-room-actions">
-                <UiButton variant="outline" icon="refresh" :loading="busy" @click="() => refreshStatus()">
-                  {{ t('connect.players.refresh') }}
-                </UiButton>
-                <UiButton variant="danger" icon="logout" :loading="busy" @click="leave">
-                  {{ t('connect.host.close') }}
-                </UiButton>
-              </div>
+              <PlayerList
+                :players="displayStatus.players"
+                :hostControls="displayStatus.mode === 'host'"
+                :busy="busy"
+                @kick="kick"
+              />
             </UiCard>
-            <aside class="connect-side-panel">
-              <UiCard class="connect-side-card">
+
+            <aside class="connect-side-panel connect-room-sidebar">
+              <UiCard class="connect-side-card connect-room-summary-card">
                 <template #header>
-                  <div class="connect-card-heading">
-                    <UiIcon name="info" :size="18" />
-                    <div>
-                      <strong>{{ t('connect.roomInfo.title') }}</strong>
-                      <span>{{ t('connect.roomInfo.hint') }}</span>
-                    </div>
+                  <div class="connect-card-heading connect-card-heading--compact">
+                    <UiIcon name="info" :size="17" />
+                    <strong>{{ t('connect.roomInfo.title') }}</strong>
                   </div>
                 </template>
-                <div class="connect-side-status">
-                  <div class="connect-side-status-row">
-                    <span>{{ t('connect.join.roomCode') }}</span>
-                    <code>{{ displayStatus.roomCode }}</code>
-                  </div>
-                  <div class="connect-side-status-row">
+
+                <div class="connect-room-owner">
+                  <UiAvatar
+                    :src="hostPlayer?.iconBase64 ? `data:image/png;base64,${hostPlayer.iconBase64}` : undefined"
+                    :name="hostName || t('connect.host.title')"
+                    :size="38"
+                  />
+                  <div class="connect-room-owner__identity">
+                    <strong>{{ hostName || t('connect.host.title') }}</strong>
                     <span>{{ t('connect.roomInfo.creator') }}</span>
-                    <code>{{ hostName || t('connect.host.title') }}</code>
                   </div>
+                  <UiTag tone="info" size="tiny">{{ t('connect.players.host') }}</UiTag>
+                </div>
+
+                <div class="connect-room-summary-divider"></div>
+
+                <div class="connect-room-code-block">
+                  <span>{{ t('connect.join.roomCode') }}</span>
+                  <div>
+                    <code>{{ displayStatus.roomCode }}</code>
+                    <UiButton
+                      size="sm"
+                      variant="ghost"
+                      shape="square"
+                      icon="copy"
+                      :title="t('connect.copy')"
+                      @click="copyCurrentRoomCode"
+                    />
+                  </div>
+                </div>
+                <div class="connect-side-status">
                   <div v-if="displayStatus.gameInfo" class="connect-side-status-row">
                     <span>{{ t('connect.roomInfo.game') }}</span>
                     <code>{{ displayStatus.gameInfo.gameVersion }}</code>
                   </div>
-                </div>
-              </UiCard>
-              <UiCard class="connect-side-card">
-                <template #header>
-                  <div class="connect-card-heading">
-                    <UiIcon name="activity" :size="18" />
-                    <div>
-                      <strong>{{ t('connect.side.title') }}</strong>
-                      <span>{{ t('connect.side.hint') }}</span>
-                    </div>
-                  </div>
-                </template>
-                <div class="connect-side-status">
-                  <div class="connect-side-status-row">
-                    <span>{{ t('connect.side.service') }}</span>
-                    <UiTag :tone="easyTierTone" size="small">{{ easyTierPhaseText }}</UiTag>
-                  </div>
-                  <div class="connect-side-status-row">
-                    <span>{{ t('connect.side.availability') }}</span>
-                    <UiTag :tone="availabilityTone" size="small">{{ availabilityText }}</UiTag>
-                  </div>
-                </div>
-              </UiCard>
-            </aside>
-          </div>
-
-          <div v-else class="connect-room-layout">
-            <UiCard class="connect-main-card connect-room-card connect-room-main">
-              <template #header>
-                <div class="connect-card-heading">
-                  <UiIcon name="users" :size="18" />
-                  <div>
-                    <strong>{{ t('connect.players.title', { count: displayStatus.players.length }) }}</strong>
-                    <span>{{ t('connect.guest.description') }}</span>
-                  </div>
-                </div>
-              </template>
-              <PlayerList :players="displayStatus.players" />
-
-              <div class="connect-match-section">
-                <div class="connect-section-title">
-                  <strong>{{ t('connect.match.title') }}</strong>
-                  <UiButton size="sm" variant="text" icon="refresh" :loading="matching" @click="refreshMatches">
-                    {{ t('common.refresh') }}
-                  </UiButton>
-                </div>
-                <div v-if="matching && !matchResult" class="connect-inline-loading">
-                  <UiIcon name="spinner" class="spin" />
-                  {{ t('connect.match.loading') }}
-                </div>
-                <template v-else>
-                  <div class="connect-mod-list">
-                    <span class="connect-subtitle">{{
-                      t('connect.match.hostMods', { count: matchResult?.mods.length ?? 0 })
-                    }}</span>
-                    <div v-if="matchResult?.mods.length" class="connect-mod-items">
-                      <div v-for="mod in matchResult.mods" :key="`${mod.hash}-${mod.id}`" class="connect-mod-item">
-                        <span>{{ mod.name }}</span>
-                        <UiTag :tone="mod.source === 'modrinth' ? 'success' : 'warning'" size="tiny">{{
-                          mod.source
-                        }}</UiTag>
-                        <code>{{ mod.hash.slice(0, 8) }}</code>
-                      </div>
-                    </div>
-                    <span v-else class="connect-empty-text">{{ t('connect.match.noMods') }}</span>
-                  </div>
-                  <div class="connect-instance-matches">
-                    <span class="connect-subtitle">{{ t('connect.match.instances') }}</span>
-                    <div v-if="matchResult?.instances.length" class="connect-match-items">
-                      <div
-                        v-for="instance in matchResult.instances"
-                        :key="`${instance.gamePath}-${instance.versionId}`"
-                        class="connect-match-item"
-                        :class="{ matched: instance.matched }"
-                      >
-                        <div>
-                          <strong>{{ instance.name }}</strong>
-                          <span>
-                            {{ instance.gameVersion }} · {{ instance.loader || 'Vanilla' }} ·
-                            {{
-                              t(instance.matched ? 'connect.match.consistent' : 'connect.match.inconsistent', {
-                                count: instance.modCount,
-                              })
-                            }}
-                          </span>
-                        </div>
-                        <UiButton
-                          v-if="instance.matched"
-                          size="sm"
-                          icon="play"
-                          :loading="launchingKey === `${instance.gamePath}\u0000${instance.versionId}`"
-                          :disabled="Boolean(launchingKey)"
-                          @click="quickLaunch(instance)"
-                        >
-                          {{ t('connect.match.quickLaunch') }}
-                        </UiButton>
-                      </div>
-                    </div>
-                    <span v-else class="connect-empty-text">{{ t('connect.match.noInstances') }}</span>
-                  </div>
-                </template>
-              </div>
-
-              <div class="connect-room-actions">
-                <UiButton variant="outline" icon="refresh" :loading="busy" @click="() => refreshStatus()">
-                  {{ t('connect.players.refresh') }}
-                </UiButton>
-                <UiButton variant="danger" icon="logout" :loading="busy" @click="leave">
-                  {{ t('connect.guest.leave') }}
-                </UiButton>
-              </div>
-            </UiCard>
-            <aside class="connect-side-panel">
-              <UiCard class="connect-side-card">
-                <template #header>
-                  <div class="connect-card-heading">
-                    <UiIcon name="info" :size="18" />
-                    <div>
-                      <strong>{{ t('connect.roomInfo.title') }}</strong>
-                      <span>{{ t('connect.roomInfo.hint') }}</span>
-                    </div>
-                  </div>
-                </template>
-                <div class="connect-side-status">
-                  <div class="connect-side-status-row">
-                    <span>{{ t('connect.join.roomCode') }}</span>
-                    <code>{{ displayStatus.roomCode }}</code>
-                  </div>
-                  <div class="connect-side-status-row">
-                    <span>{{ t('connect.roomInfo.creator') }}</span>
-                    <code>{{ hostName || t('connect.host.title') }}</code>
-                  </div>
-                  <div v-if="displayStatus.gameInfo" class="connect-side-status-row">
-                    <span>{{ t('connect.roomInfo.game') }}</span>
-                    <code>{{ displayStatus.gameInfo.gameVersion }}</code>
-                  </div>
-                  <div class="connect-side-status-row">
+                  <div v-if="displayStatus.mode === 'guest'" class="connect-side-status-row">
                     <span>{{ t('connect.guest.serverAddress') }}</span>
-                    <code>{{ serverAddress }}</code>
-                  </div>
-                </div>
-              </UiCard>
-              <UiCard class="connect-side-card">
-                <template #header>
-                  <div class="connect-card-heading">
-                    <UiIcon name="activity" :size="18" />
-                    <div>
-                      <strong>{{ t('connect.side.title') }}</strong>
-                      <span>{{ t('connect.side.hint') }}</span>
+                    <div class="connect-copy-value">
+                      <code>{{ serverAddress }}</code>
+                      <UiButton
+                        size="sm"
+                        variant="ghost"
+                        shape="square"
+                        icon="copy"
+                        :title="t('connect.copy')"
+                        @click="copyServerAddress"
+                      />
                     </div>
                   </div>
-                </template>
-                <div class="connect-side-status">
-                  <div class="connect-side-status-row">
-                    <span>{{ t('connect.side.service') }}</span>
-                    <UiTag :tone="easyTierTone" size="small">{{ easyTierPhaseText }}</UiTag>
-                  </div>
-                  <div class="connect-side-status-row">
-                    <span>{{ t('connect.side.availability') }}</span>
-                    <UiTag :tone="availabilityTone" size="small">{{ availabilityText }}</UiTag>
-                  </div>
+                </div>
+
+                <div class="connect-room-summary-divider"></div>
+
+                <div class="connect-room-operation-list">
+                  <strong class="connect-room-operation-title">{{ t('connect.roomActions.title') }}</strong>
+                  <UiButton variant="ghost" icon="refresh" :loading="busy" @click="() => refreshStatus()">
+                    {{ t('connect.players.refresh') }}
+                  </UiButton>
+                  <UiButton variant="danger" icon="logout" :loading="busy" @click="leave">
+                    {{ t(displayStatus.mode === 'host' ? 'connect.host.close' : 'connect.guest.leave') }}
+                  </UiButton>
                 </div>
               </UiCard>
             </aside>
@@ -479,6 +374,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PlayerList from '@/components/connect/PlayerList.vue'
+import UiAvatar from '@/components/ui/Avatar.vue'
 import UiButton from '@/components/ui/Button.vue'
 import UiCard from '@/components/ui/Card.vue'
 import UiIcon from '@/components/ui/Icon.vue'
@@ -490,18 +386,14 @@ import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { useConnectFlowDebug } from '@/features/connect/composables/useConnectFlowDebug'
 import { useConnector } from '@/features/connect/composables/useConnector'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
-import { instanceWorkspaceApi } from '@/features/instances/api/instanceWorkspaceApi'
-import type { ConnectorMatchedInstance, GameInstance } from '@/types/api'
-import { getErrorMessage } from '@/utils/error'
+import type { GameInstance } from '@/types/api'
 
 const { t } = useI18n()
-type UiTagTone = 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info'
 const message = useLauncherMessage()
 const hostStep = ref<1 | 2>(1)
 const selectedInstanceKey = ref('')
 const port = ref('25565')
 const roomCode = ref('')
-const launchingKey = ref('')
 const runningInstances = ref<GameInstance[]>([])
 let unsubscribeRunning: (() => void) | null = null
 
@@ -510,11 +402,9 @@ const {
   status,
   easyTier,
   natType,
-  matchResult,
   busy,
   easyTierBusy,
   natBusy,
-  matching,
   scanning,
   scanPhase,
   detectedPort,
@@ -527,7 +417,6 @@ const {
   startPortScan,
   stopPortScan,
   refreshStatus,
-  refreshMatches,
 } = useConnector({ onError: (error) => message.error(error) })
 
 const {
@@ -568,39 +457,31 @@ async function loadRunningInstances(): Promise<void> {
 }
 
 const serviceReady = computed(() => availability.value === 'available' && Boolean(easyTier.value?.installed))
+const createRoomDisabled = computed(() => !serviceReady.value || busy.value)
 const isEasyTierWorking = computed(() =>
   ['resolving', 'downloading', 'extracting'].includes(easyTier.value?.status ?? '')
 )
 const easyTierPhaseText = computed(() => t(`connect.easyTier.${easyTier.value?.status ?? 'idle'}`))
-const easyTierTone = computed<UiTagTone>(() => {
-  const s = easyTier.value?.status
-  if (!s || s === 'idle') return 'default'
-  if (s === 'failed') return 'error'
-  if (s === 'installed') return 'success'
-  return 'info'
-})
-const availabilityTone = computed<UiTagTone>(() =>
-  availability.value === 'available' ? 'success' : availability.value === 'checking' ? 'info' : 'error'
-)
-const availabilityText = computed(() =>
-  availability.value === 'available'
-    ? t('connect.nav.available')
-    : availability.value === 'checking'
-      ? t('connect.nav.checking')
-      : t('connect.nav.unavailable')
-)
 const serverAddress = computed(
   () => `${displayStatus.value.mcHost || '127.0.0.1'}:${displayStatus.value.mcPort || 25565}`
 )
 const hostName = computed(() => displayStatus.value.players.find((p) => p.kind === 'host')?.name ?? '')
+const hostPlayer = computed(() => displayStatus.value.players.find((player) => player.kind === 'host'))
 
 async function detectNatWithNotify(): Promise<void> {
   await detectNat()
   const result = natType.value
   if (!result) return
-  const label = t(`connect.nat.${result.type}`)
-  const address = result.publicIp ? `${result.publicIp}${result.publicPort ? `:${result.publicPort}` : ''}` : ''
-  const content = address ? `${label} · ${address}` : label
+  const label = t(`connect.nat.${result.detailType ?? result.type}`)
+  const addressHost = result.publicIp?.includes(':') ? `[${result.publicIp}]` : result.publicIp
+  const portRange = result.publicPort
+    ? result.publicPortEnd && result.publicPortEnd !== result.publicPort
+      ? `${result.publicPort}-${result.publicPortEnd}`
+      : `${result.publicPort}`
+    : ''
+  const address = addressHost ? `${addressHost}${portRange ? `:${portRange}` : ''}` : ''
+  const parts = [label, address, result.supportsIpv6 ? t('connect.nat.ipv6Available') : ''].filter(Boolean)
+  const content = parts.join(' · ')
   if (result.type === 'cone') message.success(content, { title: t('connect.nat.resultTitle') })
   else if (result.type === 'symmetric' || result.type === 'blocked')
     message.warning(content, { title: t('connect.nat.resultTitle') })
@@ -608,6 +489,7 @@ async function detectNatWithNotify(): Promise<void> {
 }
 
 function goToPortStep(): void {
+  if (busy.value) return
   if (flowDebug.value) {
     applyDebugStage(stageIndex('create-port'))
     startPortScan()
@@ -623,13 +505,14 @@ function goToPortStep(): void {
 }
 
 function quickCreate(instance: GameInstance): void {
+  if (busy.value) return
   selectedInstanceKey.value = instance.id
   goToPortStep()
 }
 
 function goBackToInstanceStep(): void {
   if (flowDebug.value) {
-    applyDebugStage(stageIndex('create-instance'))
+    applyDebugStage(stageIndex('idle'))
     stopPortScan()
     return
   }
@@ -638,6 +521,7 @@ function goBackToInstanceStep(): void {
 }
 
 function goToManualPort(): void {
+  if (busy.value) return
   if (flowDebug.value) {
     applyDebugStage(stageIndex('create-port'))
     stopPortScan()
@@ -658,11 +542,13 @@ function validPort(): number | null {
 }
 
 async function createManualPort(): Promise<void> {
+  if (busy.value) return
   const parsed = validPort()
   if (parsed !== null) await hostPort(parsed)
 }
 
 async function createDetectedPort(): Promise<void> {
+  if (busy.value) return
   if (detectedPort.value !== null) await hostPort(detectedPort.value)
 }
 
@@ -672,7 +558,8 @@ async function joinRoom(): Promise<void> {
     message.warning(t('connect.validation.roomCode'))
     return
   }
-  await join(code)
+  const joined = await join(code)
+  if (joined) await refreshStatus()
 }
 
 async function pasteRoomCode(): Promise<void> {
@@ -684,24 +571,28 @@ async function pasteRoomCode(): Promise<void> {
   }
 }
 
-function clearRoomCode(): void {
-  roomCode.value = ''
+async function copyCurrentRoomCode(): Promise<void> {
+  const code = displayStatus.value.roomCode
+  if (!code) return
+  try {
+    await navigator.clipboard.writeText(code)
+    message.success(t('connect.copied'))
+  } catch {
+    message.error(t('connect.validation.copyFailed'))
+  }
 }
 
-async function quickLaunch(instance: ConnectorMatchedInstance): Promise<void> {
-  const key = `${instance.gamePath}\u0000${instance.versionId}`
-  launchingKey.value = key
+async function copyServerAddress(): Promise<void> {
   try {
-    await instanceWorkspaceApi.launchServer(
-      { game_path: instance.gamePath, version_id: instance.versionId },
-      serverAddress.value
-    )
-    message.success(t('connect.match.launched', { name: instance.name }))
-  } catch (error) {
-    message.error(getErrorMessage(error))
-  } finally {
-    launchingKey.value = ''
+    await navigator.clipboard.writeText(serverAddress.value)
+    message.success(t('connect.copied'))
+  } catch {
+    message.error(t('connect.validation.copyFailed'))
   }
+}
+
+function clearRoomCode(): void {
+  roomCode.value = ''
 }
 
 function formatSpeed(bytesPerSecond: number): string {

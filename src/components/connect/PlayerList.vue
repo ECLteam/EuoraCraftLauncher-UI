@@ -1,14 +1,16 @@
 <template>
   <section class="connect-player-section">
-    <div class="connect-section-title">
-      <strong>{{ t('connect.players.title', { count: players.length }) }}</strong>
-    </div>
     <div v-if="players.length" class="connect-player-list">
-      <div v-for="player in players" :key="player.machineId || player.name" class="connect-player-row">
+      <div
+        v-for="player in players"
+        :key="player.machineId || player.name"
+        class="connect-player-row"
+        :class="{ 'is-host': player.kind === 'host' }"
+      >
         <UiAvatar
           :src="player.iconBase64 ? `data:image/png;base64,${player.iconBase64}` : undefined"
           :name="player.name"
-          :size="34"
+          :size="40"
         />
         <div class="connect-player-identity">
           <div>
@@ -17,6 +19,7 @@
           </div>
           <span>{{ player.vendor }}</span>
         </div>
+        <span class="connect-player-presence" aria-hidden="true"></span>
         <UiButton
           v-if="hostControls && player.kind !== 'host'"
           variant="ghost"

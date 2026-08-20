@@ -1,7 +1,6 @@
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { connectorApi } from '@/features/connect/api/connectorApi'
 import type {
-  ConnectorMatchResult,
   ConnectorPlayer,
   ConnectorStatus,
   EasyTierStatus,
@@ -38,11 +37,9 @@ export function useConnector(options: UseConnectorOptions = {}) {
   const status = ref<ConnectorStatus>(idleStatus())
   const easyTier = ref<EasyTierStatus | null>(null)
   const natType = ref<NatTypeResult | null>(null)
-  const matchResult = ref<ConnectorMatchResult | null>(null)
   const busy = ref(false)
   const easyTierBusy = ref(false)
   const natBusy = ref(false)
-  const matching = ref(false)
   const scanning = ref(false)
   const detectedPort = ref<number | null>(null)
   const scanPhase = ref<'detecting' | 'searching'>('detecting')
@@ -124,7 +121,6 @@ export function useConnector(options: UseConnectorOptions = {}) {
   async function leave(): Promise<boolean> {
     const succeeded = await runAction(() => connectorApi.leave())
     if (succeeded) {
-      matchResult.value = null
       detectedPort.value = null
       candidatePorts.value = []
       scanPhase.value = 'detecting'
@@ -208,31 +204,11 @@ export function useConnector(options: UseConnectorOptions = {}) {
     scanning.value = false
   }
 
-  async function refreshMatches(): Promise<void> {
-    if (status.value.mode !== 'guest') return
-    matching.value = true
-    try {
-      matchResult.value = await connectorApi.matchInstances()
-    } catch {
-      matchResult.value = null
-    } finally {
-      matching.value = false
-    }
-  }
-
   watch(
     () => status.value.mode,
     (mode) => {
       clearTimer(statusTimer)
       statusTimer = mode === 'idle' ? null : setInterval(() => void refreshStatus(), STATUS_POLL_MS)
-      if (mode !== 'guest') matchResult.value = null
-    }
-  )
-
-  watch(
-    () => [status.value.mode, status.value.roomCode] as const,
-    ([mode]) => {
-      if (mode === 'guest') void refreshMatches()
     }
   )
 
@@ -260,11 +236,9 @@ export function useConnector(options: UseConnectorOptions = {}) {
     status,
     easyTier,
     natType,
-    matchResult,
     busy,
     easyTierBusy,
     natBusy,
-    matching,
     scanning,
     scanPhase,
     detectedPort,
@@ -280,6 +254,5 @@ export function useConnector(options: UseConnectorOptions = {}) {
     downloadEasyTier,
     startPortScan,
     stopPortScan,
-    refreshMatches,
   }
 }

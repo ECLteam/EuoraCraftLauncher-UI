@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n'
 import { useFlowDebug } from '@/composables/useFlowDebug'
 import type { ConnectorStatus } from '@/types/api'
 
-type DebugStageKey = 'idle' | 'create-instance' | 'create-port' | 'starting' | 'host' | 'guest'
+type DebugStageKey = 'idle' | 'create-port' | 'starting' | 'host' | 'guest'
 
 interface FlowDebugInputs {
   status: Ref<ConnectorStatus>
@@ -15,7 +15,7 @@ interface FlowDebugInputs {
 /**
  * Connect 页面的流程调试状态。
  *
- * 开启流程调试后可用 mock 状态自由切换各阶段（idle / 创建实例 / 创建端口 /
+ * 开启流程调试后可用 mock 状态自由切换各阶段（idle / 创建端口 /
  * starting / host / guest），并派生 display* 计算属性供模板渲染。
  */
 export function useConnectFlowDebug({ status, hostStep, detectedPort, scanning }: FlowDebugInputs) {
@@ -28,7 +28,6 @@ export function useConnectFlowDebug({ status, hostStep, detectedPort, scanning }
 
   const debugStages = computed<{ key: DebugStageKey; label: string }[]>(() => [
     { key: 'idle', label: t('connect.debug.idle') },
-    { key: 'create-instance', label: t('connect.debug.createInstance') },
     { key: 'create-port', label: t('connect.debug.createPort') },
     { key: 'starting', label: t('connect.debug.starting') },
     { key: 'host', label: t('connect.debug.host') },
@@ -76,10 +75,6 @@ export function useConnectFlowDebug({ status, hostStep, detectedPort, scanning }
     const key = debugStages.value[index]!.key
     switch (key) {
       case 'idle':
-        stageOverride.value = mockIdleStatus()
-        hostStepOverride.value = 1
-        break
-      case 'create-instance':
         stageOverride.value = mockIdleStatus()
         hostStepOverride.value = 1
         break
