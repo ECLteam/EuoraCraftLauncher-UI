@@ -110,6 +110,7 @@
       v-model:visible="showInstallDialog"
       v-model:versionName="installForm.versionName"
       v-model:loaderVersion="installForm.loaderVersion"
+      v-model:fabricApiVersion="installForm.fabricApiVersion"
       v-model:gamePath="installForm.gamePath"
       :mcVersion="installForm.mcVersion"
       :versionTypeLabel="installVersionTypeLabel"
@@ -118,6 +119,8 @@
       :loader="installForm.loader"
       :loaderVersionOptions="getLoaderVersionOptions(installForm.loader)"
       :loaderVersionsLoading="loaderVersionsLoading"
+      :fabricApiVersionOptions="fabricApiVersionOptions"
+      :fabricApiVersionsLoading="fabricApiVersionsLoading"
       :gamePaths="gamePaths"
       :loaders="loaders"
       :isInstalling="isInstalling"
@@ -166,6 +169,8 @@ const settingsStore = useSettingsStore()
 const {
   loaderVersions,
   loaderVersionsLoading,
+  fabricApiVersions,
+  fabricApiVersionsLoading,
   installingVersionId: downloading,
   isInstalling,
 } = storeToRefs(installStore)
@@ -217,6 +222,14 @@ async function loadQuiltVersions(gameVersion: string) {
   await loadLoaderVersions('quilt', gameVersion)
 }
 
+async function loadFabricApiVersions(gameVersion: string) {
+  try {
+    await installStore.loadFabricApiVersions(gameVersion)
+  } catch (e: unknown) {
+    console.error('获取 Fabric API 版本失败:', e)
+  }
+}
+
 const scrollContainerRef = ref<HTMLElement | null>(null)
 const visibleRange = ref({ start: 0, end: 20 })
 const itemHeight = 56
@@ -229,6 +242,7 @@ const installForm = ref({
   versionName: '',
   loader: 'vanilla',
   loaderVersion: '',
+  fabricApiVersion: '',
   gamePath: '',
 })
 
@@ -333,6 +347,7 @@ async function fetchLoaderVersions() {
   switch (installForm.value.loader) {
     case 'fabric':
       await loadFabricVersions(mc)
+      await loadFabricApiVersions(mc)
       break
     case 'forge':
       await loadForgeVersions(mc)
@@ -348,11 +363,22 @@ async function fetchLoaderVersions() {
 
 function getLoaderVersionOptions(loader: string) {
   if (!['fabric', 'forge', 'neoforge', 'quilt'].includes(loader)) return []
-  return loaderVersions.value[loader as InstallableLoader].map((version) => ({
+  return [
+    { label: t('versions.download.latestDefault'), value: '' },
+    ...loaderVersions.value[loader as InstallableLoader].map((version) => ({
+      label: version,
+      value: version,
+    })),
+  ]
+}
+
+const fabricApiVersionOptions = computed(() => [
+  { label: t('versions.download.latestDefault'), value: '' },
+  ...fabricApiVersions.value.map((version) => ({
     label: version,
     value: version,
-  }))
-}
+  })),
+])
 
 const defaultGamePath = ref('')
 const gamePaths = ref<{ value: string; label: string }[]>([])
@@ -390,6 +416,7 @@ function openInstallWithVersion(versionId: string) {
     versionName: '',
     loader: 'vanilla',
     loaderVersion: '',
+    fabricApiVersion: '',
     gamePath: defaultGamePath.value,
   }
   showInstallDialog.value = true
@@ -405,6 +432,7 @@ const defaultVersionName = computed(() => {
 function selectLoader(loader: string) {
   installForm.value.loader = loader
   installForm.value.loaderVersion = ''
+  installForm.value.fabricApiVersion = ''
   installStore.clearLoaderVersions()
   if (loader !== 'vanilla') {
     fetchLoaderVersions()
@@ -469,6 +497,9 @@ async function doInstall() {
     if (loader !== 'vanilla') {
       params.loader_type = loader as 'fabric' | 'forge' | 'neoforge' | 'quilt'
       params.loader_version = loaderVersion
+      if (loader === 'fabric' && installForm.value.fabricApiVersion) {
+        params.fabric_api_version = installForm.value.fabricApiVersion
+      }
     }
 
     await installStore.install(versionId, params)

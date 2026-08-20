@@ -52,6 +52,13 @@ export const instanceInstallApi = {
     )
   },
 
+  async getFabricApiVersions(gameVersion: string): Promise<string[]> {
+    return assertSuccess(
+      await backend.command('game_fabric_api_versions', { loader: 'fabric', game_version: gameVersion }),
+      '获取 Fabric API 版本'
+    )
+  },
+
   async scan(paths: string[], options: { force?: boolean } = {}): Promise<ScannedVersion[]> {
     ensureVersionChangeListener()
     const requestedPaths = [...new Set(paths.filter((path) => path.trim()))]

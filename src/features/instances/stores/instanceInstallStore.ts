@@ -10,9 +10,12 @@ export const useInstanceInstallStore = defineStore('version-install', () => {
     neoforge: [],
     quilt: [],
   })
+  const fabricApiVersions = ref<string[]>([])
+  const fabricApiVersionsLoading = ref(false)
   const loaderVersionsLoading = ref(false)
   const installingVersionId = ref<string | null>(null)
   let loaderRequestId = 0
+  let fabricApiRequestId = 0
 
   const isInstalling = computed(() => installingVersionId.value !== null)
 
@@ -32,11 +35,28 @@ export const useInstanceInstallStore = defineStore('version-install', () => {
     }
   }
 
+  async function loadFabricApiVersions(gameVersion: string): Promise<string[]> {
+    if (!gameVersion) {
+      fabricApiVersions.value = []
+      return []
+    }
+    const requestId = ++fabricApiRequestId
+    fabricApiVersionsLoading.value = true
+    try {
+      const result = (await instanceInstallApi.getFabricApiVersions(gameVersion)).slice(0, 20)
+      if (requestId === fabricApiRequestId) fabricApiVersions.value = result
+      return result
+    } finally {
+      if (requestId === fabricApiRequestId) fabricApiVersionsLoading.value = false
+    }
+  }
+
   function clearLoaderVersions(): void {
     loaderVersions.fabric = []
     loaderVersions.forge = []
     loaderVersions.neoforge = []
     loaderVersions.quilt = []
+    fabricApiVersions.value = []
   }
 
   function hasVersionConflict(gamePath: string, versionName: string): Promise<boolean> {
@@ -54,10 +74,13 @@ export const useInstanceInstallStore = defineStore('version-install', () => {
 
   return {
     loaderVersions,
+    fabricApiVersions,
+    fabricApiVersionsLoading,
     loaderVersionsLoading,
     installingVersionId,
     isInstalling,
     loadLoaderVersions,
+    loadFabricApiVersions,
     clearLoaderVersions,
     hasVersionConflict,
     install,

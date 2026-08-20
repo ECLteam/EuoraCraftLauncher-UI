@@ -60,15 +60,11 @@
   width: 52px;
   height: 52px;
   margin-right: 13px;
-  color: var(--ecl-primary);
-  background: var(--ecl-primary-alpha);
-  border: 1px solid var(--ecl-border);
-  border-radius: var(--ecl-radius-control);
 }
 
 .install-version-icon img {
-  width: 42px;
-  height: 42px;
+  width: 52px;
+  height: 52px;
   object-fit: contain;
   image-rendering: pixelated;
 }

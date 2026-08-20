@@ -77,14 +77,32 @@
           />
         </label>
 
-        <label v-if="loader !== 'vanilla'" class="install-field install-field-wide">
+        <label v-if="loader === 'fabric'" class="install-field">
           <span>{{ t('versions.download.loaderVersion') }}</span>
           <NSelect
             :value="loaderVersion"
             :options="loaderVersionOptions"
             :loading="loaderVersionsLoading"
-            :placeholder="loaderVersionsLoading ? t('common.loading') : t('versions.download.latest')"
-            clearable
+            @update:value="emit('update:loaderVersion', String($event || ''))"
+          />
+        </label>
+
+        <label v-if="loader === 'fabric'" class="install-field">
+          <span>{{ t('versions.download.fabricApiVersion') }}</span>
+          <NSelect
+            :value="fabricApiVersion"
+            :options="fabricApiVersionOptions"
+            :loading="fabricApiVersionsLoading"
+            @update:value="emit('update:fabricApiVersion', String($event || ''))"
+          />
+        </label>
+
+        <label v-else-if="loader !== 'vanilla'" class="install-field install-field-wide">
+          <span>{{ t('versions.download.loaderVersion') }}</span>
+          <NSelect
+            :value="loaderVersion"
+            :options="loaderVersionOptions"
+            :loading="loaderVersionsLoading"
             @update:value="emit('update:loaderVersion', String($event || ''))"
           />
         </label>
@@ -128,6 +146,9 @@ const props = defineProps<{
   loaderVersion: string
   loaderVersionOptions: SelectOption[]
   loaderVersionsLoading: boolean
+  fabricApiVersion: string
+  fabricApiVersionOptions: SelectOption[]
+  fabricApiVersionsLoading: boolean
   gamePath: string
   gamePaths: SelectOption[]
   loaders: InstallLoaderOption[]
@@ -138,6 +159,7 @@ const emit = defineEmits<{
   'update:visible': [value: boolean]
   'update:versionName': [value: string]
   'update:loaderVersion': [value: string]
+  'update:fabricApiVersion': [value: string]
   'update:gamePath': [value: string]
   selectLoader: [value: string]
   install: []

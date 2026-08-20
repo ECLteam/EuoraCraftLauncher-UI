@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import { NSelect } from 'naive-ui'
 import { describe, expect, it } from 'vitest'
 import { i18n } from '@/i18n'
 import InstanceInstallModal from './InstanceInstallModal.vue'
@@ -11,7 +12,7 @@ const loaders = [
   { value: 'quilt', label: 'Quilt', icon: 'grid', image: '/img/item/quilt.png' },
 ]
 
-function mountModal() {
+function mountModal(overrides: Record<string, unknown> = {}) {
   return mount(InstanceInstallModal, {
     global: {
       plugins: [i18n],
@@ -28,10 +29,14 @@ function mountModal() {
       loaderVersion: '',
       loaderVersionOptions: [],
       loaderVersionsLoading: false,
+      fabricApiVersion: '',
+      fabricApiVersionOptions: [],
+      fabricApiVersionsLoading: false,
       gamePath: 'D:/Minecraft',
       gamePaths: [{ value: 'D:/Minecraft', label: 'Minecraft' }],
       loaders,
       isInstalling: false,
+      ...overrides,
     },
   })
 }
@@ -54,5 +59,33 @@ describe('InstanceInstallModal', () => {
 
     expect(wrapper.emitted('selectLoader')).toContainEqual(['forge'])
     expect(wrapper.emitted('install')).toHaveLength(1)
+  })
+
+  it('shows fabric api version dropdown beside loader version when fabric is selected', () => {
+    const wrapper = mountModal({
+      loader: 'fabric',
+      loaderVersionOptions: [
+        { label: '默认安装最新版本', value: '' },
+        { label: '0.16.14', value: '0.16.14' },
+      ],
+      fabricApiVersionOptions: [
+        { label: '默认安装最新版本', value: '' },
+        { label: '0.119.2', value: '0.119.2' },
+      ],
+    })
+
+    const labels = wrapper.findAll('.install-field > span').map((node) => node.text())
+    expect(labels).toContain('加载器版本')
+    expect(labels).toContain('Fabric API 版本')
+  })
+
+  it('emits fabric api version updates', async () => {
+    const wrapper = mountModal({ loader: 'fabric' })
+
+    const fabricApiField = wrapper.findAll('.install-field')[3]
+    const fabricApiSelect = fabricApiField?.findComponent(NSelect)
+    fabricApiSelect?.vm.$emit('update:value', '0.119.2')
+
+    expect(wrapper.emitted('update:fabricApiVersion')).toContainEqual(['0.119.2'])
   })
 })
