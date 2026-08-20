@@ -36,6 +36,9 @@ describe('instanceInstallApi scan cache', () => {
       force: true,
     })
 
+    await instanceInstallApi.scan(['D:\\Minecraft'])
+    expect(mocks.command).toHaveBeenCalledTimes(2)
+
     mocks.handlers['game:versions_changed']?.({ gamePath: 'D:/Minecraft' })
     expect(changed).toHaveBeenCalledWith({ gamePath: 'D:/Minecraft' })
     await instanceInstallApi.scan(['D:\\Minecraft'])

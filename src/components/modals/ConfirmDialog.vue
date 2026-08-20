@@ -16,7 +16,12 @@
       <NButton :disabled="loading" @click="cancel">
         {{ cancelText || t('modal.cancel') }}
       </NButton>
-      <NButton :type="danger ? 'error' : 'primary'" :loading="loading" @click="confirm">
+      <NButton
+        :type="danger ? 'error' : 'primary'"
+        :loading="loading"
+        :disabled="loading || confirmDisabled"
+        @click="confirm"
+      >
         {{ confirmText || t('modal.confirm') }}
       </NButton>
     </template>
@@ -37,6 +42,7 @@ const props = withDefaults(
     cancelText?: string
     danger?: boolean
     loading?: boolean
+    confirmDisabled?: boolean
     closeOnConfirm?: boolean
   }>(),
   {
@@ -45,6 +51,7 @@ const props = withDefaults(
     cancelText: '',
     danger: false,
     loading: false,
+    confirmDisabled: false,
     closeOnConfirm: true,
   }
 )
@@ -68,7 +75,7 @@ function cancel() {
 }
 
 function confirm() {
-  if (props.loading) return
+  if (props.loading || props.confirmDisabled) return
   emit('confirm')
   if (props.closeOnConfirm) emit('update:visible', false)
 }

@@ -43,4 +43,15 @@ describe('ConfirmDialog', () => {
     expect(wrapper.emitted('update:visible')).toBeUndefined()
     wrapper.unmount()
   })
+
+  it('禁用确认时不会发出操作事件', async () => {
+    const wrapper = mountDialog({ confirmDisabled: true })
+    const buttons = document.body.querySelectorAll('button')
+
+    await buttons[buttons.length - 1]?.click()
+
+    expect(wrapper.emitted('confirm')).toBeUndefined()
+    expect(wrapper.emitted('update:visible')).toBeUndefined()
+    wrapper.unmount()
+  })
 })

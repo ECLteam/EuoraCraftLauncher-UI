@@ -18,10 +18,6 @@
           <main class="fullscreen-modal-body">
             <slot />
           </main>
-
-          <footer v-if="showFooter" class="fullscreen-modal-footer">
-            <slot name="footer" />
-          </footer>
         </div>
       </div>
     </Transition>

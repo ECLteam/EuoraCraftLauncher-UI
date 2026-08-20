@@ -141,6 +141,7 @@ export const ICON_MAP: Record<string, string> = {
   shield: 'shield',
   circle: 'circle',
   package: 'package',
+  packages: 'packages',
   shirt: 'shirt',
   wardrobe: 'hanger-2',
 }

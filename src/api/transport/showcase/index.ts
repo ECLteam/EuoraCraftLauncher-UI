@@ -278,7 +278,14 @@ export function createShowcaseTransport(): BackendTransport {
       case 'connector_search_mc_port':
         return success({ port: portScanCount >= 2 ? 25565 : null })
       case 'connector_nat_type':
-        return success({ type: 'cone', publicIp: '203.0.113.42', publicPort: 51820 })
+        return success({
+          type: 'cone',
+          detailType: 'portRestricted',
+          publicIp: '203.0.113.42',
+          publicPort: 51820,
+          publicPortEnd: 51820,
+          supportsIpv6: true,
+        })
       case 'frontend_ready':
         return success()
       case 'debug_reset_launcher_data':
@@ -643,7 +650,8 @@ export function createShowcaseTransport(): BackendTransport {
         ])
       case 'get_mod_info':
         return success({
-          ...(showcaseMods.find((item) => item.id === payload.mod_id) ?? showcaseMods[0]),
+          ...(showcaseMods.find((item) => item.id === payload.mod_id || item.projectId === payload.mod_id) ??
+            showcaseMods[0]),
           body: 'Showcase 模组详情。',
           loaders: ['fabric', 'quilt'],
           gameVersions: ['1.21.5', '1.21.4'],
@@ -660,6 +668,25 @@ export function createShowcaseTransport(): BackendTransport {
             filename: 'showcase-mod.jar',
             downloads: 1024,
             releaseType: 'release',
+            dependencies: [
+              {
+                projectId: 'fabric-api',
+                versionId: null,
+                filename: null,
+                dependencyType: 'required',
+              },
+            ],
+          },
+          {
+            id: 'showcase-mod-version-snapshot',
+            projectId: String(payload.mod_id ?? 'sodium'),
+            name: 'Showcase 1.1.0-snapshot',
+            versionNumber: '1.1.0-snapshot',
+            gameVersions: ['26w29a'],
+            loaders: ['fabric'],
+            filename: 'showcase-mod-snapshot.jar',
+            downloads: 512,
+            releaseType: 'beta',
           },
         ])
       case 'download_mod':

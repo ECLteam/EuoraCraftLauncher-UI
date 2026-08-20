@@ -79,7 +79,7 @@ const version: ScannedVersion = {
   jsonPath: 'D:/Games/.minecraft/versions/1.21.5/1.21.5.json',
 }
 
-function mountModal(initialTab: 'overview' | 'mods' | 'settings' = 'settings') {
+function mountModal(initialTab: 'overview' | 'mods' | 'settings' = 'settings', targetVersion = version) {
   return mount(InstanceDetailModal, {
     global: {
       plugins: [i18n],
@@ -87,7 +87,7 @@ function mountModal(initialTab: 'overview' | 'mods' | 'settings' = 'settings') {
     },
     props: {
       visible: true,
-      version,
+      version: targetVersion,
       initialTab,
     },
   })
@@ -134,6 +134,29 @@ describe('InstanceDetailModal', () => {
       versionId: '1.21.5',
       path: 'D:/Games/.minecraft',
     })
+  })
+
+  it('hides mod management for a vanilla instance and falls back to overview', async () => {
+    const wrapper = mountModal('mods')
+    await flushPromises()
+
+    expect(wrapper.findAll('.vdm-tab-button').some((button) => button.text().includes('模组管理'))).toBe(false)
+    expect(wrapper.find('.overview-page').exists()).toBe(true)
+  })
+
+  it('shows mod management for a mod-loader instance', async () => {
+    const fabricVersion: ScannedVersion = {
+      ...version,
+      id: 'fabric-loader-0.16.14-1.21.5',
+      versionId: 'fabric-loader-0.16.14-1.21.5',
+      displayName: '1.21.5 Fabric',
+      primaryLoader: 'Fabric',
+      hasFabric: true,
+    }
+    const wrapper = mountModal('overview', fabricVersion)
+    await flushPromises()
+
+    expect(wrapper.findAll('.vdm-tab-button').some((button) => button.text().includes('模组管理'))).toBe(true)
   })
 
   it('switches from version settings to the compact overview page', async () => {

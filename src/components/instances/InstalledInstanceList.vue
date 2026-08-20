@@ -260,6 +260,7 @@ import InstanceIcon from '@/components/instances/InstanceIcon.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { getLoaderClass, getLoaderName, getVersionLabelKey } from '@/config/version'
 import { instanceProfileApi, targetFromVersion } from '@/features/instances/api/instanceProfileApi'
+import { hasModLoader } from '@/features/instances/model/instanceCapabilities'
 import { filterAndSortInstances, instanceDisplayName } from '@/features/instances/model/instancePresentation'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import type { InstanceCategory, InstanceSortKey, ScannedVersion } from '@/types/api'
@@ -315,7 +316,7 @@ const actionOptions = computed<DropdownOption[]>(() => [
     key: 'manage',
     icon: icon('layout-grid'),
     children: [
-      { label: 'Mod 管理', key: 'mods', icon: icon('cube') },
+      ...(hasModLoader(menuVersion.value) ? [{ label: 'Mod 管理', key: 'mods', icon: icon('cube') }] : []),
       { label: '存档管理', key: 'worlds', icon: icon('globe') },
       { label: '截图管理', key: 'screenshots', icon: icon('photo') },
       { label: '服务器管理', key: 'servers', icon: icon('server') },

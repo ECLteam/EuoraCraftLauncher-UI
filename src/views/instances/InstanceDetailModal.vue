@@ -52,7 +52,7 @@
             <InstanceDetailProfileTab :version="version" :visible="visible" @updated="emit('updated')" />
           </div>
 
-          <div v-if="activeTab === 'mods'" class="vdm-page mods-page">
+          <div v-if="activeTab === 'mods' && isModdedInstance" class="vdm-page mods-page">
             <InstanceDetailModsTab :version="version" @openOnlineSearch="handleOnlineSearch" />
           </div>
 
@@ -145,6 +145,7 @@ import { getLoaderName } from '@/config/version'
 import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
 import { instanceProfileApi, targetFromVersion } from '@/features/instances/api/instanceProfileApi'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
+import { hasModLoader } from '@/features/instances/model/instanceCapabilities'
 import type { ScannedVersion, VersionRunStats, WorldEntry } from '@/types/api'
 
 interface Props {
@@ -206,19 +207,25 @@ const statsLoading = ref(false)
 const crashAnalyzing = ref(false)
 let statsRequestId = 0
 
-const tabs = computed(() => [
-  { id: 'overview' as const, icon: 'info', label: t('versions.detail.overview') },
-  { id: 'mods' as const, icon: 'cube', label: 'Mod' },
-  { id: 'resourcepacks' as const, icon: 'package', label: '资源包' },
-  { id: 'shaderpacks' as const, icon: 'sun', label: '光影包' },
-  { id: 'datapacks' as const, icon: 'archive', label: '数据包' },
-  { id: 'schematics' as const, icon: 'grid', label: '原理图' },
-  { id: 'worlds' as const, icon: 'globe', label: '存档' },
-  { id: 'screenshots' as const, icon: 'photo', label: '截图' },
-  { id: 'servers' as const, icon: 'server', label: '服务器' },
-  { id: 'profile' as const, icon: 'brush', label: '个性化' },
-  { id: 'settings' as const, icon: 'settings', label: t('versions.detail.settings') },
-])
+const isModdedInstance = computed(() => hasModLoader(props.version))
+const tabs = computed(() => {
+  const items: Array<{ id: DetailTab; icon: string; label: string }> = [
+    { id: 'overview', icon: 'info', label: t('versions.detail.overview') },
+    { id: 'resourcepacks', icon: 'package', label: '资源包' },
+    { id: 'shaderpacks', icon: 'sun', label: '光影包' },
+    { id: 'datapacks', icon: 'archive', label: '数据包' },
+    { id: 'schematics', icon: 'grid', label: '原理图' },
+    { id: 'worlds', icon: 'globe', label: '存档' },
+    { id: 'screenshots', icon: 'photo', label: '截图' },
+    { id: 'servers', icon: 'server', label: '服务器' },
+    { id: 'profile', icon: 'brush', label: '个性化' },
+    { id: 'settings', icon: 'settings', label: t('versions.detail.settings') },
+  ]
+  if (isModdedInstance.value) {
+    items.splice(1, 0, { id: 'mods', icon: 'cube', label: t('versions.mods.title') })
+  }
+  return items
+})
 const worldOptions = ref<Array<{ label: string; value: string }>>([])
 function handleWorldsChanged(worlds: WorldEntry[]) {
   worldOptions.value = worlds.map((world) => ({ label: world.name, value: world.id }))
@@ -348,12 +355,16 @@ watch(
   () => props.visible,
   (val) => {
     if (val) {
-      activeTab.value = props.initialTab
+      activeTab.value = props.initialTab === 'mods' && !isModdedInstance.value ? 'overview' : props.initialTab
       void loadRunStats()
     }
   },
   { immediate: true }
 )
+
+watch(isModdedInstance, (modded) => {
+  if (!modded && activeTab.value === 'mods') activeTab.value = 'overview'
+})
 
 const stopStatsListening = instanceRuntimeApi.onChanged((payload) => {
   const version = props.version
