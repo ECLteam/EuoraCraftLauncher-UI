@@ -30,3 +30,5 @@ vite.config.d.ts
 
 .pnpm-store
 .agents
+
+.memory/

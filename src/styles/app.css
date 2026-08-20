@@ -35,6 +35,18 @@
     background-image 0.5s ease,
     opacity var(--duration-normal) ease,
     filter var(--duration-normal) ease;
+  pointer-events: none;
+}
+
+/* 沉浸式环境光晕层：强调色径向渐变 + 慢速漂移（Folia 式） */
+.app-background::before {
+  content: '';
+  position: absolute;
+  inset: -12%;
+  background-image: var(--bg-ambient);
+  will-change: transform;
+  animation: bg-drift 42s var(--ease-smooth) infinite alternate;
+  pointer-events: none;
 }
 
 .app-background-overlay {

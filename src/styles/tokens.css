@@ -1,23 +1,51 @@
+/* ============================================================
+   tokens.css — 主题自适应令牌（Folia 式）
+   核心思路：所有界面颜色由 --th-* 主题核心变量派生，
+   表面/描边/高亮统一用 color-mix() 从主题色与文字色计算，
+   强调色跟随运行时 --primary（由 useTheme 注入）。
+   圆角保持小圆角体系（6px 控件 / 8px 卡片 / 10px 弹窗）。
+   ============================================================ */
+
 :root {
-  --ecl-primary: #5b6ff5;
-  --ecl-primary-hover: #4a5fe8;
-  --ecl-primary-active: #3f53d6;
-  --ecl-canvas: #f4f6fa;
-  --ecl-surface: rgba(255, 255, 255, 0.88);
-  --ecl-surface-muted: rgba(248, 249, 252, 0.88);
-  --ecl-text: #1d2433;
-  --ecl-text-secondary: #596275;
-  --ecl-text-tertiary: #8a94a8;
-  --ecl-text-primary: var(--ecl-text);
-  --ecl-border: rgba(29, 36, 51, 0.1);
-  --ecl-border-strong: rgba(29, 36, 51, 0.16);
-  --ecl-primary-alpha: rgba(91, 111, 245, 0.1);
-  --ecl-primary-alpha-strong: rgba(91, 111, 245, 0.18);
-  --ecl-hover: rgba(29, 36, 51, 0.05);
-  --ecl-hover-strong: rgba(29, 36, 51, 0.09);
-  --ecl-focus-ring: 0 0 0 2px rgba(91, 111, 245, 0.28);
-  --ecl-shadow-surface: 0 1px 2px rgba(29, 36, 51, 0.04);
-  --ecl-shadow-pop: 0 8px 24px rgba(29, 36, 51, 0.1);
+  /* ── 主题核心（浅色） ── */
+  --th-bg: #eef0f5;
+  --th-bg-solid: #f7f8fb;
+  --th-text: #1a1a1e;
+  --th-text-secondary: #5b5f6b;
+  --th-text-tertiary: #8a8f9c;
+  --th-accent: var(--primary, #5b6ff5);
+  --th-accent-soft: color-mix(in srgb, var(--th-accent) 12%, transparent);
+
+  /* ── 主色（跟随运行时主题色） ── */
+  --ecl-primary: var(--primary);
+  --ecl-primary-hover: var(--primary-hover);
+  --ecl-primary-active: var(--primary-active);
+  --ecl-primary-alpha: var(--primary-alpha);
+  --ecl-primary-alpha-strong: color-mix(in srgb, var(--primary) 18%, transparent);
+
+  /* ── 画布与表面 ── */
+  --ecl-canvas: var(--th-bg);
+  --ecl-surface: color-mix(in srgb, var(--th-bg-solid) 82%, transparent);
+  --ecl-surface-muted: color-mix(in srgb, var(--th-bg-solid) 70%, transparent);
+
+  /* ── 文字 ── */
+  --ecl-text: var(--th-text);
+  --ecl-text-secondary: var(--th-text-secondary);
+  --ecl-text-tertiary: var(--th-text-tertiary);
+  --ecl-text-primary: var(--th-text);
+
+  /* ── 描边与悬停（从文字色派生） ── */
+  --ecl-border: color-mix(in srgb, var(--th-text) 10%, transparent);
+  --ecl-border-strong: color-mix(in srgb, var(--th-text) 16%, transparent);
+  --ecl-hover: color-mix(in srgb, var(--th-text) 5%, transparent);
+  --ecl-hover-strong: color-mix(in srgb, var(--th-text) 9%, transparent);
+  --ecl-focus-ring: 0 0 0 2px color-mix(in srgb, var(--primary) 28%, transparent);
+
+  /* ── 阴影 ── */
+  --ecl-shadow-surface: 0 1px 2px rgba(18, 20, 28, 0.05);
+  --ecl-shadow-pop: 0 8px 24px rgba(18, 20, 28, 0.12);
+
+  /* ── 尺寸（小圆角体系） ── */
   --ecl-control-height: 36px;
   --ecl-radius-control: 6px;
   --ecl-radius-sm: 6px;
@@ -25,6 +53,8 @@
   --ecl-radius-dialog: 10px;
   --ecl-page-gap: 16px;
   --ecl-page-padding: 20px;
+
+  /* ── 加载器徽标 ── */
   --ecl-badge-fabric-fg: #b8944a;
   --ecl-badge-forge-fg: #7a6eaa;
   --ecl-badge-neoforge-fg: #6a7eb4;
@@ -32,23 +62,29 @@
 }
 
 [data-theme='dark'] {
-  --ecl-canvas: #171a21;
-  --ecl-surface: rgba(34, 38, 48, 0.88);
-  --ecl-surface-muted: rgba(41, 46, 57, 0.88);
-  --ecl-text: #f1f3f7;
-  --ecl-text-secondary: #b4bbc9;
-  --ecl-text-tertiary: #8b94a5;
-  --ecl-border: rgba(255, 255, 255, 0.09);
-  --ecl-border-strong: rgba(255, 255, 255, 0.16);
-  --ecl-primary-hover: #7d8df8;
-  --ecl-primary-active: #93a0fa;
-  --ecl-primary-alpha: rgba(91, 111, 245, 0.16);
-  --ecl-primary-alpha-strong: rgba(91, 111, 245, 0.26);
-  --ecl-hover: rgba(255, 255, 255, 0.06);
-  --ecl-hover-strong: rgba(255, 255, 255, 0.1);
-  --ecl-focus-ring: 0 0 0 2px rgba(91, 111, 245, 0.4);
-  --ecl-shadow-surface: 0 1px 2px rgba(0, 0, 0, 0.18);
-  --ecl-shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.35);
+  /* ── 主题核心（深色：近黑沉浸画布 + zinc 文字） ── */
+  --th-bg: #0a0a0e;
+  --th-bg-solid: #141419;
+  --th-text: #e4e4e7;
+  --th-text-secondary: #a1a1aa;
+  --th-text-tertiary: #71717a;
+
+  --ecl-primary-alpha: color-mix(in srgb, var(--primary) 18%, transparent);
+  --ecl-primary-alpha-strong: color-mix(in srgb, var(--primary) 28%, transparent);
+
+  --ecl-surface: color-mix(in srgb, var(--th-bg-solid) 82%, transparent);
+  --ecl-surface-muted: color-mix(in srgb, var(--th-bg-solid) 68%, transparent);
+
+  --ecl-border: color-mix(in srgb, var(--th-text) 11%, transparent);
+  --ecl-border-strong: color-mix(in srgb, var(--th-text) 18%, transparent);
+
+  --ecl-hover: color-mix(in srgb, var(--th-text) 6%, transparent);
+  --ecl-hover-strong: color-mix(in srgb, var(--th-text) 10%, transparent);
+  --ecl-focus-ring: 0 0 0 2px color-mix(in srgb, var(--primary) 40%, transparent);
+
+  --ecl-shadow-surface: 0 1px 2px rgba(0, 0, 0, 0.22);
+  --ecl-shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.4);
+
   --ecl-badge-fabric-fg: #c9a860;
   --ecl-badge-forge-fg: #8d80c0;
   --ecl-badge-neoforge-fg: #7f92c9;

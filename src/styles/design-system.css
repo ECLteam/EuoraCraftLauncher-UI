@@ -60,7 +60,9 @@
   border: 1px solid var(--ecl-border);
   border-radius: var(--ecl-radius-card);
   background: var(--ecl-surface);
-  box-shadow: var(--ecl-shadow-surface);
+  box-shadow: var(--ecl-shadow-surface), var(--glass-highlight);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
 }
 
 .ecl-toolbar {
@@ -73,6 +75,9 @@
   border: 1px solid var(--ecl-border);
   border-radius: var(--ecl-radius-card);
   background: var(--ecl-surface);
+  box-shadow: var(--glass-highlight);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
 }
 
 .ecl-toolbar__group {
