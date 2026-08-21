@@ -149,7 +149,9 @@ const handleNavClick = (item: { path: string }) => {
 
 const activeNavPath = computed(() => {
   const path = route.path
-  const item = menuItems.value.find((candidate) => path === candidate.path || (candidate.path !== '/' && path.startsWith(candidate.path)))
+  const item = menuItems.value.find(
+    (candidate) => path === candidate.path || (candidate.path !== '/' && path.startsWith(candidate.path))
+  )
   return item?.path ?? (path === '/' ? '/' : '')
 })
 

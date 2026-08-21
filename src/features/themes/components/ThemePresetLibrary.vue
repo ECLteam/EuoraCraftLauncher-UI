@@ -13,7 +13,9 @@
     </div>
 
     <div v-if="previewing" class="preview-banner">
-      <span>试用中：{{ previewing.meta.name }} <small v-if="previewSource === 'import'">（未保存，导入预览）</small></span>
+      <span
+        >试用中：{{ previewing.meta.name }} <small v-if="previewSource === 'import'">（未保存，导入预览）</small></span
+      >
       <NButton v-if="previewSource === 'import'" size="tiny" @click="savePreviewAs">另存为</NButton>
       <NButton size="tiny" type="primary" @click="applyPreview">应用</NButton>
       <NButton size="tiny" @click="cancelPreview">恢复</NButton>
@@ -73,12 +75,7 @@
       <p class="share-hint">
         在下方粘贴分享串，或复制当前预览的主题分享串。分享串仅包含配色与样式定义，不包含资源文件。
       </p>
-      <textarea
-        v-model="shareText"
-        class="share-textarea"
-        placeholder="ecltheme:v1:...."
-        rows="5"
-      ></textarea>
+      <textarea v-model="shareText" class="share-textarea" placeholder="ecltheme:v1:...." rows="5"></textarea>
       <div class="share-actions">
         <NButton size="small" @click="importShareText">导入并预览</NButton>
         <NButton size="small" @click="showShareDialog = false">关闭</NButton>
@@ -143,9 +140,7 @@ function isFavorite(id: string): boolean {
 }
 
 function toggleFavorite(id: string): void {
-  favorites.value = isFavorite(id)
-    ? favorites.value.filter((item) => item !== id)
-    : [...favorites.value, id]
+  favorites.value = isFavorite(id) ? favorites.value.filter((item) => item !== id) : [...favorites.value, id]
   persistFavorites()
 }
 

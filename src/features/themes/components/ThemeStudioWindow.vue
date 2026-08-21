@@ -14,12 +14,7 @@
         <button title="最小化" aria-label="最小化主题设计控制台" @click="minimize">
           <UiIcon name="minimize" :size="15" />
         </button>
-        <button
-          class="studio-window-close"
-          title="关闭"
-          aria-label="关闭主题设计控制台"
-          @click="requestClose"
-        >
+        <button class="studio-window-close" title="关闭" aria-label="关闭主题设计控制台" @click="requestClose">
           <UiIcon name="close" :size="15" />
         </button>
       </div>

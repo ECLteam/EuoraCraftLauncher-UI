@@ -23,13 +23,7 @@
               />
             </div>
             <div class="wardrobe-category-row">
-              <NTabs
-                v-if="isFolia"
-                :value="activeTab"
-                type="segment"
-                size="small"
-                @update:value="handleTabChange"
-              >
+              <NTabs v-if="isFolia" :value="activeTab" type="segment" size="small" @update:value="handleTabChange">
                 <NTab name="skin">{{ t('wardrobe.skins') }}</NTab>
                 <NTab name="cape">{{ t('wardrobe.localCapes') }}</NTab>
                 <NTab name="official">{{ t('wardrobe.officialCapes') }}</NTab>
@@ -298,7 +292,20 @@
 </template>
 
 <script setup lang="ts">
-import { NAlert, NButton, NButtonGroup, NCheckbox, NEmpty, NInput, NPopconfirm, NSelect, NSpin, NTab, NTabs, NTag } from 'naive-ui'
+import {
+  NAlert,
+  NButton,
+  NButtonGroup,
+  NCheckbox,
+  NEmpty,
+  NInput,
+  NPopconfirm,
+  NSelect,
+  NSpin,
+  NTab,
+  NTabs,
+  NTag,
+} from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import backend from '@/api/client'

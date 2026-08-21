@@ -122,7 +122,9 @@ function onDocClick(e: MouseEvent) {
   background: var(--card-bg);
   border: 1px solid var(--control-border);
   border-radius: var(--r-sm);
-  box-shadow: var(--shadow-lg), inset 0 1px 0 var(--glass-highlight);
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 1px 0 var(--glass-highlight);
   backdrop-filter: var(--glass-backdrop);
   -webkit-backdrop-filter: var(--glass-backdrop);
   z-index: 10000;

@@ -91,7 +91,11 @@ watch(
 watch(
   [
     () => store.session?.sessionId,
-    () => registrations.value.map((registration) => registration.key).sort().join('|'),
+    () =>
+      registrations.value
+        .map((registration) => registration.key)
+        .sort()
+        .join('|'),
   ],
   () => void nextTick(syncSlotInventory),
   { immediate: true }

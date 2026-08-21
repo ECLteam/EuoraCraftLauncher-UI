@@ -79,19 +79,37 @@
     <SettingSection title="外观细节">
       <SettingRow label="卡片圆角" description="用户级覆盖；未设置时由主题预设决定">
         <div class="slider-control">
-          <NSlider :value="radiusCard" :min="0" :max="24" :tooltip="false" @update:value="handleRadiusChange('radius_card', $event)" />
+          <NSlider
+            :value="radiusCard"
+            :min="0"
+            :max="24"
+            :tooltip="false"
+            @update:value="handleRadiusChange('radius_card', $event)"
+          />
           <span>{{ radiusCard }}px</span>
         </div>
       </SettingRow>
       <SettingRow label="控件圆角" description="按钮、输入框等控件圆角">
         <div class="slider-control">
-          <NSlider :value="radiusControl" :min="0" :max="20" :tooltip="false" @update:value="handleRadiusChange('radius_control', $event)" />
+          <NSlider
+            :value="radiusControl"
+            :min="0"
+            :max="20"
+            :tooltip="false"
+            @update:value="handleRadiusChange('radius_control', $event)"
+          />
           <span>{{ radiusControl }}px</span>
         </div>
       </SettingRow>
       <SettingRow label="对话框圆角" description="弹窗、确认框圆角">
         <div class="slider-control">
-          <NSlider :value="radiusDialog" :min="0" :max="28" :tooltip="false" @update:value="handleRadiusChange('radius_dialog', $event)" />
+          <NSlider
+            :value="radiusDialog"
+            :min="0"
+            :max="28"
+            :tooltip="false"
+            @update:value="handleRadiusChange('radius_dialog', $event)"
+          />
           <span>{{ radiusDialog }}px</span>
         </div>
       </SettingRow>
@@ -121,7 +139,11 @@
       </SettingRow>
       <SettingRow
         label="自定义 CSS"
-        :description="customCssEnabled ? '已启用：注入任意 CSS，可能导致界面异常，请谨慎使用' : '注入自定义 CSS（危险功能，默认关闭）'"
+        :description="
+          customCssEnabled
+            ? '已启用：注入任意 CSS，可能导致界面异常，请谨慎使用'
+            : '注入自定义 CSS（危险功能，默认关闭）'
+        "
       >
         <NSwitch :value="customCssEnabled" @update:value="handleCustomCssToggle" />
       </SettingRow>
@@ -202,7 +224,19 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NInput, NInputGroup, NRadioButton, NRadioGroup, NSelect, NSlider, NSwitch, NTab, NTabs, NTimePicker } from 'naive-ui'
+import {
+  NButton,
+  NInput,
+  NInputGroup,
+  NRadioButton,
+  NRadioGroup,
+  NSelect,
+  NSlider,
+  NSwitch,
+  NTab,
+  NTabs,
+  NTimePicker,
+} from 'naive-ui'
 import { computed, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'

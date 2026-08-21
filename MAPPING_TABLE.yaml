@@ -8,148 +8,156 @@
 # 新增 --control-* token 族（classic 默认值 = 原值，folia 值 = 玻璃化）
 tokens:
   control-bg:
-    source: "tryfrontend2 base.css: rgba(255,255,255,0.5) / dark rgba(34,38,48,0.5)"
-    classic: "var(--bg-elevated) / dark var(--bg-elevated)"
-    folia: "rgba(255,255,255,0.5)"
-    folia-dark: "rgba(34,38,48,0.5)"
-    note: "控件半透明玻璃底；select 触发器、input、按钮、实例工具栏共用"
+    source: 'tryfrontend2 base.css: rgba(255,255,255,0.5) / dark rgba(34,38,48,0.5)'
+    classic: 'var(--bg-elevated) / dark var(--bg-elevated)'
+    folia: 'rgba(255,255,255,0.5)'
+    folia-dark: 'rgba(34,38,48,0.5)'
+    note: '控件半透明玻璃底；select 触发器、input、按钮、实例工具栏共用'
   control-bg-hover:
-    source: "tryfrontend2 base.css: rgba(var(--primary-rgb),0.08) / dark 0.12"
-    classic: "var(--bg-hover)"
-    folia: "rgba(var(--primary-rgb, 91,111,245),0.08)"
-    folia-dark: "rgba(var(--primary-rgb, 130,145,255),0.12)"
+    source: 'tryfrontend2 base.css: rgba(var(--primary-rgb),0.08) / dark 0.12'
+    classic: 'var(--bg-hover)'
+    folia: 'rgba(var(--primary-rgb, 91,111,245),0.08)'
+    folia-dark: 'rgba(var(--primary-rgb, 130,145,255),0.12)'
   control-bg-active:
-    source: "tryfrontend2 base.css: rgba(var(--primary-rgb),0.14) / dark 0.2"
-    classic: "var(--bg-active)"
-    folia: "rgba(var(--primary-rgb, 91,111,245),0.14)"
-    folia-dark: "rgba(var(--primary-rgb, 130,145,255),0.2)"
+    source: 'tryfrontend2 base.css: rgba(var(--primary-rgb),0.14) / dark 0.2'
+    classic: 'var(--bg-active)'
+    folia: 'rgba(var(--primary-rgb, 91,111,245),0.14)'
+    folia-dark: 'rgba(var(--primary-rgb, 130,145,255),0.2)'
   control-border:
-    source: "tryfrontend2 base.css: rgba(var(--primary-rgb),0.22) / dark 0.3"
-    classic: "var(--border)"
-    folia: "rgba(var(--primary-rgb, 91,111,245),0.22)"
-    folia-dark: "rgba(var(--primary-rgb, 130,145,255),0.3)"
+    source: 'tryfrontend2 base.css: rgba(var(--primary-rgb),0.22) / dark 0.3'
+    classic: 'var(--border)'
+    folia: 'rgba(var(--primary-rgb, 91,111,245),0.22)'
+    folia-dark: 'rgba(var(--primary-rgb, 130,145,255),0.3)'
   control-border-hover:
-    source: "tryfrontend2 base.css: rgba(var(--primary-rgb),0.45) / dark 0.55"
-    classic: "var(--border-hover)"
-    folia: "rgba(var(--primary-rgb, 91,111,245),0.45)"
-    folia-dark: "rgba(var(--primary-rgb, 130,145,255),0.55)"
+    source: 'tryfrontend2 base.css: rgba(var(--primary-rgb),0.45) / dark 0.55'
+    classic: 'var(--border-hover)'
+    folia: 'rgba(var(--primary-rgb, 91,111,245),0.45)'
+    folia-dark: 'rgba(var(--primary-rgb, 130,145,255),0.55)'
   control-border-focus:
-    source: "tryfrontend2 base.css: rgba(var(--primary-rgb),0.6) / dark 0.7"
-    classic: "var(--border-focus)"
-    folia: "rgba(var(--primary-rgb, 91,111,245),0.6)"
-    folia-dark: "rgba(var(--primary-rgb, 130,145,255),0.7)"
+    source: 'tryfrontend2 base.css: rgba(var(--primary-rgb),0.6) / dark 0.7'
+    classic: 'var(--border-focus)'
+    folia: 'rgba(var(--primary-rgb, 91,111,245),0.6)'
+    folia-dark: 'rgba(var(--primary-rgb, 130,145,255),0.7)'
   control-ring:
-    source: "tryfrontend2 base.css: 0 0 0 2px rgba(var(--primary-rgb),0.18) / dark 0.24"
-    classic: "var(--glow-focus)"
-    folia: "0 0 0 2px rgba(var(--primary-rgb, 91,111,245),0.18)"
-    folia-dark: "0 0 0 2px rgba(var(--primary-rgb, 130,145,255),0.24)"
+    source: 'tryfrontend2 base.css: 0 0 0 2px rgba(var(--primary-rgb),0.18) / dark 0.24'
+    classic: 'var(--glow-focus)'
+    folia: '0 0 0 2px rgba(var(--primary-rgb, 91,111,245),0.18)'
+    folia-dark: '0 0 0 2px rgba(var(--primary-rgb, 130,145,255),0.24)'
   control-glow:
-    source: "tryfrontend2 base.css: 0 4px 14px rgba(var(--primary-rgb),0.16) / dark 0.22"
-    classic: "var(--shadow-hover)"
-    folia: "0 4px 14px rgba(var(--primary-rgb, 91,111,245),0.16)"
-    folia-dark: "0 4px 16px rgba(var(--primary-rgb, 130,145,255),0.22)"
+    source: 'tryfrontend2 base.css: 0 4px 14px rgba(var(--primary-rgb),0.16) / dark 0.22'
+    classic: 'var(--shadow-hover)'
+    folia: '0 4px 14px rgba(var(--primary-rgb, 91,111,245),0.16)'
+    folia-dark: '0 4px 16px rgba(var(--primary-rgb, 130,145,255),0.22)'
   slider-track:
-    source: "tryfrontend2 base.css: rgba(var(--primary-rgb),0.18) / dark 0.28"
-    classic: "var(--bg-base-alt) / dark #4a4d55"
-    folia: "rgba(var(--primary-rgb, 91,111,245),0.18)"
-    folia-dark: "rgba(var(--primary-rgb, 130,145,255),0.28)"
+    source: 'tryfrontend2 base.css: rgba(var(--primary-rgb),0.18) / dark 0.28'
+    classic: 'var(--bg-base-alt) / dark #4a4d55'
+    folia: 'rgba(var(--primary-rgb, 91,111,245),0.18)'
+    folia-dark: 'rgba(var(--primary-rgb, 130,145,255),0.28)'
   glass-blur:
-    source: "tryfrontend2 base.css: 18px"
-    classic: "0px"
-    folia: "18px"
-    note: "当前 folia.css 已有 --folia-glass-blur: var(--glass-blur, 18px)，统一为 --glass-blur"
+    source: 'tryfrontend2 base.css: 18px'
+    classic: '0px'
+    folia: '18px'
+    note: '当前 folia.css 已有 --folia-glass-blur: var(--glass-blur, 18px)，统一为 --glass-blur'
   glass-highlight:
-    source: "tryfrontend2 base.css: inset 0 1px 0 rgba(255,255,255,0.55) / dark 0.08"
-    classic: "inset 0 1px 0 rgba(255,255,255,0.55)"
-    folia: "inset 0 1px 0 rgba(255,255,255,0.55)"
-    folia-dark: "inset 0 1px 0 rgba(255,255,255,0.08)"
+    source: 'tryfrontend2 base.css: inset 0 1px 0 rgba(255,255,255,0.55) / dark 0.08'
+    classic: 'inset 0 1px 0 rgba(255,255,255,0.55)'
+    folia: 'inset 0 1px 0 rgba(255,255,255,0.55)'
+    folia-dark: 'inset 0 1px 0 rgba(255,255,255,0.08)'
   aurora-opacity:
-    source: "tryfrontend2 base.css: 1"
-    classic: "1"
-    folia: "1"
+    source: 'tryfrontend2 base.css: 1'
+    classic: '1'
+    folia: '1'
     note: "[data-aurora='0'] 时置 0；main-line 已在 App.vue 添加 .aurora-bg 元素"
   glass-backdrop:
-    source: "tryfrontend2: backdrop-filter: blur(var(--glass-blur)) saturate(1.35)（叠加层/弹窗）"
-    classic: "none"
-    folia: "blur(var(--glass-blur, 18px)) saturate(1.35)"
-    note: "classic 下为 none 保证零视觉影响；folia 下玻璃模糊。saturate(1.35) 随 --glass-blur 一并控制"
+    source: 'tryfrontend2: backdrop-filter: blur(var(--glass-blur)) saturate(1.35)（叠加层/弹窗）'
+    classic: 'none'
+    folia: 'blur(var(--glass-blur, 18px)) saturate(1.35)'
+    note: 'classic 下为 none 保证零视觉影响；folia 下玻璃模糊。saturate(1.35) 随 --glass-blur 一并控制'
   glass-highlight-classic:
-    source: "tryfrontend2 base.css: inset 0 1px 0 rgba(255,255,255,0.55)"
-    classic: "inset 0 1px 0 rgba(255,255,255,0)"  # 透明：classic 消费该变量时零视觉影响
-    folia: "inset 0 1px 0 rgba(255,255,255,0.55)"
-    folia-dark: "inset 0 1px 0 rgba(255,255,255,0.08)"
-    note: "Batch 1 曾设 classic 为白色高光，Batch 3 修正为透明，保证 classic 不被新增消费改变"
+    source: 'tryfrontend2 base.css: inset 0 1px 0 rgba(255,255,255,0.55)'
+    classic: 'inset 0 1px 0 rgba(255,255,255,0)' # 透明：classic 消费该变量时零视觉影响
+    folia: 'inset 0 1px 0 rgba(255,255,255,0.55)'
+    folia-dark: 'inset 0 1px 0 rgba(255,255,255,0.08)'
+    note: 'Batch 1 曾设 classic 为白色高光，Batch 3 修正为透明，保证 classic 不被新增消费改变'
 
 ## 组件 CSS 映射（component → 变更）
 components:
   Button.css:
-    - ".btn-secondary bg: var(--bg-elevated)→var(--control-bg); border: var(--border)→var(--control-border)"
-    - ".btn-secondary:hover bg: var(--bg-hover)→var(--control-bg-hover); border→var(--control-border-hover); +box-shadow:var(--control-glow)"
-    - ".btn-secondary:active bg: var(--bg-active)→var(--control-bg-active)"
-    - ".btn-text:hover/:active bg→var(--control-bg-hover)/var(--control-bg-active)"
-    - ".btn-ghost:hover bg→var(--control-bg-hover); border→var(--control-border-hover); +box-shadow:var(--control-glow)"
-    - ".btn-ghost:active bg→var(--control-bg-active)"
-    - ".btn-primary:hover +box-shadow:var(--control-glow)"
-    - ".btn-danger:hover +box-shadow:0 4px 14px rgba(229,92,92,0.2)"
+    - '.btn-secondary bg: var(--bg-elevated)→var(--control-bg); border: var(--border)→var(--control-border)'
+    - '.btn-secondary:hover bg: var(--bg-hover)→var(--control-bg-hover); border→var(--control-border-hover); +box-shadow:var(--control-glow)'
+    - '.btn-secondary:active bg: var(--bg-active)→var(--control-bg-active)'
+    - '.btn-text:hover/:active bg→var(--control-bg-hover)/var(--control-bg-active)'
+    - '.btn-ghost:hover bg→var(--control-bg-hover); border→var(--control-border-hover); +box-shadow:var(--control-glow)'
+    - '.btn-ghost:active bg→var(--control-bg-active)'
+    - '.btn-primary:hover +box-shadow:var(--control-glow)'
+    - '.btn-danger:hover +box-shadow:0 4px 14px rgba(229,92,92,0.2)'
   Card.css:
-    - ".ui-card.hoverable:hover border→var(--control-border-hover); box-shadow→var(--control-glow)"
-    - ".card-footer bg: var(--bg-hover)→var(--control-bg-hover)"
+    - '.ui-card.hoverable:hover border→var(--control-border-hover); box-shadow→var(--control-glow)'
+    - '.card-footer bg: var(--bg-hover)→var(--control-bg-hover)'
   Input.css:
-    - ".ui-input border: var(--border)→var(--control-border); bg: var(--bg-elevated)→var(--control-bg)"
-    - "hover border→var(--control-border-hover); focus border→var(--control-border-focus)+box-shadow:var(--control-ring)"
+    - '.ui-input border: var(--border)→var(--control-border); bg: var(--bg-elevated)→var(--control-bg)'
+    - 'hover border→var(--control-border-hover); focus border→var(--control-border-focus)+box-shadow:var(--control-ring)'
   Select.css:
-    - ".select-trigger bg→var(--control-bg); border→var(--control-border); hover border→var(--control-border-hover)+shadow→var(--control-glow)"
-    - ".ui-select.open .select-trigger border→var(--control-border-focus)+shadow→var(--control-ring)"
-    - ".select-dropdown bg→var(--card-bg); border→var(--control-border); shadow→var(--shadow-md)+inset glass-highlight; +backdrop blur"
+    - '.select-trigger bg→var(--control-bg); border→var(--control-border); hover border→var(--control-border-hover)+shadow→var(--control-glow)'
+    - '.ui-select.open .select-trigger border→var(--control-border-focus)+shadow→var(--control-ring)'
+    - '.select-dropdown bg→var(--card-bg); border→var(--control-border); shadow→var(--shadow-md)+inset glass-highlight; +backdrop blur'
   Slider.css:
-    - "track bg→var(--slider-track); thumb +box-shadow 0 0 0 4px rgba(primary,0.12)"
+    - 'track bg→var(--slider-track); thumb +box-shadow 0 0 0 4px rgba(primary,0.12)'
   Tag.css:
-    - ".ui-tag--default bg→color-mix(in srgb, var(--text-secondary) 12%, transparent)"
+    - '.ui-tag--default bg→color-mix(in srgb, var(--text-secondary) 12%, transparent)'
   Progress.css:
-    - ".ui-progress__track bg→rgba(var(--primary-rgb),0.16)"
+    - '.ui-progress__track bg→rgba(var(--primary-rgb),0.16)'
   common.css:
-    - ".toolbar + inset box-shadow: var(--glass-highlight)"
+    - '.toolbar + inset box-shadow: var(--glass-highlight)'
   design-system.css:
-    - ".ecl-card/.ecl-toolbar/.ecl-badge + inset box-shadow: var(--glass-highlight)"
+    - '.ecl-card/.ecl-toolbar/.ecl-badge + inset box-shadow: var(--glass-highlight)'
   Modal.css:
-    - ".modal-container shadow→var(--ecl-shadow-pop)+inset glass-highlight; +backdrop blur(var(--glass-blur)) saturate(1.35)"
+    - '.modal-container shadow→var(--ecl-shadow-pop)+inset glass-highlight; +backdrop blur(var(--glass-blur)) saturate(1.35)'
   FullscreenModal.css:
-    - ".fullscreen-modal-wrapper +backdrop blur(var(--glass-blur)) saturate(1.35)"
+    - '.fullscreen-modal-wrapper +backdrop blur(var(--glass-blur)) saturate(1.35)'
   InstalledInstanceList.css:
-    - "工具按钮/view-switch/toolbar-select/search-box bg→var(--control-bg); border→var(--control-border)"
-    - "active/hover 态 bg→var(--control-bg-hover)/var(--control-bg-active); border→var(--control-border-hover)"
-    - "滚动容器 +contain: layout"
+    - '工具按钮/view-switch/toolbar-select/search-box bg→var(--control-bg); border→var(--control-border)'
+    - 'active/hover 态 bg→var(--control-bg-hover)/var(--control-bg-active); border→var(--control-border-hover)'
+    - '滚动容器 +contain: layout'
   InstancePathSidebar.css:
-    - ".btn-add bg→var(--control-bg); border→var(--control-border); hover→var(--control-bg-hover)+var(--control-border-hover)"
-    - "滚动容器 +contain: layout"
+    - '.btn-add bg→var(--control-bg); border→var(--control-border); hover→var(--control-bg-hover)+var(--control-border-hover)'
+    - '滚动容器 +contain: layout'
   InstancesTab.css:
-    - ".btn-refresh/.version-count-badge/工具按钮 bg→var(--control-bg); border→var(--control-border); hover→var(--control-bg-hover)"
-    - "滚动容器 +contain: layout"
+    - '.btn-refresh/.version-count-badge/工具按钮 bg→var(--control-bg); border→var(--control-border); hover→var(--control-bg-hover)'
+    - '滚动容器 +contain: layout'
   Game.css:
-    - ".running-instances-trigger.inactive bg→var(--control-bg); border→var(--control-border); +backdrop blur"
-    - "hover bg→var(--control-bg-hover); border→var(--control-border-hover)"
-    - "account-type-switch: NRadioButton→NTabs segment（主线已适配，无需再改）"
+    - '.running-instances-trigger.inactive bg→var(--control-bg); border→var(--control-border); +backdrop blur'
+    - 'hover bg→var(--control-bg-hover); border→var(--control-border-hover)'
+    - 'account-type-switch: NRadioButton→NTabs segment（主线已适配，无需再改）'
   Connect.css:
-    - "滚动容器 +contain: layout"
+    - '滚动容器 +contain: layout'
   Plugins.css:
-    - "滚动容器 +contain: layout"
+    - '滚动容器 +contain: layout'
   SectionLayout.css:
-    - "滚动容器 +contain: layout"
+    - '滚动容器 +contain: layout'
   TitleBarTray.vue:
-    - ".titlebar-tray-menu bg→var(--card-bg); border→var(--control-border); +inset glass-highlight +backdrop blur"
-    - ".tray-menu-item hover/active bg→var(--control-bg-hover)/var(--control-bg-active)"
+    - '.titlebar-tray-menu bg→var(--card-bg); border→var(--control-border); +inset glass-highlight +backdrop blur'
+    - '.tray-menu-item hover/active bg→var(--control-bg-hover)/var(--control-bg-active)'
 
 ## 视图标记映射（markup → folia 分段标签）
 # 主线已用 isFolia 条件适配 NTabs 的文件: TitleBar.vue（导航）、Game.vue（账号类型切换）
 markup:
   Plugins.vue:
-    - "筛选 NRadioGroup/NRadioButton → NTabs type=segment，classic 回退保留 NRadioGroup（isFolia 条件）"
+    - '筛选 NRadioGroup/NRadioButton → NTabs type=segment，classic 回退保留 NRadioGroup（isFolia 条件）'
   AppearanceTab.vue:
-    - "主题模式 NRadioGroup → NTabs type=segment（isFolia 条件）"
+    - '主题模式 NRadioGroup → NTabs type=segment（isFolia 条件）'
   WardrobeModal.vue:
-    - "NButtonGroup 皮肤/披风/官方 分类 → NTabs type=segment（isFolia 条件）"
+    - 'NButtonGroup 皮肤/披风/官方 分类 → NTabs type=segment（isFolia 条件）'
 
 ## 视图 folia 表面覆盖（folia.css 补齐）
 # 基础表面/外壳已在当前 folia.css 覆盖。补齐剩余视图表面：
 view-surfaces:
-  - "settings 各子页 .setting-section 已覆盖；Game/Connect/Instances 详情卡片类表面按需追加"
+  - 'settings 各子页 .setting-section 已覆盖；Game/Connect/Instances 详情卡片类表面按需追加'
+  # Batch 6：基础表面 token（亮/暗两块追加 --bg-surface / --card-bg，供未显式覆盖的视图直接消费半透明玻璃底）
+  - 'tokens --bg-surface: rgba(255,255,255,0.62)/dark rgba(32,36,46,0.62)；--card-bg: rgba(255,255,255,0.6)/dark rgba(34,38,48,0.6)'
+  # Batch 6：追加进 .sidebar 玻璃表面组（folia-glass + folia-glass-border + blur saturate 1.25）的视图/组件
+  - '玻璃组追加: .connect-main-card .connect-side-card .connect-room-card .connect-state-card .connect-service-card .connect-entry-panel .connect-side-panel .mods-panel .mods-results-panel .mod-list-row .task-queue-wrapper .piv .fll-window .error-modal-container .install-dialog .install-loader-card .manage-container .path-panel .about-pane .dev-page .dev-header'
+  # Batch 6：视图卡片 hover 玻璃辉光（保守：仅 border-color+box-shadow，无 translateY）
+  - 'hover 组新增: .connect-room-card:hover .connect-main-card:hover .mod-list-row:hover → border rgba(primary,0.48) + shadow 0 8px 24px rgba(primary,0.1)'
+  # Batch 6：追加进 .page-header 边框组的表头/面板头
+  - '边框组追加: .mods-panel-header .task-queue-body .piv-footer → border-color var(--folia-glass-border)'

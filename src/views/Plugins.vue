@@ -125,7 +125,19 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NEmpty, NInput, NPopconfirm, NRadioButton, NRadioGroup, NSpace, NSpin, NTab, NTabs, NTag } from 'naive-ui'
+import {
+  NButton,
+  NEmpty,
+  NInput,
+  NPopconfirm,
+  NRadioButton,
+  NRadioGroup,
+  NSpace,
+  NSpin,
+  NTab,
+  NTabs,
+  NTag,
+} from 'naive-ui'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
