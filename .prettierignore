@@ -9,3 +9,5 @@ public/img/
 MAPPING_TABLE.yaml
 CHECKPOINT_BATCH_*.md
 
+src/auto-imports.d.ts
+

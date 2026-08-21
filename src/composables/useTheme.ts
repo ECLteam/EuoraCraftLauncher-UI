@@ -356,6 +356,7 @@ export const useThemeStore = defineStore('theme', () => {
         THEME_SNAPSHOT_KEY,
         JSON.stringify({
           theme: isDark.value ? 'dark' : 'light',
+          uiSkin: themeId.value,
           primary: scale.primary,
           primaryRgb: scale.primaryRgb,
           primaryHover: scale.primaryHover,

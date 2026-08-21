@@ -6,8 +6,8 @@
 [data-ui-skin='folia'] {
   --bg-base-alt: #e9ebef;
   --bg-elevated: #ffffff;
-  --bg-surface: rgba(255, 255, 255, 0.62);
-  --card-bg: rgba(255, 255, 255, 0.6);
+  --bg-surface: rgba(255, 255, 255, calc(0.62 * var(--card-opacity, 1)));
+  --card-bg: rgba(255, 255, 255, calc(0.6 * var(--card-opacity, 1)));
   --bg-hover: #f0f1f3;
   --bg-hover-strong: rgba(var(--primary-rgb, 91, 111, 245), 0.08);
   --bg-active: rgba(var(--primary-rgb, 91, 111, 245), 0.14);
@@ -24,7 +24,7 @@
   --page-gutter: 20px;
   --row-h: 42px;
   --row-h-sm: 34px;
-  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-bg: rgba(255, 255, 255, calc(0.6 * var(--card-opacity, 1)));
   --glass-bg-sidebar: rgba(255, 255, 255, 0.55);
   --glass-border: rgba(29, 36, 51, 0.12);
   --glass-divider: rgba(29, 36, 51, 0.1);
@@ -32,7 +32,7 @@
   --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.55);
   --sidebar-item-active-bg: color-mix(in srgb, var(--primary) 18%, var(--bg-elevated));
   --sidebar-item-active-border: color-mix(in srgb, var(--primary) 70%, transparent);
-  --folia-glass: rgba(255, 255, 255, 0.6);
+  --folia-glass: rgba(255, 255, 255, calc(0.6 * var(--card-opacity, 1)));
   --folia-glass-border: rgba(29, 36, 51, 0.12);
   --control-bg: rgba(255, 255, 255, 0.5);
   --control-bg-hover: rgba(var(--primary-rgb, 91, 111, 245), 0.08);
@@ -55,22 +55,22 @@
 [data-theme='dark'][data-ui-skin='folia'] {
   --bg-base-alt: #21242b;
   --bg-elevated: #21242b;
-  --bg-surface: rgba(32, 36, 46, 0.62);
-  --card-bg: rgba(34, 38, 48, 0.6);
+  --bg-surface: rgba(32, 36, 46, calc(0.62 * var(--card-opacity, 1)));
+  --card-bg: rgba(34, 38, 48, calc(0.6 * var(--card-opacity, 1)));
   --bg-hover: rgba(255, 255, 255, 0.06);
   --bg-hover-strong: rgba(var(--primary-rgb, 130, 145, 255), 0.12);
   --bg-active: rgba(var(--primary-rgb, 130, 145, 255), 0.2);
   --border-strong: rgba(255, 255, 255, 0.12);
   --border-hover: rgba(var(--primary-rgb, 130, 145, 255), 0.55);
   --divider: rgba(255, 255, 255, 0.08);
-  --glass-bg: rgba(34, 38, 48, 0.62);
+  --glass-bg: rgba(34, 38, 48, calc(0.62 * var(--card-opacity, 1)));
   --glass-bg-sidebar: rgba(27, 30, 38, 0.55);
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-divider: rgba(255, 255, 255, 0.09);
   --glass-item-hover: rgba(255, 255, 255, 0.1);
   --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.08);
   --sidebar-item-active-bg: color-mix(in srgb, var(--primary) 24%, rgba(255, 255, 255, 0.1));
-  --folia-glass: rgba(34, 38, 48, 0.62);
+  --folia-glass: rgba(34, 38, 48, calc(0.62 * var(--card-opacity, 1)));
   --folia-glass-border: rgba(255, 255, 255, 0.1);
   --control-bg: rgba(34, 38, 48, 0.5);
   --control-bg-hover: rgba(var(--primary-rgb, 130, 145, 255), 0.12);
@@ -195,15 +195,15 @@
 [data-ui-skin='folia'] .n-input-wrapper {
   background: var(--control-bg) !important;
   border: 1px solid var(--control-border) !important;
-  backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.25);
-  -webkit-backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.25);
+  backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.35);
+  -webkit-backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.35);
 }
 
 /* 分段标签 rail：对齐参考（无边框），避免与输入控件共用带边框规则 */
 [data-ui-skin='folia'] .n-tabs--segment-type .n-tabs-rail {
   background: var(--control-bg) !important;
-  backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.25);
-  -webkit-backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.25);
+  backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.35);
+  -webkit-backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.35);
 }
 
 /* 搜索框聚焦：外圈圆角高亮（跟随 .search-box 圆角），覆盖各处 focus-within 仅变边框 */
@@ -254,6 +254,7 @@
 [data-ui-skin='folia'] .n-message,
 [data-ui-skin='folia'] .n-dialog,
 [data-ui-skin='folia'] .n-popover,
+[data-ui-skin='folia'] .n-popconfirm,
 [data-ui-skin='folia'] .n-dropdown-menu,
 [data-ui-skin='folia'] .n-tooltip,
 [data-ui-skin='folia'] .n-modal,

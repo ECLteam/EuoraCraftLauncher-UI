@@ -45,7 +45,7 @@
   --bg-base-rgb: 243, 244, 246;
   --bg-base-alt: #e9ebef;
   --bg-elevated: #ffffff;
-  --bg-surface: rgba(255, 255, 255, 0.92);
+  --bg-surface: rgba(255, 255, 255, calc(0.92 * var(--card-opacity, 1)));
   --bg-surface-solid: #ffffff;
   --bg-hover: #f0f1f3;
   --bg-hover-strong: rgba(var(--primary-rgb), 0.06);
@@ -67,7 +67,7 @@
   --border-focus: rgba(var(--primary-rgb), 0.5);
   --divider: #e0e0e0;
 
-  --card-bg: rgba(255, 255, 255, 0.88);
+  --card-bg: rgba(255, 255, 255, calc(0.88 * var(--card-opacity, 1)));
   --card-border-top: 1px solid var(--ecl-border);
   --card-border-bottom: 1px solid var(--ecl-border);
   --card-shadow: 0 1px 2px rgba(21, 31, 52, 0.05);
@@ -170,7 +170,7 @@
   --control-ring: none;
   --control-glow: none;
 
-  --glass-bg: rgba(255, 255, 255, 0.92);
+  --glass-bg: rgba(255, 255, 255, calc(0.92 * var(--card-opacity, 1)));
   --glass-bg-sidebar: rgba(251, 251, 252, 0.96);
   --glass-border: #e0e0e0;
   --glass-divider: #e0e0e0;
@@ -201,7 +201,7 @@
   --bg-base-rgb: 26, 28, 35;
   --bg-base-alt: #21242b;
   --bg-elevated: #21242b;
-  --bg-surface: rgba(35, 38, 45, 0.92);
+  --bg-surface: rgba(35, 38, 45, calc(0.92 * var(--card-opacity, 1)));
   --bg-surface-solid: #21242b;
   --bg-hover: rgba(255, 255, 255, 0.06);
   --bg-hover-strong: rgba(var(--primary-rgb), 0.12);
@@ -226,7 +226,7 @@
   --border-focus: rgba(var(--primary-rgb), 0.55);
   --divider: rgba(255, 255, 255, 0.08);
 
-  --card-bg: rgba(35, 38, 45, 0.88);
+  --card-bg: rgba(35, 38, 45, calc(0.88 * var(--card-opacity, 1)));
   --card-border-top: 1px solid var(--ecl-border);
   --card-border-bottom: 1px solid var(--ecl-border);
 
@@ -243,7 +243,7 @@
   --control-ring: none;
   --control-glow: none;
 
-  --glass-bg: rgba(35, 38, 45, 0.92);
+  --glass-bg: rgba(35, 38, 45, calc(0.92 * var(--card-opacity, 1)));
   --glass-bg-sidebar: rgba(31, 34, 41, 0.96);
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-divider: rgba(255, 255, 255, 0.08);

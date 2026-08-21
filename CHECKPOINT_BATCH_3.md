@@ -1,31 +1,29 @@
-# CHECKPOINT_BATCH_3 — 基础层/外壳玻璃化
+# CHECKPOINT_BATCH_3 — 卡片透明度 token + themeId 启动恢复 + folia 对齐
 
 - 日期：2026-08-21
-- 状态：✅ 通过（typecheck + lint 全绿；classic 零视觉变化）
-- 提交：feat: folia 皮肤迁移 Batch 3 — 基础层/外壳玻璃化
+- 状态：✅ 通过（pnpm check 全绿：63 文件 251 测试；build 成功）
+- 提交：待提交
 
 ## 目标
-
-弹窗与工具条落地玻璃效果（模糊 + 顶部高光），classic 下经透明令牌零影响。
+①表面 token 接入 `--card-opacity` ②themeId 启动无闪烁 ③folia 与源仓库对齐。
 
 ## 改动
+| 文件 | 变更 |
+|------|------|
+| src/styles/base.css | classic 亮/暗 6 处表面 token alpha → `calc(<原alpha> * var(--card-opacity,1))` |
+| src/styles/folia.css | folia 亮/暗 8 处 token 同上；对齐修正：补 `.n-popconfirm` 悬浮层、segment rail/input/selection 饱和度 1.25→1.35 |
+| src/composables/useTheme.ts | saveSnapshot 存 `uiSkin: themeId.value` |
+| index.html | 内联脚本恢复 `data-ui-skin`（无闪烁） |
+| .prettierignore | +`src/auto-imports.d.ts`（生成文件） |
 
-| 文件                | 变更                                                                                                         |
-| ------------------- | ------------------------------------------------------------------------------------------------------------ |
-| base.css            | 修正 classic `--glass-highlight` 为透明；亮/暗块新增 `--glass-backdrop: none`                                |
-| folia.css           | 亮/暗块新增 `--glass-backdrop: blur(var(--glass-blur,18px)) saturate(1.35)`                                  |
-| common.css          | .toolbar 与 .panel 追加 inset 顶部高光                                                                       |
-| design-system.css   | .ecl-page-header__icon / .ecl-surface / .ecl-toolbar 追加 inset 高光（`.ecl-card` 不存在，适配为实际选择器） |
-| Modal.css           | .modal-container 追加 shadow-pop+高光 与 --glass-backdrop 模糊                                               |
-| FullscreenModal.css | .fullscreen-modal-wrapper 追加 --glass-backdrop 模糊                                                         |
-| Select.css          | 一致性：dropdown 模糊改用 --glass-backdrop                                                                   |
+## folia 对齐审计（对照源 glass.css/base.css）
+- --glass-blur 18px ✅、悬浮层 saturate(1.35) ✅（补 n-popconfirm）、segment rail 无边框 ✅、control token ✅、aurora 三色（本地设计）✅
+- 主玻璃表面 saturate(1.25) 为本地设计保留（源只管悬浮层）
 
 ## 验证
-
-- `pnpm typecheck`：通过
-- `pnpm lint`：通过
-- classic 零变化：--glass-backdrop=none + --glass-highlight=透明
+- `pnpm check`：全绿（63 文件 251 测试 | 1 todo）
+- `pnpm build`：成功
+- `--card-opacity` 未设置回退 1 → 各主题默认透明度不变
 
 ## 备注
-
-- 设计系统参考 `.ecl-card` 在目标项目不存在，映射为 `.ecl-surface`/`.ecl-toolbar`/`.ecl-page-header__icon`（已记入 MAPPING_TABLE）。
+- 卡片透明度经 CSS `calc(alpha * var(--card-opacity,1))`，前端 slider 20~100% 生效。
