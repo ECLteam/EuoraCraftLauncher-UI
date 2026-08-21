@@ -27,6 +27,22 @@ export const THEME_MODE_OPTIONS: ThemeModeOption[] = [
   { value: 'system', icon: 'settings' },
 ]
 
+/** 内置皮肤选项（theme_id ∈ classic/folia）。 */
+export interface BuiltinThemeOption {
+  id: 'classic' | 'folia'
+  icon: string
+}
+
+export const BUILTIN_THEMES: BuiltinThemeOption[] = [
+  { id: 'classic', icon: 'palette' },
+  { id: 'folia', icon: 'sparkles' },
+]
+
+/** 卡片不透明度滑杆边界（0-100）。 */
+export const CARD_OPACITY_MIN = 20
+export const CARD_OPACITY_MAX = 100
+export const CARD_OPACITY_DEFAULT = 100
+
 export interface FontFamilyOption {
   name: string
   value: string

@@ -1,5 +1,7 @@
 import { computed, onScopeDispose, ref } from 'vue'
-import type { UiSkin } from '@/features/themes/runtime/themeRuntime'
+
+/** 内置 UI 皮肤：classic（经典）或 folia（花叶）。 */
+export type UiSkin = 'classic' | 'folia'
 
 const activeSkin = ref<UiSkin>('classic')
 let observer: MutationObserver | null = null

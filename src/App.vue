@@ -110,7 +110,6 @@
         </main>
       </div>
     </div>
-    <ThemeDesignerCanvas />
   </div>
 </template>
 
@@ -135,8 +134,6 @@ import { globalTaskQueue } from '@/composables/useTaskQueue'
 import { useUserAgreement } from '@/composables/useUserAgreement'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import FloatingLauncherLog from '@/features/terminal/components/FloatingLauncherLog.vue'
-import ThemeDesignerCanvas from '@/features/themes/components/ThemeDesignerCanvas.vue'
-import { useThemeDesignerStore } from '@/features/themes/stores/themeDesignerStore'
 import { getErrorMessage } from '@/utils/error'
 import { openExternalUrl } from '@/utils/openExternal'
 
@@ -152,7 +149,6 @@ const {
 } = useUserAgreement()
 const fullscreenModal = useFullscreenModal()
 const message = useLauncherMessage()
-const themeDesigner = useThemeDesignerStore()
 
 // 让 unwrapResponse 的 message 级失败统一走顶部通知，避免调用方遗漏导致用户无感知
 setErrorNotifier((msg) => message.errorRaw(msg))
@@ -215,7 +211,6 @@ const handleErrorModalVisibility = (visible: boolean) => {
 
 onMounted(async () => {
   fullscreenModal.reset()
-  await themeDesigner.initialize()
   try {
     await appRuntime.start()
   } catch (error) {

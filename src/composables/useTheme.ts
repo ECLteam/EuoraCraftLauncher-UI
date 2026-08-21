@@ -2,7 +2,13 @@
 import { defineStore, storeToRefs } from 'pinia'
 import { computed, readonly, ref } from 'vue'
 import { pinia } from '@/app/stores'
-import { PRESET_COLORS, DEFAULT_PRIMARY_COLOR, LIGHT_THEME_COLORS, DARK_THEME_COLORS } from '@/config/theme'
+import {
+  CARD_OPACITY_DEFAULT,
+  DEFAULT_PRIMARY_COLOR,
+  DARK_THEME_COLORS,
+  LIGHT_THEME_COLORS,
+  PRESET_COLORS,
+} from '@/config/theme'
 import { resolveLocalImageUrl, settingsApi } from '@/features/settings/api/settingsApi'
 import { resolveNavigationMode } from '@/features/settings/model/navigation'
 import type {
@@ -14,7 +20,7 @@ import type {
 } from '@/types/api'
 
 interface ThemeInitPayload {
-  theme?: Partial<ThemeConfig> & { background_opacity?: number }
+  theme?: Partial<ThemeConfig>
   background?: Partial<BackgroundConfig>
 }
 
@@ -78,7 +84,6 @@ function parseTimeMinutes(value: string | undefined): number {
 }
 
 const THEME_SNAPSHOT_KEY = 'euoracraft-theme-snapshot'
-const CUSTOM_CSS_ELEMENT_ID = 'ecl-custom-css'
 
 /**
  * 根据基础色生成主题主色阶。
@@ -110,7 +115,7 @@ function createPrimaryScale(
   }
 }
 
-export type ThemeMode = 'light' | 'dark' | 'system' | 'custom'
+export type ThemeMode = 'light' | 'dark' | 'system'
 
 export const presetColors = PRESET_COLORS
 
@@ -120,26 +125,10 @@ const themeColors = {
 } as const
 
 /**
- * 解析当前 DOM 上生效的 CSS 变量为具体色值，naive-ui 需要纯色值才能被 seemly 运算。
- * 优先取 documentElement 上的变量值（preset tokens/scheme 或 appearance 覆盖），
- * 缺失或无值时回退到主题默认色。变量名非法时直接返回回退值。
- */
-function resolveCssColor(variable: string, fallback: string): string {
-  if (!variable.startsWith('--')) return fallback
-  try {
-    const value = getComputedStyle(document.documentElement).getPropertyValue(variable).trim()
-    if (value) return value
-  } catch {
-    /* 无 document 环境（如测试）时回退默认色 */
-  }
-  return fallback
-}
-
-/**
  * 创建 naive-ui 主题覆盖配置。
  * @param isDark - 是否为深色模式
  * @param primaryScale - 已计算好的主色色阶（由调用方基于响应式状态生成一次）
- * @param _appearance - 语义色变化时的响应式依赖（appearance 配置快照），仅用于驱动重算
+ * @param _appearance - 外观配置快照（半径/字体/卡片透明度），仅用于驱动重算
  * @returns naive-ui 主题覆盖对象
  */
 function createThemeOverrides(
@@ -155,10 +144,10 @@ function createThemeOverrides(
       primaryColorHover: primaryScale.primaryHover,
       primaryColorPressed: primaryScale.primaryPressed,
       primaryColorSuppl: primaryScale.primaryHover,
-      successColor: resolveCssColor('--ecl-color-success', baseColors.success),
-      warningColor: resolveCssColor('--ecl-color-warning', baseColors.warning),
-      errorColor: resolveCssColor('--ecl-color-error', baseColors.error),
-      infoColor: resolveCssColor('--ecl-color-info', baseColors.info),
+      successColor: baseColors.success,
+      warningColor: baseColors.warning,
+      errorColor: baseColors.error,
+      infoColor: baseColors.info,
       textColorBase: baseColors.text,
       textColor1: baseColors.text,
       textColor2: baseColors.textSecondary,
@@ -268,6 +257,7 @@ let saveTimer: ReturnType<typeof setTimeout> | null = null
  * 由 useTheme() 包装暴露，保持原有 API（readonly ref + setter 函数）。
  */
 export const useThemeStore = defineStore('theme', () => {
+  const themeId = ref<'classic' | 'folia'>('classic')
   const themeMode = ref<ThemeMode>('system')
   const primaryColor = ref('')
   const backgroundImage = ref('')
@@ -278,11 +268,7 @@ export const useThemeStore = defineStore('theme', () => {
   const sidebarCollapsed = ref(true)
   const navigationMode = ref<NavigationMode>('sidebar')
   const systemDark = ref(false)
-  /** custom 模式下激活的 scheme 名（须存在于当前预设）。 */
-  const scheme = ref('light')
-  /** 当前 scheme 是否为深色属性（custom scheme 由 schemeMeta 或基色亮度决定）。 */
-  const schemeDark = ref(false)
-  /** 用户级外观覆盖（半径/字体/语义色/动效/密度/自定义 CSS）。未设置的字段交由预设或默认值决定。 */
+  /** 用户级外观覆盖（圆角/字体/卡片透明度）。未设置的字段交由默认值决定。 */
   const appearance = ref<ThemeAppearanceConfig>({})
   /** 定时自动切换亮暗（仅在 system 模式生效）。 */
   const schedule = ref<ThemeScheduleConfig>({})
@@ -310,18 +296,9 @@ export const useThemeStore = defineStore('theme', () => {
   })
 
   const isDark = computed(() => {
-    if (themeMode.value === 'custom') return schemeDark.value
     if (themeMode.value === 'dark') return true
     if (themeMode.value === 'light') return false
     return effectiveSystemDark.value
-  })
-
-  /** 实际生效的 scheme 名：custom 使用预设声明的 scheme，其余派生自模式。 */
-  const resolvedScheme = computed(() => {
-    if (themeMode.value === 'custom') return scheme.value || 'light'
-    if (themeMode.value === 'dark') return 'dark'
-    if (themeMode.value === 'light') return 'light'
-    return effectiveSystemDark.value ? 'dark' : 'light'
   })
 
   const naiveTheme = computed<GlobalTheme | null>(() => {
@@ -337,15 +314,10 @@ export const useThemeStore = defineStore('theme', () => {
 
   const colors = computed(() => {
     const baseColors = isDark.value ? themeColors.dark : themeColors.light
-    const conf = appearance.value
 
     return {
       ...baseColors,
       ...primaryScale.value,
-      success: conf.success_color ?? baseColors.success,
-      warning: conf.warning_color ?? baseColors.warning,
-      error: conf.error_color ?? baseColors.error,
-      info: conf.info_color ?? baseColors.info,
     }
   })
 
@@ -364,7 +336,7 @@ export const useThemeStore = defineStore('theme', () => {
     })
   }
 
-  /** 写入用户级外观覆盖变量；未设置的字段不写，交由预设/token 或默认值决定。 */
+  /** 写入用户级外观覆盖变量；未设置的字段不写，交由默认值决定。 */
   function applyAppearanceVars(): void {
     const el = document.documentElement
     const conf = appearance.value
@@ -373,42 +345,7 @@ export const useThemeStore = defineStore('theme', () => {
     if (typeof conf.radius_card === 'number') el.style.setProperty('--ecl-radius-card', `${conf.radius_card}px`)
     if (typeof conf.radius_dialog === 'number') el.style.setProperty('--ecl-radius-dialog', `${conf.radius_dialog}px`)
     if (conf.font_family) el.style.setProperty('--ecl-font-body', conf.font_family)
-    for (const [token, variable] of [
-      ['success_color', '--ecl-color-success'],
-      ['warning_color', '--ecl-color-warning'],
-      ['error_color', '--ecl-color-error'],
-      ['info_color', '--ecl-color-info'],
-    ] as const) {
-      const color = conf[token]
-      if (typeof color === 'string' && color) el.style.setProperty(variable, color)
-    }
-    if (conf.compact_density === true) {
-      el.style.setProperty('--ecl-control-height', '32px')
-      el.style.setProperty('--ecl-control-height-sm', '28px')
-    } else {
-      el.style.removeProperty('--ecl-control-height')
-      el.style.removeProperty('--ecl-control-height-sm')
-    }
-    el.dataset.reduceMotion = conf.reduce_motion === true ? '1' : '0'
-  }
-
-  /** 注入/移除显式开启的自定义 CSS（危险功能）。 */
-  function applyCustomCss(): void {
-    const el = document.getElementById(CUSTOM_CSS_ELEMENT_ID) as HTMLStyleElement | null
-    const enabled = appearance.value.custom_css_enabled === true
-    const css = (appearance.value.custom_css ?? '').trim()
-    if (!enabled || !css) {
-      el?.remove()
-      return
-    }
-    if (el) {
-      el.textContent = css
-      return
-    }
-    const style = document.createElement('style')
-    style.id = CUSTOM_CSS_ELEMENT_ID
-    style.textContent = css
-    document.head.appendChild(style)
+    el.style.setProperty('--card-opacity', String((conf.card_opacity ?? CARD_OPACITY_DEFAULT) / 100))
   }
 
   /** 持久化当前主题到 localStorage，供 index.html 内联脚本启动时无闪烁恢复。 */
@@ -419,7 +356,6 @@ export const useThemeStore = defineStore('theme', () => {
         THEME_SNAPSHOT_KEY,
         JSON.stringify({
           theme: isDark.value ? 'dark' : 'light',
-          scheme: resolvedScheme.value,
           primary: scale.primary,
           primaryRgb: scale.primaryRgb,
           primaryHover: scale.primaryHover,
@@ -436,7 +372,7 @@ export const useThemeStore = defineStore('theme', () => {
     const bgImageValue = backgroundImage.value ? `url("${backgroundImage.value}")` : 'none'
 
     document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
-    document.documentElement.setAttribute('data-scheme', resolvedScheme.value)
+    document.documentElement.dataset.uiSkin = themeId.value
     document.documentElement.style.setProperty('--primary', primaryScale.value.primary)
     document.documentElement.style.setProperty('--ecl-primary', primaryScale.value.primary)
     document.documentElement.style.setProperty('--primary-rgb', primaryScale.value.primaryRgb)
@@ -456,7 +392,6 @@ export const useThemeStore = defineStore('theme', () => {
     document.documentElement.setAttribute('data-titlebar-hidden', titlebarHidden.value ? '1' : '0')
 
     applyAppearanceVars()
-    applyCustomCss()
     saveSnapshot()
 
     if (import.meta.env.DEV) {
@@ -484,18 +419,16 @@ export const useThemeStore = defineStore('theme', () => {
     if (persist) saveThemeConfig()
   }
 
-  function setPrimaryColor(color: string, persist = true) {
-    primaryColor.value = color
+  /** 切换到内置皮肤（classic/folia），并写入 data-ui-skin 驱动布局差异。 */
+  function setThemeId(id: 'classic' | 'folia', persist = true) {
+    themeId.value = id
     updateTheme()
     if (persist) saveThemeConfig()
   }
 
-  /** 切换到自定义 scheme（须存在于当前预设 schemes）。同时将模式切为 custom。 */
-  function setScheme(name: string, dark = false, persist = true) {
-    scheme.value = name
-    schemeDark.value = dark
-    if (themeMode.value !== 'custom') themeMode.value = 'custom'
-    withThemeTransition(updateTheme)
+  function setPrimaryColor(color: string, persist = true) {
+    primaryColor.value = color
+    updateTheme()
     if (persist) saveThemeConfig()
   }
 
@@ -603,7 +536,7 @@ export const useThemeStore = defineStore('theme', () => {
         ...ui,
         theme: {
           mode: themeMode.value,
-          scheme: scheme.value,
+          theme_id: themeId.value,
           primary_color: primaryColor.value,
           blur_amount: blurAmount.value,
           sidebar_collapsed: sidebarCollapsed.value,
@@ -648,10 +581,10 @@ export const useThemeStore = defineStore('theme', () => {
       if (payload?.theme) {
         const themeData = payload.theme
         if (themeData.mode) {
-          themeMode.value = themeData.mode as ThemeMode
+          themeMode.value = themeData.mode
         }
-        if (typeof themeData.scheme === 'string') {
-          scheme.value = themeData.scheme
+        if (themeData.theme_id === 'classic' || themeData.theme_id === 'folia') {
+          themeId.value = themeData.theme_id
         }
         if (themeData.appearance) {
           appearance.value = { ...themeData.appearance }
@@ -721,6 +654,7 @@ export const useThemeStore = defineStore('theme', () => {
   }
 
   return {
+    themeId,
     themeMode,
     primaryColor,
     backgroundImage,
@@ -733,19 +667,16 @@ export const useThemeStore = defineStore('theme', () => {
     titlebarHidden,
     isDark,
     systemDark,
-    scheme,
-    schemeDark,
     appearance,
     schedule,
-    resolvedScheme,
     naiveTheme,
     themeOverrides,
     colors,
     initSystemThemeListener,
     updateTheme,
     setThemeMode,
+    setThemeId,
     setPrimaryColor,
-    setScheme,
     setAppearance,
     setSchedule,
     setBackgroundImage,
@@ -776,6 +707,7 @@ export async function initTheme(uiConfig?: unknown): Promise<void> {
 export function useTheme() {
   const store = useThemeStore(pinia)
   const {
+    themeId,
     themeMode,
     primaryColor,
     backgroundImage,
@@ -787,16 +719,14 @@ export function useTheme() {
     navigationMode,
     titlebarHidden,
     isDark,
-    scheme,
-    schemeDark,
     appearance,
     schedule,
-    resolvedScheme,
     naiveTheme,
     themeOverrides,
     colors,
   } = storeToRefs(store)
   return {
+    themeId: readonly(themeId),
     themeMode: readonly(themeMode),
     primaryColor: readonly(primaryColor),
     backgroundImage: readonly(backgroundImage),
@@ -808,17 +738,14 @@ export function useTheme() {
     navigationMode: readonly(navigationMode),
     titlebarHidden: readonly(titlebarHidden),
     isDark: readonly(isDark),
-    scheme: readonly(scheme),
-    schemeDark: readonly(schemeDark),
     appearance: readonly(appearance),
     schedule: readonly(schedule),
-    resolvedScheme: readonly(resolvedScheme),
     naiveTheme,
     themeOverrides,
     colors,
     setThemeMode: store.setThemeMode,
+    setThemeId: store.setThemeId,
     setPrimaryColor: store.setPrimaryColor,
-    setScheme: store.setScheme,
     setAppearance: store.setAppearance,
     setSchedule: store.setSchedule,
     setBackgroundImage: store.setBackgroundImage,

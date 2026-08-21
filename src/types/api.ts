@@ -114,25 +114,16 @@ export interface SystemMemoryInfo {
 }
 
 export interface ThemeAppearanceConfig {
-  /** 控件圆角（px） */
-  radius_control?: number
   /** 卡片圆角（px） */
   radius_card?: number
+  /** 控件圆角（px） */
+  radius_control?: number
   /** 对话框圆角（px） */
   radius_dialog?: number
+  /** 卡片不透明度（0-100） */
+  card_opacity?: number
   /** 界面字体族（CSS font-family 值） */
   font_family?: string
-  success_color?: string
-  warning_color?: string
-  error_color?: string
-  info_color?: string
-  /** 尊重减少动效 */
-  reduce_motion?: boolean
-  /** 紧凑密度 */
-  compact_density?: boolean
-  /** 自定义 CSS（危险：需 custom_css_enabled 显式开启才注入） */
-  custom_css?: string
-  custom_css_enabled?: boolean
 }
 
 export interface ThemeScheduleConfig {
@@ -144,127 +135,19 @@ export interface ThemeScheduleConfig {
 }
 
 export interface ThemeConfig {
-  mode: 'light' | 'dark' | 'system' | 'custom'
-  /** custom 模式下激活的 scheme 名（须存在于当前预设 schemes）。 */
-  scheme?: string
+  mode: 'light' | 'dark' | 'system'
+  /** 内置皮肤：classic（经典）或 folia（花叶）。 */
+  theme_id?: 'classic' | 'folia'
   primary_color: string
-  /** 当前激活的版本化主题预设。旧配置迁移后由后端写入。 */
-  active_preset_id?: string
   blur_amount: number
   sidebar_collapsed: boolean
   navigation_mode?: NavigationMode
   /** @deprecated 兼容旧配置；true 对应 sidebar，false 对应 top。 */
   titlebar_hidden: boolean
   transparent_bg: boolean
+  background_opacity?: number
   appearance?: ThemeAppearanceConfig
   schedule?: ThemeScheduleConfig
-}
-
-export type ThemeTargetScope = 'global' | 'component' | 'node' | 'instance'
-
-export interface ThemeAssetDescriptor {
-  path: string
-  mime?: string
-  sha256?: string
-}
-
-export interface ThemePluginDependency {
-  id: string
-  version?: string
-  optional?: boolean
-}
-
-export type ThemeStyleValue = string | number | boolean | null
-
-export interface ThemeStyleOverride {
-  properties?: Record<string, ThemeStyleValue>
-  states?: Partial<Record<'hover' | 'active' | 'focus' | 'focusVisible' | 'disabled', Record<string, ThemeStyleValue>>>
-  effects?: Array<Record<string, unknown>>
-  [key: string]: unknown
-}
-
-export interface ThemeEffectRecipe {
-  id: string
-  type: string
-  target: {
-    scope: ThemeTargetScope
-    id?: string
-  }
-  params: Record<string, ThemeStyleValue>
-}
-
-/** 可导入、导出且向后兼容的主题协议第一版。 */
-export interface ThemePresetV1 {
-  schemaVersion: 1
-  id: string
-  /** Full interface skin. Omitted by legacy/imported presets and therefore classic. */
-  uiSkin?: 'classic' | 'folia'
-  meta: {
-    name: string
-    description?: string
-    author?: string
-    version?: string
-    [key: string]: unknown
-  }
-  schemes: Record<string, Record<string, string>>
-  /** 额外 scheme 的元信息（label/dark）。light/dark 之外的 scheme 名需在此声明。 */
-  schemeMeta?: Record<string, { label?: string; dark?: boolean }>
-  tokens: Record<string, ThemeStyleValue>
-  background: Record<string, unknown>
-  componentOverrides: Record<string, ThemeStyleOverride>
-  nodeOverrides: Record<string, ThemeStyleOverride>
-  /** 实例覆盖仅存储于本机层；导出时需要显式选择。 */
-  instanceOverrides?: Record<string, ThemeStyleOverride>
-  effects: ThemeEffectRecipe[]
-  assets: Record<string, ThemeAssetDescriptor>
-  pluginDependencies: ThemePluginDependency[]
-  extensions: Record<string, unknown>
-}
-
-export interface ThemePresetSummary {
-  id: string
-  name: string
-  description?: string
-  author?: string
-  source: 'builtin' | 'user' | 'plugin' | string
-  readonly: boolean
-  pluginDependencies?: ThemePluginDependency[]
-}
-
-export interface ThemeSelection {
-  nodeId: string
-  page?: string
-  componentType?: string
-  instanceKey?: string
-  scope: ThemeTargetScope
-  path?: string[]
-}
-
-export interface ThemeDesignSessionSnapshot {
-  sessionId: string
-  presetId: string
-  draft: ThemePresetV1
-  basePreset: ThemePresetV1
-  selection: ThemeSelection | null
-  revision: number
-  dirty: boolean
-  canUndo: boolean
-  canRedo: boolean
-  showSlots?: boolean
-  slotHosts?: ThemeSlotHostSnapshot[]
-  pluginDependencies?: Array<ThemePluginDependency & { available?: boolean }>
-}
-
-export interface ThemeSlotHostSnapshot {
-  slotId: string
-  contextKey?: string | null
-  occupied: boolean
-}
-
-export interface ThemePatchOperation {
-  op: 'set' | 'remove'
-  path: string
-  value?: unknown
 }
 
 export interface WindowBounds {
@@ -278,7 +161,7 @@ export interface WindowBounds {
 export interface WindowMetadata {
   label: string
   descriptorId: string
-  windowType: 'main' | 'theme-studio' | 'plugin' | string
+  windowType: 'main' | 'plugin' | string
   plugin?: string | null
   sessionId?: string | null
   singleton: boolean
@@ -306,7 +189,7 @@ export interface UiConfig {
   locale?: string
   debug?: boolean
   flowDebug?: boolean
-  theme?: Partial<ThemeConfig> & { background_opacity?: number }
+  theme?: Partial<ThemeConfig>
   background?: Partial<BackgroundConfig>
   windows?: Record<string, WindowBounds>
   instanceManager?: {
@@ -1087,9 +970,6 @@ export interface PluginInfo {
   error: string | null
   dependencies: Record<string, string>
   contributes?: {
-    themePresets?: Array<string | ThemePresetV1>
-    themeEffects?: Array<string | Record<string, unknown>>
-    themeTokens?: Array<string | Record<string, unknown>>
     themeNodes?: Array<string | Record<string, unknown>>
     windows?: Array<Record<string, unknown>>
   }
@@ -1319,14 +1199,6 @@ export interface BackendEvents {
     contextKey?: string
   }
   'plugin:settings_changed': { plugin: string; key: string; old_value: unknown; new_value: unknown }
-  'theme:library_changed': { presetId?: string; action: string }
-  'theme:activated': { presetId: string; preset: ThemePresetV1 }
-  'theme:design_changed': ThemeDesignSessionSnapshot
-  'theme:selection_changed': ThemeDesignSessionSnapshot
-  'theme:overlay_changed': ThemeDesignSessionSnapshot
-  'theme:preview_changed': ThemeDesignSessionSnapshot
-  'theme:design_committed': ThemeDesignSessionSnapshot
-  'theme:design_discarded': { sessionId: string }
   'window:opened': WindowMetadata
   'window:ready': WindowMetadata
   'window:closed': Partial<WindowMetadata> & { label: string }
@@ -1347,31 +1219,7 @@ export interface CommandPayloadMap {
   settings_get: { section?: ConfigSection; sections?: ConfigSection[] } | undefined
   settings_set: { section: ConfigSection; data: unknown }
 
-  // 主题库、共享设计会话与受控窗口
-  theme_list: undefined
-  theme_active: undefined
-  theme_extensions: undefined
-  theme_get: { preset_id: string }
-  theme_save: { preset: ThemePresetV1 }
-  theme_asset: { preset_id: string; asset_path: string }
-  theme_delete: { preset_id: string }
-  theme_activate: { preset_id: string }
-  theme_import: { source_path: string; replace?: boolean }
-  theme_export: { preset_id: string; output_path: string; include_instance_overrides?: boolean }
-  theme_design_start: { preset_id?: string; restore?: boolean }
-  theme_design_get: { session_id: string }
-  theme_design_select: { session_id: string; selection: ThemeSelection }
-  theme_design_overlay: { session_id: string; show_slots: boolean; slot_hosts?: ThemeSlotHostSnapshot[] }
-  theme_design_patch: {
-    session_id: string
-    expected_revision: number
-    operations: ThemePatchOperation[]
-  }
-  theme_design_undo: { session_id: string; expected_revision: number }
-  theme_design_redo: { session_id: string; expected_revision: number }
-  theme_design_commit: { session_id: string }
-  theme_design_discard: { session_id: string; keep_recovery?: boolean }
-  theme_design_save_as: { session_id: string; name: string }
+  // 受控窗口
   window_list: undefined
   window_open: { descriptor_id: string; session_id?: string; instance_key?: string }
   window_focus: { label: string }
@@ -1749,7 +1597,7 @@ export interface CommandPayloadMap {
   debug_reset_launcher_data: undefined
   debug_clear_plugins: undefined
   debug_devtools_open: undefined
-  frontend_ready: { window_type?: 'main' | 'theme-studio' | 'plugin'; session_id?: string } | undefined
+  frontend_ready: { window_type?: 'main' | 'plugin'; session_id?: string } | undefined
 
   // 文件系统
   fs_read_dir: { path: string }
@@ -1776,26 +1624,6 @@ export const COMMAND_NAMES = {
   launcher_errors_ack: 'launcher_errors_ack',
   settings_get: 'settings_get',
   settings_set: 'settings_set',
-  theme_list: 'theme_list',
-  theme_active: 'theme_active',
-  theme_extensions: 'theme_extensions',
-  theme_get: 'theme_get',
-  theme_save: 'theme_save',
-  theme_asset: 'theme_asset',
-  theme_delete: 'theme_delete',
-  theme_activate: 'theme_activate',
-  theme_import: 'theme_import',
-  theme_export: 'theme_export',
-  theme_design_start: 'theme_design_start',
-  theme_design_get: 'theme_design_get',
-  theme_design_select: 'theme_design_select',
-  theme_design_overlay: 'theme_design_overlay',
-  theme_design_patch: 'theme_design_patch',
-  theme_design_undo: 'theme_design_undo',
-  theme_design_redo: 'theme_design_redo',
-  theme_design_commit: 'theme_design_commit',
-  theme_design_discard: 'theme_design_discard',
-  theme_design_save_as: 'theme_design_save_as',
   window_list: 'window_list',
   window_open: 'window_open',
   window_focus: 'window_focus',
@@ -2016,31 +1844,6 @@ export interface CommandResponseMap {
   settings_get: unknown
   settings_set: void
 
-  theme_list: ThemePresetSummary[]
-  theme_active: ThemePresetV1
-  theme_extensions: {
-    effects: Array<Record<string, unknown>>
-    tokens: Array<Record<string, unknown>>
-    nodes: Array<Record<string, unknown>>
-    windows: Array<Record<string, unknown>>
-  }
-  theme_get: ThemePresetV1
-  theme_save: ThemePresetV1
-  theme_asset: { mime: string; dataUrl: string }
-  theme_delete: void
-  theme_activate: ThemePresetV1
-  theme_import: { preset: ThemePresetV1; originalId: string; importedId: string }
-  theme_export: { path: string }
-  theme_design_start: ThemeDesignSessionSnapshot
-  theme_design_get: ThemeDesignSessionSnapshot
-  theme_design_select: ThemeDesignSessionSnapshot
-  theme_design_overlay: ThemeDesignSessionSnapshot
-  theme_design_patch: ThemeDesignSessionSnapshot
-  theme_design_undo: ThemeDesignSessionSnapshot
-  theme_design_redo: ThemeDesignSessionSnapshot
-  theme_design_commit: ThemeDesignSessionSnapshot
-  theme_design_discard: void
-  theme_design_save_as: ThemeDesignSessionSnapshot
   window_list: WindowMetadata[]
   window_open: WindowMetadata
   window_focus: void

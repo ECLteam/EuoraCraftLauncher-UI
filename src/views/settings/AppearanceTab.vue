@@ -2,6 +2,25 @@
   <div class="tab-pane appearance-settings">
     <SettingSection :title="t('settings.appearance')">
       <SettingRow :label="t('settings.theme')" :description="t('settings.themeDesc')">
+        <NTabs v-if="isFolia" :value="themeId" type="segment" size="small" @update:value="handleThemeIdChange">
+          <NTab v-for="option in builtinThemeOptions" :key="option.id" :name="option.id">
+            <span class="theme-option-label">
+              <UiIcon :name="option.icon" :size="14" />
+              {{ option.label }}
+            </span>
+          </NTab>
+        </NTabs>
+        <NRadioGroup v-else :value="themeId" size="small" @update:value="handleThemeIdChange">
+          <NRadioButton v-for="option in builtinThemeOptions" :key="option.id" :value="option.id">
+            <span class="theme-option-label">
+              <UiIcon :name="option.icon" :size="14" />
+              {{ option.label }}
+            </span>
+          </NRadioButton>
+        </NRadioGroup>
+      </SettingRow>
+
+      <SettingRow label="亮暗模式" description="选择亮暗显示模式（跟随系统时按系统偏好自动切换）">
         <NTabs
           v-if="isFolia"
           :value="currentSettings.mode"
@@ -24,20 +43,6 @@
             </span>
           </NRadioButton>
         </NRadioGroup>
-      </SettingRow>
-
-      <SettingRow
-        v-if="currentSettings.mode === 'custom'"
-        label="配色方案"
-        description="从当前主题声明的额外配色中选择（自定义模式）"
-      >
-        <NSelect
-          class="wide-control"
-          :value="themeScheme"
-          :options="schemeOptions"
-          size="small"
-          @update:value="handleSchemeChange"
-        />
       </SettingRow>
 
       <SettingRow :label="t('settings.primaryColor')" :description="t('settings.primaryColorDesc')">
@@ -65,14 +70,6 @@
 
       <SettingRow :label="t('settings.topNav')" :description="t('settings.topNavDesc')">
         <NSwitch :value="topNavEnabled" @update:value="toggleTopNav" />
-      </SettingRow>
-
-      <SettingRow label="可视化主题设计" description="在独立控制台中点选卡片、节点和插件插槽并实时调整外观">
-        <NButton type="primary" :loading="themeDesigner.busy" @click="openThemeDesigner"> 打开主题设计控制台 </NButton>
-      </SettingRow>
-
-      <SettingRow class="theme-library-setting" label="主题预设库" description="应用、导入或导出多个版本化主题预设">
-        <ThemePresetLibrary />
       </SettingRow>
     </SettingSection>
 
@@ -113,6 +110,18 @@
           <span>{{ radiusDialog }}px</span>
         </div>
       </SettingRow>
+      <SettingRow :label="t('settings.cardOpacity')" :description="t('settings.cardOpacityDesc')">
+        <div class="slider-control">
+          <NSlider
+            :value="cardOpacity"
+            :min="CARD_OPACITY_MIN"
+            :max="CARD_OPACITY_MAX"
+            :tooltip="false"
+            @update:value="handleCardOpacityChange"
+          />
+          <span>{{ cardOpacity }}%</span>
+        </div>
+      </SettingRow>
       <SettingRow label="界面字体" description="覆盖界面默认字体（系统默认 / 预设字体栈）">
         <NSelect
           class="wide-control"
@@ -121,39 +130,6 @@
           size="small"
           placeholder="系统默认"
           @update:value="handleFontFamilyChange"
-        />
-      </SettingRow>
-      <SettingRow label="语义色" description="覆盖主题的成功 / 警告 / 错误 / 信息强调色">
-        <div class="semantic-colors">
-          <label v-for="field in semanticColorFields" :key="field.key" class="semantic-color-item" :title="field.label">
-            <span class="semantic-color-label">{{ field.label }}</span>
-            <input type="color" :value="field.value" @input="handleSemanticColorInput(field.key, $event)" />
-          </label>
-        </div>
-      </SettingRow>
-      <SettingRow label="减少动效" description="全局压制动画与过渡（系统减少动效偏好也始终生效）">
-        <NSwitch :value="reduceMotion" @update:value="handleReduceMotion" />
-      </SettingRow>
-      <SettingRow label="紧凑密度" description="缩小按钮与输入框高度，提高信息密度">
-        <NSwitch :value="compactDensity" @update:value="handleCompactDensity" />
-      </SettingRow>
-      <SettingRow
-        label="自定义 CSS"
-        :description="
-          customCssEnabled
-            ? '已启用：注入任意 CSS，可能导致界面异常，请谨慎使用'
-            : '注入自定义 CSS（危险功能，默认关闭）'
-        "
-      >
-        <NSwitch :value="customCssEnabled" @update:value="handleCustomCssToggle" />
-      </SettingRow>
-      <SettingRow v-if="customCssEnabled" label="CSS 内容">
-        <NInput
-          type="textarea"
-          :value="customCss"
-          placeholder="/* 例如 */&#10;.sidebar { background: hotpink !important; }"
-          :autosize="{ minRows: 4, maxRows: 10 }"
-          @update:value="handleCustomCssInput"
         />
       </SettingRow>
     </SettingSection>
@@ -245,14 +221,20 @@ import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { presetColors, useTheme, type ThemeMode } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
 import { useUiSkin } from '@/composables/useUiSkin'
-import { DEFAULT_PRIMARY_COLOR, FONT_FAMILY_OPTIONS, THEME_MODE_OPTIONS } from '@/config/theme'
+import {
+  BUILTIN_THEMES,
+  CARD_OPACITY_DEFAULT,
+  CARD_OPACITY_MAX,
+  CARD_OPACITY_MIN,
+  DEFAULT_PRIMARY_COLOR,
+  FONT_FAMILY_OPTIONS,
+  THEME_MODE_OPTIONS,
+} from '@/config/theme'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { settingsApi } from '@/features/settings/api/settingsApi'
 import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
-import ThemePresetLibrary from '@/features/themes/components/ThemePresetLibrary.vue'
-import { useThemeDesignerStore } from '@/features/themes/stores/themeDesignerStore'
 import type { ThemeAppearanceConfig } from '@/types/api'
 
 function debounce<A extends unknown[]>(fn: (...args: A) => void, delay: number) {
@@ -271,12 +253,13 @@ const { run } = useAsyncAction({
   errorMessage: t('common.error'),
 })
 const settingsStore = useSettingsStore()
-const themeDesigner = useThemeDesignerStore()
 
 const {
+  themeId,
   themeMode,
   primaryColor,
   backgroundImagePath,
+  setThemeId,
   setThemeMode,
   setPrimaryColor,
   setBackgroundImage,
@@ -286,10 +269,8 @@ const {
   setSchedule,
   backgroundOpacity,
   blurAmount,
-  scheme: themeScheme,
   appearance,
   schedule,
-  colors,
 } = useTheme()
 const { topNavEnabled, toggleTopNav } = useTopNav()
 const { isFolia } = useUiSkin()
@@ -305,25 +286,21 @@ const bgBrightness = ref(Math.round(backgroundOpacity.value * 100))
 const backgroundInput = ref(backgroundImagePath.value)
 const showcaseImageInputRef = ref<HTMLInputElement | null>(null)
 
-const customSchemes = computed(() => {
-  const preset = themeDesigner.activePreset
-  if (!preset) return []
-  return Object.keys(preset.schemes)
-    .filter((name) => name !== 'light' && name !== 'dark')
-    .map((name) => ({ name, label: preset.schemeMeta?.[name]?.label || name }))
-})
-
-const themeOptions = computed(() => {
-  const options = THEME_MODE_OPTIONS.map((option) => ({
+const themeOptions = computed(() =>
+  THEME_MODE_OPTIONS.map((option) => ({
     value: option.value,
     icon: option.icon,
     label: t(`settings.theme${option.value.charAt(0).toUpperCase() + option.value.slice(1)}`),
   }))
-  if (customSchemes.value.length) options.push({ value: 'custom', icon: 'palette', label: '自定义' })
-  return options
-})
+)
 
-const schemeOptions = computed(() => customSchemes.value.map((item) => ({ label: item.label, value: item.name })))
+const builtinThemeOptions = computed(() =>
+  BUILTIN_THEMES.map((option) => ({
+    id: option.id,
+    icon: option.icon,
+    label: t(`settings.theme${option.id.charAt(0).toUpperCase() + option.id.slice(1)}`),
+  }))
+)
 
 async function updateUiConfig(partialTheme: Partial<{ mode: ThemeMode; primary_color: string; blur_amount: number }>) {
   await run(async () =>
@@ -337,38 +314,27 @@ async function updateUiConfig(partialTheme: Partial<{ mode: ThemeMode; primary_c
 }
 
 async function handleThemeChange(mode: ThemeMode) {
-  if (mode === 'custom') {
-    const first = customSchemes.value[0]
-    if (first) themeDesigner.setActiveScheme(first.name)
-    return
-  }
   setThemeMode(mode, false)
   await updateUiConfig({ mode })
 }
 
-function handleSchemeChange(name: string) {
-  themeDesigner.setActiveScheme(name)
+function handleThemeIdChange(id: string | number) {
+  const value = String(id)
+  if (value !== 'classic' && value !== 'folia') return
+  setThemeId(value, false)
+  void run(async () => settingsStore.patchUiTheme({ theme_id: value }))
 }
 
 const radiusCard = computed(() => appearance.value.radius_card ?? 8)
 const radiusControl = computed(() => appearance.value.radius_control ?? 6)
 const radiusDialog = computed(() => appearance.value.radius_dialog ?? 10)
+const cardOpacity = computed(() => appearance.value.card_opacity ?? CARD_OPACITY_DEFAULT)
 const fontFamilyValue = computed(() => appearance.value.font_family ?? '')
-const reduceMotion = computed(() => appearance.value.reduce_motion === true)
-const compactDensity = computed(() => appearance.value.compact_density === true)
-const customCssEnabled = computed(() => appearance.value.custom_css_enabled === true)
-const customCss = computed(() => appearance.value.custom_css ?? '')
 const fontOptions = computed(() => [
   ...FONT_FAMILY_OPTIONS.map((option) => ({ label: option.name, value: option.value })),
   ...(fontFamilyValue.value && !FONT_FAMILY_OPTIONS.some((option) => option.value === fontFamilyValue.value)
     ? [{ label: `自定义 (${fontFamilyValue.value})`, value: fontFamilyValue.value }]
     : []),
-])
-const semanticColorFields = computed(() => [
-  { key: 'success_color', label: '成功', value: appearance.value.success_color ?? colors.value.success },
-  { key: 'warning_color', label: '警告', value: appearance.value.warning_color ?? colors.value.warning },
-  { key: 'error_color', label: '错误', value: appearance.value.error_color ?? colors.value.error },
-  { key: 'info_color', label: '信息', value: appearance.value.info_color ?? colors.value.info },
 ])
 
 function handleRadiusChange(key: keyof ThemeAppearanceConfig, value: number | null) {
@@ -376,28 +342,13 @@ function handleRadiusChange(key: keyof ThemeAppearanceConfig, value: number | nu
   setAppearance({ [key]: Math.round(value) }, true)
 }
 
+function handleCardOpacityChange(value: number | null) {
+  if (typeof value !== 'number') return
+  setAppearance({ card_opacity: Math.round(value) }, true)
+}
+
 function handleFontFamilyChange(value: string) {
   setAppearance({ font_family: value || undefined }, true)
-}
-
-function handleSemanticColorInput(key: string, event: Event) {
-  setAppearance({ [key]: (event.target as HTMLInputElement).value } as Partial<ThemeAppearanceConfig>, true)
-}
-
-function handleReduceMotion(value: boolean) {
-  setAppearance({ reduce_motion: value }, true)
-}
-
-function handleCompactDensity(value: boolean) {
-  setAppearance({ compact_density: value }, true)
-}
-
-function handleCustomCssToggle(value: boolean) {
-  setAppearance({ custom_css_enabled: value }, true)
-}
-
-function handleCustomCssInput(value: string) {
-  setAppearance({ custom_css: value }, true)
 }
 
 const scheduleEnabled = computed(() => schedule.value.enabled === true)
@@ -428,10 +379,6 @@ async function handleColorChange(color: string) {
 
 function handleColorInput(event: Event) {
   void handleColorChange((event.target as HTMLInputElement).value)
-}
-
-async function openThemeDesigner() {
-  await run(() => themeDesigner.start())
 }
 
 const saveBlur = debounce(async (value: number) => {

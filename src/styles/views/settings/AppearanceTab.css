@@ -65,26 +65,6 @@
   width: min(430px, 48vw);
 }
 
-.theme-library-setting :deep(.setting-control) {
-  width: min(58%, 520px);
-  min-width: 0;
-  flex-shrink: 1;
-}
-
-@media (max-width: 760px) {
-  .theme-library-setting {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-
-  .theme-library-setting :deep(.setting-control) {
-    width: 100%;
-    max-width: none;
-    justify-content: flex-start;
-  }
-}
-
 .slider-control {
   display: grid;
   width: 310px;
@@ -101,35 +81,6 @@
 
 .wide-control {
   width: min(320px, 100%);
-}
-
-.semantic-colors {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.semantic-color-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  cursor: pointer;
-}
-
-.semantic-color-item input[type='color'] {
-  width: 24px;
-  height: 24px;
-  padding: 2px;
-  border: 1px solid var(--ecl-border);
-  border-radius: 6px;
-  background: transparent;
-  cursor: pointer;
-}
-
-.semantic-color-label {
-  color: var(--ecl-text-secondary);
-  font-size: 11px;
 }
 
 .schedule-row {

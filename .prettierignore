@@ -6,3 +6,6 @@ components.d.ts
 pnpm-lock.yaml
 public/fonts/
 public/img/
+MAPPING_TABLE.yaml
+CHECKPOINT_BATCH_*.md
+
