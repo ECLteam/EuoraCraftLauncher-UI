@@ -60,15 +60,17 @@
 }
 
 .running-instances-trigger.inactive {
-  border-color: var(--border-strong);
-  background: var(--bg-elevated);
+  border-color: var(--control-border);
+  background: var(--control-bg);
   box-shadow: none;
   color: var(--text-tertiary);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
 }
 
 .running-instances-trigger.inactive:hover {
-  border-color: var(--border-hover);
-  background: var(--bg-hover);
+  border-color: var(--control-border-hover);
+  background: var(--control-bg-hover);
   box-shadow: none;
   color: var(--text-secondary);
 }

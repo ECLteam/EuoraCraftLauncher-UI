@@ -51,6 +51,7 @@
   min-height: 0;
   flex: 1;
   overflow: auto;
+  contain: layout;
 }
 
 .section-layout__menu :deep(.n-menu-item),
