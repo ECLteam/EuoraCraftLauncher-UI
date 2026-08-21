@@ -6,6 +6,8 @@
 [data-ui-skin='folia'] {
   --bg-base-alt: #e9ebef;
   --bg-elevated: #ffffff;
+  --bg-surface: rgba(255, 255, 255, 0.62);
+  --card-bg: rgba(255, 255, 255, 0.6);
   --bg-hover: #f0f1f3;
   --bg-hover-strong: rgba(var(--primary-rgb, 91, 111, 245), 0.08);
   --bg-active: rgba(var(--primary-rgb, 91, 111, 245), 0.14);
@@ -53,6 +55,8 @@
 [data-theme='dark'][data-ui-skin='folia'] {
   --bg-base-alt: #21242b;
   --bg-elevated: #21242b;
+  --bg-surface: rgba(32, 36, 46, 0.62);
+  --card-bg: rgba(34, 38, 48, 0.6);
   --bg-hover: rgba(255, 255, 255, 0.06);
   --bg-hover-strong: rgba(var(--primary-rgb, 130, 145, 255), 0.12);
   --bg-active: rgba(var(--primary-rgb, 130, 145, 255), 0.2);
@@ -121,7 +125,29 @@
 [data-ui-skin='folia'] .setting-section,
 [data-ui-skin='folia'] .content-modal,
 [data-ui-skin='folia'] .modal-content,
-[data-ui-skin='folia'] .instance-detail-modal {
+[data-ui-skin='folia'] .instance-detail-modal,
+/* 视图/组件玻璃表面（Batch 6） */
+[data-ui-skin='folia'] .connect-main-card,
+[data-ui-skin='folia'] .connect-side-card,
+[data-ui-skin='folia'] .connect-room-card,
+[data-ui-skin='folia'] .connect-state-card,
+[data-ui-skin='folia'] .connect-service-card,
+[data-ui-skin='folia'] .connect-entry-panel,
+[data-ui-skin='folia'] .connect-side-panel,
+[data-ui-skin='folia'] .mods-panel,
+[data-ui-skin='folia'] .mods-results-panel,
+[data-ui-skin='folia'] .mod-list-row,
+[data-ui-skin='folia'] .task-queue-wrapper,
+[data-ui-skin='folia'] .piv,
+[data-ui-skin='folia'] .fll-window,
+[data-ui-skin='folia'] .error-modal-container,
+[data-ui-skin='folia'] .install-dialog,
+[data-ui-skin='folia'] .install-loader-card,
+[data-ui-skin='folia'] .manage-container,
+[data-ui-skin='folia'] .path-panel,
+[data-ui-skin='folia'] .about-pane,
+[data-ui-skin='folia'] .dev-page,
+[data-ui-skin='folia'] .dev-header {
   background: var(--folia-glass);
   border-color: var(--folia-glass-border);
   backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.25);
@@ -190,10 +216,22 @@
   transform: translateY(-1px);
 }
 
+/* 视图卡片 hover 玻璃辉光（Batch 6，保守：无位移） */
+[data-ui-skin='folia'] .connect-room-card:hover,
+[data-ui-skin='folia'] .connect-main-card:hover,
+[data-ui-skin='folia'] .mod-list-row:hover {
+  border-color: rgba(var(--primary-rgb, 91, 111, 245), 0.48);
+  box-shadow: 0 8px 24px rgba(var(--primary-rgb, 91, 111, 245), 0.1);
+}
+
 [data-ui-skin='folia'] .page-header,
 [data-ui-skin='folia'] .panel-header,
 [data-ui-skin='folia'] .setting-section-header,
-[data-ui-skin='folia'] .card-header {
+[data-ui-skin='folia'] .card-header,
+/* 面板/表头边框（Batch 6） */
+[data-ui-skin='folia'] .mods-panel-header,
+[data-ui-skin='folia'] .task-queue-body,
+[data-ui-skin='folia'] .piv-footer {
   border-color: var(--folia-glass-border);
 }
 
