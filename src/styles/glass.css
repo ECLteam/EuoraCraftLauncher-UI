@@ -66,6 +66,12 @@
   -webkit-backdrop-filter: blur(var(--glass-blur, 0px)) saturate(1.35) !important;
 }
 
+/* 搜索框聚焦：外圈圆角高亮（跟随 .search-box 圆角），覆盖各处原 focus-within 仅变边框色 */
+.search-box:focus-within {
+  border-color: var(--control-border-focus) !important;
+  box-shadow: var(--control-ring) !important;
+}
+
 /* 分段标签页激活态：主色背景胶囊 + 主色边框 + 主色文字（深色下增强对比） */
 .n-tabs--segment-type .n-tabs-tab.n-tabs-tab--active,
 .n-tabs--segment-type .n-tabs-tab.n-tabs-tab--active:hover {
