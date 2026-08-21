@@ -274,9 +274,20 @@ const updateActivePosition = (targetPath: string) => {
     if (!targetEl || !activeBgRef.value) return
     const top = targetEl.offsetTop
     const height = targetEl.offsetHeight
-    activeBgRef.value.style.top = `${top}px`
-    activeBgRef.value.style.height = `${height}px`
-    activeBgRef.value.style.opacity = '1'
+    const hidden = !activeBgRef.value.style.opacity || activeBgRef.value.style.opacity === '0'
+    if (hidden) {
+      // 隐藏状态：先无过渡定位到目标，再显示，避免从旧位置滑过来
+      activeBgRef.value.style.transition = 'none'
+      activeBgRef.value.style.top = `${top}px`
+      activeBgRef.value.style.height = `${height}px`
+      void activeBgRef.value.offsetHeight
+      activeBgRef.value.style.transition = ''
+      activeBgRef.value.style.opacity = '1'
+    } else {
+      activeBgRef.value.style.top = `${top}px`
+      activeBgRef.value.style.height = `${height}px`
+      activeBgRef.value.style.opacity = '1'
+    }
   })
 }
 

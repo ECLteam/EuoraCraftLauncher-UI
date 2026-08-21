@@ -23,17 +23,11 @@
               />
             </div>
             <div class="wardrobe-category-row">
-              <NButtonGroup size="small">
-                <NButton :type="activeTab === 'skin' ? 'primary' : 'default'" @click="activeTab = 'skin'">
-                  {{ t('wardrobe.skins') }}
-                </NButton>
-                <NButton :type="activeTab === 'cape' ? 'primary' : 'default'" @click="activeTab = 'cape'">
-                  {{ t('wardrobe.localCapes') }}
-                </NButton>
-                <NButton :type="activeTab === 'official' ? 'primary' : 'default'" @click="activeTab = 'official'">
-                  {{ t('wardrobe.officialCapes') }}
-                </NButton>
-              </NButtonGroup>
+              <NTabs :value="activeTab" type="segment" size="small" @update:value="handleTabChange">
+                <NTab name="skin">{{ t('wardrobe.skins') }}</NTab>
+                <NTab name="cape">{{ t('wardrobe.localCapes') }}</NTab>
+                <NTab name="official">{{ t('wardrobe.officialCapes') }}</NTab>
+              </NTabs>
               <div class="wardrobe-category-actions">
                 <NButton quaternary circle size="small" :title="t('wardrobe.options')" @click="showOptionsModal = true">
                   <template #icon><UiIcon name="menu" :size="16" /></template>
@@ -287,7 +281,7 @@
 </template>
 
 <script setup lang="ts">
-import { NAlert, NButton, NButtonGroup, NCheckbox, NEmpty, NInput, NPopconfirm, NSelect, NSpin, NTag } from 'naive-ui'
+import { NAlert, NButton, NCheckbox, NEmpty, NInput, NPopconfirm, NSelect, NSpin, NTab, NTabs, NTag } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import backend from '@/api/client'
@@ -321,6 +315,10 @@ const items = ref<WardrobeItem[]>([])
 const textureUrls = ref<Record<string, string>>({})
 const officialCapeUrls = ref<Record<string, string>>({})
 const activeTab = ref<'skin' | 'cape' | 'official'>('skin')
+
+function handleTabChange(value: string | number) {
+  if (value === 'skin' || value === 'cape' || value === 'official') activeTab.value = value
+}
 const selectedLocal = ref<WardrobeItem | null>(null)
 const selectedOfficialCape = ref<MicrosoftCape | null>(null)
 const selectedSkinUrl = ref('')
@@ -710,6 +708,25 @@ async function downloadSkin(): Promise<void> {
   align-items: center;
   justify-content: space-between;
   gap: var(--s-sm);
+}
+
+/* 类别分段标签页固定宽度、均分居中 */
+.wardrobe-category-row :deep(.n-tabs) {
+  flex: 0 0 auto;
+  width: 280px;
+}
+
+.wardrobe-category-row :deep(.n-tabs-rail) {
+  display: flex;
+  width: 100%;
+}
+
+.wardrobe-category-row :deep(.n-tabs-tab-wrapper) {
+  flex: 1;
+}
+
+.wardrobe-category-row :deep(.n-tabs-tab) {
+  justify-content: center;
 }
 
 .wardrobe-account-row > span {
