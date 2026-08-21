@@ -131,9 +131,9 @@ function createThemeOverrides(
       popoverColor: baseColors.surface,
       borderColor: baseColors.border,
       dividerColor: baseColors.border,
-      borderRadius: '6px',
-      borderRadiusSmall: '6px',
-      fontFamily: 'var(--font-body)',
+      borderRadius: 'var(--ecl-radius-control, 6px)',
+      borderRadiusSmall: 'var(--ecl-radius-control, 6px)',
+      fontFamily: 'var(--ecl-font-body, var(--font-body))',
     },
     Button: {
       color: baseColors.background,
@@ -145,16 +145,16 @@ function createThemeOverrides(
       borderHover: `1px solid ${primaryScale.primary}`,
       heightMedium: '36px',
       heightSmall: '32px',
-      borderRadiusMedium: '6px',
-      borderRadiusSmall: '6px',
+      borderRadiusMedium: 'var(--ecl-radius-control, 6px)',
+      borderRadiusSmall: 'var(--ecl-radius-control, 6px)',
       fontWeight: '550',
       paddingMedium: '0 14px',
     },
     Card: {
       color: baseColors.cardBackground,
       borderColor: baseColors.border,
-      borderRadius: '8px',
-      boxShadow: '0 1px 2px rgba(29, 36, 51, 0.04)',
+      borderRadius: 'var(--ecl-radius-card, 8px)',
+      boxShadow: 'var(--ecl-shadow-surface, 0 1px 2px rgba(29, 36, 51, 0.04))',
       paddingMedium: '16px',
     },
     Input: {
@@ -167,7 +167,7 @@ function createThemeOverrides(
       placeholderColor: baseColors.textSecondary,
       heightMedium: '36px',
       heightSmall: '32px',
-      borderRadius: '6px',
+      borderRadius: 'var(--ecl-radius-control, 6px)',
       boxShadowFocus: `0 0 0 2px ${rgba(primaryScale.primary, 0.16)}`,
     },
     Select: {
@@ -289,9 +289,12 @@ export const useThemeStore = defineStore('theme', () => {
 
     document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
     document.documentElement.style.setProperty('--primary', primaryScale.value.primary)
+    document.documentElement.style.setProperty('--ecl-primary', primaryScale.value.primary)
     document.documentElement.style.setProperty('--primary-rgb', primaryScale.value.primaryRgb)
     document.documentElement.style.setProperty('--primary-hover', primaryScale.value.primaryHover)
+    document.documentElement.style.setProperty('--ecl-primary-hover', primaryScale.value.primaryHover)
     document.documentElement.style.setProperty('--primary-active', primaryScale.value.primaryPressed)
+    document.documentElement.style.setProperty('--ecl-primary-active', primaryScale.value.primaryPressed)
     document.documentElement.style.setProperty('--primary-alpha', primaryScale.value.primaryLight)
     document.documentElement.style.setProperty('--bg-image', bgImageValue)
     document.documentElement.style.setProperty('--bg-opacity', String(backgroundOpacity.value))

@@ -57,4 +57,13 @@ describe('pluginStore', () => {
     await pending
     expect(store.reloadingPlugins).toEqual([])
   })
+
+  it('取消安装目录选择时不刷新插件列表', async () => {
+    vi.mocked(pluginManagementApi.installFromDirectory).mockResolvedValue(false)
+    const store = usePluginStore()
+
+    await expect(store.install()).resolves.toBe(false)
+
+    expect(pluginManagementApi.list).not.toHaveBeenCalled()
+  })
 })

@@ -1,7 +1,7 @@
 <template>
   <div class="game-page">
     <div class="game-left">
-      <div id="plugin-slot-game-left" class="plugin-slot-container"></div>
+      <PluginSlotHost slotId="plugin-slot-game-left" class="plugin-slot-container" />
       <button
         class="running-instances-trigger"
         :class="{ inactive: runningInstanceCount === 0 }"
@@ -15,7 +15,7 @@
     </div>
 
     <div class="game-right">
-      <div id="plugin-slot-game-right-top" class="plugin-slot-container"></div>
+      <PluginSlotHost slotId="plugin-slot-game-right-top" class="plugin-slot-container" />
       <Transition name="slide-out" mode="out-in">
         <div v-if="!launchProgress.visible" key="cards" class="game-right-cards">
           <GameAccountCard
@@ -553,6 +553,7 @@ import { useGameHomeStore } from '@/features/game-home/stores/gameHomeStore'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
 import { instanceDisplayName } from '@/features/instances/model/instancePresentation'
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
+import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import InstanceTerminalModule from '@/features/terminal/components/InstanceTerminalModule.vue'
 import type { AccountTextures, MinecraftAccount } from '@/types/api'
 import { getAccountTypeLabelKey, getAccountTypeShortLabelKey } from '@/utils/enums'

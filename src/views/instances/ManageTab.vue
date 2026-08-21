@@ -1,6 +1,6 @@
 <template>
   <div class="manage-page">
-    <div id="plugin-slot-versions-manage-top" class="plugin-slot-container"></div>
+    <PluginSlotHost slotId="plugin-slot-versions-manage-top" class="plugin-slot-container" />
     <!-- 统一容器：路径列表 + 版本列表 -->
     <div class="manage-container">
       <InstancePathSidebar
@@ -143,6 +143,7 @@ import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
 import { findGamePathIndex, type GamePath } from '@/features/instances/model/gamePath'
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
+import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import type { LaunchProgress, MinecraftPathEntry, ScannedVersion } from '@/types/api'
 import { getErrorMessage } from '@/utils/error'

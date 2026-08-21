@@ -32,7 +32,8 @@ export function useAsyncAction(options: UseAsyncActionOptions = {}) {
     loading.value = true
     try {
       const result = await fn()
-      if (opts.showSuccess && opts.successMessage) {
+      // `false` 是选择器取消等“未执行”结果，不应被当作成功动作提示。
+      if (result !== false && opts.showSuccess && opts.successMessage) {
         message.success(opts.successMessage)
       }
       return result ?? null

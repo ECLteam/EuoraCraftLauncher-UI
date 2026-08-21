@@ -301,8 +301,8 @@
                 </template>
 
                 <div class="connect-room-owner">
-                  <UiAvatar
-                    :src="hostPlayer?.iconBase64 ? `data:image/png;base64,${hostPlayer.iconBase64}` : undefined"
+                  <ConnectorPlayerAvatar
+                    :skinBase64="hostPlayer?.iconBase64"
                     :name="hostName || t('connect.host.title')"
                     :size="38"
                   />
@@ -373,8 +373,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import ConnectorPlayerAvatar from '@/components/connect/ConnectorPlayerAvatar.vue'
 import PlayerList from '@/components/connect/PlayerList.vue'
-import UiAvatar from '@/components/ui/Avatar.vue'
 import UiButton from '@/components/ui/Button.vue'
 import UiCard from '@/components/ui/Card.vue'
 import UiIcon from '@/components/ui/Icon.vue'

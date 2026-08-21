@@ -21,6 +21,13 @@ function mountLaunchBar(overrides: Partial<InstanceType<typeof GameLaunchBar>['$
 }
 
 describe('GameLaunchBar', () => {
+  it('渲染真实插件插槽宿主而不是未解析组件标签', () => {
+    const wrapper = mountLaunchBar()
+
+    expect(wrapper.find('[data-plugin-slot="plugin-slot-game-launch-before"]').exists()).toBe(true)
+    expect(wrapper.find('.plugin-slot-host').exists()).toBe(true)
+  })
+
   it('没有已安装版本时引导进入版本管理', async () => {
     const wrapper = mountLaunchBar({
       versionsCount: 0,

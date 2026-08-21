@@ -1,5 +1,5 @@
 <template>
-  <div class="setting-item">
+  <div class="setting-item" data-theme-component="setting-row">
     <div class="setting-info">
       <div class="setting-label">
         {{ label }}

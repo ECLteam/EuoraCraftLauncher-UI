@@ -535,7 +535,9 @@ export function showEmpty(container: HTMLElement, text = '暂无数据', icon = 
 // ── 插槽渲染 ──
 
 export function getSlot(id: string): HTMLElement | null {
-  return document.getElementById(`plugin-slot-${id}`)
+  const slotId = `plugin-slot-${id}`
+  const escapedId = slotId.replaceAll('\\', '\\\\').replaceAll('"', '\\"')
+  return document.querySelector<HTMLElement>(`[data-plugin-slot="${escapedId}"]`) || document.getElementById(slotId)
 }
 
 export function clearSlot(id: string): void {

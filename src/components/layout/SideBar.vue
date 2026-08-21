@@ -1,6 +1,8 @@
 <template>
   <aside
     class="sidebar"
+    data-theme-component="navigation"
+    data-theme-node="shell.sidebar"
     :class="{
       collapsed: isCollapsed,
       expanded: isExpanded,
@@ -19,7 +21,7 @@
     <!-- 导航区域 -->
     <nav class="sidebar-nav" @mouseleave="handleMouseLeave">
       <!-- 插件：侧边栏顶部插槽 -->
-      <div id="plugin-slot-sidebar-top" class="plugin-slot-container sidebar-plugin-slot"></div>
+      <PluginSlotHost slotId="plugin-slot-sidebar-top" class="plugin-slot-container sidebar-plugin-slot" />
       <div v-if="!isCollapsed" ref="activeBgRef" class="sidebar-active-bg"></div>
       <div v-if="!isCollapsed" ref="indicatorRef" class="sidebar-active-indicator"></div>
 
@@ -91,7 +93,7 @@
     </nav>
 
     <!-- 插件：侧边栏底部插槽 -->
-    <div id="plugin-slot-sidebar-bottom" class="plugin-slot-container sidebar-plugin-slot"></div>
+    <PluginSlotHost slotId="plugin-slot-sidebar-bottom" class="plugin-slot-container sidebar-plugin-slot" />
 
     <!-- 底部 -->
     <div class="sidebar-footer">
@@ -137,6 +139,7 @@ import { useTopNav } from '@/composables/useTopNav'
 import { URLS } from '@/config/urls'
 import { MENU_ITEMS } from '@/constants/menu'
 import { pluginHostApi } from '@/features/plugins/api/pluginHostApi'
+import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { setSidebarState } from '@/plugin-sdk/state'
 import { openExternalUrl } from '@/utils/openExternal'
 
@@ -187,8 +190,9 @@ const menuItems = computed(() =>
 
 // 子菜单定义
 const settingsSubItems = computed(() => [
-  { path: '/settings/general', label: t('settings.general'), iconName: 'settings' },
-  { path: '/settings/game', label: t('settings.game'), iconName: 'game' },
+  { path: '/settings/appearance', label: t('settings.appearance'), iconName: 'brush' },
+  { path: '/settings/launcher', label: t('settings.launcherSettings'), iconName: 'settings' },
+  { path: '/settings/game', label: t('settings.gameSettings'), iconName: 'game' },
   { path: '/settings/about', label: t('settings.about'), iconName: 'info' },
 ])
 

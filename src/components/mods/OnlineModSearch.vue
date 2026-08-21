@@ -96,7 +96,7 @@
       </div>
     </div>
 
-    <div id="plugin-slot-online-mods-search-after" class="plugin-slot-container"></div>
+    <PluginSlotHost slotId="plugin-slot-online-mods-search-after" class="plugin-slot-container" />
 
     <div v-if="sourceWarnings.length" class="source-warnings">
       <NAlert v-for="warning in sourceWarnings" :key="warning.name" type="warning" :showIcon="false">
@@ -514,6 +514,7 @@ import {
   type ModVersionGroup,
   type VersionGroupType,
 } from '@/features/mods/model/modVersionGroups'
+import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import type {
   GameResourceType,
   DownloadConfig,

@@ -13,6 +13,9 @@ export const URLS = {
   /** GitHub 组织 */
   githubOrg: 'https://github.com/ECLteam',
 
+  /** Qomicex-Public GitHub 组织 */
+  qomicexPublic: 'https://github.com/Qomicex-Public',
+
   /** 头像服务 */
   avatarApi: 'https://api.mcheads.org/head',
 

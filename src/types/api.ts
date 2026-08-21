@@ -112,12 +112,138 @@ export interface SystemMemoryInfo {
 export interface ThemeConfig {
   mode: 'light' | 'dark' | 'system'
   primary_color: string
+  /** 当前激活的版本化主题预设。旧配置迁移后由后端写入。 */
+  active_preset_id?: string
   blur_amount: number
   sidebar_collapsed: boolean
   navigation_mode?: NavigationMode
   /** @deprecated 兼容旧配置；true 对应 sidebar，false 对应 top。 */
   titlebar_hidden: boolean
   transparent_bg: boolean
+}
+
+export type ThemeTargetScope = 'global' | 'component' | 'node' | 'instance'
+
+export interface ThemeAssetDescriptor {
+  path: string
+  mime?: string
+  sha256?: string
+}
+
+export interface ThemePluginDependency {
+  id: string
+  version?: string
+  optional?: boolean
+}
+
+export type ThemeStyleValue = string | number | boolean | null
+
+export interface ThemeStyleOverride {
+  properties?: Record<string, ThemeStyleValue>
+  states?: Partial<Record<'hover' | 'active' | 'focus' | 'focusVisible' | 'disabled', Record<string, ThemeStyleValue>>>
+  effects?: Array<Record<string, unknown>>
+  [key: string]: unknown
+}
+
+export interface ThemeEffectRecipe {
+  id: string
+  type: string
+  target: {
+    scope: ThemeTargetScope
+    id?: string
+  }
+  params: Record<string, ThemeStyleValue>
+}
+
+/** 可导入、导出且向后兼容的主题协议第一版。 */
+export interface ThemePresetV1 {
+  schemaVersion: 1
+  id: string
+  meta: {
+    name: string
+    description?: string
+    author?: string
+    version?: string
+    [key: string]: unknown
+  }
+  schemes: Record<string, Record<string, string>>
+  tokens: Record<string, ThemeStyleValue>
+  background: Record<string, unknown>
+  componentOverrides: Record<string, ThemeStyleOverride>
+  nodeOverrides: Record<string, ThemeStyleOverride>
+  /** 实例覆盖仅存储于本机层；导出时需要显式选择。 */
+  instanceOverrides?: Record<string, ThemeStyleOverride>
+  effects: ThemeEffectRecipe[]
+  assets: Record<string, ThemeAssetDescriptor>
+  pluginDependencies: ThemePluginDependency[]
+  extensions: Record<string, unknown>
+}
+
+export interface ThemePresetSummary {
+  id: string
+  name: string
+  description?: string
+  author?: string
+  source: 'builtin' | 'user' | 'plugin' | string
+  readonly: boolean
+  pluginDependencies?: ThemePluginDependency[]
+}
+
+export interface ThemeSelection {
+  nodeId: string
+  page?: string
+  componentType?: string
+  instanceKey?: string
+  scope: ThemeTargetScope
+  path?: string[]
+}
+
+export interface ThemeDesignSessionSnapshot {
+  sessionId: string
+  presetId: string
+  draft: ThemePresetV1
+  basePreset: ThemePresetV1
+  selection: ThemeSelection | null
+  revision: number
+  dirty: boolean
+  canUndo: boolean
+  canRedo: boolean
+  showSlots?: boolean
+  slotHosts?: ThemeSlotHostSnapshot[]
+  pluginDependencies?: Array<ThemePluginDependency & { available?: boolean }>
+}
+
+export interface ThemeSlotHostSnapshot {
+  slotId: string
+  contextKey?: string | null
+  occupied: boolean
+}
+
+export interface ThemePatchOperation {
+  op: 'set' | 'remove'
+  path: string
+  value?: unknown
+}
+
+export interface WindowBounds {
+  x?: number
+  y?: number
+  width?: number
+  height?: number
+  monitor?: string
+}
+
+export interface WindowMetadata {
+  label: string
+  descriptorId: string
+  windowType: 'main' | 'theme-studio' | 'plugin' | string
+  plugin?: string | null
+  sessionId?: string | null
+  singleton: boolean
+  followMain: boolean
+  dataSchema: { read?: string[]; write?: string[] }
+  ready: boolean
+  bounds?: WindowBounds
 }
 
 export type NavigationMode = 'sidebar' | 'top'
@@ -140,6 +266,7 @@ export interface UiConfig {
   flowDebug?: boolean
   theme?: Partial<ThemeConfig> & { background_opacity?: number }
   background?: Partial<BackgroundConfig>
+  windows?: Record<string, WindowBounds>
   instanceManager?: {
     viewMode?: 'card' | 'list'
     sortKey?: InstanceSortKey
@@ -193,7 +320,7 @@ export interface MinecraftVersionCatalog {
 
 export type LoaderType = 'Vanilla' | 'Forge' | 'NeoForge' | 'Fabric' | 'Quilt' | 'OptiFine'
 
-export type InstanceExternalSource = 'auto' | 'pcl' | 'hmcl' | 'qomicex'
+export type InstanceExternalSource = string
 export type InstanceSortKey = 'lastLaunchedAt' | 'totalRunDurationSeconds' | 'launchCount' | 'name' | 'gameVersion'
 
 export interface InstanceIconConfig {
@@ -208,6 +335,12 @@ export interface InstanceCategory {
   color: string
   order: number
   builtin: boolean
+}
+
+export interface InstanceExternalSourceOption {
+  source: string
+  title: string
+  plugin: string
 }
 
 export interface InstanceProfile {
@@ -258,6 +391,7 @@ export interface ScannedVersion {
   profileOverrides?: string[]
   preferredExternalSource?: InstanceExternalSource
   availableSources?: string[]
+  externalSourceOptions?: InstanceExternalSourceOption[]
   sourceWarnings?: string[]
   launchCount?: number
   lastRunDurationSeconds?: number
@@ -893,6 +1027,13 @@ export interface PluginInfo {
   status: string
   error: string | null
   dependencies: Record<string, string>
+  contributes?: {
+    themePresets?: Array<string | ThemePresetV1>
+    themeEffects?: Array<string | Record<string, unknown>>
+    themeTokens?: Array<string | Record<string, unknown>>
+    themeNodes?: Array<string | Record<string, unknown>>
+    windows?: Array<Record<string, unknown>>
+  }
   services: string[]
   settings?: PluginSettingSchema[]
   is_system: boolean
@@ -910,6 +1051,7 @@ export interface PluginSlotItem {
   html: string
   key?: string
   priority?: number
+  contextKey?: string
 }
 
 export interface VueSlotItem {
@@ -918,6 +1060,7 @@ export interface VueSlotItem {
   template: string
   script: string
   style: string
+  contextKey?: string
 }
 
 export interface VueComponentDef {
@@ -1087,7 +1230,14 @@ export interface BackendEvents {
   'plugin:css_injected': { plugin: string; css: string; key?: string | null }
   'plugin:script_injected': { plugin: string; script: string }
   'plugin:typescript_injected': { plugin: string; script: string }
-  'plugin:html_injected': { plugin: string; slot: string; html: string; key?: string | null; priority?: number }
+  'plugin:html_injected': {
+    plugin: string
+    slot: string
+    html: string
+    key?: string | null
+    priority?: number
+    contextKey?: string
+  }
   'config:updated': { section: string; data: unknown }
   'plugin:route_registered': { plugin: string; path: string; title: string; icon?: string }
   'plugin:vue_route_registered': {
@@ -1107,8 +1257,20 @@ export interface BackendEvents {
     template: string
     script: string
     style: string
+    contextKey?: string
   }
   'plugin:settings_changed': { plugin: string; key: string; old_value: unknown; new_value: unknown }
+  'theme:library_changed': { presetId?: string; action: string }
+  'theme:activated': { presetId: string; preset: ThemePresetV1 }
+  'theme:design_changed': ThemeDesignSessionSnapshot
+  'theme:selection_changed': ThemeDesignSessionSnapshot
+  'theme:overlay_changed': ThemeDesignSessionSnapshot
+  'theme:preview_changed': ThemeDesignSessionSnapshot
+  'theme:design_committed': ThemeDesignSessionSnapshot
+  'theme:design_discarded': { sessionId: string }
+  'window:opened': WindowMetadata
+  'window:ready': WindowMetadata
+  'window:closed': Partial<WindowMetadata> & { label: string }
 }
 
 export type BackendEventName = keyof BackendEvents
@@ -1125,6 +1287,37 @@ export interface CommandPayloadMap {
   // 配置
   settings_get: { section?: ConfigSection; sections?: ConfigSection[] } | undefined
   settings_set: { section: ConfigSection; data: unknown }
+
+  // 主题库、共享设计会话与受控窗口
+  theme_list: undefined
+  theme_active: undefined
+  theme_extensions: undefined
+  theme_get: { preset_id: string }
+  theme_save: { preset: ThemePresetV1 }
+  theme_asset: { preset_id: string; asset_path: string }
+  theme_delete: { preset_id: string }
+  theme_activate: { preset_id: string }
+  theme_import: { source_path: string; replace?: boolean }
+  theme_export: { preset_id: string; output_path: string; include_instance_overrides?: boolean }
+  theme_design_start: { preset_id?: string; restore?: boolean }
+  theme_design_get: { session_id: string }
+  theme_design_select: { session_id: string; selection: ThemeSelection }
+  theme_design_overlay: { session_id: string; show_slots: boolean; slot_hosts?: ThemeSlotHostSnapshot[] }
+  theme_design_patch: {
+    session_id: string
+    expected_revision: number
+    operations: ThemePatchOperation[]
+  }
+  theme_design_undo: { session_id: string; expected_revision: number }
+  theme_design_redo: { session_id: string; expected_revision: number }
+  theme_design_commit: { session_id: string }
+  theme_design_discard: { session_id: string; keep_recovery?: boolean }
+  theme_design_save_as: { session_id: string; name: string }
+  window_list: undefined
+  window_open: { descriptor_id: string; session_id?: string; instance_key?: string }
+  window_focus: { label: string }
+  window_close: { label: string }
+  window_update_bounds: { label: string } & WindowBounds
 
   // 前端日志上报
   frontend_log: { level: 'warn' | 'error'; message: string; detail?: string; logger?: string }
@@ -1239,7 +1432,7 @@ export interface CommandPayloadMap {
   select_directory: undefined
   select_java: undefined
   select_image: { purpose?: 'background' | 'skin' | 'cape' | 'instance_icon' } | undefined
-  select_file: { purpose?: 'crash-analysis' | 'modpack' | 'world-import' } | undefined
+  select_file: { purpose?: 'crash-analysis' | 'modpack' | 'world-import' | 'theme-preset' } | undefined
   select_files: { purpose?: 'resource-files' }
   select_save_file: {
     purpose:
@@ -1250,6 +1443,7 @@ export interface CommandPayloadMap {
       | 'resource-manifest'
       | 'screenshot'
       | 'mod-file'
+      | 'theme-preset'
     default_directory?: string
     default_name?: string
   }
@@ -1494,7 +1688,7 @@ export interface CommandPayloadMap {
   debug_reset_launcher_data: undefined
   debug_clear_plugins: undefined
   debug_devtools_open: undefined
-  frontend_ready: undefined
+  frontend_ready: { window_type?: 'main' | 'theme-studio' | 'plugin'; session_id?: string } | undefined
 
   // 文件系统
   fs_read_dir: { path: string }
@@ -1521,6 +1715,31 @@ export const COMMAND_NAMES = {
   launcher_errors_ack: 'launcher_errors_ack',
   settings_get: 'settings_get',
   settings_set: 'settings_set',
+  theme_list: 'theme_list',
+  theme_active: 'theme_active',
+  theme_extensions: 'theme_extensions',
+  theme_get: 'theme_get',
+  theme_save: 'theme_save',
+  theme_asset: 'theme_asset',
+  theme_delete: 'theme_delete',
+  theme_activate: 'theme_activate',
+  theme_import: 'theme_import',
+  theme_export: 'theme_export',
+  theme_design_start: 'theme_design_start',
+  theme_design_get: 'theme_design_get',
+  theme_design_select: 'theme_design_select',
+  theme_design_overlay: 'theme_design_overlay',
+  theme_design_patch: 'theme_design_patch',
+  theme_design_undo: 'theme_design_undo',
+  theme_design_redo: 'theme_design_redo',
+  theme_design_commit: 'theme_design_commit',
+  theme_design_discard: 'theme_design_discard',
+  theme_design_save_as: 'theme_design_save_as',
+  window_list: 'window_list',
+  window_open: 'window_open',
+  window_focus: 'window_focus',
+  window_close: 'window_close',
+  window_update_bounds: 'window_update_bounds',
   frontend_log: 'frontend_log',
   system_memory: 'system_memory',
   connector_status: 'connector_status',
@@ -1734,6 +1953,37 @@ export interface CommandResponseMap {
   settings_get: unknown
   settings_set: void
 
+  theme_list: ThemePresetSummary[]
+  theme_active: ThemePresetV1
+  theme_extensions: {
+    effects: Array<Record<string, unknown>>
+    tokens: Array<Record<string, unknown>>
+    nodes: Array<Record<string, unknown>>
+    windows: Array<Record<string, unknown>>
+  }
+  theme_get: ThemePresetV1
+  theme_save: ThemePresetV1
+  theme_asset: { mime: string; dataUrl: string }
+  theme_delete: void
+  theme_activate: ThemePresetV1
+  theme_import: { preset: ThemePresetV1; originalId: string; importedId: string }
+  theme_export: { path: string }
+  theme_design_start: ThemeDesignSessionSnapshot
+  theme_design_get: ThemeDesignSessionSnapshot
+  theme_design_select: ThemeDesignSessionSnapshot
+  theme_design_overlay: ThemeDesignSessionSnapshot
+  theme_design_patch: ThemeDesignSessionSnapshot
+  theme_design_undo: ThemeDesignSessionSnapshot
+  theme_design_redo: ThemeDesignSessionSnapshot
+  theme_design_commit: ThemeDesignSessionSnapshot
+  theme_design_discard: void
+  theme_design_save_as: ThemeDesignSessionSnapshot
+  window_list: WindowMetadata[]
+  window_open: WindowMetadata
+  window_focus: void
+  window_close: void
+  window_update_bounds: WindowMetadata
+
   frontend_log: void
 
   system_memory: SystemMemoryInfo
@@ -1942,7 +2192,7 @@ export interface CommandResponseMap {
   debug_reset_launcher_data: DebugMaintenanceResult
   debug_clear_plugins: DebugMaintenanceResult
   debug_devtools_open: { open: boolean }
-  frontend_ready: void
+  frontend_ready: WindowMetadata | void
 
   fs_read_dir: FsEntry[]
   fs_read_file: FileContent

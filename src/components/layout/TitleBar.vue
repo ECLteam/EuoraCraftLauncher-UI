@@ -1,5 +1,11 @@
 <template>
-  <header class="titlebar" data-tauri-drag-region @mousedown="handleDragStart">
+  <header
+    class="titlebar"
+    data-theme-component="titlebar"
+    data-theme-node="shell.titlebar"
+    data-tauri-drag-region
+    @mousedown="handleDragStart"
+  >
     <!-- 左侧 -->
     <div class="titlebar-left" data-no-drag>
       <template v-if="isFullscreenModalVisible">
@@ -37,7 +43,7 @@
             SHOWCASE
           </span>
         </div>
-        <div id="plugin-slot-titlebar-left" class="plugin-slot-container"></div>
+        <PluginSlotHost slotId="plugin-slot-titlebar-left" class="plugin-slot-container" />
       </template>
     </div>
 
@@ -62,7 +68,7 @@
 
     <!-- 右侧窗口控制 -->
     <div class="titlebar-right" data-no-drag>
-      <div id="plugin-slot-titlebar-right" class="plugin-slot-container"></div>
+      <PluginSlotHost slotId="plugin-slot-titlebar-right" class="plugin-slot-container" />
       <TitleBarTray />
       <button class="titlebar-btn titlebar-btn-task" :title="t('task.title')" @click="toggleTaskPanel">
         <UiIcon name="download" :size="16" />
@@ -98,6 +104,7 @@ import { globalTaskQueue } from '@/composables/useTaskQueue'
 import { useTheme } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
 import { MENU_ITEMS } from '@/constants/menu'
+import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 
 defineOptions({ name: 'TitleBar' })
 

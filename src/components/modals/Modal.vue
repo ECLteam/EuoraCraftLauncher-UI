@@ -12,6 +12,8 @@
         <div
           ref="modalRef"
           class="modal-container"
+          data-theme-component="dialog"
+          :data-theme-node="`dialog.${type}`"
           :class="[props.wrapperClass, { [`type-${type}`]: true }]"
           :style="props.width ? { width: props.width, maxWidth: props.width } : undefined"
           @click.stop
@@ -50,7 +52,7 @@
           </main>
 
           <footer v-if="showFooter" class="modal-footer">
-            <div id="plugin-slot-modal-footer-extra" class="plugin-slot-container"></div>
+            <PluginSlotHost slotId="plugin-slot-modal-footer-extra" class="plugin-slot-container" />
             <slot name="footer">
               <template v-if="type === 'agreement'">
                 <NButton @click="handleCancel">
@@ -90,6 +92,7 @@ import { useI18n } from 'vue-i18n'
 import { pinia } from '@/app/stores'
 import { useLayoutStore } from '@/app/stores/layoutStore'
 import UiIcon from '@/components/ui/Icon.vue'
+import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 
 defineOptions({ name: 'Modal' })
 

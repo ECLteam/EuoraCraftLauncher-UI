@@ -1,11 +1,12 @@
 <template>
   <div class="instances-page">
-    <div id="plugin-slot-versions-content-top" class="plugin-slot-container"></div>
+    <PluginSlotHost slotId="plugin-slot-versions-content-top" class="plugin-slot-container" />
     <ManageTab />
   </div>
 </template>
 
 <script setup lang="ts">
+import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import ManageTab from '@/views/instances/ManageTab.vue'
 </script>
 

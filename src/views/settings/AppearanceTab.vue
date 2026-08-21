@@ -1,16 +1,5 @@
 <template>
-  <div class="tab-pane general-settings">
-    <SettingSection :title="t('settings.languageRegion')">
-      <SettingRow :label="t('settings.language')" :description="t('settings.languageDesc')">
-        <NSelect
-          class="setting-select"
-          :value="currentLocale"
-          :options="languageOptions"
-          @update:value="handleLanguageUpdate"
-        />
-      </SettingRow>
-    </SettingSection>
-
+  <div class="tab-pane appearance-settings">
     <SettingSection :title="t('settings.appearance')">
       <SettingRow :label="t('settings.theme')" :description="t('settings.themeDesc')">
         <NRadioGroup :value="currentSettings.mode" size="small" @update:value="handleThemeChange">
@@ -48,6 +37,14 @@
 
       <SettingRow :label="t('settings.topNav')" :description="t('settings.topNavDesc')">
         <NSwitch :value="topNavEnabled" @update:value="toggleTopNav" />
+      </SettingRow>
+
+      <SettingRow label="可视化主题设计" description="在独立控制台中点选卡片、节点和插件插槽并实时调整外观">
+        <NButton type="primary" :loading="themeDesigner.busy" @click="openThemeDesigner"> 打开主题设计控制台 </NButton>
+      </SettingRow>
+
+      <SettingRow class="theme-library-setting" label="主题预设库" description="应用、导入或导出多个版本化主题预设">
+        <ThemePresetLibrary />
       </SettingRow>
     </SettingSection>
 
@@ -87,38 +84,27 @@
       </SettingRow>
     </SettingSection>
 
-    <SettingSection :title="t('settings.developer')">
-      <SettingRow :label="t('settings.debugMode')" :description="t('settings.debugModeDesc')">
-        <NSwitch :value="debugMode" @update:value="handleDebugModeChange" />
-      </SettingRow>
-      <SettingRow :label="t('settings.disableSslVerify')" :description="t('settings.disableSslVerifyDesc')">
-        <NSwitch :value="disableSslVerify" @update:value="handleDisableSslVerifyChange" />
-      </SettingRow>
-      <SettingRow :label="t('settings.ignoreProxy')" :description="t('settings.ignoreProxyDesc')">
-        <NSwitch :value="ignoreProxy" @update:value="handleIgnoreProxyChange" />
-      </SettingRow>
-    </SettingSection>
-
-    <div id="plugin-slot-settings-general-section-after" class="plugin-slot-container"></div>
+    <PluginSlotHost slotId="plugin-slot-settings-appearance-section-after" class="plugin-slot-container" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { NButton, NInput, NInputGroup, NRadioButton, NRadioGroup, NSelect, NSlider, NSwitch } from 'naive-ui'
+import { NButton, NInput, NInputGroup, NRadioButton, NRadioGroup, NSlider, NSwitch } from 'naive-ui'
 import { computed, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
-import { useDebugMode } from '@/composables/useDebugMode'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { presetColors, useTheme, type ThemeMode } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
 import { DEFAULT_PRIMARY_COLOR, THEME_MODE_OPTIONS } from '@/config/theme'
+import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { settingsApi } from '@/features/settings/api/settingsApi'
 import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
-import { setLocale, supportedLocales, type LocaleCode } from '@/i18n'
+import ThemePresetLibrary from '@/features/themes/components/ThemePresetLibrary.vue'
+import { useThemeDesignerStore } from '@/features/themes/stores/themeDesignerStore'
 
 function debounce<A extends unknown[]>(fn: (...args: A) => void, delay: number) {
   let timer: ReturnType<typeof setTimeout> | null = null
@@ -128,7 +114,7 @@ function debounce<A extends unknown[]>(fn: (...args: A) => void, delay: number) 
   }
 }
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const message = useLauncherMessage()
 const { run } = useAsyncAction({
   showSuccess: false,
@@ -136,7 +122,7 @@ const { run } = useAsyncAction({
   errorMessage: t('common.error'),
 })
 const settingsStore = useSettingsStore()
-const currentLocale = computed(() => locale.value as LocaleCode)
+const themeDesigner = useThemeDesignerStore()
 
 const {
   themeMode,
@@ -151,9 +137,6 @@ const {
   blurAmount,
 } = useTheme()
 const { topNavEnabled, toggleTopNav } = useTopNav()
-const { debugMode, setDebugMode } = useDebugMode()
-const disableSslVerify = computed(() => settingsStore.launcher.disable_ssl_verify === true)
-const ignoreProxy = computed(() => settingsStore.launcher.ignore_proxy !== false)
 
 const currentSettings = computed(() => ({
   mode: themeMode.value,
@@ -171,13 +154,6 @@ const themeOptions = computed(() =>
     value: option.value,
     icon: option.icon,
     label: t(`settings.theme${option.value.charAt(0).toUpperCase() + option.value.slice(1)}`),
-  }))
-)
-
-const languageOptions = computed(() =>
-  supportedLocales.map((language) => ({
-    label: `${language.flag}  ${language.name}`,
-    value: language.code,
   }))
 )
 
@@ -204,6 +180,10 @@ async function handleColorChange(color: string) {
 
 function handleColorInput(event: Event) {
   void handleColorChange((event.target as HTMLInputElement).value)
+}
+
+async function openThemeDesigner() {
+  await run(() => themeDesigner.start())
 }
 
 const saveBlur = debounce(async (value: number) => {
@@ -316,30 +296,9 @@ function handleBgImageInput(value: string) {
   }, 800)
 }
 
-async function handleLanguageChange(languageCode: LocaleCode) {
-  await setLocale(languageCode)
-  await run(async () => settingsStore.patchUi({ locale: languageCode }))
-}
-
-async function handleDebugModeChange(value: boolean) {
-  await run(async () => setDebugMode(value))
-}
-
-async function handleDisableSslVerifyChange(value: boolean) {
-  await run(async () => settingsStore.patchLauncher({ disable_ssl_verify: value }))
-}
-
-async function handleIgnoreProxyChange(value: boolean) {
-  await run(async () => settingsStore.patchLauncher({ ignore_proxy: value }))
-}
-
-function handleLanguageUpdate(languageCode: string) {
-  void handleLanguageChange(languageCode as LocaleCode)
-}
-
 onUnmounted(() => {
   if (backgroundSaveTimer) clearTimeout(backgroundSaveTimer)
 })
 </script>
 
-<style scoped src="@/styles/views/settings/GeneralTab.css"></style>
+<style scoped src="@/styles/views/settings/AppearanceTab.css"></style>

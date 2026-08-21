@@ -15,7 +15,7 @@
         containerClass="launcher-message-container"
         :containerStyle="messageContainerStyle"
       >
-        <App />
+        <component :is="rootComponent" />
       </NMessageProvider>
     </NDialogProvider>
   </NConfigProvider>
@@ -27,11 +27,16 @@ import { computed, type CSSProperties } from 'vue'
 import { useI18n } from 'vue-i18n'
 import App from '@/App.vue'
 import { useTheme } from '@/composables/useTheme'
+import ThemeStudioWindow from '@/features/themes/components/ThemeStudioWindow.vue'
+import { windowContext } from '@/features/windows/model/windowContext'
+import PluginWindowShell from '@/features/windows/PluginWindowShell.vue'
 
 defineOptions({ name: 'AppProviders' })
 
 const { locale } = useI18n()
 const { naiveTheme, themeOverrides } = useTheme()
+const rootComponent =
+  windowContext.type === 'theme-studio' ? ThemeStudioWindow : windowContext.type === 'plugin' ? PluginWindowShell : App
 
 const naiveLocale = computed(() => (locale.value === 'zh-CN' ? zhCN : enUS))
 const naiveDateLocale = computed(() => (locale.value === 'zh-CN' ? dateZhCN : dateEnUS))

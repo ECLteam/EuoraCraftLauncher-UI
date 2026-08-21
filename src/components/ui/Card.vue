@@ -4,6 +4,9 @@
     :class="{ hoverable: hoverable, interactive: isInteractive }"
     :role="isInteractive ? 'button' : undefined"
     :tabindex="isInteractive ? 0 : undefined"
+    data-theme-component="card"
+    :data-theme-node="themeNode"
+    :data-theme-instance="themeInstance"
     @keydown="handleKeydown"
   >
     <div v-if="$slots.header || title" class="card-header">
@@ -39,6 +42,10 @@ const props = defineProps<{
   hoverable?: boolean
   interactive?: boolean
   bodyClass?: string
+  /** 设计器使用的稳定页面节点 ID。 */
+  themeNode?: string
+  /** 数据实例本机覆盖使用的稳定散列 key。 */
+  themeInstance?: string
 }>()
 
 const emit = defineEmits<{

@@ -29,7 +29,7 @@
         </NButton>
       </header>
 
-      <div id="plugin-slot-plugins-toolbar-after" class="plugin-slot-container"></div>
+      <PluginSlotHost slotId="plugin-slot-plugins-toolbar-after" class="plugin-slot-container" />
 
       <div class="plugins-table-header">
         <span>{{ t('plugins.pluginName') }}</span>
@@ -85,7 +85,7 @@
                 >
                   <template #icon><UiIcon name="refresh" :size="13" /></template>
                 </NButton>
-                <NPopconfirm @positiveClick="unloadPlugin(plugin)">
+                <NPopconfirm v-if="!plugin.is_system" @positiveClick="unloadPlugin(plugin)">
                   <template #trigger>
                     <NButton quaternary size="tiny" type="error" :title="t('plugins.unload')">
                       <template #icon><UiIcon name="trash" :size="13" /></template>
@@ -109,7 +109,7 @@
             </template>
           </NEmpty>
         </NSpin>
-        <div id="plugin-slot-plugins-list-bottom" class="plugin-slot-container"></div>
+        <PluginSlotHost slotId="plugin-slot-plugins-list-bottom" class="plugin-slot-container" />
       </div>
     </section>
 
@@ -129,6 +129,7 @@ import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import PluginSettingsModal from '@/features/plugins/components/PluginSettingsModal.vue'
+import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { usePluginStore } from '@/features/plugins/stores/pluginStore'
 import type { PluginInfo } from '@/types/api'
 
@@ -148,7 +149,7 @@ const filters = computed(() => [
 ])
 
 const filteredPlugins = computed(() => {
-  let result = plugins.value
+  let result = plugins.value.filter((plugin) => !plugin.is_system)
   if (activeFilter.value === 'enabled') {
     result = result.filter((plugin) => plugin.status === 'enabled')
   } else if (activeFilter.value === 'disabled') {

@@ -106,6 +106,9 @@
           v-for="version in filteredVersions"
           :key="instanceKey(version)"
           :class="['instance-card', { selected: selectedVersion === version.versionId, hidden: version.hidden }]"
+          data-theme-component="instance-card"
+          data-theme-node="instances.card"
+          :data-theme-instance="themeInstanceKey('minecraft-instance', instanceKey(version))"
           :style="coverStyle(version)"
           @contextmenu.prevent="showActionMenu($event, version)"
           @click="emit('selectVersion', version)"
@@ -174,6 +177,9 @@
             v-for="version in filteredVersions"
             :key="instanceKey(version)"
             :class="['table-row', { selected: selectedVersion === version.versionId, hidden: version.hidden }]"
+            data-theme-component="instance-row"
+            data-theme-node="instances.row"
+            :data-theme-instance="themeInstanceKey('minecraft-instance', instanceKey(version))"
             @contextmenu.prevent="showActionMenu($event, version)"
             @click="emit('selectVersion', version)"
           >
@@ -263,6 +269,7 @@ import { instanceProfileApi, targetFromVersion } from '@/features/instances/api/
 import { hasModLoader } from '@/features/instances/model/instanceCapabilities'
 import { filterAndSortInstances, instanceDisplayName } from '@/features/instances/model/instancePresentation'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
+import { themeInstanceKey } from '@/features/themes/runtime/themeRuntime'
 import type { InstanceCategory, InstanceSortKey, ScannedVersion } from '@/types/api'
 import { formatDate as formatDateUtil } from '@/utils/format'
 

@@ -1,6 +1,6 @@
 <template>
   <div v-if="topNavEnabled && visibleItems.length > 0" class="titlebar-tray">
-    <div id="plugin-slot-titlebar-tray" class="plugin-slot-container"></div>
+    <PluginSlotHost slotId="plugin-slot-titlebar-tray" class="plugin-slot-container" />
 
     <div ref="trayWrapperRef" class="titlebar-tray-wrapper">
       <button class="titlebar-btn titlebar-tray-btn" :title="t('common.more')" @click.stop="onToggle">
@@ -25,6 +25,7 @@ import UiIcon from '@/components/ui/Icon.vue'
 import { useTopNav } from '@/composables/useTopNav'
 import { registerTrayItem, unregisterTrayItem, useTrayItems, type TrayItem } from '@/composables/useTrayItems'
 import { URLS } from '@/config/urls'
+import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { openExternalUrl } from '@/utils/openExternal'
 
 defineOptions({ name: 'TitleBarTray' })

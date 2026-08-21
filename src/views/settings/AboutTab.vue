@@ -102,7 +102,7 @@
       </div>
     </div>
 
-    <div id="plugin-slot-settings-about-bottom" class="plugin-slot-container"></div>
+    <PluginSlotHost slotId="plugin-slot-settings-about-bottom" class="plugin-slot-container" />
   </div>
 </template>
 
@@ -113,6 +113,7 @@ import type { AppRuntimeMode } from '@/app/runtime/mode'
 import AboutEntryRow from '@/components/settings/AboutEntryRow.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { URLS } from '@/config/urls'
+import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { specialThanksEntries, teamMembers, technologyCategories } from '@/features/settings/about/aboutContent'
 import { aboutApi } from '@/features/settings/api/aboutApi'
 import type { LauncherInfo } from '@/types/api'

@@ -7,11 +7,7 @@
         class="connect-player-row"
         :class="{ 'is-host': player.kind === 'host' }"
       >
-        <UiAvatar
-          :src="player.iconBase64 ? `data:image/png;base64,${player.iconBase64}` : undefined"
-          :name="player.name"
-          :size="40"
-        />
+        <ConnectorPlayerAvatar :skinBase64="player.iconBase64" :name="player.name" :size="40" />
         <div class="connect-player-identity">
           <div>
             <strong>{{ player.name }}</strong>
@@ -37,7 +33,7 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import UiAvatar from '@/components/ui/Avatar.vue'
+import ConnectorPlayerAvatar from '@/components/connect/ConnectorPlayerAvatar.vue'
 import UiButton from '@/components/ui/Button.vue'
 import UiTag from '@/components/ui/Tag.vue'
 import type { ConnectorPlayer } from '@/types/api'

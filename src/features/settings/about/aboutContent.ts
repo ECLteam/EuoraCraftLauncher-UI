@@ -47,6 +47,14 @@ export const teamMembers: AboutEntry[] = [
 
 export const specialThanksEntries: AboutEntry[] = [
   createGithubEntry(
+    'qomicex-public',
+    'Qomicex-Public',
+    'QP',
+    'qomicexPublic',
+    URLS.qomicexPublic,
+    'Qomicex-Public.svg'
+  ),
+  createGithubEntry(
     'the-mycelium-of-antan',
     'TheMyceliumOfAntan',
     'TM',

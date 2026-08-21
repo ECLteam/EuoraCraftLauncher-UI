@@ -29,9 +29,19 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/settings',
     component: withErrorBoundary(() => import('@/views/Settings.vue')),
-    redirect: '/settings/general',
+    redirect: '/settings/appearance',
     children: [
-      { path: 'general', name: 'settings-general', component: () => import('@/views/settings/GeneralTab.vue') },
+      { path: 'general', name: 'settings-general', redirect: '/settings/appearance' },
+      {
+        path: 'appearance',
+        name: 'settings-appearance',
+        component: () => import('@/views/settings/AppearanceTab.vue'),
+      },
+      {
+        path: 'launcher',
+        name: 'settings-launcher',
+        component: () => import('@/views/settings/LauncherTab.vue'),
+      },
       { path: 'game', name: 'settings-game', component: () => import('@/views/settings/GameTab.vue') },
       { path: 'about', name: 'settings-about', component: () => import('@/views/settings/AboutTab.vue') },
     ],

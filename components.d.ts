@@ -13,6 +13,7 @@ declare module 'vue' {
     Button: typeof import('./src/components/ui/Button.vue')['default']
     Card: typeof import('./src/components/ui/Card.vue')['default']
     ConfirmDialog: typeof import('./src/components/modals/ConfirmDialog.vue')['default']
+    ConnectorPlayerAvatar: typeof import('./src/components/connect/ConnectorPlayerAvatar.vue')['default']
     ErrorBoundary: typeof import('./src/components/ErrorBoundary.vue')['default']
     ErrorModal: typeof import('./src/components/modals/ErrorModal.vue')['default']
     FullscreenModal: typeof import('./src/components/modals/FullscreenModal.vue')['default']

@@ -89,12 +89,21 @@ const profileForm = reactive({
 const categoryOptions = computed(() =>
   categories.value.map((category) => ({ label: category.name, value: category.id }))
 )
-const sourceOptions = [
-  { label: '自动（最新来源）', value: 'auto' },
-  { label: 'PCL / PCL-CE', value: 'pcl' },
-  { label: 'HMCL', value: 'hmcl' },
-  { label: 'Qomicex', value: 'qomicex' },
-]
+const sourceOptions = computed(() => {
+  const descriptors = props.version?.externalSourceOptions || [
+    { source: 'pcl', title: 'PCL / PCL-CE', plugin: 'builtin' },
+    { source: 'hmcl', title: 'HMCL', plugin: 'builtin' },
+  ]
+  const options = [
+    { label: '自动（最新来源）', value: 'auto' },
+    ...descriptors.map((source) => ({ label: source.title, value: source.source })),
+  ]
+  const preferred = profileForm.preferredExternalSource
+  if (preferred !== 'auto' && !options.some((option) => option.value === preferred)) {
+    options.push({ label: `${preferred}（当前不可用）`, value: preferred })
+  }
+  return options
+})
 const profileFields = ['alias', 'description', 'favorite', 'pinned', 'hidden', 'categoryId', 'tags', 'icon']
 
 function loadProfileForm() {

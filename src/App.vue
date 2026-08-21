@@ -15,17 +15,22 @@
         <SideBar />
 
         <!-- 插件：侧栏扩展插槽 -->
-        <div id="plugin-slot-sidebar-extra" class="plugin-slot-container plugin-sidebar-slot"></div>
+        <PluginSlotHost slotId="plugin-slot-sidebar-extra" class="plugin-slot-container plugin-sidebar-slot" />
 
         <!-- 内容区 - 全屏弹窗仅覆盖此区域 -->
         <main
           id="main-content"
+          data-theme-component="page-canvas"
+          data-theme-node="shell.main-content"
           class="main-content"
-          :class="{ 'content-disabled': !isAgreementAccepted && !agreementLoading }"
+          :class="{
+            'content-disabled': !isAgreementAccepted && !agreementLoading,
+            'content-managed-scroll': route.path.startsWith('/settings'),
+          }"
           tabindex="-1"
         >
           <!-- 插件：内容区顶部插槽 -->
-          <div id="plugin-slot-content-top" class="plugin-slot-container"></div>
+          <PluginSlotHost slotId="plugin-slot-content-top" class="plugin-slot-container" />
           <div v-if="isAgreementAccepted" class="page-container">
             <RouterView v-slot="{ Component, route: currentRoute }">
               <Transition name="page" mode="out-in">
@@ -33,7 +38,7 @@
               </Transition>
             </RouterView>
             <!-- 插件：页面底部插槽 -->
-            <div id="plugin-slot-page-bottom" class="plugin-slot-container"></div>
+            <PluginSlotHost slotId="plugin-slot-page-bottom" class="plugin-slot-container" />
           </div>
 
           <!-- 未同意协议时的占位提示
@@ -43,7 +48,7 @@
                   </div-->
 
           <!-- 插件：内容区底部插槽 -->
-          <div id="plugin-slot-content-bottom" class="plugin-slot-container"></div>
+          <PluginSlotHost slotId="plugin-slot-content-bottom" class="plugin-slot-container" />
 
           <!-- 任务队列全屏面板 -->
           <TaskQueuePanel />
@@ -104,13 +109,14 @@
         </main>
       </div>
     </div>
+    <ThemeDesignerCanvas />
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, provide, readonly, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { loadShowcaseTasks } from '@/api/transport/showcase/fixtures'
 import { desktopWindow } from '@/app/runtime/desktopWindow'
 import { setErrorNotifier } from '@/app/runtime/errorPresentation'
@@ -126,11 +132,15 @@ import { useFullscreenModal } from '@/composables/useFullscreenModal'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
 import { useUserAgreement } from '@/composables/useUserAgreement'
+import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import FloatingLauncherLog from '@/features/terminal/components/FloatingLauncherLog.vue'
+import ThemeDesignerCanvas from '@/features/themes/components/ThemeDesignerCanvas.vue'
+import { useThemeDesignerStore } from '@/features/themes/stores/themeDesignerStore'
 import { getErrorMessage } from '@/utils/error'
 import { openExternalUrl } from '@/utils/openExternal'
 
 const router = useRouter()
+const route = useRoute()
 const { t } = useI18n()
 const {
   isAccepted: isAgreementAccepted,
@@ -141,6 +151,7 @@ const {
 } = useUserAgreement()
 const fullscreenModal = useFullscreenModal()
 const message = useLauncherMessage()
+const themeDesigner = useThemeDesignerStore()
 
 // 让 unwrapResponse 的 message 级失败统一走顶部通知，避免调用方遗漏导致用户无感知
 setErrorNotifier((msg) => message.errorRaw(msg))
@@ -203,6 +214,7 @@ const handleErrorModalVisibility = (visible: boolean) => {
 
 onMounted(async () => {
   fullscreenModal.reset()
+  await themeDesigner.initialize()
   try {
     await appRuntime.start()
   } catch (error) {

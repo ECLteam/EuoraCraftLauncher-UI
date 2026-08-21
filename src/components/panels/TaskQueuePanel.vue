@@ -7,7 +7,7 @@
     wrapperClass="task-queue-wrapper"
   >
     <div class="tq-content">
-      <div id="plugin-slot-task-queue-top" class="plugin-slot-container"></div>
+      <PluginSlotHost slotId="plugin-slot-task-queue-top" class="plugin-slot-container" />
       <!-- 空状态 -->
       <div v-if="tasks.length === 0" class="tq-empty">
         <UiIcon name="cube" :size="48" class="tq-empty-icon" />
@@ -107,8 +107,12 @@
               </div>
             </div>
           </Transition>
+          <PluginSlotHost
+            slotId="plugin-slot-task-queue-item-actions"
+            :contextKey="task.id"
+            class="plugin-slot-container"
+          />
         </div>
-        <div id="plugin-slot-task-queue-item-actions" class="plugin-slot-container"></div>
       </div>
     </div>
   </FullscreenModal>
@@ -121,6 +125,7 @@ import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { globalTaskQueue, type TaskItem } from '@/composables/useTaskQueue'
 import { getLoaderLabel } from '@/config/version'
+import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 
 defineOptions({ name: 'TaskQueuePanel' })
 

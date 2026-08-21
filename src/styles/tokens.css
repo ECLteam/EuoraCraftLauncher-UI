@@ -29,6 +29,22 @@
   --ecl-badge-forge-fg: #7a6eaa;
   --ecl-badge-neoforge-fg: #6a7eb4;
   --ecl-badge-quilt-fg: #5a9a72;
+
+  /* 旧变量保留一个协议版本；值统一从 --ecl-* 派生。 */
+  --primary: var(--ecl-primary);
+  --primary-hover: var(--ecl-primary-hover);
+  --primary-active: var(--ecl-primary-active);
+  --bg-base: var(--ecl-canvas);
+  --bg-surface: var(--ecl-surface);
+  --card-bg: var(--ecl-surface);
+  --text-primary: var(--ecl-text);
+  --text-secondary: var(--ecl-text-secondary);
+  --text-tertiary: var(--ecl-text-tertiary);
+  --border: var(--ecl-border);
+  --r-sm: var(--ecl-radius-control);
+  --r-md: var(--ecl-radius-control);
+  --card-radius: var(--ecl-radius-card);
+  --shadow-card: var(--ecl-shadow-surface);
 }
 
 [data-theme='dark'] {

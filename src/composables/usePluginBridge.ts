@@ -137,6 +137,7 @@ const vueComponentRegistry = ref<Record<string, VueComponentDef>>({})
 // 已挂载的 Vue 插槽应用，用于禁用/重载时清理
 interface VueSlotApp {
   slotId: string
+  hostKey: string
   plugin: string
   componentName: string
   app: ReturnType<typeof createApp>
@@ -149,6 +150,15 @@ interface SlotEntry {
   plugin: string
   html: string
   priority: number
+}
+
+function findSlotContainers(slot: string): HTMLElement[] {
+  const id = slot.startsWith('plugin-slot-') ? slot : `plugin-slot-${slot}`
+  const escapedId = id.replaceAll('\\', '\\\\').replaceAll('"', '\\"')
+  const matches = Array.from(document.querySelectorAll<HTMLElement>(`[data-plugin-slot="${escapedId}"]`))
+  const legacy = document.getElementById(id)
+  if (legacy && !matches.includes(legacy)) matches.push(legacy)
+  return matches
 }
 
 interface DynamicSlot {
@@ -174,21 +184,25 @@ function sanitizeHtml(html: string): string {
 }
 
 function renderSlot(slot: string) {
-  const el = document.getElementById(`plugin-slot-${slot}`)
-  if (!el) return
-  el.innerHTML = ''
+  const containers = findSlotContainers(slot)
+  if (!containers.length) return
   const entries = (pluginSlots.value[slot] || []).slice().sort((a, b) => {
     const aPriority = (a as unknown as SlotEntry).priority ?? 0
     const bPriority = (b as unknown as SlotEntry).priority ?? 0
     return bPriority - aPriority
   })
-  for (const entry of entries) {
-    const wrapper = document.createElement('div')
-    wrapper.className = 'plugin-slot-item'
-    wrapper.setAttribute('data-plugin', entry.plugin)
-    if (entry.key !== undefined) wrapper.setAttribute('data-injection-key', entry.key)
-    wrapper.innerHTML = sanitizeHtml(entry.html)
-    el.appendChild(wrapper)
+  for (const container of containers) {
+    container.innerHTML = ''
+    const contextKey = container.dataset.slotContext
+    for (const entry of entries) {
+      if (entry.contextKey && entry.contextKey !== contextKey) continue
+      const wrapper = document.createElement('div')
+      wrapper.className = 'plugin-slot-item'
+      wrapper.setAttribute('data-plugin', entry.plugin)
+      if (entry.key !== undefined) wrapper.setAttribute('data-injection-key', entry.key)
+      wrapper.innerHTML = sanitizeHtml(entry.html)
+      container.appendChild(wrapper)
+    }
   }
 }
 
@@ -203,6 +217,7 @@ function createDynamicSlot(
 
   const container = document.createElement('div')
   container.id = `plugin-slot-${slotId}`
+  container.setAttribute('data-plugin-slot', `plugin-slot-${slotId}`)
   container.className = 'plugin-slot-container plugin-dynamic-slot'
   container.setAttribute('data-plugin', plugin)
 
@@ -400,9 +415,8 @@ function createVueRouteComponent(componentName: string, def: VueComponentDef, pl
 }
 
 function renderVueSlot(slotId: string) {
-  const container = document.getElementById(`plugin-slot-${slotId}`)
-  if (!container) return
-  container.innerHTML = ''
+  const containers = findSlotContainers(slotId)
+  if (!containers.length) return
   // 清理该插槽已挂载的 Vue 应用
   const toRemove = vueSlotApps.filter((a) => a.slotId === slotId)
   for (const item of toRemove) {
@@ -418,26 +432,32 @@ function renderVueSlot(slotId: string) {
   vueSlotApps.push(...remaining)
 
   const entries = pluginVueSlots.value[slotId] || []
-  for (const entry of entries) {
-    const def = vueComponentRegistry.value[entry.component_name] || entry
-    if (!def || !def.template) continue
-    const el = document.createElement('div')
-    el.className = 'plugin-vue-slot-item'
-    el.setAttribute('data-plugin', entry.plugin)
-    container.appendChild(el)
-    try {
-      const component = createVueComponent(entry.component_name, def as VueComponentDef, entry.plugin)
-      const app = createApp(component)
-      app.mount(el)
-      injectComponentStyle(entry.component_name, entry.plugin, def.style || '')
-      vueSlotApps.push({
-        slotId,
-        plugin: entry.plugin,
-        componentName: entry.component_name,
-        app,
-      })
-    } catch (e) {
-      console.error(`[PluginBridge] Vue 插槽组件挂载失败 [${entry.plugin}]:`, e)
+  for (const [hostIndex, container] of containers.entries()) {
+    container.innerHTML = ''
+    const contextKey = container.dataset.slotContext
+    for (const entry of entries) {
+      if (entry.contextKey && entry.contextKey !== contextKey) continue
+      const def = vueComponentRegistry.value[entry.component_name] || entry
+      if (!def || !def.template) continue
+      const el = document.createElement('div')
+      el.className = 'plugin-vue-slot-item'
+      el.setAttribute('data-plugin', entry.plugin)
+      container.appendChild(el)
+      try {
+        const component = createVueComponent(entry.component_name, def as VueComponentDef, entry.plugin)
+        const app = createApp(component)
+        app.mount(el)
+        injectComponentStyle(entry.component_name, entry.plugin, def.style || '')
+        vueSlotApps.push({
+          slotId,
+          hostKey: `${slotId}:${contextKey || hostIndex}`,
+          plugin: entry.plugin,
+          componentName: entry.component_name,
+          app,
+        })
+      } catch (e) {
+        console.error(`[PluginBridge] Vue 插槽组件挂载失败 [${entry.plugin}]:`, e)
+      }
     }
   }
 }
@@ -580,10 +600,14 @@ export function initPluginBridge(router: ReturnType<typeof useRouter>) {
         html: payload.html,
         priority,
         ...(payload.key !== null && payload.key !== undefined ? { key: payload.key } : {}),
+        ...(payload.contextKey ? { contextKey: payload.contextKey } : {}),
       }
       const index =
         payload.key !== null && payload.key !== undefined
-          ? entries.findIndex((item) => item.plugin === payload.plugin && item.key === payload.key)
+          ? entries.findIndex(
+              (item) =>
+                item.plugin === payload.plugin && item.key === payload.key && item.contextKey === payload.contextKey
+            )
           : -1
       if (index === -1) entries.push(entry)
       else entries[index] = entry
@@ -616,7 +640,10 @@ export function initPluginBridge(router: ReturnType<typeof useRouter>) {
       }
       const entries = [...(pluginVueSlots.value[payload.slot] || [])]
       const index = entries.findIndex(
-        (entry) => entry.plugin === payload.plugin && entry.component_name === payload.component_name
+        (entry) =>
+          entry.plugin === payload.plugin &&
+          entry.component_name === payload.component_name &&
+          entry.contextKey === payload.contextKey
       )
       const newEntry: VueSlotItem = {
         plugin: payload.plugin,
@@ -624,6 +651,7 @@ export function initPluginBridge(router: ReturnType<typeof useRouter>) {
         template: payload.template,
         script: payload.script,
         style: payload.style,
+        ...(payload.contextKey ? { contextKey: payload.contextKey } : {}),
       }
       if (index === -1) entries.push(newEntry)
       else entries[index] = newEntry

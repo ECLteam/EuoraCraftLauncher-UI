@@ -29,7 +29,7 @@
             <span>{{ tab.label }}</span>
           </button>
         </nav>
-        <div id="plugin-slot-version-detail-tab" class="plugin-slot-container"></div>
+        <PluginSlotHost slotId="plugin-slot-version-detail-tab" class="plugin-slot-container" />
       </aside>
 
       <main class="vdm-main">
@@ -103,7 +103,7 @@
           </div>
         </div>
 
-        <div id="plugin-slot-version-detail-footer" class="plugin-slot-container"></div>
+        <PluginSlotHost slotId="plugin-slot-version-detail-footer" class="plugin-slot-container" />
       </main>
     </div>
   </FullscreenModal>
@@ -146,6 +146,7 @@ import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
 import { instanceProfileApi, targetFromVersion } from '@/features/instances/api/instanceProfileApi'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
 import { hasModLoader } from '@/features/instances/model/instanceCapabilities'
+import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import type { ScannedVersion, VersionRunStats, WorldEntry } from '@/types/api'
 
 interface Props {

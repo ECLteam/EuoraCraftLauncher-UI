@@ -75,7 +75,9 @@ export function createHooks(plugin: string): PluginHooks {
   }
 
   function useSlot(slot: string, renderer?: (container: HTMLElement) => void): HTMLElement | null {
-    const el = document.getElementById(`plugin-slot-${slot}`)
+    const id = `plugin-slot-${slot}`
+    const escapedId = id.replaceAll('\\', '\\\\').replaceAll('"', '\\"')
+    const el = document.querySelector<HTMLElement>(`[data-plugin-slot="${escapedId}"]`) || document.getElementById(id)
     if (!el) return null
     if (renderer) {
       renderer(el)

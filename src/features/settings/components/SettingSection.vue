@@ -1,5 +1,5 @@
 <template>
-  <section class="settings-section ecl-surface">
+  <section class="settings-section ecl-surface" data-theme-component="settings-section">
     <div class="settings-section__header">
       {{ title }}
     </div>

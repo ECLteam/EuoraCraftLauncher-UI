@@ -24,7 +24,7 @@
             <UiIcon name="close" :size="14" />
           </button>
         </div>
-        <div id="plugin-slot-versions-list-toolbar" class="plugin-slot-container"></div>
+        <PluginSlotHost slotId="plugin-slot-versions-list-toolbar" class="plugin-slot-container" />
       </div>
     </div>
 
@@ -151,6 +151,7 @@ import {
 } from '@/config/version'
 import { instanceInstallApi, type InstallableLoader } from '@/features/instances/api/instanceInstallApi'
 import { useInstanceInstallStore } from '@/features/instances/stores/instanceInstallStore'
+import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import type {
   CommandPayloadMap,

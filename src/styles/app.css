@@ -92,6 +92,10 @@
   background: transparent;
 }
 
+.main-content.content-managed-scroll {
+  overflow: hidden;
+}
+
 @media (max-width: 1000px) {
   :root {
     --page-gutter: 14px;

@@ -1,6 +1,6 @@
 <template>
   <div class="game-launch-bar">
-    <div id="plugin-slot-game-launch-before" class="plugin-slot-container"></div>
+    <PluginSlotHost slotId="plugin-slot-game-launch-before" class="plugin-slot-container" />
     <div class="launch-action-row">
       <!-- 分裂按钮：启动实例 + 最近实例切换 -->
       <div
@@ -92,6 +92,7 @@ import { NButton, NPopover } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
 import { getPathDisplayName, type RecentInstance } from '@/composables/useRecentInstances'
+import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 
 defineProps<{
   versionsCount: number
