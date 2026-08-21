@@ -40,17 +40,18 @@ tokens:
     folia-dark: 'rgba(var(--primary-rgb, 130,145,255),0.7)'
   control-ring:
     source: 'tryfrontend2 base.css: 0 0 0 2px rgba(var(--primary-rgb),0.18) / dark 0.24'
-    classic: 'var(--glow-focus)'
+    classic: 'none' # 严格回退：classic 原无焦点环
     folia: '0 0 0 2px rgba(var(--primary-rgb, 91,111,245),0.18)'
     folia-dark: '0 0 0 2px rgba(var(--primary-rgb, 130,145,255),0.24)'
   control-glow:
     source: 'tryfrontend2 base.css: 0 4px 14px rgba(var(--primary-rgb),0.16) / dark 0.22'
-    classic: 'var(--shadow-hover)'
+    classic: 'none' # 严格回退：classic 原无 hover 辉光
     folia: '0 4px 14px rgba(var(--primary-rgb, 91,111,245),0.16)'
     folia-dark: '0 4px 16px rgba(var(--primary-rgb, 130,145,255),0.22)'
+    note: 'Select 触发器 hover/open 原用 --shadow-hover/--glow-focus，已在组件内恢复并加 folia 作用域覆盖'
   slider-track:
     source: 'tryfrontend2 base.css: rgba(var(--primary-rgb),0.18) / dark 0.28'
-    classic: 'var(--bg-base-alt) / dark #4a4d55'
+    classic: '#e0e0e0 / dark #4a4d55' # 严格回退：classic light 原硬编码 #e0e0e0
     folia: 'rgba(var(--primary-rgb, 91,111,245),0.18)'
     folia-dark: 'rgba(var(--primary-rgb, 130,145,255),0.28)'
   glass-blur:

@@ -119,12 +119,10 @@ function onDocClick(e: MouseEvent) {
   flex-direction: column;
   gap: 2px;
   padding: 6px;
-  background: var(--card-bg);
+  background: var(--bg-elevated);
   border: 1px solid var(--control-border);
   border-radius: var(--r-sm);
-  box-shadow:
-    var(--shadow-lg),
-    inset 0 1px 0 var(--glass-highlight);
+  box-shadow: var(--shadow-lg) !important;
   backdrop-filter: var(--glass-backdrop);
   -webkit-backdrop-filter: var(--glass-backdrop);
   z-index: 10000;

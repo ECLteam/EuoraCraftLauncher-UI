@@ -154,7 +154,7 @@
   --transition-enter: all var(--duration-normal) var(--ease-enter);
   --transition-exit: all var(--duration-normal) var(--ease-exit);
 
-  --slider-track: var(--bg-base-alt);
+  --slider-track: #e0e0e0;
   --slider-thumb: var(--primary);
 
   --glow-focus: 0 0 0 2px rgba(var(--primary-rgb), 0.25);
@@ -167,8 +167,8 @@
   --control-border: var(--border);
   --control-border-hover: var(--border-hover);
   --control-border-focus: var(--border-focus);
-  --control-ring: var(--glow-focus);
-  --control-glow: var(--shadow-hover);
+  --control-ring: none;
+  --control-glow: none;
 
   --glass-bg: rgba(255, 255, 255, 0.92);
   --glass-bg-sidebar: rgba(251, 251, 252, 0.96);
@@ -240,8 +240,8 @@
   --control-border: var(--border);
   --control-border-hover: var(--border-hover);
   --control-border-focus: var(--border-focus);
-  --control-ring: var(--glow-focus);
-  --control-glow: var(--shadow-hover);
+  --control-ring: none;
+  --control-glow: none;
 
   --glass-bg: rgba(35, 38, 45, 0.92);
   --glass-bg-sidebar: rgba(31, 34, 41, 0.96);

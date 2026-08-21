@@ -70,8 +70,8 @@
 .view-switch button.active,
 .state-actions button.active,
 .btn-action.active {
-  border-color: var(--control-border-hover);
-  background: var(--control-bg-hover);
+  border-color: var(--primary);
+  background: var(--primary-alpha);
   color: var(--primary);
 }
 .view-switch {
@@ -112,8 +112,8 @@
   white-space: nowrap;
 }
 .btn-install-version:hover {
-  border-color: var(--control-border-hover);
-  background: var(--control-bg-hover);
+  border-color: var(--primary);
+  background: var(--primary-alpha);
   color: var(--primary);
 }
 .search-box {

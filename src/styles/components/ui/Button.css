@@ -158,7 +158,6 @@
   border-color: var(--error);
   transform: translateY(-1px);
   filter: brightness(1.08);
-  box-shadow: 0 4px 14px rgba(229, 92, 92, 0.2);
 }
 
 .btn-danger:active:not(:disabled) {

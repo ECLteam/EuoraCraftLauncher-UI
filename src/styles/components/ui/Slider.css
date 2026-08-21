@@ -32,7 +32,6 @@
   background: var(--primary);
   border: 2px solid var(--bg-elevated);
   cursor: pointer;
-  box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.12);
   transition: transform 150ms ease-out;
 }
 

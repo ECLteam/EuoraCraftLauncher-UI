@@ -60,7 +60,7 @@
 }
 
 .running-instances-trigger.inactive {
-  border-color: var(--control-border);
+  border-color: var(--border-strong);
   background: var(--control-bg);
   box-shadow: none;
   color: var(--text-tertiary);

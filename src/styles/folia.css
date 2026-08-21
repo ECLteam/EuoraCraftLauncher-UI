@@ -295,3 +295,76 @@
     animation: none;
   }
 }
+
+/* ── classic 严格回退后的 folia 专属玻璃效果（Batch 7）── */
+[data-ui-skin='folia'] .ui-tag--default {
+  background: color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  color: var(--text-secondary);
+}
+
+[data-ui-skin='folia'] .ui-progress__track {
+  background: rgba(var(--primary-rgb, 91, 111, 245), 0.16);
+}
+
+[data-ui-skin='folia'] .modal-container {
+  box-shadow:
+    var(--ecl-shadow-pop),
+    inset 0 1px 0 var(--glass-highlight);
+}
+
+[data-ui-skin='folia'] .btn-danger:hover:not(:disabled) {
+  box-shadow: 0 4px 14px rgba(229, 92, 92, 0.2);
+}
+
+[data-ui-skin='folia'] .ui-slider-input::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px rgba(var(--primary-rgb, 91, 111, 245), 0.12);
+}
+
+[data-ui-skin='folia'] .select-trigger:hover {
+  box-shadow: var(--control-glow);
+}
+
+[data-ui-skin='folia'] .ui-select.open .select-trigger {
+  box-shadow: var(--control-ring);
+}
+
+[data-ui-skin='folia'] .select-dropdown {
+  background: var(--card-bg);
+  box-shadow:
+    var(--shadow-md),
+    inset 0 1px 0 var(--glass-highlight);
+}
+
+[data-ui-skin='folia'] .titlebar-tray-menu {
+  background: var(--card-bg);
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 1px 0 var(--glass-highlight);
+}
+
+[data-ui-skin='folia'] .running-instances-trigger.inactive {
+  border-color: var(--control-border);
+}
+
+/* 实例页/路径栏/版本 tab 的 hover/active 态：folia 下主色倾向玻璃态 */
+[data-ui-skin='folia'] .toolbar-button:hover,
+[data-ui-skin='folia'] .view-switch button:hover,
+[data-ui-skin='folia'] .state-actions button:hover,
+[data-ui-skin='folia'] .card-footer button:hover,
+[data-ui-skin='folia'] .btn-action:hover,
+[data-ui-skin='folia'] .btn-install-version:hover,
+[data-ui-skin='folia'] .btn-add:hover,
+[data-ui-skin='folia'] .btn-install:hover,
+[data-ui-skin='folia'] .btn-refresh:hover {
+  border-color: var(--control-border-hover);
+  background: var(--control-bg-hover);
+}
+
+/* active 态比 hover 略深（对齐 tryfrontend2 参考） */
+[data-ui-skin='folia'] .toolbar-button.active,
+[data-ui-skin='folia'] .view-switch button.active,
+[data-ui-skin='folia'] .state-actions button.active,
+[data-ui-skin='folia'] .btn-action.active {
+  border-color: var(--primary);
+  background: var(--control-bg-active);
+}

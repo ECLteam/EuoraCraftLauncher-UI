@@ -65,8 +65,7 @@
 
 .btn-refresh:hover:not(:disabled) {
   color: var(--primary);
-  border-color: var(--control-border-hover);
-  background: var(--control-bg-hover);
+  border-color: var(--primary);
 }
 
 .btn-refresh:disabled {
@@ -295,8 +294,8 @@
 .btn-install:hover {
   width: auto;
   padding: 0 11px;
-  border-color: var(--control-border-hover);
-  background: var(--control-bg-hover);
+  border-color: var(--primary);
+  background: var(--primary-alpha);
   color: var(--primary);
 }
 
