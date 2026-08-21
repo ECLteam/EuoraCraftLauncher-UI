@@ -4,6 +4,7 @@ import backend from './client'
 
 const transportMocks = vi.hoisted(() => ({
   invoke: vi.fn(),
+  listen: vi.fn(),
 }))
 
 vi.mock('./transport', () => ({
@@ -11,19 +12,26 @@ vi.mock('./transport', () => ({
     mode: 'desktop',
     available: true,
     invoke: transportMocks.invoke,
-    listen: vi.fn(async () => () => undefined),
+    listen: transportMocks.listen,
     convertFileSrc: vi.fn((path: string) => path),
   }),
 }))
 
 vi.mock('./transport/showcase', () => ({
-  createShowcaseTransport: vi.fn(),
+  createShowcaseTransport: vi.fn(() => ({
+    mode: 'showcase',
+    available: true,
+    invoke: vi.fn(),
+    listen: vi.fn(async () => () => undefined),
+    convertFileSrc: vi.fn(() => null),
+  })),
 }))
 
 describe('backend IPC client', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     transportMocks.invoke.mockReset()
+    transportMocks.listen.mockReset()
     while (launcherErrorQueue.activeError.value) launcherErrorQueue.dismissActive()
   })
 
@@ -88,5 +96,29 @@ describe('backend IPC client', () => {
     expect(transportMocks.invoke).toHaveBeenCalledWith('image_read_file', {
       path: 'E:\\ECL_data\\cache\\screenshots\\thumb.webp',
     })
+  })
+
+  it('off 会清理同一回调的所有重复订阅', async () => {
+    const firstUnlisten = vi.fn()
+    const secondUnlisten = vi.fn()
+    transportMocks.listen.mockResolvedValueOnce(firstUnlisten).mockResolvedValueOnce(secondUnlisten)
+    const handler = vi.fn()
+
+    backend.on('launcher:notify', handler)
+    backend.on('launcher:notify', handler)
+    await backend.waitForEventListeners()
+    backend.off('launcher:notify', handler)
+
+    expect(firstUnlisten).toHaveBeenCalledTimes(1)
+    expect(secondUnlisten).toHaveBeenCalledTimes(1)
+  })
+
+  it('切换展示模式后会更新供 Vue 使用的响应式状态', () => {
+    expect(backend.runtime.isShowcaseState.value).toBe(false)
+
+    backend.swapToShowcase()
+
+    expect(backend.runtime.modeState.value).toBe('desktop')
+    expect(backend.runtime.isShowcaseState.value).toBe(true)
   })
 })

@@ -10,6 +10,26 @@
   </head>
   <body>
     <div id="app"></div>
+    <script>
+      // 启动无闪烁：主脚本加载前从 localStorage 快照恢复亮暗与主色
+      ;(function () {
+        try {
+          var s = JSON.parse(localStorage.getItem('euoracraft-theme-snapshot') || 'null')
+          if (!s) return
+          var d = document.documentElement
+          if (s.theme) d.setAttribute('data-theme', s.theme)
+          if (s.scheme) d.setAttribute('data-scheme', s.scheme)
+          if (s.primary) d.style.setProperty('--primary', s.primary)
+          if (s.primary) d.style.setProperty('--ecl-primary', s.primary)
+          if (s.primaryRgb) d.style.setProperty('--primary-rgb', s.primaryRgb)
+          if (s.primaryHover) d.style.setProperty('--primary-hover', s.primaryHover)
+          if (s.primaryHover) d.style.setProperty('--ecl-primary-hover', s.primaryHover)
+          if (s.primaryActive) d.style.setProperty('--primary-active', s.primaryActive)
+          if (s.primaryActive) d.style.setProperty('--ecl-primary-active', s.primaryActive)
+          if (s.primaryAlpha) d.style.setProperty('--primary-alpha', s.primaryAlpha)
+        } catch (e) {}
+      })()
+    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -1,7 +1,8 @@
 import { storeToRefs } from 'pinia'
-import { ref, computed, reactive } from 'vue'
+import { reactive, ref, computed } from 'vue'
 import { useAccountStore } from '@/features/accounts/stores/accountStore'
 import type {
+  AuthProvider,
   AuthlibProfile,
   DefaultSkin,
   MinecraftAccount,
@@ -28,6 +29,7 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     currentAccount,
     isLoading: accountsLoading,
     authlibServers,
+    authProviders,
     isAuthlibLoading: authlibServersLoading,
     microsoftLoginConfig,
     isMicrosoftLoginConfigLoading,
@@ -101,6 +103,48 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     return option.email ? `${label} · ${option.email}` : label
   }
 
+  // 插件认证提供方
+  const addingPluginAccount = ref(false)
+  const pluginFieldValues = reactive<Record<string, string>>({})
+
+  function resetPluginForm() {
+    for (const key of Object.keys(pluginFieldValues)) delete pluginFieldValues[key]
+  }
+
+  async function loadPluginProviders() {
+    try {
+      await accountStore.loadAuthProviders()
+    } catch (reason) {
+      console.warn('[AccountManager] 读取插件登录方式失败:', reason)
+    }
+  }
+
+  function pluginProviderById(providerId: string): AuthProvider | undefined {
+    return authProviders.value.find((provider) => provider.id === providerId)
+  }
+
+  async function addPluginAccount(provider: AuthProvider) {
+    const values: Record<string, string> = {}
+    for (const field of provider.fields) {
+      const value = (pluginFieldValues[field.key] ?? '').trim()
+      if (field.required && !value) {
+        message.error(t('auth.fieldRequired', { field: field.label }))
+        return
+      }
+      values[field.key] = value
+    }
+    addingPluginAccount.value = true
+    try {
+      await accountStore.addPluginAccount(provider.id, values)
+      message.success(t('game.status.accountAdded'))
+      resetPluginForm()
+    } catch (reason) {
+      message.error(reason instanceof Error ? reason.message : t('game.status.accountAddFailed'))
+    } finally {
+      addingPluginAccount.value = false
+    }
+  }
+
   const showMicrosoftLoginModal = ref(false)
   const startingMicrosoftLogin = ref(false)
   const completingMicrosoftLogin = ref(false)
@@ -155,6 +199,8 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     loadMicrosoftLoginConfig()
     loadAuthlibLoginConfig()
     loadOfflineSkins()
+    loadPluginProviders()
+    resetPluginForm()
   }
 
   async function addOfflineAccount() {
@@ -476,6 +522,7 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     showAccountModal.value = false
     showMicrosoftLoginModal.value = false
     showDeleteConfirmModal.value = false
+    resetPluginForm()
     stopMicrosoftLoginStatusListener()
     if (shouldCancelMicrosoftLogin) {
       void accountStore.cancelMicrosoftLogin().catch((reason) => {
@@ -520,6 +567,14 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     toggleAuthlibForm,
     addAuthlibAccount,
     selectAuthlibProfile,
+    // 插件认证提供方
+    authProviders,
+    pluginFieldValues,
+    addingPluginAccount,
+    pluginProviderById,
+    loadPluginProviders,
+    addPluginAccount,
+    resetPluginForm,
     // Microsoft
     showMicrosoftLoginModal,
     startingMicrosoftLogin,

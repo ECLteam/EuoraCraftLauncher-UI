@@ -70,3 +70,28 @@
   --ecl-badge-neoforge-fg: #7f92c9;
   --ecl-badge-quilt-fg: #6fb08a;
 }
+
+/* 用户级"减少动效"：全局压制动画与过渡 */
+[data-reduce-motion='1'],
+[data-reduce-motion='1'] * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* 亮暗切换平滑过渡；系统减少动效时禁用 */
+html.theme-transition,
+html.theme-transition * {
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.theme-transition,
+  html.theme-transition * {
+    transition: none !important;
+  }
+}

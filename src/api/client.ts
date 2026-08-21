@@ -12,7 +12,9 @@
  * 前端定义所有数据类型。社区替换前端时只需保持接口不变。
  */
 
+import { computed, readonly, ref } from 'vue'
 import { launcherErrorQueue } from '@/app/runtime/errorPresentation'
+import type { AppRuntimeMode } from '@/app/runtime/mode'
 import type {
   ApiResponse,
   BackendEvents,
@@ -48,6 +50,9 @@ class Logger {
 }
 
 let transport = createBackendTransport()
+const showcaseActive = ref(false)
+const runtimeMode = ref<AppRuntimeMode>(transport.mode)
+const isShowcaseRuntime = computed(() => showcaseActive.value || runtimeMode.value === 'showcase')
 
 function checkEnv(): boolean {
   return transport.available
@@ -123,7 +128,12 @@ async function call<T = unknown>(command: string, payload: unknown = {}, timeout
 
 // ── 事件侦听 ──────────────────────────────────────────────────────
 
-const _eventCleanups = new Map<string, Map<(payload: unknown) => void, () => void>>()
+interface EventSubscription {
+  callback: (payload: unknown) => void
+  dispose: () => void
+}
+
+const _eventCleanups = new Map<string, Set<EventSubscription>>()
 const _pendingEventRegistrations = new Set<Promise<void>>()
 
 /**
@@ -146,53 +156,44 @@ function offEvent(event: string, cb?: (payload: unknown) => void) {
   const cleanups = _eventCleanups.get(event)
   if (!cleanups) return
   if (cb) {
-    const unlisten = cleanups.get(cb)
-    if (unlisten) {
-      try {
-        unlisten()
-      } catch {
-        /* 清理时忽略错误 */
-      }
-      cleanups.delete(cb)
-      if (cleanups.size === 0) _eventCleanups.delete(event)
+    for (const subscription of Array.from(cleanups)) {
+      if (subscription.callback === cb) subscription.dispose()
     }
   } else {
-    for (const fn of cleanups.values()) {
-      try {
-        fn()
-      } catch {
-        /* 清理时忽略错误 */
-      }
-    }
-    cleanups.clear()
-    _eventCleanups.delete(event)
+    for (const subscription of Array.from(cleanups)) subscription.dispose()
   }
 }
 
 function subscribeEvent<T>(event: string, cb: (payload: T) => void): () => void {
   let unlisten: (() => void) | null = null
-  let unlistened = false
+  let disposed = false
   const trackedCallback = cb as (payload: unknown) => void
+  const subscriptions = _eventCleanups.get(event) ?? new Set<EventSubscription>()
+  const subscription: EventSubscription = {
+    callback: trackedCallback,
+    dispose: () => {
+      if (disposed) return
+      disposed = true
+      try {
+        unlisten?.()
+      } catch {
+        /* 清理时忽略错误 */
+      }
+      unlisten = null
+      subscriptions.delete(subscription)
+      if (subscriptions.size === 0) _eventCleanups.delete(event)
+    },
+  }
+  subscriptions.add(subscription)
+  _eventCleanups.set(event, subscriptions)
 
   const registration = onEvent<T>(event, cb)
     .then((fn) => {
-      if (unlistened) {
+      if (disposed) {
         fn()
         return
       }
-
-      let disposed = false
-      unlisten = () => {
-        if (disposed) return
-        disposed = true
-        fn()
-        const cleanups = _eventCleanups.get(event)
-        cleanups?.delete(trackedCallback)
-        if (cleanups?.size === 0) _eventCleanups.delete(event)
-      }
-      const cleanups = _eventCleanups.get(event) ?? new Map()
-      cleanups.set(trackedCallback, unlisten)
-      _eventCleanups.set(event, cleanups)
+      unlisten = fn
     })
     .catch((err) => {
       Logger.error(`[on] 注册事件 ${event} 失败:`, err)
@@ -202,13 +203,7 @@ function subscribeEvent<T>(event: string, cb: (payload: T) => void): () => void 
     })
   _pendingEventRegistrations.add(registration)
 
-  return () => {
-    unlistened = true
-    if (unlisten) {
-      unlisten()
-      unlisten = null
-    }
-  }
+  return subscription.dispose
 }
 
 async function waitForEventListeners(): Promise<void> {
@@ -237,20 +232,19 @@ async function resolveFileUrl(path: string): Promise<string | null> {
 //  导出
 // ═══════════════════════════════════════════════════════════════════
 
-let showcaseActive = false
-
 function swapToShowcase(): void {
   const showcase = createShowcaseTransport()
   // 保持 desktop 模式，确保窗口控制按钮正常显示
   transport = { ...showcase, mode: 'desktop' }
-  showcaseActive = true
+  showcaseActive.value = true
+  runtimeMode.value = transport.mode
 }
 
 export const backend = {
   /** 当前应用运行环境。业务代码不应再直接检测 window.__TAURI__。 */
   runtime: {
     get mode() {
-      return transport.mode
+      return runtimeMode.value
     },
     get isAvailable() {
       return transport.available
@@ -259,8 +253,12 @@ export const backend = {
       return transport.mode === 'desktop'
     },
     get isShowcase() {
-      return showcaseActive || transport.mode === 'showcase'
+      return isShowcaseRuntime.value
     },
+    /** 供 Vue 组件订阅的运行模式状态。 */
+    modeState: readonly(runtimeMode),
+    /** 供 Vue 组件订阅的展示模式状态。 */
+    isShowcaseState: readonly(isShowcaseRuntime),
   },
 
   /** 配置存取 — 前端定义结构，后端只持久化 */
@@ -353,7 +351,7 @@ export const backend = {
   /** 切换到展示模式 mock 数据（由 ECL_CONFIG_launcher_showcase 环境变量触发） */
   swapToShowcase,
   get isShowcaseActive() {
-    return showcaseActive
+    return showcaseActive.value
   },
 }
 

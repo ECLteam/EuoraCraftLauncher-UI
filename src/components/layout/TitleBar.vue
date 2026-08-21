@@ -3,11 +3,10 @@
     class="titlebar"
     data-theme-component="titlebar"
     data-theme-node="shell.titlebar"
-    data-tauri-drag-region
     @mousedown="handleDragStart"
   >
     <!-- 左侧 -->
-    <div class="titlebar-left" data-no-drag>
+    <div class="titlebar-left">
       <template v-if="isFullscreenModalVisible">
         <button class="titlebar-back-btn" :title="t('common.back')" @click="handleClose">
           <UiIcon name="arrow-left" :size="18" />
@@ -15,7 +14,7 @@
         <span class="titlebar-modal-title">{{ fullscreenModalTitle }}</span>
       </template>
       <template v-else>
-        <div class="titlebar-brand" data-no-drag>
+        <div class="titlebar-brand">
           <img src="/favicon.ico" alt="Logo" class="titlebar-logo" />
           <span class="titlebar-app-name">{{ topNavEnabled ? 'ECL' : 'EuoraCraft Launcher' }}</span>
           <span
@@ -51,23 +50,31 @@
     <div class="titlebar-center"></div>
 
     <!-- 顶部导航菜单（横向标题栏模式，绝对定位居中） -->
-    <nav v-if="topNavEnabled && !isFullscreenModalVisible" class="titlebar-nav" data-no-drag>
-      <button
-        v-for="item in menuItems"
-        :key="item.path"
-        class="titlebar-nav-item"
-        :class="{
-          active: route.path === item.path || (item.path !== '/' && route.path.startsWith(item.path)),
-        }"
-        @click="handleNavClick(item)"
-      >
-        <UiIcon :name="item.iconName" :size="16" />
-        <span>{{ item.label }}</span>
-      </button>
+    <nav v-if="topNavEnabled && !isFullscreenModalVisible" class="titlebar-nav">
+      <NTabs v-if="isFolia" :value="activeNavPath" type="segment" size="small" @update:value="handleNavTabChange">
+        <NTab v-for="item in menuItems" :key="item.path" :name="item.path">
+          <UiIcon :name="item.iconName" :size="16" />
+          <span>{{ item.label }}</span>
+        </NTab>
+      </NTabs>
+      <template v-else>
+        <button
+          v-for="item in menuItems"
+          :key="item.path"
+          class="titlebar-nav-item"
+          :class="{
+            active: route.path === item.path || (item.path !== '/' && route.path.startsWith(item.path)),
+          }"
+          @click="handleNavClick(item)"
+        >
+          <UiIcon :name="item.iconName" :size="16" />
+          <span>{{ item.label }}</span>
+        </button>
+      </template>
     </nav>
 
     <!-- 右侧窗口控制 -->
-    <div class="titlebar-right" data-no-drag>
+    <div class="titlebar-right">
       <PluginSlotHost slotId="plugin-slot-titlebar-right" class="plugin-slot-container" />
       <TitleBarTray />
       <button class="titlebar-btn titlebar-btn-task" :title="t('task.title')" @click="toggleTaskPanel">
@@ -92,6 +99,7 @@
 </template>
 
 <script setup lang="ts">
+import { NTab, NTabs } from 'naive-ui'
 import { computed, inject, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -103,6 +111,7 @@ import { useFullscreenModal } from '@/composables/useFullscreenModal'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
 import { useTheme } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
+import { useUiSkin } from '@/composables/useUiSkin'
 import { MENU_ITEMS } from '@/constants/menu'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 
@@ -110,6 +119,7 @@ defineOptions({ name: 'TitleBar' })
 
 const { t } = useI18n()
 const { isDark, toggleTheme } = useTheme()
+const { isFolia } = useUiSkin()
 const { topNavEnabled } = useTopNav()
 const fullscreenModal = useFullscreenModal()
 const route = useRoute()
@@ -137,6 +147,16 @@ const handleNavClick = (item: { path: string }) => {
   router.push(item.path)
 }
 
+const activeNavPath = computed(() => {
+  const path = route.path
+  const item = menuItems.value.find((candidate) => path === candidate.path || (candidate.path !== '/' && path.startsWith(candidate.path)))
+  return item?.path ?? (path === '/' ? '/' : '')
+})
+
+const handleNavTabChange = (path: string) => {
+  router.push(path)
+}
+
 const minimize = async () => {
   await desktopWindow.minimize()
 }
@@ -145,11 +165,13 @@ const close = async () => {
 }
 const handleClose = () => fullscreenModal.close()
 
-/** 通过 Tauri 原生 startDragging API 启动窗口拖拽，绕过 data-tauri-drag-region 在 Linux/macOS 上的兼容性问题 */
+/** 仅使用 Tauri 原生 startDragging API，避免平台特定的 CSS 拖拽区域冲突。 */
 const handleDragStart = (e: MouseEvent) => {
   if (e.button !== 0) return
   const target = e.target as HTMLElement
-  if (target.closest('[data-no-drag]')) return
+  if (target.closest('[data-no-drag], button, a, input, textarea, select, [contenteditable="true"], [role="button"]')) {
+    return
+  }
   if (
     target.closest('.vue-devtools__anchor') ||
     target.closest('.vue-devtools__anchor-btn') ||

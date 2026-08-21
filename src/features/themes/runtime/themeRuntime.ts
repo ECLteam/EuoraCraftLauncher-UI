@@ -49,7 +49,12 @@ const TOKEN_VARIABLES: Record<string, string[]> = {
   radiusCard: ['--ecl-radius-card', '--card-radius'],
   radiusDialog: ['--ecl-radius-dialog'],
   shadowSurface: ['--ecl-shadow-surface', '--shadow-card'],
+  shadowPop: ['--ecl-shadow-pop'],
   fontBody: ['--ecl-font-body', '--font-body'],
+  controlHeight: ['--ecl-control-height'],
+  pageGap: ['--ecl-page-gap'],
+  pagePadding: ['--ecl-page-padding'],
+  focusRing: ['--ecl-focus-ring'],
 }
 const SCHEME_VARIABLES: Record<string, string[]> = {
   canvas: ['--ecl-canvas', '--bg-base'],
@@ -57,9 +62,32 @@ const SCHEME_VARIABLES: Record<string, string[]> = {
   surfaceMuted: ['--ecl-surface-muted'],
   text: ['--ecl-text', '--text-primary'],
   textSecondary: ['--ecl-text-secondary', '--text-secondary'],
+  textTertiary: ['--ecl-text-tertiary', '--text-tertiary'],
   border: ['--ecl-border', '--border'],
+  borderStrong: ['--ecl-border-strong'],
+  primary: ['--ecl-primary', '--primary'],
+  primaryHover: ['--ecl-primary-hover', '--primary-hover'],
+  primaryActive: ['--ecl-primary-active', '--primary-active'],
+  primaryAlpha: ['--ecl-primary-alpha', '--primary-alpha'],
+  primaryAlphaStrong: ['--ecl-primary-alpha-strong'],
+  hover: ['--ecl-hover'],
+  hoverStrong: ['--ecl-hover-strong'],
+  focusRing: ['--ecl-focus-ring'],
+  shadowSurface: ['--ecl-shadow-surface', '--shadow-card'],
+  shadowPop: ['--ecl-shadow-pop'],
+  success: ['--ecl-color-success'],
+  warning: ['--ecl-color-warning'],
+  error: ['--ecl-color-error'],
+  info: ['--ecl-color-info'],
 }
 const pluginEffects = new Map<string, ThemeStyleOverride>()
+
+export type UiSkin = 'classic' | 'folia'
+
+/** Legacy and third-party themes deliberately stay on the stable classic shell. */
+export function resolveUiSkin(preset: Pick<ThemePresetV1, 'uiSkin'> | null | undefined): UiSkin {
+  return preset?.uiSkin === 'folia' ? 'folia' : 'classic'
+}
 
 function escapeAttribute(value: string): string {
   return value
@@ -148,16 +176,51 @@ function compileEffect(recipe: ThemeEffectRecipe): string[] {
   return compileOverride(selector, { properties })
 }
 
+/**
+ * 解析某 scheme 的颜色集合：自定义 scheme 缺省字段回退其 dark/light 基色，
+ * 保证颜色变量始终完整派生，而非依赖 tokens.css 的亮暗覆盖块。
+ */
+function resolveSchemeColors(preset: ThemePresetV1, scheme: string): Record<string, string> {
+  const direct = preset.schemes[scheme]
+  if (!direct) return preset.schemes.light ?? {}
+  if (scheme === 'light' || scheme === 'dark') return direct
+  const baseName = preset.schemeMeta?.[scheme]?.dark ? 'dark' : 'light'
+  const base = preset.schemes[baseName] ?? {}
+  return { ...base, ...direct }
+}
+
+/** 判断 scheme 的亮暗属性：显式声明优先，缺省用基色亮度兜底。 */
+export function resolveSchemeDark(preset: ThemePresetV1, scheme: string): boolean {
+  if (scheme === 'dark') return true
+  if (scheme === 'light') return false
+  const declared = preset.schemeMeta?.[scheme]?.dark
+  if (declared !== undefined) return declared
+  const canvas = preset.schemes[scheme]?.canvas
+  const match = typeof canvas === 'string' && /^#([0-9a-f]{6})$/i.exec(canvas)
+  if (match) {
+    const r = parseInt(match[1]!.slice(0, 2), 16) / 255
+    const g = parseInt(match[1]!.slice(2, 4), 16) / 255
+    const b = parseInt(match[1]!.slice(4, 6), 16) / 255
+    const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    return luminance < 0.4
+  }
+  return false
+}
+
 /** 将受控协议编译成变量与属性选择器；永不接受任意 CSS。 */
-export function compileThemeCss(preset: ThemePresetV1, scheme: 'light' | 'dark'): string {
+export function compileThemeCss(preset: ThemePresetV1, scheme: string): string {
   const root: string[] = []
+  const schemeColors = resolveSchemeColors(preset, scheme)
+  const schemeKeys = new Set(Object.keys(schemeColors))
   for (const [token, raw] of Object.entries(preset.tokens)) {
+    // scheme 级已声明 primary 时跳过 token 级，避免重复主色变量
+    if (token === 'primary' && schemeKeys.has('primary')) continue
     const value = safeCssValue(raw)
     if (!value) continue
     const names = TOKEN_VARIABLES[token] ?? [`--ecl-token-${token.replace(/[^a-zA-Z0-9_-]/g, '')}`]
     for (const name of names) root.push(`${name}:${value}`)
   }
-  for (const [token, raw] of Object.entries(preset.schemes[scheme] ?? {})) {
+  for (const [token, raw] of Object.entries(schemeColors)) {
     const value = safeCssValue(raw)
     if (!value) continue
     const names = SCHEME_VARIABLES[token] ?? [`--ecl-color-${token.replace(/[^a-zA-Z0-9_-]/g, '')}`]
@@ -181,7 +244,8 @@ export function compileThemeCss(preset: ThemePresetV1, scheme: 'light' | 'dark')
 }
 
 export function applyThemePreset(preset: ThemePresetV1): void {
-  const scheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'
+  const el = document.documentElement
+  const scheme = el.getAttribute('data-scheme') || el.getAttribute('data-theme') || 'light'
   let style = document.getElementById(STYLE_ELEMENT_ID) as HTMLStyleElement | null
   if (!style) {
     style = document.createElement('style')
@@ -189,12 +253,14 @@ export function applyThemePreset(preset: ThemePresetV1): void {
     document.head.appendChild(style)
   }
   style.textContent = compileThemeCss(preset, scheme)
-  document.documentElement.dataset.themePreset = preset.id
+  el.dataset.themePreset = preset.id
+  el.dataset.uiSkin = resolveUiSkin(preset)
 }
 
 export function clearThemePreview(): void {
   document.getElementById(STYLE_ELEMENT_ID)?.remove()
   delete document.documentElement.dataset.themePreset
+  document.documentElement.dataset.uiSkin = 'classic'
 }
 
 export type ThemeValueSource = 'base' | 'global' | 'component' | 'node' | 'instance' | 'draft'

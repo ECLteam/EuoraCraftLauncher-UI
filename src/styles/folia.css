@@ -1,0 +1,257 @@
+/*
+ * Folia is deliberately scoped to an explicit UI skin.  Theme tokens remain
+ * shared with the classic renderer, so a Folia copy can still be edited by the
+ * existing theme studio without leaking its glass treatment into other skins.
+ */
+[data-ui-skin='folia'] {
+  --bg-base-alt: #e9ebef;
+  --bg-elevated: #ffffff;
+  --bg-hover: #f0f1f3;
+  --bg-hover-strong: rgba(var(--primary-rgb, 91, 111, 245), 0.08);
+  --bg-active: rgba(var(--primary-rgb, 91, 111, 245), 0.14);
+  --border-strong: rgba(29, 36, 51, 0.16);
+  --border-hover: rgba(var(--primary-rgb, 91, 111, 245), 0.45);
+  --divider: rgba(29, 36, 51, 0.1);
+  --shadow-xs: 0 1px 2px rgba(21, 31, 52, 0.05);
+  --shadow-sm: 0 2px 6px rgba(21, 31, 52, 0.07);
+  --shadow-md: 0 8px 24px rgba(21, 31, 52, 0.09);
+  --shadow-lg: 0 14px 40px rgba(21, 31, 52, 0.12);
+  --sidebar-w-collapsed: 56px;
+  --sidebar-w-expanded: 196px;
+  --titlebar-h: 48px;
+  --page-gutter: 20px;
+  --row-h: 42px;
+  --row-h-sm: 34px;
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-bg-sidebar: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(29, 36, 51, 0.12);
+  --glass-divider: rgba(29, 36, 51, 0.1);
+  --glass-item-hover: #f0f1f3;
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  --sidebar-item-active-bg: color-mix(in srgb, var(--primary) 18%, var(--bg-elevated));
+  --sidebar-item-active-border: color-mix(in srgb, var(--primary) 70%, transparent);
+  --folia-glass: rgba(255, 255, 255, 0.6);
+  --folia-glass-border: rgba(29, 36, 51, 0.12);
+  --control-bg: rgba(255, 255, 255, 0.5);
+  --control-bg-hover: rgba(var(--primary-rgb, 91, 111, 245), 0.08);
+  --control-bg-active: rgba(var(--primary-rgb, 91, 111, 245), 0.14);
+  --control-border: rgba(var(--primary-rgb, 91, 111, 245), 0.22);
+  --control-border-hover: rgba(var(--primary-rgb, 91, 111, 245), 0.45);
+  --control-border-focus: rgba(var(--primary-rgb, 91, 111, 245), 0.6);
+  --control-ring: 0 0 0 2px rgba(var(--primary-rgb, 91, 111, 245), 0.18);
+  --control-glow: 0 4px 14px rgba(var(--primary-rgb, 91, 111, 245), 0.16);
+  --slider-track: rgba(var(--primary-rgb, 91, 111, 245), 0.18);
+  --glass-blur: 18px;
+  --aurora-opacity: 1;
+  --aurora-c1: rgba(var(--primary-rgb, 91, 111, 245), 0.12);
+  --aurora-c2: rgba(109, 155, 255, 0.1);
+  --aurora-c3: rgba(180, 123, 255, 0.085);
+  --folia-glass-blur: var(--glass-blur, 18px);
+}
+
+[data-theme='dark'][data-ui-skin='folia'] {
+  --bg-base-alt: #21242b;
+  --bg-elevated: #21242b;
+  --bg-hover: rgba(255, 255, 255, 0.06);
+  --bg-hover-strong: rgba(var(--primary-rgb, 130, 145, 255), 0.12);
+  --bg-active: rgba(var(--primary-rgb, 130, 145, 255), 0.2);
+  --border-strong: rgba(255, 255, 255, 0.12);
+  --border-hover: rgba(var(--primary-rgb, 130, 145, 255), 0.55);
+  --divider: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(34, 38, 48, 0.62);
+  --glass-bg-sidebar: rgba(27, 30, 38, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-divider: rgba(255, 255, 255, 0.09);
+  --glass-item-hover: rgba(255, 255, 255, 0.1);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --sidebar-item-active-bg: color-mix(in srgb, var(--primary) 24%, rgba(255, 255, 255, 0.1));
+  --folia-glass: rgba(34, 38, 48, 0.62);
+  --folia-glass-border: rgba(255, 255, 255, 0.1);
+  --control-bg: rgba(34, 38, 48, 0.5);
+  --control-bg-hover: rgba(var(--primary-rgb, 130, 145, 255), 0.12);
+  --control-bg-active: rgba(var(--primary-rgb, 130, 145, 255), 0.2);
+  --control-border: rgba(var(--primary-rgb, 130, 145, 255), 0.3);
+  --control-border-hover: rgba(var(--primary-rgb, 130, 145, 255), 0.55);
+  --control-border-focus: rgba(var(--primary-rgb, 130, 145, 255), 0.7);
+  --control-ring: 0 0 0 2px rgba(var(--primary-rgb, 130, 145, 255), 0.24);
+  --control-glow: 0 4px 16px rgba(var(--primary-rgb, 130, 145, 255), 0.22);
+  --slider-track: rgba(var(--primary-rgb, 130, 145, 255), 0.28);
+  --glass-blur: 18px;
+  --aurora-opacity: 1;
+}
+
+[data-ui-skin='folia'] .aurora-bg {
+  position: fixed;
+  inset: -12%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: var(--aurora-opacity, 1);
+  background-image:
+    radial-gradient(
+      42% 55% at 18% 22%,
+      var(--aurora-c1, rgba(var(--primary-rgb, 91, 111, 245), 0.12)),
+      transparent 70%
+    ),
+    radial-gradient(38% 50% at 82% 30%, var(--aurora-c2, rgba(109, 155, 255, 0.1)), transparent 70%),
+    radial-gradient(50% 60% at 62% 88%, var(--aurora-c3, rgba(180, 123, 255, 0.085)), transparent 72%);
+  animation: aurora-drift 22s var(--ease-smooth, ease) infinite alternate;
+  transition: opacity var(--duration-normal, 180ms) ease;
+}
+
+[data-ui-skin='classic'] .aurora-bg,
+:root:not([data-ui-skin]) .aurora-bg,
+[data-aurora='0'] .aurora-bg {
+  display: none;
+}
+
+[data-ui-skin='folia'] .main-content {
+  backdrop-filter: blur(var(--folia-glass-blur));
+  -webkit-backdrop-filter: blur(var(--folia-glass-blur));
+}
+
+[data-ui-skin='folia'] .sidebar,
+[data-ui-skin='folia'] .titlebar,
+[data-ui-skin='folia'] .ecl-surface,
+[data-ui-skin='folia'] .card,
+[data-ui-skin='folia'] .glass,
+[data-ui-skin='folia'] .ui-card,
+[data-ui-skin='folia'] .install-page,
+[data-ui-skin='folia'] .setting-section,
+[data-ui-skin='folia'] .content-modal,
+[data-ui-skin='folia'] .modal-content,
+[data-ui-skin='folia'] .instance-detail-modal {
+  background: var(--folia-glass);
+  border-color: var(--folia-glass-border);
+  backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.25);
+  -webkit-backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.25);
+}
+
+[data-ui-skin='folia'] .sidebar-item:hover,
+[data-ui-skin='folia'] .titlebar-btn:hover,
+[data-ui-skin='folia'] .sidebar-toggle:hover {
+  background: var(--control-bg-hover);
+}
+
+[data-ui-skin='folia'] .sidebar-item.active,
+[data-ui-skin='folia'] .sidebar-footer .sidebar-item.active {
+  background: transparent;
+  box-shadow: none;
+}
+
+[data-ui-skin='folia'] .sidebar-active-indicator {
+  display: none;
+}
+
+[data-ui-skin='folia'] .sidebar-active-bg {
+  display: block;
+  position: absolute;
+  right: 8px;
+  left: 8px;
+  border-radius: var(--r-sm);
+  background: rgba(var(--primary-rgb, 91, 111, 245), 0.16);
+  box-shadow: inset 0 0 0 1px rgba(var(--primary-rgb, 91, 111, 245), 0.28);
+  transition:
+    top var(--duration-normal, 0.25s) var(--ease-smooth, ease),
+    height var(--duration-normal, 0.25s) var(--ease-smooth, ease);
+}
+
+[data-ui-skin='folia'] .sidebar-item.active::before {
+  display: none;
+}
+
+[data-ui-skin='folia'] .n-base-selection,
+[data-ui-skin='folia'] .n-input-wrapper,
+[data-ui-skin='folia'] .n-tabs--segment-type .n-tabs-rail {
+  background: var(--control-bg) !important;
+  border: 1px solid var(--control-border) !important;
+  backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.25);
+  -webkit-backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.25);
+}
+
+[data-ui-skin='folia'] .ui-btn.btn-secondary,
+[data-ui-skin='folia'] .btn-refresh,
+[data-ui-skin='folia'] .search-box,
+[data-ui-skin='folia'] .account-action-btn,
+[data-ui-skin='folia'] .instance-card,
+[data-ui-skin='folia'] .version-item,
+[data-ui-skin='folia'] .resource-card {
+  border-color: var(--control-border);
+  background: var(--control-bg);
+}
+
+[data-ui-skin='folia'] .ui-card.hoverable:hover,
+[data-ui-skin='folia'] .instance-card:hover,
+[data-ui-skin='folia'] .version-item:hover,
+[data-ui-skin='folia'] .resource-card:hover {
+  border-color: rgba(var(--primary-rgb, 91, 111, 245), 0.48);
+  box-shadow: 0 8px 24px rgba(var(--primary-rgb, 91, 111, 245), 0.1);
+  transform: translateY(-1px);
+}
+
+[data-ui-skin='folia'] .page-header,
+[data-ui-skin='folia'] .panel-header,
+[data-ui-skin='folia'] .setting-section-header,
+[data-ui-skin='folia'] .card-header {
+  border-color: var(--folia-glass-border);
+}
+
+[data-ui-skin='folia'] .n-message,
+[data-ui-skin='folia'] .n-dialog,
+[data-ui-skin='folia'] .n-popover,
+[data-ui-skin='folia'] .n-dropdown-menu,
+[data-ui-skin='folia'] .n-tooltip,
+[data-ui-skin='folia'] .n-modal,
+[data-ui-skin='folia'] .n-drawer {
+  backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.35);
+  -webkit-backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.35);
+}
+
+[data-ui-skin='folia'] .n-tabs--segment-type .n-tabs-tab.n-tabs-tab--active {
+  color: var(--primary) !important;
+  font-weight: 600;
+  background: rgba(var(--primary-rgb, 91, 111, 245), 0.18);
+  box-shadow: inset 0 0 0 1px rgba(var(--primary-rgb, 91, 111, 245), 0.35);
+}
+
+[data-ui-skin='folia'] .titlebar-nav .n-tabs-rail {
+  gap: 2px;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+[data-ui-skin='folia'] .titlebar-nav .n-tabs-tab,
+[data-ui-skin='folia'] .titlebar-nav .n-tabs-tab.n-tabs-tab--active {
+  min-height: 32px;
+  padding: 4px 12px !important;
+  border-radius: var(--r-sm);
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+[data-ui-skin='folia'] .account-type-switch .n-tabs-rail,
+[data-ui-skin='folia'] .account-type-switch .n-tabs-tab-wrapper {
+  display: flex;
+  width: 100%;
+  flex: 1;
+}
+
+[data-ui-skin='folia'] .account-type-switch .n-tabs-tab {
+  justify-content: center;
+}
+
+@keyframes aurora-drift {
+  from {
+    transform: translate3d(-1.5%, -1%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(1.5%, 1%, 0) scale(1.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-ui-skin='folia'] .aurora-bg {
+    animation: none;
+  }
+}

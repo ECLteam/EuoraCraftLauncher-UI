@@ -227,7 +227,18 @@
             >
               {{ t('game.showcase.description') }}
             </NAlert>
-            <NRadioGroup v-model:value="selectedAccountType" class="account-type-switch" size="small">
+            <NTabs
+              v-if="isFolia"
+              v-model:value="selectedAccountType"
+              type="segment"
+              size="small"
+              class="account-type-switch"
+            >
+              <NTab v-for="option in accountTypeOptions" :key="option.value" :name="option.value">
+                {{ option.label }}
+              </NTab>
+            </NTabs>
+            <NRadioGroup v-else v-model:value="selectedAccountType" class="account-type-switch" size="small">
               <NRadioButton v-for="option in accountTypeOptions" :key="option.value" :value="option.value">
                 {{ option.label }}
               </NRadioButton>
@@ -337,6 +348,36 @@
                 @click="selectAuthlibProfileFromModal"
               >
                 {{ t('auth.loginSelectedProfile') }}
+              </NButton>
+            </div>
+
+            <div v-else-if="selectedPluginProvider" class="account-form">
+              <NAlert v-if="selectedPluginProvider.description" type="default" :showIcon="false">
+                {{ selectedPluginProvider.description }}
+              </NAlert>
+              <div v-for="field in selectedPluginProvider.fields" :key="field.key" class="plugin-auth-field">
+                <label :for="`plugin-field-${field.key}`">{{ field.label }}</label>
+                <NInput
+                  :id="`plugin-field-${field.key}`"
+                  v-model:value="account.pluginFieldValues[field.key]"
+                  :type="field.type === 'password' ? 'password' : 'text'"
+                  :placeholder="field.placeholder"
+                  :showPasswordOn="field.type === 'password' ? 'mousedown' : undefined"
+                  @keyup.enter="addPluginAccountFromModal"
+                />
+              </div>
+              <NButton
+                type="primary"
+                block
+                :loading="account.addingPluginAccount"
+                :disabled="
+                  !selectedPluginProvider.fields.every(
+                    (field) => !field.required || (account.pluginFieldValues[field.key] ?? '').trim()
+                  )
+                "
+                @click="addPluginAccountFromModal"
+              >
+                {{ t('game.addAccount') }}
               </NButton>
             </div>
 
@@ -524,6 +565,8 @@ import {
   NRadioGroup,
   NSelect,
   NSpin,
+  NTab,
+  NTabs,
   NTag,
   type SelectOption,
 } from 'naive-ui'
@@ -545,6 +588,7 @@ import { useAccountManager } from '@/composables/useAccountManager'
 import { useInstanceManager } from '@/composables/useInstanceManager'
 import { globalLaunchProgress } from '@/composables/useLaunchProgress'
 import { useRecentInstances } from '@/composables/useRecentInstances'
+import { useUiSkin } from '@/composables/useUiSkin'
 import { getLoaderIcon, getLoaderImage, getVersionImage } from '@/config/version'
 import { accountsApi } from '@/features/accounts/api/accountsApi'
 import WardrobeModal from '@/features/accounts/components/WardrobeModal.vue'
@@ -563,6 +607,7 @@ import RunningInstancesTab from '@/views/instances/RunningInstancesTab.vue'
 const { t } = useI18n()
 const router = useRouter()
 const account = useAccountManager(t)
+const { isFolia } = useUiSkin()
 const version = useInstanceManager(t)
 const { recentList, recordLaunch } = useRecentInstances()
 const { progress: launchProgress, smoothPercent } = globalLaunchProgress
@@ -582,8 +627,6 @@ const {
   pauseRotation: pauseInfoCardRotation,
   resumeRotation: resumeInfoCardRotation,
 } = useGameInfoCard()
-
-type AccountType = 'microsoft' | 'offline' | 'authlib'
 
 const showAddAccountModal = ref(false)
 const showWardrobeModal = ref(false)
@@ -615,14 +658,19 @@ function closeInstanceTerminal(): void {
   runningView.value = 'management'
 }
 
-const selectedAccountType = ref<AccountType>('microsoft')
+const selectedAccountType = ref<string>('microsoft')
 const showOfflineAdvanced = ref(false)
 const isShowcaseMode = backend.runtime.isShowcase
 const accountTypeOptions = computed(() => [
   { value: 'microsoft', label: t(getAccountTypeLabelKey('microsoft')) },
   { value: 'offline', label: t(getAccountTypeLabelKey('offline')) },
   { value: 'authlib', label: t(getAccountTypeLabelKey('authlib')) },
+  ...account.authProviders.map((provider) => ({ value: `plugin:${provider.id}`, label: provider.title })),
 ])
+const selectedPluginProvider = computed(() => {
+  if (!selectedAccountType.value.startsWith('plugin:')) return null
+  return account.pluginProviderById(selectedAccountType.value.slice('plugin:'.length))
+})
 function renderAuthlibProfileLabel(option: SelectOption) {
   return h('div', { class: 'authlib-profile-option-label' }, [
     h('span', String(option.profileName ?? option.label ?? '')),
@@ -695,7 +743,15 @@ async function selectAuthlibProfileFromModal() {
   if (!account.pendingAuthlibAccountId) showAddAccountModal.value = false
 }
 
+async function addPluginAccountFromModal() {
+  if (!selectedPluginProvider.value) return
+  const accountCount = account.accounts.length
+  await account.addPluginAccount(selectedPluginProvider.value)
+  if (account.accounts.length > accountCount) showAddAccountModal.value = false
+}
+
 function accountTypeName(type: string): string {
+  if (type === 'plugin') return detailAccount.value?.providerTitle || t('game.pluginAccount')
   return t(getAccountTypeShortLabelKey(type))
 }
 

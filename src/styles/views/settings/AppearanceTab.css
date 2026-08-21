@@ -99,6 +99,54 @@
   text-align: right;
 }
 
+.wide-control {
+  width: min(320px, 100%);
+}
+
+.semantic-colors {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.semantic-color-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.semantic-color-item input[type='color'] {
+  width: 24px;
+  height: 24px;
+  padding: 2px;
+  border: 1px solid var(--ecl-border);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.semantic-color-label {
+  color: var(--ecl-text-secondary);
+  font-size: 11px;
+}
+
+.schedule-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.schedule-time {
+  width: 130px;
+}
+
+.schedule-sep {
+  color: var(--ecl-text-secondary);
+  font-size: 12px;
+}
+
 .visually-hidden-file-input {
   position: absolute;
   width: 1px;

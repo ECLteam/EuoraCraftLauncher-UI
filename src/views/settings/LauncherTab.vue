@@ -46,6 +46,26 @@
       <SettingRow :label="t('settings.ignoreProxy')" :description="t('settings.ignoreProxyDesc')">
         <NSwitch :value="ignoreProxy" @update:value="handleIgnoreProxyChange" />
       </SettingRow>
+      <SettingRow :label="t('settings.requestTimeout')" :description="t('settings.requestTimeoutDesc')">
+        <NInputNumber
+          :value="requestTimeout"
+          :min="1"
+          :max="120"
+          :precision="0"
+          :showButton="false"
+          @update:value="handleRequestTimeoutChange"
+        />
+      </SettingRow>
+      <SettingRow :label="t('settings.requestRetries')" :description="t('settings.requestRetriesDesc')">
+        <NInputNumber
+          :value="requestRetries"
+          :min="0"
+          :max="5"
+          :precision="0"
+          :showButton="false"
+          @update:value="handleRequestRetriesChange"
+        />
+      </SettingRow>
     </SettingSection>
 
     <PluginSlotHost slotId="plugin-slot-settings-download-section-after" class="plugin-slot-container" />
@@ -55,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NInput, NSelect, NSwitch } from 'naive-ui'
+import { NButton, NInput, NInputNumber, NSelect, NSwitch } from 'naive-ui'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -78,6 +98,8 @@ const { debugMode, setDebugMode } = useDebugMode()
 const currentLocale = computed(() => locale.value as LocaleCode)
 const disableSslVerify = computed(() => settingsStore.launcher.disable_ssl_verify === true)
 const ignoreProxy = computed(() => settingsStore.launcher.ignore_proxy !== false)
+const requestTimeout = computed(() => settingsStore.launcher.request_timeout ?? 15)
+const requestRetries = computed(() => settingsStore.launcher.request_retries ?? 2)
 
 const languageOptions = computed(() =>
   supportedLocales.map((language) => ({
@@ -127,6 +149,16 @@ async function handleDisableSslVerifyChange(value: boolean): Promise<void> {
 
 async function handleIgnoreProxyChange(value: boolean): Promise<void> {
   await run(() => settingsStore.patchLauncher({ ignore_proxy: value }))
+}
+
+async function handleRequestTimeoutChange(value: number | null): Promise<void> {
+  if (value === null) return
+  await run(() => settingsStore.patchLauncher({ request_timeout: value }))
+}
+
+async function handleRequestRetriesChange(value: number | null): Promise<void> {
+  if (value === null) return
+  await run(() => settingsStore.patchLauncher({ request_retries: value }))
 }
 </script>
 

@@ -84,41 +84,90 @@
             <span
               >{{ field.label }} <small>{{ sourceFor(field.name) }}</small></span
             >
-            <input
-              :value="property(field.name)"
-              :placeholder="field.placeholder"
-              @change="patchProperty(field.name, $event)"
-            />
+            <div class="field-row">
+              <input
+                :value="property(field.name)"
+                :placeholder="field.placeholder"
+                @change="patchProperty(field.name, $event)"
+              />
+              <input
+                v-if="colorFields.has(field.name)"
+                type="color"
+                :value="colorInputValue(field.name)"
+                :title="`设置 ${field.label} 颜色`"
+                @input="patchProperty(field.name, $event)"
+              />
+              <button class="reset-btn" type="button" title="重置此属性（恢复继承）" @click="resetProperty(field.name)">
+                ↺
+              </button>
+            </div>
           </label>
           <h3>状态与动效</h3>
-          <label
-            >Hover 变换
-            <input
-              :value="stateProperty('hover', 'transform')"
-              placeholder="translateY(-2px)"
-              @change="patchStateProperty('hover', 'transform', $event)"
-          /></label>
-          <label
-            >过渡
-            <input
-              :value="property('transition')"
-              placeholder="transform 180ms ease"
-              @change="patchProperty('transition', $event)"
-          /></label>
-          <label
-            >焦点颜色
-            <input
-              :value="stateProperty('focusVisible', 'outlineColor')"
-              placeholder="var(--primary)"
-              @change="patchStateProperty('focusVisible', 'outlineColor', $event)"
-          /></label>
-          <label
-            >焦点宽度
-            <input
-              :value="stateProperty('focusVisible', 'outlineWidth')"
-              placeholder="2px"
-              @change="patchStateProperty('focusVisible', 'outlineWidth', $event)"
-          /></label>
+          <label v-for="state in editableStates" :key="state">
+            <span>{{ stateLabel(state) }}</span>
+            <div class="field-row">
+              <input
+                :value="stateProperty(state, 'transform')"
+                placeholder="transform，如 translateY(-2px)"
+                @change="patchStateProperty(state, 'transform', $event)"
+              />
+              <button
+                class="reset-btn"
+                type="button"
+                title="重置该状态变换"
+                @click="resetStateProperty(state, 'transform')"
+              >
+                ↺
+              </button>
+            </div>
+          </label>
+          <label>
+            <span>过渡</span>
+            <div class="field-row">
+              <input
+                :value="property('transition')"
+                placeholder="transform 180ms ease"
+                @change="patchProperty('transition', $event)"
+              />
+              <button class="reset-btn" type="button" title="重置过渡" @click="resetProperty('transition')">↺</button>
+            </div>
+          </label>
+          <label>
+            <span>焦点颜色</span>
+            <div class="field-row">
+              <input
+                :value="stateProperty('focusVisible', 'outlineColor')"
+                placeholder="var(--primary)"
+                @change="patchStateProperty('focusVisible', 'outlineColor', $event)"
+              />
+              <button
+                class="reset-btn"
+                type="button"
+                title="重置焦点颜色"
+                @click="resetStateProperty('focusVisible', 'outlineColor')"
+              >
+                ↺
+              </button>
+            </div>
+          </label>
+          <label>
+            <span>焦点宽度</span>
+            <div class="field-row">
+              <input
+                :value="stateProperty('focusVisible', 'outlineWidth')"
+                placeholder="2px"
+                @change="patchStateProperty('focusVisible', 'outlineWidth', $event)"
+              />
+              <button
+                class="reset-btn"
+                type="button"
+                title="重置焦点宽度"
+                @click="resetStateProperty('focusVisible', 'outlineWidth')"
+              >
+                ↺
+              </button>
+            </div>
+          </label>
           <div v-if="accessibilityWarnings.length" class="warning-list">
             <p v-for="warning in accessibilityWarnings" :key="warning">⚠ {{ warning }}</p>
           </div>
@@ -214,11 +263,31 @@ const appearanceFields = [
   { name: 'backgroundColor', label: '背景', placeholder: 'rgba(...) / #rrggbb' },
   { name: 'color', label: '文字颜色', placeholder: '#rrggbb' },
   { name: 'borderColor', label: '边框颜色', placeholder: '#rrggbb' },
+  { name: 'borderWidth', label: '边框宽度', placeholder: '1px' },
   { name: 'borderRadius', label: '圆角', placeholder: '8px' },
   { name: 'boxShadow', label: '阴影', placeholder: '0 8px 24px rgba(...)' },
   { name: 'backdropFilter', label: '玻璃模糊', placeholder: 'blur(12px)' },
   { name: 'opacity', label: '透明度', placeholder: '0.0 - 1.0' },
+  { name: 'padding', label: '内边距', placeholder: '12px 16px' },
+  { name: 'gap', label: '间距', placeholder: '8px' },
+  { name: 'fontSize', label: '字号', placeholder: '14px' },
+  { name: 'fontFamily', label: '字体', placeholder: 'system-ui' },
+  { name: 'lineHeight', label: '行高', placeholder: '1.5' },
+  { name: 'transform', label: '变换', placeholder: 'translateY(-2px)' },
 ] as const
+const colorFields = new Set<string>(['backgroundColor', 'color', 'borderColor'])
+const editableStates = ['hover', 'active', 'focus', 'focusVisible', 'disabled'] as const
+type EditableState = (typeof editableStates)[number]
+const stateLabels: Record<EditableState, string> = {
+  hover: '悬停变换',
+  active: '按下变换',
+  focus: '聚焦变换',
+  focusVisible: '键盘聚焦变换',
+  disabled: '禁用变换',
+}
+function stateLabel(state: EditableState): string {
+  return stateLabels[state]
+}
 const effectTypes = [
   { value: 'shadow', label: '阴影' },
   { value: 'glass', label: '玻璃' },
@@ -261,9 +330,13 @@ function property(name: string): string {
   const value = currentOverride.value.properties?.[name]
   return typeof value === 'string' || typeof value === 'number' ? String(value) : ''
 }
-function stateProperty(state: 'hover' | 'focusVisible', name: string): string {
+function stateProperty(state: EditableState, name: string): string {
   const value = currentOverride.value.states?.[state]?.[name]
   return typeof value === 'string' || typeof value === 'number' ? String(value) : ''
+}
+function colorInputValue(name: string): string {
+  const value = property(name)
+  return /^#[0-9a-f]{6}$/i.test(value) ? value : '#000000'
 }
 function sourceFor(name: string): string {
   if (!session.value || !selected.value) return '基础'
@@ -279,10 +352,18 @@ function patchProperty(name: string, event: Event): void {
   const value = eventValue(event)
   void store.patch([{ op: value ? 'set' : 'remove', path: `${overrideRoot.value}/properties/${name}`, value }])
 }
-function patchStateProperty(state: 'hover' | 'focusVisible', name: string, event: Event): void {
+function patchStateProperty(state: EditableState, name: string, event: Event): void {
   if (!overrideRoot.value) return
   const value = eventValue(event)
   void store.patch([{ op: value ? 'set' : 'remove', path: `${overrideRoot.value}/states/${state}/${name}`, value }])
+}
+function resetProperty(name: string): void {
+  if (!overrideRoot.value) return
+  void store.patch([{ op: 'remove', path: `${overrideRoot.value}/properties/${name}` }])
+}
+function resetStateProperty(state: EditableState, name: string): void {
+  if (!overrideRoot.value) return
+  void store.patch([{ op: 'remove', path: `${overrideRoot.value}/states/${state}/${name}` }])
 }
 function currentEffectTarget(): { scope: ThemeTargetScope; id?: string } {
   const selection = selected.value
@@ -443,6 +524,28 @@ button:disabled {
 }
 .color-field {
   min-width: 0;
+}
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.field-row input:not([type='checkbox']):not([type='color']) {
+  width: 100%;
+  min-width: 0;
+}
+.field-row input[type='color'] {
+  width: 32px;
+  padding: 2px;
+  flex: none;
+}
+.reset-btn {
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0 6px;
+  font-size: 13px;
+  flex: none;
 }
 input[type='color'] {
   width: 38px;

@@ -12,11 +12,35 @@ import type {
   ThemeSlotHostSnapshot,
 } from '@/types/api'
 import { themeApi } from '../api/themeApi'
-import { applyThemePreset, clearThemePreview, registerThemeExtensions } from '../runtime/themeRuntime'
+import {
+  applyThemePreset,
+  clearThemePreview,
+  registerThemeExtensions,
+  resolveSchemeDark,
+} from '../runtime/themeRuntime'
+
+/** 当前激活 scheme 下的主色（scheme 级优先于 token 级）。 */
+function schemePrimary(preset: ThemePresetV1): string | null {
+  const el = document.documentElement
+  const scheme = el.getAttribute('data-scheme') || 'light'
+  const schemeColor = preset.schemes[scheme]?.primary
+  const value = typeof schemeColor === 'string' && schemeColor ? schemeColor : preset.tokens.primary
+  return typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value) ? value : null
+}
 
 function applyPrimary(preset: ThemePresetV1): void {
-  const primary = preset.tokens.primary
-  if (typeof primary === 'string' && /^#[0-9a-f]{6}$/i.test(primary)) useTheme().setPrimaryColor(primary)
+  const primary = schemePrimary(preset)
+  // 应用预设时不持久化：主题激活/切换流程本身已保存，避免 observer 反馈触发重复写入
+  if (primary) useTheme().setPrimaryColor(primary, false)
+}
+
+/** custom 模式下同步当前 scheme 的亮暗属性。 */
+function syncSchemeDark(preset: ThemePresetV1): void {
+  const theme = useTheme()
+  if (theme.themeMode.value !== 'custom') return
+  const current = theme.scheme.value
+  if (!preset.schemes[current]) return
+  theme.setScheme(current, resolveSchemeDark(preset, current), false)
 }
 
 async function applyResources(preset: ThemePresetV1): Promise<void> {
@@ -77,6 +101,7 @@ export const useThemeDesignerStore = defineStore('theme-designer', () => {
     showSlots.value = snapshot.showSlots === true
     applyThemePreset(snapshot.draft)
     applyPrimary(snapshot.draft)
+    syncSchemeDark(snapshot.draft)
     void applyResources(snapshot.draft)
   }
 
@@ -98,6 +123,7 @@ export const useThemeDesignerStore = defineStore('theme-designer', () => {
         if (!isDesigning.value) {
           applyThemePreset(preset)
           applyPrimary(preset)
+          syncSchemeDark(preset)
           void applyResources(preset)
         }
       }),
@@ -133,11 +159,30 @@ export const useThemeDesignerStore = defineStore('theme-designer', () => {
     listen()
     await loadExtensions()
     if (!themeObserver) {
+      // 重入防护：本回调应用预设时会写回 data-theme/data-scheme，若不加防护会形成
+      // “observer 触发 → 应用 → 写属性 → 再触发” 的同步死循环，冻结整页交互。
+      let suppressing = false
       themeObserver = new MutationObserver(() => {
-        const preset = session.value?.draft ?? activePreset.value
-        if (preset) applyThemePreset(preset)
+        if (suppressing) return
+        suppressing = true
+        try {
+          const preset = session.value?.draft ?? activePreset.value
+          if (preset) {
+            applyThemePreset(preset)
+            applyPrimary(preset)
+            syncSchemeDark(preset)
+          }
+        } finally {
+          // 本次应用产生的后续 observer 回调先于该微任务消费，因此会被 suppressing 拦截
+          queueMicrotask(() => {
+            suppressing = false
+          })
+        }
       })
-      themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+      themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-theme', 'data-scheme'],
+      })
     }
     if (!backend.runtime.isAvailable) return
     try {
@@ -145,6 +190,7 @@ export const useThemeDesignerStore = defineStore('theme-designer', () => {
       if (!isDesigning.value) {
         applyThemePreset(activePreset.value)
         applyPrimary(activePreset.value)
+        syncSchemeDark(activePreset.value)
         void applyResources(activePreset.value)
       }
     } catch {
@@ -318,6 +364,34 @@ export const useThemeDesignerStore = defineStore('theme-designer', () => {
     if (selected.value) void select({ ...selected.value, scope })
   }
 
+  /** 切换当前预设的自定义 scheme（会进入 custom 模式）。 */
+  function setActiveScheme(name: string): void {
+    const preset = session.value?.draft ?? activePreset.value
+    if (!preset || !preset.schemes[name]) return
+    useTheme().setScheme(name, resolveSchemeDark(preset, name))
+  }
+
+  /** 本地试用某个预设（不持久化）；用于预设库预览与分享串导入。 */
+  function preview(preset: ThemePresetV1): void {
+    applyThemePreset(preset)
+    applyPrimary(preset)
+    syncSchemeDark(preset)
+    void applyResources(preset)
+  }
+
+  /** 恢复到当前激活主题（取消预览）。 */
+  function restoreActive(): void {
+    const preset = activePreset.value
+    if (preset) {
+      applyThemePreset(preset)
+      applyPrimary(preset)
+      syncSchemeDark(preset)
+      void applyResources(preset)
+    } else {
+      clearThemePreview()
+    }
+  }
+
   function setPicking(value: boolean): void {
     isPicking.value = isDesigning.value && value
   }
@@ -371,6 +445,9 @@ export const useThemeDesignerStore = defineStore('theme-designer', () => {
     saveAs,
     discard,
     setScope,
+    setActiveScheme,
+    preview,
+    restoreActive,
     setPicking,
     setShowSlots,
     syncSlotHosts,

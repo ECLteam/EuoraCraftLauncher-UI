@@ -21,35 +21,67 @@ export const useSettingsStore = defineStore('settings', () => {
   const ui = ref<UiConfig>({})
   const game = ref<GameConfig>({ ...DEFAULT_GAME_CONFIG })
   const download = ref<DownloadConfig>({ ...DEFAULT_DOWNLOAD_CONFIG })
-  const launcher = ref<LauncherConfig>({ debug: false, disable_ssl_verify: false, ignore_proxy: true })
+  const launcher = ref<LauncherConfig>({
+    debug: false,
+    disable_ssl_verify: false,
+    ignore_proxy: true,
+    request_timeout: 15,
+    request_retries: 2,
+  })
   const status = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const error = ref('')
   let loadPromise: Promise<void> | null = null
+  let latestLoadId = 0
+  let configRevision = 0
+  const writeQueues = new Map<string, Promise<void>>()
 
   const isLoading = computed(() => status.value === 'loading')
 
   async function load(force = false): Promise<void> {
     if (!force && status.value === 'ready') return
     if (!force && loadPromise) return loadPromise
+    const loadId = ++latestLoadId
+    const revisionAtStart = configRevision
     status.value = 'loading'
     error.value = ''
-    loadPromise = (async () => {
+    const request: Promise<void> = (async () => {
       try {
         const config = await settingsApi.load()
+        // 读取期间若已有本地写入完成，旧快照不能覆盖新状态。
+        if (loadId !== latestLoadId || revisionAtStart !== configRevision) return
         ui.value = config.ui
         game.value = { ...DEFAULT_GAME_CONFIG, ...config.game }
         download.value = { ...DEFAULT_DOWNLOAD_CONFIG, ...config.download }
         launcher.value = { ...config.launcher }
         status.value = 'ready'
       } catch (reason) {
-        status.value = 'error'
-        error.value = reason instanceof Error ? reason.message : '读取设置失败'
+        if (loadId === latestLoadId) {
+          status.value = 'error'
+          error.value = reason instanceof Error ? reason.message : '读取设置失败'
+        }
         throw reason
       } finally {
-        loadPromise = null
+        if (loadId === latestLoadId) loadPromise = null
       }
     })()
-    return loadPromise
+    loadPromise = request
+    return request
+  }
+
+  /**
+   * 同一配置区的“读取当前值 → 合并 → 写回”必须串行执行，避免并发局部更新互相覆盖。
+   */
+  function enqueueWrite<T>(section: string, action: () => Promise<T>): Promise<T> {
+    const previous = writeQueues.get(section) ?? Promise.resolve()
+    const request = previous.catch(() => undefined).then(action)
+    writeQueues.set(
+      section,
+      request.then(
+        () => undefined,
+        () => undefined
+      )
+    )
+    return request
   }
 
   async function ensureReady(): Promise<void> {
@@ -57,39 +89,63 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   async function patchUi(patch: Partial<UiConfig>): Promise<void> {
-    await ensureReady()
-    const next = { ...ui.value, ...patch }
-    await settingsApi.saveUi(next)
-    ui.value = next
+    await enqueueWrite('ui', async () => {
+      await ensureReady()
+      const next = { ...ui.value, ...patch }
+      await settingsApi.saveUi(next)
+      ui.value = next
+      configRevision += 1
+    })
   }
 
   async function patchUiTheme(patch: NonNullable<UiConfig['theme']>): Promise<void> {
-    await patchUi({ theme: { ...ui.value.theme, ...patch } })
+    await enqueueWrite('ui', async () => {
+      await ensureReady()
+      const next = { ...ui.value, theme: { ...ui.value.theme, ...patch } }
+      await settingsApi.saveUi(next)
+      ui.value = next
+      configRevision += 1
+    })
   }
 
   async function patchUiBackground(patch: NonNullable<UiConfig['background']>): Promise<void> {
-    await patchUi({ background: { ...ui.value.background, ...patch } })
+    await enqueueWrite('ui', async () => {
+      await ensureReady()
+      const next = { ...ui.value, background: { ...ui.value.background, ...patch } }
+      await settingsApi.saveUi(next)
+      ui.value = next
+      configRevision += 1
+    })
   }
 
   async function patchGame(patch: Partial<GameConfig>): Promise<void> {
-    await ensureReady()
-    const next = { ...game.value, ...patch }
-    await settingsApi.saveGame(next)
-    game.value = next
+    await enqueueWrite('game', async () => {
+      await ensureReady()
+      const next = { ...game.value, ...patch }
+      await settingsApi.saveGame(next)
+      game.value = next
+      configRevision += 1
+    })
   }
 
   async function patchLauncher(patch: Partial<LauncherConfig>): Promise<void> {
-    await ensureReady()
-    const next = { ...launcher.value, ...patch }
-    await settingsApi.saveLauncher(next)
-    launcher.value = next
+    await enqueueWrite('launcher', async () => {
+      await ensureReady()
+      const next = { ...launcher.value, ...patch }
+      await settingsApi.saveLauncher(next)
+      launcher.value = next
+      configRevision += 1
+    })
   }
 
   async function patchDownload(patch: Partial<DownloadConfig>): Promise<void> {
-    await ensureReady()
-    const next = { ...download.value, ...patch }
-    await settingsApi.saveDownload(next)
-    download.value = next
+    await enqueueWrite('download', async () => {
+      await ensureReady()
+      const next = { ...download.value, ...patch }
+      await settingsApi.saveDownload(next)
+      download.value = next
+      configRevision += 1
+    })
   }
 
   async function chooseBackgroundImage(): Promise<{ path: string; imageUrl: string | null } | null> {

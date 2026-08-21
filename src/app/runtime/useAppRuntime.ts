@@ -262,8 +262,8 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
   }
 
   return {
-    runtimeMode: backend.runtime.mode,
-    isShowcaseMode: backend.runtime.isShowcase,
+    runtimeMode: backend.runtime.modeState,
+    isShowcaseMode: backend.runtime.isShowcaseState,
     isDevMode: readonly(isDevMode),
     launcherVersion: readonly(launcherVersion),
     launcherVersionType: readonly(launcherVersionType),

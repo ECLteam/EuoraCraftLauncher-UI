@@ -16,6 +16,19 @@ interface CacheItem<T = unknown> {
   group?: string
 }
 
+function isCacheItem(value: unknown): value is CacheItem {
+  if (!value || typeof value !== 'object') return false
+  const item = value as Partial<CacheItem>
+  return (
+    typeof item.timestamp === 'number' &&
+    Number.isFinite(item.timestamp) &&
+    item.timestamp >= 0 &&
+    (item.ttl === undefined || (typeof item.ttl === 'number' && Number.isFinite(item.ttl) && item.ttl >= 0)) &&
+    (item.group === undefined || typeof item.group === 'string') &&
+    Object.hasOwn(item, 'value')
+  )
+}
+
 class GlobalCache {
   private memoryCache = new Map<string, CacheItem>()
   private readonly PREFIX = 'euora-cache-'
@@ -58,17 +71,10 @@ class GlobalCache {
     let cacheItem = this.memoryCache.get(key)
 
     if (!cacheItem) {
-      try {
-        const storageKey = this.getStorageKey(key)
-        const stored = localStorage.getItem(storageKey)
-        if (stored) {
-          cacheItem = JSON.parse(stored)
-          if (cacheItem) {
-            this.memoryCache.set(key, cacheItem)
-          }
-        }
-      } catch (error) {
-        console.warn('本地存储读取失败:', error)
+      const persistent = this.readPersistentItem(this.getStorageKey(key))
+      if (persistent) {
+        cacheItem = persistent
+        this.memoryCache.set(key, cacheItem)
       }
     }
 
@@ -139,10 +145,8 @@ class GlobalCache {
       for (let i = localStorage.length - 1; i >= 0; i--) {
         const key = localStorage.key(i)
         if (key && key.startsWith(this.PREFIX)) {
-          const stored = localStorage.getItem(key)
-          if (!stored) continue
-          const item: CacheItem = JSON.parse(stored)
-          if (item.group === group) {
+          const item = this.readPersistentItem(key)
+          if (!item || item.group === group) {
             localStorage.removeItem(key)
           }
         }
@@ -217,16 +221,14 @@ class GlobalCache {
     }
 
     try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i)
-        if (key && key.startsWith(this.PREFIX)) {
-          const stored = localStorage.getItem(key)
-          if (stored) {
-            const item: CacheItem = JSON.parse(stored)
-            if (this.isExpired(item)) {
-              localStorage.removeItem(key)
-            }
-          }
+      // 删除会改变 localStorage 索引，先生成键快照避免跳过相邻过期项。
+      const keys = Array.from({ length: localStorage.length }, (_, index) => localStorage.key(index)).filter(
+        (key): key is string => Boolean(key?.startsWith(this.PREFIX))
+      )
+      for (const key of keys) {
+        const item = this.readPersistentItem(key)
+        if (!item || this.isExpired(item)) {
+          localStorage.removeItem(key)
         }
       }
     } catch (error) {
@@ -238,8 +240,28 @@ class GlobalCache {
    * 检查缓存是否过期
    */
   private isExpired(item: CacheItem): boolean {
-    if (!item.ttl) return false
+    if (item.ttl === undefined) return false
     return Date.now() - item.timestamp > item.ttl
+  }
+
+  /** 读取并验证一条持久化缓存；损坏或旧格式的数据会被立即移除。 */
+  private readPersistentItem(storageKey: string): CacheItem | null {
+    try {
+      const stored = localStorage.getItem(storageKey)
+      if (!stored) return null
+      const parsed: unknown = JSON.parse(stored)
+      if (isCacheItem(parsed)) return parsed
+      localStorage.removeItem(storageKey)
+      return null
+    } catch (error) {
+      try {
+        localStorage.removeItem(storageKey)
+      } catch {
+        /* 存储不可用时保留原始读取错误 */
+      }
+      console.warn('本地存储读取失败:', error)
+      return null
+    }
   }
 
   /**

@@ -54,4 +54,29 @@ describe('settingsStore', () => {
       })
     )
   })
+
+  it('串行化同一区域的并发局部更新，避免后一次覆盖前一次字段', async () => {
+    const store = useSettingsStore()
+    await store.load()
+    let releaseFirstSave: (() => void) | undefined
+    vi.mocked(settingsApi.saveGame).mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          releaseFirstSave = resolve
+        })
+    )
+
+    const first = store.patchGame({ fullscreen: true })
+    const second = store.patchGame({ memory_size: 8192 })
+    await vi.waitFor(() => expect(settingsApi.saveGame).toHaveBeenCalledTimes(1))
+
+    releaseFirstSave?.()
+    await Promise.all([first, second])
+
+    expect(settingsApi.saveGame).toHaveBeenLastCalledWith(
+      expect.objectContaining({ fullscreen: true, memory_size: 8192 })
+    )
+    expect(store.game.fullscreen).toBe(true)
+    expect(store.game.memory_size).toBe(8192)
+  })
 })

@@ -204,6 +204,7 @@
     "microsoftAccountDesc": "通过浏览器登录已购买 Minecraft 的 Microsoft 账户",
     "offlineAccountDesc": "只设置内用户名，不进行在线身份验证",
     "authlibAccountDesc": "使用第三方 Yggdrasil 验证服务器登录",
+    "pluginAccountDesc": "通过插件提供的认证方式登录",
     "authlibNotDeveloped": "外置登录暂未开发，后续版本开放。",
     "microsoftLoginHint": "登录将在安全的浏览器页面中完成，无需在启动器内输入密码。",
     "continueMicrosoftLogin": "使用 Microsoft 账户登录",
@@ -236,7 +237,9 @@
     "accountTypeOffline": "离线",
     "accountTypeMicrosoft": "微软",
     "accountTypeAuthlib": "Authlib",
+    "accountTypePlugin": "插件",
     "authlibAccount": "Authlib 外置登录",
+    "pluginAccount": "插件登录",
     "accountDetails": "账户详情",
     "authServer": "认证服务器",
     "accountStatus": "状态",
@@ -878,7 +881,11 @@
     "disableSslVerify": "关闭 SSL 证书校验",
     "disableSslVerifyDesc": "全局关闭 HTTPS 证书校验；共享网络请求即时生效，微软登录需重启后应用",
     "ignoreProxy": "忽略系统代理",
-    "ignoreProxyDesc": "让所有网络请求直连，不经过系统或环境代理；代理异常导致请求失败时建议开启，需重启后应用"
+    "ignoreProxyDesc": "让所有网络请求直连，不经过系统或环境代理；代理异常导致请求失败时建议开启，需重启后应用",
+    "requestTimeout": "请求超时",
+    "requestTimeoutDesc": "单次网络请求最长等待时间（1–120 秒），重启后应用",
+    "requestRetries": "失败重试次数",
+    "requestRetriesDesc": "公告等可重试请求在网络错误、限流或临时服务错误后的额外尝试次数（0–5 次），重启后应用"
   },
   "error": {
     "id": "错误编号",
@@ -1284,6 +1291,7 @@
     "serverUrlPlaceholder": "https://example.com/api/yggdrasil",
     "serverUrlHint": "会记住此链接和登录名，密码不会保存；多角色账户可在登录后选择角色",
     "serverUrlRequired": "请输入服务器地址",
+    "fieldRequired": "请填写「{field}」",
     "emailRequired": "请输入角色名或邮箱",
     "passwordRequired": "请输入密码",
     "emailPlaceholder": "角色名或邮箱",

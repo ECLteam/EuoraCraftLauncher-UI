@@ -4,6 +4,7 @@ import { accountsApi } from '@/features/accounts/api/accountsApi'
 import type {
   AuthlibLoginConfigData,
   AuthlibServer,
+  AuthProvider,
   DefaultSkin,
   MinecraftAccount,
   MicrosoftCompleteData,
@@ -30,6 +31,7 @@ export const useAccountStore = defineStore('accounts', () => {
   const accounts = ref<MinecraftAccount[]>([])
   const currentAccount = ref<MinecraftAccount | null>(null)
   const authlibServers = ref<AuthlibServer[]>([])
+  const authProviders = ref<AuthProvider[]>([])
   const microsoftLoginConfig = ref<MicrosoftLoginConfigData>({
     available: false,
     needs_client_id: false,
@@ -155,6 +157,15 @@ export const useAccountStore = defineStore('accounts', () => {
     }
   }
 
+  async function loadAuthProviders(force = false): Promise<void> {
+    if (!force && authProviders.value.length > 0) return
+    authProviders.value = await accountsApi.listAuthProviders()
+  }
+
+  async function addPluginAccount(providerId: string, values: Record<string, string>): Promise<MinecraftAccount> {
+    return runAndReload(() => accountsApi.addPluginAccount(providerId, values))
+  }
+
   function startMicrosoftLogin(): Promise<MicrosoftLoginData> {
     return accountsApi.startMicrosoftLogin()
   }
@@ -213,6 +224,7 @@ export const useAccountStore = defineStore('accounts', () => {
     accounts,
     currentAccount,
     authlibServers,
+    authProviders,
     microsoftLoginConfig,
     authlibLoginConfig,
     status,
@@ -236,6 +248,8 @@ export const useAccountStore = defineStore('accounts', () => {
     removeAccount,
     refreshAccount,
     loadAuthlibServers,
+    loadAuthProviders,
+    addPluginAccount,
     loadMicrosoftLoginConfig,
     loadAuthlibLoginConfig,
     startMicrosoftLogin,

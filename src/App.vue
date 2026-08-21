@@ -2,6 +2,7 @@
   <div id="app">
     <!-- 背景层 -->
     <div class="app-background"></div>
+    <div class="aurora-bg" aria-hidden="true"></div>
     <div class="app-background-overlay"></div>
 
     <!-- 主布局 -->
@@ -223,7 +224,7 @@ onMounted(async () => {
   }
 
   // 演示模式下加载示例任务数据
-  if (appRuntime.isShowcaseMode) {
+  if (appRuntime.isShowcaseMode.value) {
     loadShowcaseTasks(globalTaskQueue)
   }
 })

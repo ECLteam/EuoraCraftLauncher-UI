@@ -13,6 +13,7 @@ export const ACCOUNT_TYPE_LABEL_KEYS: Record<string, string> = {
   microsoft: 'game.microsoftAccount',
   offline: 'game.offlineAccount',
   authlib: 'game.authlibAccount',
+  plugin: 'game.pluginAccount',
 }
 
 /** 账户类型 → i18n 键（短标签，用于类型徽标/紧凑展示） */
@@ -20,6 +21,7 @@ export const ACCOUNT_TYPE_SHORT_LABEL_KEYS: Record<string, string> = {
   microsoft: 'game.accountTypeMicrosoft',
   offline: 'game.accountTypeOffline',
   authlib: 'game.accountTypeAuthlib',
+  plugin: 'game.accountTypePlugin',
 }
 
 /** 账户类型 → 完整标签 i18n 键，未知类型回退到离线账户 */

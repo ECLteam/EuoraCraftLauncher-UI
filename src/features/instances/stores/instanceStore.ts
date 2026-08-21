@@ -21,6 +21,7 @@ export const useInstanceStore = defineStore('versions', () => {
   const loadingCount = ref(0)
   const scanRequests = new Map<string, Promise<ScannedVersion[]>>()
   let stopWatching: (() => void) | null = null
+  let latestLoadId = 0
 
   const loading = computed(() => loadingCount.value > 0)
   const versions = computed<VersionItem[]>(() =>
@@ -78,8 +79,10 @@ export const useInstanceStore = defineStore('versions', () => {
   }
 
   async function loadAll(force = false): Promise<void> {
+    const loadId = ++latestLoadId
     startWatching()
     await settingsStore.load()
+    if (loadId !== latestLoadId) return
     const paths = settingsStore.game.minecraft_paths.map((entry) => (typeof entry === 'string' ? entry : entry.path))
     if (paths.length === 0) {
       scannedVersions.value = []
@@ -91,6 +94,8 @@ export const useInstanceStore = defineStore('versions', () => {
     loadingCount.value += 1
     try {
       const scanned = await instanceInstallApi.scan(paths, { force })
+      // 手动刷新与后端变更事件可能并发触发扫描；仅允许最后一次请求提交状态。
+      if (loadId !== latestLoadId) return
       // 按「游戏目录 + 版本标识」去重，防止同一实例被多个路径重复展示。
       const seen = new Set<string>()
       const firstPath = paths[0] ?? ''

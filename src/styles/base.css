@@ -161,6 +161,15 @@
   --glow-focus-pink: 0 0 0 2px rgba(var(--primary-rgb), 0.25);
   --glow-focus-error: 0 0 0 2px rgba(229, 92, 92, 0.25);
 
+  --control-bg: var(--bg-elevated);
+  --control-bg-hover: var(--bg-hover);
+  --control-bg-active: var(--bg-active);
+  --control-border: var(--border);
+  --control-border-hover: var(--border-hover);
+  --control-border-focus: var(--border-focus);
+  --control-ring: var(--glow-focus);
+  --control-glow: var(--shadow-hover);
+
   --glass-bg: rgba(255, 255, 255, 0.92);
   --glass-bg-sidebar: rgba(251, 251, 252, 0.96);
   --glass-border: #e0e0e0;
@@ -181,6 +190,9 @@
   --bg-image: none;
   --bg-opacity: 0.2;
   --bg-blur: 0px;
+  --glass-blur: 0px;
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  --aurora-opacity: 1;
 }
 
 [data-theme='dark'] {
@@ -221,6 +233,15 @@
   --glow-focus-pink: 0 0 0 2px rgba(var(--primary-rgb), 0.35);
   --glow-focus-error: 0 0 0 2px rgba(229, 92, 92, 0.35);
 
+  --control-bg: var(--bg-elevated);
+  --control-bg-hover: var(--bg-hover);
+  --control-bg-active: var(--bg-active);
+  --control-border: var(--border);
+  --control-border-hover: var(--border-hover);
+  --control-border-focus: var(--border-focus);
+  --control-ring: var(--glow-focus);
+  --control-glow: var(--shadow-hover);
+
   --glass-bg: rgba(35, 38, 45, 0.92);
   --glass-bg-sidebar: rgba(31, 34, 41, 0.96);
   --glass-border: rgba(255, 255, 255, 0.08);
@@ -238,6 +259,8 @@
   --overlay-bg: rgba(0, 0, 0, 0.55);
   --bg-overlay-tint: rgba(0, 0, 0, 0.2);
   --window-border: rgba(255, 255, 255, 0.12);
+  --glass-blur: 0px;
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 *,

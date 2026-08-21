@@ -27,6 +27,20 @@ export const THEME_MODE_OPTIONS: ThemeModeOption[] = [
   { value: 'system', icon: 'settings' },
 ]
 
+export interface FontFamilyOption {
+  name: string
+  value: string
+}
+
+export const FONT_FAMILY_OPTIONS: FontFamilyOption[] = [
+  { name: '系统默认', value: '' },
+  { name: 'HarmonyOS Sans SC', value: 'HarmonyOS Sans SC, system-ui, sans-serif' },
+  { name: '微软雅黑', value: '"Microsoft YaHei", system-ui, sans-serif' },
+  { name: '苹方', value: '"PingFang SC", system-ui, sans-serif' },
+  { name: '思源黑体', value: '"Source Han Sans SC", "Noto Sans SC", system-ui, sans-serif' },
+  { name: '等宽字体', value: '"JetBrains Mono", "Cascadia Code", Consolas, monospace' },
+]
+
 export interface ThemeColorPalette {
   success: string
   warning: string

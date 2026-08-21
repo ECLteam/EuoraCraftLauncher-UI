@@ -89,7 +89,9 @@ export function createShowcaseTransport(): BackendTransport {
     schemes: {
       light: { canvas: '#f4f6fa', surface: 'rgba(255,255,255,.88)', text: '#1d2433' },
       dark: { canvas: '#171a21', surface: 'rgba(34,38,48,.88)', text: '#f1f3f7' },
+      midnight: { canvas: '#101322', surface: 'rgba(24,28,48,.9)', text: '#dbe2ff', primary: '#8a97ff' },
     },
+    schemeMeta: { midnight: { label: '午夜蓝', dark: true } },
     tokens: {
       primary: '#5b6ff5',
       radiusControl: '6px',

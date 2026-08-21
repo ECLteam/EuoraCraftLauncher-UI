@@ -5,7 +5,13 @@ import { pinia } from '@/app/stores'
 import { PRESET_COLORS, DEFAULT_PRIMARY_COLOR, LIGHT_THEME_COLORS, DARK_THEME_COLORS } from '@/config/theme'
 import { resolveLocalImageUrl, settingsApi } from '@/features/settings/api/settingsApi'
 import { resolveNavigationMode } from '@/features/settings/model/navigation'
-import type { BackgroundConfig, NavigationMode, ThemeConfig } from '@/types/api'
+import type {
+  BackgroundConfig,
+  NavigationMode,
+  ThemeAppearanceConfig,
+  ThemeConfig,
+  ThemeScheduleConfig,
+} from '@/types/api'
 
 interface ThemeInitPayload {
   theme?: Partial<ThemeConfig> & { background_opacity?: number }
@@ -60,6 +66,20 @@ function rgba(color: string, alpha: number): string {
   return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${clamp(alpha, 0, 1)})`
 }
 
+/** 解析 'HH:MM' 为当天分钟数；非法输入返回 -1。 */
+function parseTimeMinutes(value: string | undefined): number {
+  if (!value) return -1
+  const match = /^(\d{1,2}):(\d{2})$/.exec(value.trim())
+  if (!match) return -1
+  const hours = Number(match[1])
+  const minutes = Number(match[2])
+  if (hours > 23 || minutes > 59) return -1
+  return hours * 60 + minutes
+}
+
+const THEME_SNAPSHOT_KEY = 'euoracraft-theme-snapshot'
+const CUSTOM_CSS_ELEMENT_ID = 'ecl-custom-css'
+
 /**
  * 根据基础色生成主题主色阶。
  * @param baseColor - 十六进制基础色
@@ -90,7 +110,7 @@ function createPrimaryScale(
   }
 }
 
-export type ThemeMode = 'light' | 'dark' | 'system'
+export type ThemeMode = 'light' | 'dark' | 'system' | 'custom'
 
 export const presetColors = PRESET_COLORS
 
@@ -100,14 +120,32 @@ const themeColors = {
 } as const
 
 /**
+ * 解析当前 DOM 上生效的 CSS 变量为具体色值，naive-ui 需要纯色值才能被 seemly 运算。
+ * 优先取 documentElement 上的变量值（preset tokens/scheme 或 appearance 覆盖），
+ * 缺失或无值时回退到主题默认色。变量名非法时直接返回回退值。
+ */
+function resolveCssColor(variable: string, fallback: string): string {
+  if (!variable.startsWith('--')) return fallback
+  try {
+    const value = getComputedStyle(document.documentElement).getPropertyValue(variable).trim()
+    if (value) return value
+  } catch {
+    /* 无 document 环境（如测试）时回退默认色 */
+  }
+  return fallback
+}
+
+/**
  * 创建 naive-ui 主题覆盖配置。
  * @param isDark - 是否为深色模式
  * @param primaryScale - 已计算好的主色色阶（由调用方基于响应式状态生成一次）
+ * @param _appearance - 语义色变化时的响应式依赖（appearance 配置快照），仅用于驱动重算
  * @returns naive-ui 主题覆盖对象
  */
 function createThemeOverrides(
   isDark: boolean,
-  primaryScale: ReturnType<typeof createPrimaryScale>
+  primaryScale: ReturnType<typeof createPrimaryScale>,
+  _appearance: ThemeAppearanceConfig
 ): GlobalThemeOverrides {
   const baseColors = isDark ? themeColors.dark : themeColors.light
 
@@ -117,10 +155,10 @@ function createThemeOverrides(
       primaryColorHover: primaryScale.primaryHover,
       primaryColorPressed: primaryScale.primaryPressed,
       primaryColorSuppl: primaryScale.primaryHover,
-      successColor: baseColors.success,
-      warningColor: baseColors.warning,
-      errorColor: baseColors.error,
-      infoColor: baseColors.info,
+      successColor: resolveCssColor('--ecl-color-success', baseColors.success),
+      warningColor: resolveCssColor('--ecl-color-warning', baseColors.warning),
+      errorColor: resolveCssColor('--ecl-color-error', baseColors.error),
+      infoColor: resolveCssColor('--ecl-color-info', baseColors.info),
       textColorBase: baseColors.text,
       textColor1: baseColors.text,
       textColor2: baseColors.textSecondary,
@@ -143,8 +181,8 @@ function createThemeOverrides(
       textColorHover: primaryScale.primary,
       border: `1px solid ${baseColors.border}`,
       borderHover: `1px solid ${primaryScale.primary}`,
-      heightMedium: '36px',
-      heightSmall: '32px',
+      heightMedium: 'var(--ecl-control-height, 36px)',
+      heightSmall: 'var(--ecl-control-height-sm, 32px)',
       borderRadiusMedium: 'var(--ecl-radius-control, 6px)',
       borderRadiusSmall: 'var(--ecl-radius-control, 6px)',
       fontWeight: '550',
@@ -165,8 +203,8 @@ function createThemeOverrides(
       borderFocus: `1px solid ${primaryScale.primary}`,
       textColor: baseColors.text,
       placeholderColor: baseColors.textSecondary,
-      heightMedium: '36px',
-      heightSmall: '32px',
+      heightMedium: 'var(--ecl-control-height, 36px)',
+      heightSmall: 'var(--ecl-control-height-sm, 32px)',
       borderRadius: 'var(--ecl-radius-control, 6px)',
       boxShadowFocus: `0 0 0 2px ${rgba(primaryScale.primary, 0.16)}`,
     },
@@ -205,7 +243,7 @@ function createThemeOverrides(
       itemBorderRadius: '6px',
     },
     Dialog: {
-      borderRadius: '10px',
+      borderRadius: 'var(--ecl-radius-dialog, 10px)',
       titleFontSize: '17px',
       padding: '20px',
     },
@@ -239,10 +277,53 @@ export const useThemeStore = defineStore('theme', () => {
   const transparentBg = ref(false)
   const sidebarCollapsed = ref(true)
   const navigationMode = ref<NavigationMode>('sidebar')
-  const isDark = ref(false)
   const systemDark = ref(false)
+  /** custom 模式下激活的 scheme 名（须存在于当前预设）。 */
+  const scheme = ref('light')
+  /** 当前 scheme 是否为深色属性（custom scheme 由 schemeMeta 或基色亮度决定）。 */
+  const schemeDark = ref(false)
+  /** 用户级外观覆盖（半径/字体/语义色/动效/密度/自定义 CSS）。未设置的字段交由预设或默认值决定。 */
+  const appearance = ref<ThemeAppearanceConfig>({})
+  /** 定时自动切换亮暗（仅在 system 模式生效）。 */
+  const schedule = ref<ThemeScheduleConfig>({})
+  /** 定时器心跳，驱动 system 模式下按时间重算。 */
+  const scheduleTick = ref(0)
+  let scheduleTimer: ReturnType<typeof setInterval> | null = null
 
   const titlebarHidden = computed(() => navigationMode.value === 'sidebar')
+
+  /** system 模式下的有效深色判定：启用定时则按时间窗口，否则跟随系统。 */
+  const effectiveSystemDark = computed(() => {
+    const conf = schedule.value
+    if (conf.enabled) {
+      const startMinutes = parseTimeMinutes(conf.dark_start)
+      const endMinutes = parseTimeMinutes(conf.dark_end)
+      if (startMinutes >= 0 && endMinutes >= 0) {
+        const now = new Date()
+        const nowMinutes = now.getHours() * 60 + now.getMinutes()
+        if (startMinutes === endMinutes) return true
+        if (startMinutes < endMinutes) return nowMinutes >= startMinutes && nowMinutes < endMinutes
+        return nowMinutes >= startMinutes || nowMinutes < endMinutes
+      }
+    }
+    return systemDark.value
+  })
+
+  const isDark = computed(() => {
+    if (themeMode.value === 'custom') return schemeDark.value
+    if (themeMode.value === 'dark') return true
+    if (themeMode.value === 'light') return false
+    return effectiveSystemDark.value
+  })
+
+  /** 实际生效的 scheme 名：custom 使用预设声明的 scheme，其余派生自模式。 */
+  const resolvedScheme = computed(() => {
+    if (themeMode.value === 'custom') return scheme.value || 'light'
+    if (themeMode.value === 'dark') return 'dark'
+    if (themeMode.value === 'light') return 'light'
+    return effectiveSystemDark.value ? 'dark' : 'light'
+  })
+
   const naiveTheme = computed<GlobalTheme | null>(() => {
     return isDark.value ? darkTheme : null
   })
@@ -251,15 +332,20 @@ export const useThemeStore = defineStore('theme', () => {
   const primaryScale = computed(() => createPrimaryScale(primaryColor.value, isDark.value))
 
   const themeOverrides = computed<GlobalThemeOverrides>(() => {
-    return createThemeOverrides(isDark.value, primaryScale.value)
+    return createThemeOverrides(isDark.value, primaryScale.value, appearance.value)
   })
 
   const colors = computed(() => {
     const baseColors = isDark.value ? themeColors.dark : themeColors.light
+    const conf = appearance.value
 
     return {
       ...baseColors,
       ...primaryScale.value,
+      success: conf.success_color ?? baseColors.success,
+      warning: conf.warning_color ?? baseColors.warning,
+      error: conf.error_color ?? baseColors.error,
+      info: conf.info_color ?? baseColors.info,
     }
   })
 
@@ -278,16 +364,79 @@ export const useThemeStore = defineStore('theme', () => {
     })
   }
 
-  function updateTheme() {
-    if (themeMode.value === 'system') {
-      isDark.value = systemDark.value
-    } else {
-      isDark.value = themeMode.value === 'dark'
+  /** 写入用户级外观覆盖变量；未设置的字段不写，交由预设/token 或默认值决定。 */
+  function applyAppearanceVars(): void {
+    const el = document.documentElement
+    const conf = appearance.value
+    if (typeof conf.radius_control === 'number')
+      el.style.setProperty('--ecl-radius-control', `${conf.radius_control}px`)
+    if (typeof conf.radius_card === 'number') el.style.setProperty('--ecl-radius-card', `${conf.radius_card}px`)
+    if (typeof conf.radius_dialog === 'number') el.style.setProperty('--ecl-radius-dialog', `${conf.radius_dialog}px`)
+    if (conf.font_family) el.style.setProperty('--ecl-font-body', conf.font_family)
+    for (const [token, variable] of [
+      ['success_color', '--ecl-color-success'],
+      ['warning_color', '--ecl-color-warning'],
+      ['error_color', '--ecl-color-error'],
+      ['info_color', '--ecl-color-info'],
+    ] as const) {
+      const color = conf[token]
+      if (typeof color === 'string' && color) el.style.setProperty(variable, color)
     }
+    if (conf.compact_density === true) {
+      el.style.setProperty('--ecl-control-height', '32px')
+      el.style.setProperty('--ecl-control-height-sm', '28px')
+    } else {
+      el.style.removeProperty('--ecl-control-height')
+      el.style.removeProperty('--ecl-control-height-sm')
+    }
+    el.dataset.reduceMotion = conf.reduce_motion === true ? '1' : '0'
+  }
 
+  /** 注入/移除显式开启的自定义 CSS（危险功能）。 */
+  function applyCustomCss(): void {
+    const el = document.getElementById(CUSTOM_CSS_ELEMENT_ID) as HTMLStyleElement | null
+    const enabled = appearance.value.custom_css_enabled === true
+    const css = (appearance.value.custom_css ?? '').trim()
+    if (!enabled || !css) {
+      el?.remove()
+      return
+    }
+    if (el) {
+      el.textContent = css
+      return
+    }
+    const style = document.createElement('style')
+    style.id = CUSTOM_CSS_ELEMENT_ID
+    style.textContent = css
+    document.head.appendChild(style)
+  }
+
+  /** 持久化当前主题到 localStorage，供 index.html 内联脚本启动时无闪烁恢复。 */
+  function saveSnapshot(): void {
+    try {
+      const scale = primaryScale.value
+      localStorage.setItem(
+        THEME_SNAPSHOT_KEY,
+        JSON.stringify({
+          theme: isDark.value ? 'dark' : 'light',
+          scheme: resolvedScheme.value,
+          primary: scale.primary,
+          primaryRgb: scale.primaryRgb,
+          primaryHover: scale.primaryHover,
+          primaryActive: scale.primaryPressed,
+          primaryAlpha: scale.primaryLight,
+        })
+      )
+    } catch {
+      /* localStorage 不可用时跳过快照 */
+    }
+  }
+
+  function updateTheme() {
     const bgImageValue = backgroundImage.value ? `url("${backgroundImage.value}")` : 'none'
 
     document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
+    document.documentElement.setAttribute('data-scheme', resolvedScheme.value)
     document.documentElement.style.setProperty('--primary', primaryScale.value.primary)
     document.documentElement.style.setProperty('--ecl-primary', primaryScale.value.primary)
     document.documentElement.style.setProperty('--primary-rgb', primaryScale.value.primaryRgb)
@@ -306,6 +455,10 @@ export const useThemeStore = defineStore('theme', () => {
     document.documentElement.setAttribute('data-navigation-mode', navigationMode.value)
     document.documentElement.setAttribute('data-titlebar-hidden', titlebarHidden.value ? '1' : '0')
 
+    applyAppearanceVars()
+    applyCustomCss()
+    saveSnapshot()
+
     if (import.meta.env.DEV) {
       // eslint-disable-next-line no-console
       console.log(
@@ -317,14 +470,44 @@ export const useThemeStore = defineStore('theme', () => {
     }
   }
 
+  /** 亮暗切换时短暂开启过渡类，让颜色平滑变化；系统减少动效时会自动禁用。 */
+  function withThemeTransition(fn: () => void): void {
+    const el = document.documentElement
+    el.classList.add('theme-transition')
+    fn()
+    window.setTimeout(() => el.classList.remove('theme-transition'), 320)
+  }
+
   function setThemeMode(mode: ThemeMode, persist = true) {
     themeMode.value = mode
-    updateTheme()
+    withThemeTransition(updateTheme)
     if (persist) saveThemeConfig()
   }
 
   function setPrimaryColor(color: string, persist = true) {
     primaryColor.value = color
+    updateTheme()
+    if (persist) saveThemeConfig()
+  }
+
+  /** 切换到自定义 scheme（须存在于当前预设 schemes）。同时将模式切为 custom。 */
+  function setScheme(name: string, dark = false, persist = true) {
+    scheme.value = name
+    schemeDark.value = dark
+    if (themeMode.value !== 'custom') themeMode.value = 'custom'
+    withThemeTransition(updateTheme)
+    if (persist) saveThemeConfig()
+  }
+
+  /** 局部更新用户级外观覆盖。传入 undefined 可清除某个字段。 */
+  function setAppearance(patch: Partial<ThemeAppearanceConfig>, persist = true) {
+    appearance.value = { ...appearance.value, ...patch }
+    updateTheme()
+    if (persist) saveThemeConfig()
+  }
+
+  function setSchedule(patch: Partial<ThemeScheduleConfig>, persist = true) {
+    schedule.value = { ...schedule.value, ...patch }
     updateTheme()
     if (persist) saveThemeConfig()
   }
@@ -420,6 +603,7 @@ export const useThemeStore = defineStore('theme', () => {
         ...ui,
         theme: {
           mode: themeMode.value,
+          scheme: scheme.value,
           primary_color: primaryColor.value,
           blur_amount: blurAmount.value,
           sidebar_collapsed: sidebarCollapsed.value,
@@ -427,6 +611,8 @@ export const useThemeStore = defineStore('theme', () => {
           titlebar_hidden: titlebarHidden.value,
           transparent_bg: transparentBg.value,
           background_opacity: backgroundOpacity.value,
+          appearance: appearance.value,
+          schedule: schedule.value,
         },
         background: {
           ...(ui.background || {}),
@@ -463,6 +649,15 @@ export const useThemeStore = defineStore('theme', () => {
         const themeData = payload.theme
         if (themeData.mode) {
           themeMode.value = themeData.mode as ThemeMode
+        }
+        if (typeof themeData.scheme === 'string') {
+          scheme.value = themeData.scheme
+        }
+        if (themeData.appearance) {
+          appearance.value = { ...themeData.appearance }
+        }
+        if (themeData.schedule) {
+          schedule.value = { ...themeData.schedule }
         }
         if (themeData.primary_color) {
           primaryColor.value = themeData.primary_color
@@ -509,6 +704,12 @@ export const useThemeStore = defineStore('theme', () => {
         initSystemThemeListener()
         systemThemeListenerInitialized = true
       }
+      if (!scheduleTimer) {
+        scheduleTimer = setInterval(() => {
+          scheduleTick.value += 1
+          if (themeMode.value === 'system' && schedule.value.enabled) updateTheme()
+        }, 60_000)
+      }
       updateTheme()
     })()
 
@@ -532,6 +733,11 @@ export const useThemeStore = defineStore('theme', () => {
     titlebarHidden,
     isDark,
     systemDark,
+    scheme,
+    schemeDark,
+    appearance,
+    schedule,
+    resolvedScheme,
     naiveTheme,
     themeOverrides,
     colors,
@@ -539,6 +745,9 @@ export const useThemeStore = defineStore('theme', () => {
     updateTheme,
     setThemeMode,
     setPrimaryColor,
+    setScheme,
+    setAppearance,
+    setSchedule,
     setBackgroundImage,
     setBlurAmount,
     setBackgroundOpacity,
@@ -578,6 +787,11 @@ export function useTheme() {
     navigationMode,
     titlebarHidden,
     isDark,
+    scheme,
+    schemeDark,
+    appearance,
+    schedule,
+    resolvedScheme,
     naiveTheme,
     themeOverrides,
     colors,
@@ -594,11 +808,19 @@ export function useTheme() {
     navigationMode: readonly(navigationMode),
     titlebarHidden: readonly(titlebarHidden),
     isDark: readonly(isDark),
+    scheme: readonly(scheme),
+    schemeDark: readonly(schemeDark),
+    appearance: readonly(appearance),
+    schedule: readonly(schedule),
+    resolvedScheme: readonly(resolvedScheme),
     naiveTheme,
     themeOverrides,
     colors,
     setThemeMode: store.setThemeMode,
     setPrimaryColor: store.setPrimaryColor,
+    setScheme: store.setScheme,
+    setAppearance: store.setAppearance,
+    setSchedule: store.setSchedule,
     setBackgroundImage: store.setBackgroundImage,
     setBlurAmount: store.setBlurAmount,
     setTransparentBg: store.setTransparentBg,

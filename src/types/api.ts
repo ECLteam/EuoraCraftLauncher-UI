@@ -56,6 +56,10 @@ export interface LauncherConfig {
   disable_ssl_verify?: boolean
   /** 忽略系统/环境代理，让所有网络请求直连 */
   ignore_proxy?: boolean
+  /** 单次网络请求的总超时秒数 */
+  request_timeout?: number
+  /** 首次请求失败后允许的额外重试次数 */
+  request_retries?: number
 }
 
 export interface BackgroundConfig {
@@ -109,8 +113,40 @@ export interface SystemMemoryInfo {
   percentUsed: number
 }
 
+export interface ThemeAppearanceConfig {
+  /** 控件圆角（px） */
+  radius_control?: number
+  /** 卡片圆角（px） */
+  radius_card?: number
+  /** 对话框圆角（px） */
+  radius_dialog?: number
+  /** 界面字体族（CSS font-family 值） */
+  font_family?: string
+  success_color?: string
+  warning_color?: string
+  error_color?: string
+  info_color?: string
+  /** 尊重减少动效 */
+  reduce_motion?: boolean
+  /** 紧凑密度 */
+  compact_density?: boolean
+  /** 自定义 CSS（危险：需 custom_css_enabled 显式开启才注入） */
+  custom_css?: string
+  custom_css_enabled?: boolean
+}
+
+export interface ThemeScheduleConfig {
+  enabled?: boolean
+  /** 进入深色时间 'HH:MM' */
+  dark_start?: string
+  /** 离开深色时间 'HH:MM' */
+  dark_end?: string
+}
+
 export interface ThemeConfig {
-  mode: 'light' | 'dark' | 'system'
+  mode: 'light' | 'dark' | 'system' | 'custom'
+  /** custom 模式下激活的 scheme 名（须存在于当前预设 schemes）。 */
+  scheme?: string
   primary_color: string
   /** 当前激活的版本化主题预设。旧配置迁移后由后端写入。 */
   active_preset_id?: string
@@ -120,6 +156,8 @@ export interface ThemeConfig {
   /** @deprecated 兼容旧配置；true 对应 sidebar，false 对应 top。 */
   titlebar_hidden: boolean
   transparent_bg: boolean
+  appearance?: ThemeAppearanceConfig
+  schedule?: ThemeScheduleConfig
 }
 
 export type ThemeTargetScope = 'global' | 'component' | 'node' | 'instance'
@@ -159,6 +197,8 @@ export interface ThemeEffectRecipe {
 export interface ThemePresetV1 {
   schemaVersion: 1
   id: string
+  /** Full interface skin. Omitted by legacy/imported presets and therefore classic. */
+  uiSkin?: 'classic' | 'folia'
   meta: {
     name: string
     description?: string
@@ -167,6 +207,8 @@ export interface ThemePresetV1 {
     [key: string]: unknown
   }
   schemes: Record<string, Record<string, string>>
+  /** 额外 scheme 的元信息（label/dark）。light/dark 之外的 scheme 名需在此声明。 */
+  schemeMeta?: Record<string, { label?: string; dark?: boolean }>
   tokens: Record<string, ThemeStyleValue>
   background: Record<string, unknown>
   componentOverrides: Record<string, ThemeStyleOverride>
@@ -636,12 +678,27 @@ export interface LaunchInstanceResult {
 //  账户
 // ═══════════════════════════════════════════════════════════════════
 
-export type AccountType = 'microsoft' | 'offline' | 'authlib'
+export type AccountType = 'microsoft' | 'offline' | 'authlib' | 'plugin'
 
 export interface AuthlibProfile {
   id: string
   name: string
   logged_in?: boolean
+}
+
+export interface AuthField {
+  key: string
+  label: string
+  type: string
+  required: boolean
+  placeholder: string
+}
+
+export interface AuthProvider {
+  id: string
+  title: string
+  description: string
+  fields: AuthField[]
 }
 
 export interface MinecraftAccount {
@@ -657,6 +714,8 @@ export interface MinecraftAccount {
   skinId?: string
   capes?: MicrosoftCape[]
   auth_server?: string
+  provider?: string
+  providerTitle?: string
   profile_selection_required?: boolean
   available_profiles?: AuthlibProfile[]
 }
@@ -1375,6 +1434,8 @@ export interface CommandPayloadMap {
   // 账户
   accounts_list: undefined
   accounts_current: undefined
+  accounts_auth_providers: undefined
+  accounts_add_plugin: { provider_id: string; values: Record<string, string> }
   accounts_add_offline: { username: string; uuid?: string; skin?: string }
   accounts_default_skins: undefined
   accounts_set_offline_skin: { account_id: string; skin?: string }
@@ -1766,6 +1827,8 @@ export const COMMAND_NAMES = {
   game_config_patch: 'game_config_patch',
   accounts_list: 'accounts_list',
   accounts_current: 'accounts_current',
+  accounts_auth_providers: 'accounts_auth_providers',
+  accounts_add_plugin: 'accounts_add_plugin',
   accounts_add_offline: 'accounts_add_offline',
   accounts_default_skins: 'accounts_default_skins',
   accounts_set_offline_skin: 'accounts_set_offline_skin',
@@ -2016,6 +2079,8 @@ export interface CommandResponseMap {
 
   accounts_list: AccountListData
   accounts_current: MinecraftAccount | null
+  accounts_auth_providers: AuthProvider[]
+  accounts_add_plugin: MinecraftAccount
   accounts_add_offline: MinecraftAccount
   accounts_default_skins: DefaultSkin[]
   accounts_set_offline_skin: AccountListData

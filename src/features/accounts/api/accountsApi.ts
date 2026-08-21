@@ -2,6 +2,7 @@ import backend from '@/api/client'
 import { unwrapResponse as assertSuccess } from '@/app/runtime/errorPresentation'
 import type {
   AccountListData,
+  AuthProvider,
   AuthlibLoginConfigData,
   AuthlibServer,
   MinecraftAccount,
@@ -25,6 +26,14 @@ export const accountsApi = {
 
   async current(): Promise<MinecraftAccount | null> {
     return assertSuccess(await backend.command('accounts_current'), '读取当前账户') ?? null
+  },
+
+  async listAuthProviders(): Promise<AuthProvider[]> {
+    return assertSuccess(await backend.command('accounts_auth_providers'), '读取登录方式') ?? []
+  },
+
+  async addPluginAccount(providerId: string, values: Record<string, string>): Promise<MinecraftAccount> {
+    return assertSuccess(await backend.command('accounts_add_plugin', { provider_id: providerId, values }), '添加账户')
   },
 
   async addOffline(username: string, uuid?: string, skin?: string): Promise<MinecraftAccount> {

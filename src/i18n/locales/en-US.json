@@ -204,6 +204,7 @@
     "microsoftAccountDesc": "Sign in through your browser with a Microsoft account that owns Minecraft",
     "offlineAccountDesc": "Set an in-game username without online identity verification",
     "authlibAccountDesc": "Sign in with a third-party Yggdrasil authentication server",
+    "pluginAccountDesc": "Sign in using an authentication method provided by a plugin",
     "authlibNotDeveloped": "External authentication is not available yet and will be added in a future release.",
     "microsoftLoginHint": "Sign-in is completed in a secure browser page. Your password is never entered in the launcher.",
     "continueMicrosoftLogin": "Continue with Microsoft",
@@ -236,7 +237,9 @@
     "accountTypeOffline": "Offline",
     "accountTypeMicrosoft": "Microsoft",
     "accountTypeAuthlib": "Authlib",
+    "accountTypePlugin": "Plugin",
     "authlibAccount": "Authlib External Auth",
+    "pluginAccount": "Plugin",
     "accountDetails": "Account Details",
     "authServer": "Auth Server",
     "accountStatus": "Status",
@@ -878,7 +881,11 @@
     "disableSslVerify": "Disable SSL Certificate Verification",
     "disableSslVerifyDesc": "Globally disables HTTPS certificate verification; shared requests apply immediately, Microsoft login applies after restart",
     "ignoreProxy": "Ignore System Proxy",
-    "ignoreProxyDesc": "Makes all network requests connect directly, bypassing system or environment proxies; enable this when a broken proxy causes requests to fail. Applies after restart"
+    "ignoreProxyDesc": "Makes all network requests connect directly, bypassing system or environment proxies; enable this when a broken proxy causes requests to fail. Applies after restart",
+    "requestTimeout": "Request Timeout",
+    "requestTimeoutDesc": "Maximum time to wait for a network request (1–120 seconds). Applies after restart.",
+    "requestRetries": "Retry Attempts",
+    "requestRetriesDesc": "Additional attempts for retryable requests such as announcements after a network, rate-limit, or temporary server error (0–5). Applies after restart."
   },
   "error": {
     "id": "Error ID",
@@ -1375,6 +1382,7 @@
     "serverUrlPlaceholder": "https://example.com/api/yggdrasil",
     "serverUrlHint": "The URL and login name are remembered; multi-profile accounts can choose a profile after sign-in",
     "serverUrlRequired": "Server URL is required",
+    "fieldRequired": "Please fill in \"{field}\"",
     "emailRequired": "Profile name or email is required",
     "passwordRequired": "Password is required",
     "emailPlaceholder": "Profile name or email",
