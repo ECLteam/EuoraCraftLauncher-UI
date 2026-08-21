@@ -3,8 +3,8 @@
   --ecl-primary-hover: #4a5fe8;
   --ecl-primary-active: #3f53d6;
   --ecl-canvas: #f4f6fa;
-  --ecl-surface: rgba(255, 255, 255, 0.88);
-  --ecl-surface-muted: rgba(248, 249, 252, 0.88);
+  --ecl-surface: rgba(255, 255, 255, 0.6);
+  --ecl-surface-muted: rgba(248, 249, 252, 0.5);
   --ecl-text: #1d2433;
   --ecl-text-secondary: #596275;
   --ecl-text-tertiary: #8a94a8;
@@ -33,8 +33,8 @@
 
 [data-theme='dark'] {
   --ecl-canvas: #171a21;
-  --ecl-surface: rgba(34, 38, 48, 0.88);
-  --ecl-surface-muted: rgba(41, 46, 57, 0.88);
+  --ecl-surface: rgba(34, 38, 48, 0.6);
+  --ecl-surface-muted: rgba(41, 46, 57, 0.5);
   --ecl-text: #f1f3f7;
   --ecl-text-secondary: #b4bbc9;
   --ecl-text-tertiary: #8b94a5;
@@ -53,4 +53,14 @@
   --ecl-badge-forge-fg: #8d80c0;
   --ecl-badge-neoforge-fg: #7f92c9;
   --ecl-badge-quilt-fg: #6fb08a;
+}
+
+[data-glass='0'] {
+  --ecl-surface: rgba(255, 255, 255, 0.88);
+  --ecl-surface-muted: rgba(248, 249, 252, 0.88);
+}
+
+[data-theme='dark'][data-glass='0'] {
+  --ecl-surface: rgba(34, 38, 48, 0.88);
+  --ecl-surface-muted: rgba(41, 46, 57, 0.88);
 }

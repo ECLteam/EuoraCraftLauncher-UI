@@ -1,0 +1,25 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e6]:
+    - banner [ref=e7]:
+      - generic [ref=e9]:
+        - img "Logo" [ref=e10]
+        - generic [ref=e11]: EuoraCraft Launcher
+        - generic "开发模式" [ref=e12]: DEV
+      - generic [ref=e14]:
+        - button "任务" [ref=e15] [cursor=pointer]
+        - button "深色" [ref=e19] [cursor=pointer]
+    - generic [ref=e23]:
+      - complementary [ref=e24]:
+        - button "展开侧边栏" [ref=e25] [cursor=pointer]
+        - navigation [ref=e29]:
+          - button [ref=e30] [cursor=pointer]
+          - button [ref=e37] [cursor=pointer]
+          - button [ref=e42] [cursor=pointer]
+          - button [ref=e49] [cursor=pointer]
+          - button [ref=e54] [cursor=pointer]
+          - button [ref=e59] [cursor=pointer]
+        - button [ref=e67] [cursor=pointer]
+      - main [ref=e74]
+  - generic [ref=e76]:
+    - generic "Toggle devtools panel" [ref=e77] [cursor=pointer]
+    - generic "Toggle Component Inspector" [ref=e83] [cursor=pointer]

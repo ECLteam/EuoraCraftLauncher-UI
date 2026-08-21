@@ -364,13 +364,17 @@
   width: 100%;
 }
 
-.account-type-switch :deep(.n-radio-button) {
+.account-type-switch :deep(.n-tabs-rail) {
+  display: flex;
+  width: 100%;
+}
+
+.account-type-switch :deep(.n-tabs-tab-wrapper) {
   flex: 1;
 }
 
-.account-type-switch :deep(.n-radio-button__label) {
-  width: 100%;
-  text-align: center;
+.account-type-switch :deep(.n-tabs-tab) {
+  justify-content: center;
 }
 
 .account-type-intro {

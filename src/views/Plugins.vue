@@ -17,11 +17,11 @@
           <template #prefix><UiIcon name="search" :size="14" /></template>
         </NInput>
 
-        <NRadioGroup v-model:value="activeFilter" size="small">
-          <NRadioButton v-for="filter in filters" :key="filter.key" :value="filter.key">
+        <NTabs v-model:value="activeFilter" type="segment" size="small">
+          <NTab v-for="filter in filters" :key="filter.key" :name="filter.key">
             {{ filter.label }}
-          </NRadioButton>
-        </NRadioGroup>
+          </NTab>
+        </NTabs>
 
         <NButton type="primary" size="small" @click="installPlugin">
           <template #icon><UiIcon name="add" :size="14" /></template>
@@ -122,7 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NEmpty, NInput, NPopconfirm, NRadioButton, NRadioGroup, NSpace, NSpin, NTag } from 'naive-ui'
+import { NButton, NEmpty, NInput, NPopconfirm, NSpace, NSpin, NTab, NTabs, NTag } from 'naive-ui'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

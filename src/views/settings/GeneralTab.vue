@@ -13,14 +13,19 @@
 
     <SettingSection :title="t('settings.appearance')">
       <SettingRow :label="t('settings.theme')" :description="t('settings.themeDesc')">
-        <NRadioGroup :value="currentSettings.mode" size="small" @update:value="handleThemeChange">
-          <NRadioButton v-for="option in themeOptions" :key="option.value" :value="option.value">
+        <NTabs
+          :value="currentSettings.mode"
+          type="segment"
+          size="small"
+          @update:value="handleThemeChange"
+        >
+          <NTab v-for="option in themeOptions" :key="option.value" :name="option.value">
             <span class="theme-option-label">
               <UiIcon :name="option.icon" :size="14" />
               {{ option.label }}
             </span>
-          </NRadioButton>
-        </NRadioGroup>
+          </NTab>
+        </NTabs>
       </SettingRow>
 
       <SettingRow :label="t('settings.primaryColor')" :description="t('settings.primaryColorDesc')">
@@ -48,6 +53,23 @@
 
       <SettingRow :label="t('settings.topNav')" :description="t('settings.topNavDesc')">
         <NSwitch :value="topNavEnabled" @update:value="toggleTopNav" />
+      </SettingRow>
+
+      <SettingRow :label="t('settings.auroraBackground')" :description="t('settings.auroraBackgroundDesc')">
+        <NSwitch :value="auroraEnabled" @update:value="handleAuroraEnabledChange" />
+      </SettingRow>
+
+      <SettingRow :label="t('settings.glassEffect')" :description="t('settings.glassEffectDesc')">
+        <NSwitch :value="glassEffect" @update:value="handleGlassEffectChange" />
+      </SettingRow>
+
+      <SettingRow :label="t('settings.themeFromBackground')" :description="t('settings.themeFromBackgroundDesc')">
+        <NSelect
+          class="setting-select"
+          :value="deriveMode"
+          :options="deriveModeOptions"
+          @update:value="handleDeriveModeChange"
+        />
       </SettingRow>
     </SettingSection>
 
@@ -104,14 +126,14 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NInput, NInputGroup, NRadioButton, NRadioGroup, NSelect, NSlider, NSwitch } from 'naive-ui'
+import { NButton, NInput, NInputGroup, NSelect, NSlider, NSwitch, NTab, NTabs } from 'naive-ui'
 import { computed, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useDebugMode } from '@/composables/useDebugMode'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
-import { presetColors, useTheme, type ThemeMode } from '@/composables/useTheme'
+import { presetColors, useTheme, type DeriveMode, type ThemeMode } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
 import { DEFAULT_PRIMARY_COLOR, THEME_MODE_OPTIONS } from '@/config/theme'
 import { settingsApi } from '@/features/settings/api/settingsApi'
@@ -149,6 +171,12 @@ const {
   setBackgroundOpacity,
   backgroundOpacity,
   blurAmount,
+  glassEffect,
+  setGlassEffect,
+  auroraEnabled,
+  setAuroraEnabled,
+  deriveMode,
+  setDeriveMode,
 } = useTheme()
 const { topNavEnabled, toggleTopNav } = useTopNav()
 const { debugMode, setDebugMode } = useDebugMode()
@@ -174,6 +202,12 @@ const themeOptions = computed(() =>
   }))
 )
 
+const deriveModeOptions = computed(() => [
+  { label: t('settings.themeDeriveOff'), value: 'off' },
+  { label: t('settings.themeDeriveDefault'), value: 'default' },
+  { label: t('settings.themeDeriveMonet'), value: 'monet' },
+])
+
 const languageOptions = computed(() =>
   supportedLocales.map((language) => ({
     label: `${language.flag}  ${language.name}`,
@@ -192,9 +226,10 @@ async function updateUiConfig(partialTheme: Partial<{ mode: ThemeMode; primary_c
   )
 }
 
-async function handleThemeChange(mode: ThemeMode) {
-  setThemeMode(mode, false)
-  await updateUiConfig({ mode })
+async function handleThemeChange(mode: string | number) {
+  const next = mode as ThemeMode
+  setThemeMode(next, false)
+  await updateUiConfig({ mode: next })
 }
 
 async function handleColorChange(color: string) {
@@ -209,6 +244,18 @@ function handleColorInput(event: Event) {
 const saveBlur = debounce(async (value: number) => {
   await updateUiConfig({ blur_amount: value })
 }, 300)
+
+function handleGlassEffectChange(value: boolean) {
+  setGlassEffect(value)
+}
+
+function handleAuroraEnabledChange(value: boolean) {
+  setAuroraEnabled(value)
+}
+
+function handleDeriveModeChange(value: string) {
+  void setDeriveMode(value as DeriveMode)
+}
 
 function handleBlurChange(value: number) {
   setBlurAmount(value, false)

@@ -1,0 +1,145 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e6]:
+    - banner [ref=e7]:
+      - generic [ref=e9]:
+        - img "Logo" [ref=e10]
+        - generic [ref=e11]: EuoraCraft Launcher
+        - generic "开发模式" [ref=e12]: DEV
+      - generic [ref=e14]:
+        - button "任务" [ref=e15] [cursor=pointer]
+        - button "深色" [ref=e19] [cursor=pointer]
+    - generic [ref=e23]:
+      - complementary [ref=e24]:
+        - button "展开侧边栏" [ref=e25] [cursor=pointer]
+        - navigation [ref=e29]:
+          - button [ref=e30] [cursor=pointer]
+          - button [ref=e37] [cursor=pointer]
+          - button [ref=e42] [cursor=pointer]
+          - button [ref=e49] [cursor=pointer]
+          - button [ref=e54] [cursor=pointer]
+          - button [ref=e59] [cursor=pointer]
+        - button [ref=e67] [cursor=pointer]
+      - main [ref=e74]:
+        - generic [ref=e90]:
+          - complementary [ref=e91]:
+            - generic [ref=e92]: 设置
+            - menu [ref=e99]:
+              - menuitem [ref=e100]:
+                - generic [ref=e101] [cursor=pointer]
+                - text: 通用
+              - menuitem [ref=e107]:
+                - generic [ref=e108] [cursor=pointer]
+                - text: 游戏设置
+              - menuitem [ref=e113]:
+                - generic [ref=e114] [cursor=pointer]
+                - text: 关于
+          - main [ref=e120]:
+            - generic [ref=e122]:
+              - generic [ref=e123]:
+                - generic [ref=e124]: 语言与区域
+                - generic [ref=e125]:
+                  - generic [ref=e126]:
+                    - generic [ref=e127]: 语言
+                    - generic [ref=e128]: 选择界面显示语言
+                  - generic [ref=e132] [cursor=pointer]:
+                    - generic "🇨🇳 简体中文" [ref=e133]
+                    - img "loading" [ref=e135]
+              - generic [ref=e142]:
+                - generic [ref=e143]: 外观设置
+                - generic [ref=e144]:
+                  - generic [ref=e145]:
+                    - generic [ref=e146]: 主题
+                    - generic [ref=e147]: 选择界面主题风格
+                  - generic [ref=e151]:
+                    - generic [ref=e152]: 浅色
+                    - generic [ref=e159]: 深色
+                    - generic [ref=e166]: 系统
+                - generic [ref=e175]:
+                  - generic [ref=e176]:
+                    - generic [ref=e177]: 主题色
+                    - generic [ref=e178]: 选择界面的强调色
+                  - generic [ref=e180]:
+                    - button "ECL 蓝" [ref=e181] [cursor=pointer]
+                    - button "天空蓝" [ref=e182] [cursor=pointer]
+                    - button "薄荷绿" [ref=e183] [cursor=pointer]
+                    - button "珊瑚橙" [ref=e184] [cursor=pointer]
+                    - button "薰衣草" [ref=e185] [cursor=pointer]
+                    - button "石墨灰" [ref=e186] [cursor=pointer]
+                    - generic "主题色" [ref=e187]:
+                      - textbox "+" [ref=e188] [cursor=pointer]: "#5b6ff5"
+                      - generic [ref=e189]: +
+                - generic [ref=e190]:
+                  - generic [ref=e191]:
+                    - generic [ref=e192]: 横向标题栏
+                    - generic [ref=e193]: 开启后侧边栏隐藏，顶部标题栏显示导航菜单
+                  - switch [ref=e195]:
+                    - generic [ref=e196] [cursor=pointer]
+                - generic [ref=e198]:
+                  - generic [ref=e199]:
+                    - generic [ref=e200]: 流体背景
+                    - generic [ref=e201]: 开启后背景显示跟随主题色的极光流体渐变光晕
+                  - switch [checked] [ref=e203]:
+                    - generic [ref=e204] [cursor=pointer]
+                - generic [ref=e206]:
+                  - generic [ref=e207]:
+                    - generic [ref=e208]: 玻璃质感
+                    - generic [ref=e209]: 开启后界面使用毛玻璃材质，支持自定义主题色与明暗模式
+                  - switch [ref=e211]:
+                    - generic [ref=e212] [cursor=pointer]
+                - generic [ref=e214]:
+                  - generic [ref=e215]:
+                    - generic [ref=e216]: 从背景图提取主题色
+                    - generic [ref=e217]: 从自定义背景图提取主色作为界面强调色；手动选色或切换为关闭可随时恢复
+                  - generic [ref=e221] [cursor=pointer]:
+                    - generic "关闭" [ref=e222]
+                    - img "loading" [ref=e224]
+              - generic [ref=e231]:
+                - generic [ref=e232]: 背景
+                - generic [ref=e233]:
+                  - generic [ref=e234]:
+                    - generic [ref=e235]: 背景
+                    - generic [ref=e236]: 设置内容区背景图片
+                  - generic [ref=e237]:
+                    - generic [ref=e238]:
+                      - generic [ref=e241]:
+                        - textbox "输入图片路径或多个 URL（用逗号/换行分隔）" [ref=e242]
+                        - generic: 输入图片路径或多个 URL（用逗号/换行分隔）
+                      - button "浏览" [ref=e245] [cursor=pointer]
+                    - button "Choose File" [ref=e247]
+                - generic [ref=e248]:
+                  - generic [ref=e249]:
+                    - generic [ref=e250]: 背景图亮度
+                    - generic [ref=e251]: 调整背景图片的亮度，数值越低越暗
+                  - generic [ref=e253]:
+                    - slider [ref=e258] [cursor=pointer]
+                    - generic [ref=e260]: 100%
+                - generic [ref=e261]:
+                  - generic [ref=e262]:
+                    - generic [ref=e263]: 背景模糊
+                    - generic [ref=e264]: 调整背景图片的模糊程度
+                  - generic [ref=e266]:
+                    - slider [ref=e270] [cursor=pointer]
+                    - generic [ref=e272]: 0px
+              - generic [ref=e273]:
+                - generic [ref=e274]: 开发者
+                - generic [ref=e275]:
+                  - generic [ref=e276]:
+                    - generic [ref=e277]: 调试模式
+                    - generic [ref=e278]: 控制启动器配置文件的调试模式
+                  - switch [ref=e280]:
+                    - generic [ref=e281] [cursor=pointer]
+                - generic [ref=e283]:
+                  - generic [ref=e284]:
+                    - generic [ref=e285]: 关闭 SSL 证书校验
+                    - generic [ref=e286]: 全局关闭 HTTPS 证书校验；共享网络请求即时生效，微软登录需重启后应用
+                  - switch [ref=e288]:
+                    - generic [ref=e289] [cursor=pointer]
+                - generic [ref=e291]:
+                  - generic [ref=e292]:
+                    - generic [ref=e293]: 忽略系统代理
+                    - generic [ref=e294]: 让所有网络请求直连，不经过系统或环境代理；代理异常导致请求失败时建议开启，需重启后应用
+                  - switch [checked] [ref=e296]:
+                    - generic [ref=e297] [cursor=pointer]
+  - generic [ref=e76]:
+    - generic "Toggle devtools panel" [ref=e77] [cursor=pointer]
+    - generic "Toggle Component Inspector" [ref=e83] [cursor=pointer]

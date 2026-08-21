@@ -1,4 +1,10 @@
-﻿import { darkTheme, type GlobalTheme, type GlobalThemeOverrides } from 'naive-ui'
+﻿import {
+  argbFromHex,
+  hexFromArgb,
+  sourceColorFromImage,
+  themeFromSourceColor,
+} from '@material/material-color-utilities'
+import { darkTheme, type GlobalTheme, type GlobalThemeOverrides } from 'naive-ui'
 import { defineStore, storeToRefs } from 'pinia'
 import { computed, readonly, ref } from 'vue'
 import { pinia } from '@/app/stores'
@@ -11,6 +17,21 @@ interface ThemeInitPayload {
   theme?: Partial<ThemeConfig> & { background_opacity?: number }
   background?: Partial<BackgroundConfig>
 }
+
+/** 从背景图提取主题色的模式 */
+export type DeriveMode = 'off' | 'default' | 'monet'
+
+/** 玻璃质感效果开关的本地存储键（仅前端记忆，不同步后端） */
+export const GLASS_EFFECT_STORAGE_KEY = 'euoracraft-glass-effect'
+
+/** 流体（极光）背景开关的本地存储键（仅前端记忆，不同步后端） */
+export const AURORA_STORAGE_KEY = 'euoracraft-aurora'
+
+/** 从背景图提取主题色开关的本地存储键（仅前端记忆，不同步后端） */
+export const DERIVE_THEME_COLOR_STORAGE_KEY = 'euoracraft-derive-theme-color'
+
+/** 背景取色模式（off/default/monet）的本地存储键（仅前端记忆，不同步后端） */
+export const DERIVE_MODE_STORAGE_KEY = 'euoracraft-derive-mode'
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
@@ -58,6 +79,215 @@ function mix(color1: string, color2: string, weight: number = 0.5): string {
 function rgba(color: string, alpha: number): string {
   const rgb = hexToRgb(color)
   return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${clamp(alpha, 0, 1)})`
+}
+
+function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
+  r /= 255
+  g /= 255
+  b /= 255
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
+  let h = 0
+  let s = 0
+  const l = (max + min) / 2
+  if (max !== min) {
+    const d = max - min
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+    switch (max) {
+      case r:
+        h = (g - b) / d + (g < b ? 6 : 0)
+        break
+      case g:
+        h = (b - r) / d + 2
+        break
+      default:
+        h = (r - g) / d + 4
+    }
+    h /= 6
+  }
+  return [h * 360, s, l]
+}
+
+function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+  h /= 360
+  let r = 0
+  let g = 0
+  let b = 0
+  if (s === 0) {
+    r = g = b = l
+  } else {
+    const hue2rgb = (p: number, q: number, t: number): number => {
+      if (t < 0) t += 1
+      if (t > 1) t -= 1
+      if (t < 1 / 6) return p + (q - p) * 6 * t
+      if (t < 1 / 2) return q
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
+      return p
+    }
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s
+    const p = 2 * l - q
+    r = hue2rgb(p, q, h + 1 / 3)
+    g = hue2rgb(p, q, h)
+    b = hue2rgb(p, q, h - 1 / 3)
+  }
+  return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)]
+}
+
+function shiftHue(hex: string, degrees: number): string {
+  const rgb = hexToRgb(hex)
+  const [h, s, l] = rgbToHsl(rgb.r, rgb.g, rgb.b)
+  const [r, g, b] = hslToRgb((h + degrees + 360) % 360, s, l)
+  return rgbToHex(r, g, b)
+}
+
+/**
+ * 色相偏移 + 降饱和 + 目标亮度（用于深色模式极光辅色，避免亮色刺眼）。
+ */
+function shiftHueSlim(hex: string, degrees: number, satScale: number, targetLightness: number): string {
+  const rgb = hexToRgb(hex)
+  const [h, s] = rgbToHsl(rgb.r, rgb.g, rgb.b)
+  const [r, g, b] = hslToRgb((h + degrees + 360) % 360, Math.min(1, s * satScale), targetLightness)
+  return rgbToHex(r, g, b)
+}
+
+/**
+ * 保留色相，降饱和并压暗到目标亮度（深色模式极光主色）。
+ */
+function dimForDark(hex: string, satScale: number, targetLightness: number): string {
+  const rgb = hexToRgb(hex)
+  const [h, s] = rgbToHsl(rgb.r, rgb.g, rgb.b)
+  const [r, g, b] = hslToRgb(h, Math.min(1, s * satScale), targetLightness)
+  return rgbToHex(r, g, b)
+}
+
+/**
+ * 由主色派生极光渐变光斑配色（主色 + 色相偏移的两个辅色），明暗模式不同强度。
+ * 深色模式采用"低调淡光"：低透明度、降饱和、压暗亮度。
+ */
+function createAuroraColors(baseColor: string, isDark: boolean): { c1: string; c2: string; c3: string } {
+  const color = /^#([a-f\d]{6})$/i.test(normalizeHex(baseColor)) ? normalizeHex(baseColor) : DEFAULT_PRIMARY_COLOR
+  if (isDark) {
+    return {
+      c1: rgba(dimForDark(color, 0.9, 0.32), 0.3),
+      c2: rgba(shiftHueSlim(color, 45, 0.6, 0.34), 0.24),
+      c3: rgba(shiftHueSlim(color, -35, 0.55, 0.3), 0.18),
+    }
+  }
+  return {
+    c1: rgba(color, 0.12),
+    c2: rgba(shiftHue(color, 45), 0.1),
+    c3: rgba(shiftHue(color, -35), 0.085),
+  }
+}
+
+/**
+ * 从图片 URL 提取主色：canvas 缩略图 + HSL 色相聚类。
+ * 跳过近灰/极暗/极亮像素，取像素数最多的色相桶平均色；失败返回 null（功能降级）。
+ */
+function extractPrimaryFromImage(url: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    const image = new Image()
+    image.crossOrigin = 'anonymous'
+    image.onload = () => {
+      try {
+        const size = 48
+        const canvas = document.createElement('canvas')
+        canvas.width = size
+        canvas.height = Math.max(1, Math.round((size * image.naturalHeight) / Math.max(1, image.naturalWidth)))
+        const context = canvas.getContext('2d', { willReadFrequently: true })
+        if (!context) {
+          resolve(null)
+          return
+        }
+        context.drawImage(image, 0, 0, canvas.width, canvas.height)
+        const { data } = context.getImageData(0, 0, canvas.width, canvas.height)
+        const buckets = new Map<number, { r: number; g: number; b: number; n: number }>()
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i]!
+          const g = data[i + 1]!
+          const b = data[i + 2]!
+          const a = data[i + 3]!
+          if (a < 128) continue
+          const [h, s, l] = rgbToHsl(r, g, b)
+          if (s < 0.15 || l < 0.12 || l > 0.88) continue
+          const hueBucket = Math.floor(h / 30)
+          const bucket = buckets.get(hueBucket) ?? { r: 0, g: 0, b: 0, n: 0 }
+          bucket.r += r
+          bucket.g += g
+          bucket.b += b
+          bucket.n += 1
+          buckets.set(hueBucket, bucket)
+        }
+        let best: { r: number; g: number; b: number; n: number } | null = null
+        for (const bucket of buckets.values()) {
+          if (!best || bucket.n > best.n) best = bucket
+        }
+        if (!best || best.n < 2) {
+          resolve(null)
+          return
+        }
+        resolve(rgbToHex(Math.round(best.r / best.n), Math.round(best.g / best.n), Math.round(best.b / best.n)))
+      } catch {
+        resolve(null)
+      }
+    }
+    image.onerror = () => resolve(null)
+    image.src = url
+  })
+}
+
+/**
+ * 从图片 URL 提取 Monet 种子色（Material You，基于 HCT 色彩空间）。
+ */
+function monetSeedFromImage(url: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    const image = new Image()
+    image.crossOrigin = 'anonymous'
+    image.onload = async () => {
+      try {
+        const argb = await sourceColorFromImage(image)
+        resolve(hexFromArgb(argb))
+      } catch {
+        resolve(null)
+      }
+    }
+    image.onerror = () => resolve(null)
+    image.src = url
+  })
+}
+
+let monetPaletteCache: { seed: string; palette: { tone(tone: number): number } } | null = null
+
+function monetTone(seedHex: string, tone: number): string {
+  if (!monetPaletteCache || monetPaletteCache.seed !== seedHex) {
+    const theme = themeFromSourceColor(argbFromHex(seedHex))
+    monetPaletteCache = { seed: seedHex, palette: theme.palettes.primary }
+  }
+  return hexFromArgb(monetPaletteCache.palette.tone(tone))
+}
+
+/**
+ * 根据 Monet 种子色生成完整 Material You tonal 色阶（明暗各用 tone 40/80、30/90、20/95）。
+ */
+function createMonetScale(
+  seedHex: string,
+  isDark: boolean
+): {
+  primary: string
+  primaryHover: string
+  primaryPressed: string
+  primaryLight: string
+  primaryRgb: string
+} {
+  const primary = monetTone(seedHex, isDark ? 80 : 40)
+  const rgb = hexToRgb(primary)
+  return {
+    primary,
+    primaryHover: monetTone(seedHex, isDark ? 90 : 30),
+    primaryPressed: monetTone(seedHex, isDark ? 95 : 20),
+    primaryLight: rgba(primary, 0.15),
+    primaryRgb: `${rgb.r}, ${rgb.g}, ${rgb.b}`,
+  }
 }
 
 /**
@@ -141,8 +371,12 @@ function createThemeOverrides(
       colorPressed: baseColors.backgroundHover,
       textColor: baseColors.text,
       textColorHover: primaryScale.primary,
-      border: `1px solid ${baseColors.border}`,
-      borderHover: `1px solid ${primaryScale.primary}`,
+      border: `1px solid ${rgba(primaryScale.primary, 0.22)}`,
+      borderHover: `1px solid ${rgba(primaryScale.primary, 0.5)}`,
+      borderPressed: `1px solid ${rgba(primaryScale.primary, 0.6)}`,
+      borderFocus: `1px solid ${rgba(primaryScale.primary, 0.6)}`,
+      boxShadowHover: `0 4px 14px ${rgba(primaryScale.primary, 0.16)}`,
+      boxShadowFocus: `0 0 0 2px ${rgba(primaryScale.primary, 0.2)}`,
       heightMedium: '36px',
       heightSmall: '32px',
       borderRadiusMedium: '6px',
@@ -160,30 +394,32 @@ function createThemeOverrides(
     Input: {
       color: baseColors.surface,
       colorFocus: baseColors.surface,
-      border: `1px solid ${baseColors.border}`,
-      borderHover: `1px solid ${primaryScale.primary}`,
-      borderFocus: `1px solid ${primaryScale.primary}`,
+      border: `1px solid ${rgba(primaryScale.primary, 0.2)}`,
+      borderHover: `1px solid ${rgba(primaryScale.primary, 0.5)}`,
+      borderFocus: `1px solid ${rgba(primaryScale.primary, 0.65)}`,
       textColor: baseColors.text,
       placeholderColor: baseColors.textSecondary,
       heightMedium: '36px',
       heightSmall: '32px',
       borderRadius: '6px',
-      boxShadowFocus: `0 0 0 2px ${rgba(primaryScale.primary, 0.16)}`,
+      boxShadowFocus: `0 0 0 2px ${rgba(primaryScale.primary, 0.18)}`,
     },
     Select: {
       color: baseColors.surface,
       colorActive: baseColors.backgroundHover,
-      border: `1px solid ${baseColors.border}`,
-      borderHover: `1px solid ${primaryScale.primary}`,
-      borderActive: `1px solid ${primaryScale.primary}`,
+      border: `1px solid ${rgba(primaryScale.primary, 0.2)}`,
+      borderHover: `1px solid ${rgba(primaryScale.primary, 0.5)}`,
+      borderActive: `1px solid ${rgba(primaryScale.primary, 0.65)}`,
+      boxShadowFocus: `0 0 0 2px ${rgba(primaryScale.primary, 0.18)}`,
     },
     Switch: {
-      railColor: baseColors.textSecondary,
+      railColor: rgba(primaryScale.primary, 0.25),
       railColorActive: primaryScale.primary,
     },
     Slider: {
       fillColor: primaryScale.primary,
-      railColor: baseColors.border,
+      railColor: rgba(primaryScale.primary, 0.2),
+      handleBoxShadow: `0 0 0 4px ${rgba(primaryScale.primary, 0.12)}`,
     },
     Tooltip: {
       color: baseColors.surface,
@@ -211,7 +447,9 @@ function createThemeOverrides(
     },
     Tabs: {
       tabBorderRadius: '6px',
-      tabColorSegment: baseColors.backgroundHover,
+      tabColorSegment: rgba(primaryScale.primary, 0.1),
+      tabBorderColorSegment: rgba(primaryScale.primary, 0.15),
+      tabFontSizeSmall: '12px',
     },
     Tag: {
       borderRadius: '5px',
@@ -237,6 +475,11 @@ export const useThemeStore = defineStore('theme', () => {
   const backgroundOpacity = ref(1)
   const blurAmount = ref(0)
   const transparentBg = ref(false)
+  const glassEffect = ref(true)
+  const auroraEnabled = ref(true)
+  const deriveMode = ref<DeriveMode>('off')
+  const derivedPrimary = ref('')
+  const derivedMonetSeed = ref('')
   const sidebarCollapsed = ref(true)
   const navigationMode = ref<NavigationMode>('sidebar')
   const isDark = ref(false)
@@ -247,8 +490,20 @@ export const useThemeStore = defineStore('theme', () => {
     return isDark.value ? darkTheme : null
   })
 
-  /** 主色色阶：由 primaryColor + isDark 派生，仅计算一次供 themeOverrides/colors/updateTheme 复用 */
-  const primaryScale = computed(() => createPrimaryScale(primaryColor.value, isDark.value))
+  /** 生效主色：开启背景取色且有提取色时使用派生色，否则用手动色 */
+  const effectivePrimary = computed(() => {
+    if (deriveMode.value === 'off') return primaryColor.value
+    if (deriveMode.value === 'monet') return derivedMonetSeed.value || primaryColor.value
+    return derivedPrimary.value || primaryColor.value
+  })
+
+  /** 主色色阶：Monet 模式用完整 tonal 色板，否则由 effectivePrimary 派生 */
+  const primaryScale = computed(() => {
+    if (deriveMode.value === 'monet' && derivedMonetSeed.value) {
+      return createMonetScale(derivedMonetSeed.value, isDark.value)
+    }
+    return createPrimaryScale(effectivePrimary.value, isDark.value)
+  })
 
   const themeOverrides = computed<GlobalThemeOverrides>(() => {
     return createThemeOverrides(isDark.value, primaryScale.value)
@@ -288,11 +543,17 @@ export const useThemeStore = defineStore('theme', () => {
     const bgImageValue = backgroundImage.value ? `url("${backgroundImage.value}")` : 'none'
 
     document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
+    document.documentElement.setAttribute('data-glass', glassEffect.value ? '1' : '0')
+    document.documentElement.setAttribute('data-aurora', auroraEnabled.value ? '1' : '0')
     document.documentElement.style.setProperty('--primary', primaryScale.value.primary)
     document.documentElement.style.setProperty('--primary-rgb', primaryScale.value.primaryRgb)
     document.documentElement.style.setProperty('--primary-hover', primaryScale.value.primaryHover)
     document.documentElement.style.setProperty('--primary-active', primaryScale.value.primaryPressed)
     document.documentElement.style.setProperty('--primary-alpha', primaryScale.value.primaryLight)
+    const aurora = createAuroraColors(primaryScale.value.primary, isDark.value)
+    document.documentElement.style.setProperty('--aurora-c1', aurora.c1)
+    document.documentElement.style.setProperty('--aurora-c2', aurora.c2)
+    document.documentElement.style.setProperty('--aurora-c3', aurora.c3)
     document.documentElement.style.setProperty('--bg-image', bgImageValue)
     document.documentElement.style.setProperty('--bg-opacity', String(backgroundOpacity.value))
     document.documentElement.style.setProperty('--bg-app', transparentBg.value ? 'transparent' : '')
@@ -321,6 +582,8 @@ export const useThemeStore = defineStore('theme', () => {
   }
 
   function setPrimaryColor(color: string, persist = true) {
+    // 手动选色时自动退出「从背景图提取主题色」模式
+    if (deriveMode.value !== 'off') setDeriveMode('off', false)
     primaryColor.value = color
     updateTheme()
     if (persist) saveThemeConfig()
@@ -361,6 +624,20 @@ export const useThemeStore = defineStore('theme', () => {
     })
   }
 
+  /** 按当前取色模式从背景图提取主题色并同步 */
+  async function deriveFromBackground() {
+    if (deriveMode.value === 'off' || !backgroundImage.value) return
+    const url = backgroundImage.value
+    if (deriveMode.value === 'default') {
+      const color = await extractPrimaryFromImage(url)
+      derivedPrimary.value = color ?? ''
+    } else {
+      const seed = await monetSeedFromImage(url)
+      derivedMonetSeed.value = seed ?? ''
+    }
+    updateTheme()
+  }
+
   function setBackgroundImage(url: string, path?: string, persist = true) {
     if (import.meta.env.DEV) {
       // eslint-disable-next-line no-console
@@ -370,6 +647,28 @@ export const useThemeStore = defineStore('theme', () => {
     if (path !== undefined) backgroundImagePath.value = path
     updateTheme()
     if (persist) saveThemeConfig()
+    // 开启背景取色时，更换背景图自动重新提取主题色
+    if (deriveMode.value !== 'off' && backgroundImage.value) {
+      void deriveFromBackground()
+    }
+  }
+
+  async function setDeriveMode(mode: DeriveMode, persist = true) {
+    deriveMode.value = mode
+    if (mode !== 'off') {
+      if (backgroundImage.value) await deriveFromBackground()
+    } else {
+      derivedPrimary.value = ''
+      derivedMonetSeed.value = ''
+    }
+    updateTheme()
+    if (persist) {
+      try {
+        window.localStorage.setItem(DERIVE_MODE_STORAGE_KEY, mode)
+      } catch {
+        // localStorage 不可用时仅本次会话生效
+      }
+    }
   }
 
   function setBlurAmount(amount: number, persist = true) {
@@ -388,6 +687,30 @@ export const useThemeStore = defineStore('theme', () => {
     transparentBg.value = val
     updateTheme()
     if (persist) saveThemeConfig()
+  }
+
+  function setGlassEffect(val: boolean, persist = true) {
+    glassEffect.value = val
+    updateTheme()
+    if (persist) {
+      try {
+        window.localStorage.setItem(GLASS_EFFECT_STORAGE_KEY, val ? '1' : '0')
+      } catch {
+        // localStorage 不可用时仅本次会话生效
+      }
+    }
+  }
+
+  function setAuroraEnabled(val: boolean, persist = true) {
+    auroraEnabled.value = val
+    updateTheme()
+    if (persist) {
+      try {
+        window.localStorage.setItem(AURORA_STORAGE_KEY, val ? '1' : '0')
+      } catch {
+        // localStorage 不可用时仅本次会话生效
+      }
+    }
   }
 
   function setSidebarCollapsed(val: boolean) {
@@ -456,6 +779,22 @@ export const useThemeStore = defineStore('theme', () => {
 
     const promise = (async () => {
       let backgroundChanged = false
+      try {
+        const storedGlass = window.localStorage.getItem(GLASS_EFFECT_STORAGE_KEY)
+        if (storedGlass !== null) glassEffect.value = storedGlass === '1'
+        const storedAurora = window.localStorage.getItem(AURORA_STORAGE_KEY)
+        if (storedAurora !== null) auroraEnabled.value = storedAurora === '1'
+        const storedDeriveMode = window.localStorage.getItem(DERIVE_MODE_STORAGE_KEY)
+        if (storedDeriveMode === 'off' || storedDeriveMode === 'default' || storedDeriveMode === 'monet') {
+          deriveMode.value = storedDeriveMode
+        } else {
+          // 兼容旧版布尔开关
+          const storedLegacy = window.localStorage.getItem(DERIVE_THEME_COLOR_STORAGE_KEY)
+          if (storedLegacy !== null) deriveMode.value = storedLegacy === '1' ? 'default' : 'off'
+        }
+      } catch {
+        // 本地存储不可用时保持默认开启
+      }
       if (payload?.theme) {
         const themeData = payload.theme
         if (themeData.mode) {
@@ -502,6 +841,11 @@ export const useThemeStore = defineStore('theme', () => {
         await preloadBackgroundImage(backgroundImage.value)
       }
 
+      // 开启背景取色时，对初始背景图提取主题色
+      if (deriveMode.value !== 'off' && backgroundImage.value) {
+        await deriveFromBackground()
+      }
+
       if (!systemThemeListenerInitialized) {
         initSystemThemeListener()
         systemThemeListenerInitialized = true
@@ -524,6 +868,9 @@ export const useThemeStore = defineStore('theme', () => {
     backgroundOpacity,
     blurAmount,
     transparentBg,
+    glassEffect,
+    auroraEnabled,
+    deriveMode,
     sidebarCollapsed,
     navigationMode,
     titlebarHidden,
@@ -540,6 +887,9 @@ export const useThemeStore = defineStore('theme', () => {
     setBlurAmount,
     setBackgroundOpacity,
     setTransparentBg,
+    setGlassEffect,
+    setAuroraEnabled,
+    setDeriveMode,
     setSidebarCollapsed,
     setTitlebarHidden,
     setNavigationMode,
@@ -571,6 +921,9 @@ export function useTheme() {
     backgroundOpacity,
     blurAmount,
     transparentBg,
+    glassEffect,
+    auroraEnabled,
+    deriveMode,
     sidebarCollapsed,
     navigationMode,
     titlebarHidden,
@@ -587,6 +940,9 @@ export function useTheme() {
     backgroundOpacity: readonly(backgroundOpacity),
     blurAmount: readonly(blurAmount),
     transparentBg: readonly(transparentBg),
+    glassEffect: readonly(glassEffect),
+    auroraEnabled: readonly(auroraEnabled),
+    deriveMode: readonly(deriveMode),
     sidebarCollapsed: readonly(sidebarCollapsed),
     navigationMode: readonly(navigationMode),
     titlebarHidden: readonly(titlebarHidden),
@@ -599,6 +955,9 @@ export function useTheme() {
     setBackgroundImage: store.setBackgroundImage,
     setBlurAmount: store.setBlurAmount,
     setTransparentBg: store.setTransparentBg,
+    setGlassEffect: store.setGlassEffect,
+    setAuroraEnabled: store.setAuroraEnabled,
+    setDeriveMode: store.setDeriveMode,
     setBackgroundOpacity: store.setBackgroundOpacity,
     setSidebarCollapsed: store.setSidebarCollapsed,
     setNavigationMode: store.setNavigationMode,

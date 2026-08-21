@@ -54,6 +54,7 @@
   "dependencies": {
     "@iconify-json/tabler": "^1.2.38",
     "@iconify/vue": "^5.0.1",
+    "@material/material-color-utilities": "^0.4.0",
     "@vueuse/core": "^13.0.0",
     "dompurify": "^3.4.12",
     "gsap": "^3.12.7",

@@ -30,6 +30,7 @@
   background: var(--bg-surface);
   border-radius: var(--r-md);
   border: 1px solid var(--border);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
   flex-shrink: 0;
 }
 .toolbar-left,
@@ -69,6 +70,7 @@
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
   overflow: hidden;
   flex: 1;
   min-width: 0;

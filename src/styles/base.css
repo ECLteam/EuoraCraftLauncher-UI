@@ -45,7 +45,7 @@
   --bg-base-rgb: 243, 244, 246;
   --bg-base-alt: #e9ebef;
   --bg-elevated: #ffffff;
-  --bg-surface: rgba(255, 255, 255, 0.92);
+  --bg-surface: rgba(255, 255, 255, 0.62);
   --bg-surface-solid: #ffffff;
   --bg-hover: #f0f1f3;
   --bg-hover-strong: rgba(var(--primary-rgb), 0.06);
@@ -67,7 +67,7 @@
   --border-focus: rgba(var(--primary-rgb), 0.5);
   --divider: #e0e0e0;
 
-  --card-bg: rgba(255, 255, 255, 0.88);
+  --card-bg: rgba(255, 255, 255, 0.6);
   --card-border-top: 1px solid var(--ecl-border);
   --card-border-bottom: 1px solid var(--ecl-border);
   --card-shadow: 0 1px 2px rgba(21, 31, 52, 0.05);
@@ -154,17 +154,27 @@
   --transition-enter: all var(--duration-normal) var(--ease-enter);
   --transition-exit: all var(--duration-normal) var(--ease-exit);
 
-  --slider-track: var(--bg-base-alt);
+  --slider-track: rgba(var(--primary-rgb), 0.18);
   --slider-thumb: var(--primary);
+
+  /* 控件统一 token（Folia 式：半透明玻璃底 + 主色倾向边框 + 主色辉光） */
+  --control-bg: rgba(255, 255, 255, 0.5);
+  --control-bg-hover: rgba(var(--primary-rgb), 0.08);
+  --control-bg-active: rgba(var(--primary-rgb), 0.14);
+  --control-border: rgba(var(--primary-rgb), 0.22);
+  --control-border-hover: rgba(var(--primary-rgb), 0.45);
+  --control-border-focus: rgba(var(--primary-rgb), 0.6);
+  --control-ring: 0 0 0 2px rgba(var(--primary-rgb), 0.18);
+  --control-glow: 0 4px 14px rgba(var(--primary-rgb), 0.16);
 
   --glow-focus: 0 0 0 2px rgba(var(--primary-rgb), 0.25);
   --glow-focus-pink: 0 0 0 2px rgba(var(--primary-rgb), 0.25);
   --glow-focus-error: 0 0 0 2px rgba(229, 92, 92, 0.25);
 
-  --glass-bg: rgba(255, 255, 255, 0.92);
-  --glass-bg-sidebar: rgba(251, 251, 252, 0.96);
-  --glass-border: #e0e0e0;
-  --glass-divider: #e0e0e0;
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-bg-sidebar: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(29, 36, 51, 0.12);
+  --glass-divider: rgba(29, 36, 51, 0.1);
   --glass-item-hover: #f0f1f3;
   --glass-item-active-bg: var(--primary-alpha);
   --glass-item-collapsed-active: var(--primary-alpha);
@@ -181,6 +191,9 @@
   --bg-image: none;
   --bg-opacity: 0.2;
   --bg-blur: 0px;
+  --glass-blur: 18px;
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  --aurora-opacity: 1;
 }
 
 [data-theme='dark'] {
@@ -188,7 +201,7 @@
   --bg-base-rgb: 26, 28, 35;
   --bg-base-alt: #21242b;
   --bg-elevated: #21242b;
-  --bg-surface: rgba(35, 38, 45, 0.92);
+  --bg-surface: rgba(32, 36, 46, 0.62);
   --bg-surface-solid: #21242b;
   --bg-hover: rgba(255, 255, 255, 0.06);
   --bg-hover-strong: rgba(var(--primary-rgb), 0.12);
@@ -203,8 +216,17 @@
   --text-on-primary: #ffffff;
   --text-link: var(--primary);
 
-  --slider-track: #4a4d55;
+  --slider-track: rgba(var(--primary-rgb), 0.28);
   --slider-thumb: var(--primary);
+
+  --control-bg: rgba(34, 38, 48, 0.5);
+  --control-bg-hover: rgba(var(--primary-rgb), 0.12);
+  --control-bg-active: rgba(var(--primary-rgb), 0.2);
+  --control-border: rgba(var(--primary-rgb), 0.3);
+  --control-border-hover: rgba(var(--primary-rgb), 0.55);
+  --control-border-focus: rgba(var(--primary-rgb), 0.7);
+  --control-ring: 0 0 0 2px rgba(var(--primary-rgb), 0.24);
+  --control-glow: 0 4px 16px rgba(var(--primary-rgb), 0.22);
 
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.12);
@@ -213,7 +235,7 @@
   --border-focus: rgba(var(--primary-rgb), 0.55);
   --divider: rgba(255, 255, 255, 0.08);
 
-  --card-bg: rgba(35, 38, 45, 0.88);
+  --card-bg: rgba(34, 38, 48, 0.6);
   --card-border-top: 1px solid var(--ecl-border);
   --card-border-bottom: 1px solid var(--ecl-border);
 
@@ -221,10 +243,10 @@
   --glow-focus-pink: 0 0 0 2px rgba(var(--primary-rgb), 0.35);
   --glow-focus-error: 0 0 0 2px rgba(229, 92, 92, 0.35);
 
-  --glass-bg: rgba(35, 38, 45, 0.92);
-  --glass-bg-sidebar: rgba(31, 34, 41, 0.96);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-divider: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(34, 38, 48, 0.62);
+  --glass-bg-sidebar: rgba(27, 30, 38, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-divider: rgba(255, 255, 255, 0.09);
   --glass-item-hover: rgba(255, 255, 255, 0.1);
   --glass-item-active-bg: var(--primary-alpha);
   --glass-item-collapsed-active: var(--primary-alpha);
@@ -238,6 +260,29 @@
   --overlay-bg: rgba(0, 0, 0, 0.55);
   --bg-overlay-tint: rgba(0, 0, 0, 0.2);
   --window-border: rgba(255, 255, 255, 0.12);
+  --glass-blur: 18px;
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --aurora-opacity: 1;
+}
+
+[data-glass='0'],
+[data-theme='dark'][data-glass='0'] {
+  --glass-blur: 0px;
+  --bg-surface: rgba(255, 255, 255, 0.9);
+  --card-bg: rgba(255, 255, 255, 0.88);
+  --glass-bg: rgba(255, 255, 255, 0.92);
+  --glass-bg-sidebar: rgba(251, 251, 252, 0.96);
+}
+
+[data-aurora='0'] {
+  --aurora-opacity: 0;
+}
+
+[data-theme='dark'][data-glass='0'] {
+  --bg-surface: rgba(35, 38, 45, 0.92);
+  --card-bg: rgba(35, 38, 45, 0.88);
+  --glass-bg: rgba(35, 38, 45, 0.92);
+  --glass-bg-sidebar: rgba(31, 34, 41, 0.96);
 }
 
 *,

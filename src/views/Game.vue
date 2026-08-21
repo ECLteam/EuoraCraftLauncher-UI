@@ -227,11 +227,11 @@
             >
               {{ t('game.showcase.description') }}
             </NAlert>
-            <NRadioGroup v-model:value="selectedAccountType" class="account-type-switch" size="small">
-              <NRadioButton v-for="option in accountTypeOptions" :key="option.value" :value="option.value">
+            <NTabs v-model:value="selectedAccountType" type="segment" size="small" class="account-type-switch">
+              <NTab v-for="option in accountTypeOptions" :key="option.value" :name="option.value">
                 {{ option.label }}
-              </NRadioButton>
-            </NRadioGroup>
+              </NTab>
+            </NTabs>
 
             <!--<div class="account-type-intro">
               <div class="account-type-icon">
@@ -520,10 +520,10 @@ import {
   NEmpty,
   NInput,
   NPopselect,
-  NRadioButton,
-  NRadioGroup,
   NSelect,
   NSpin,
+  NTab,
+  NTabs,
   NTag,
   type SelectOption,
 } from 'naive-ui'

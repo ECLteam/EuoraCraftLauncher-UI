@@ -76,6 +76,9 @@ const { t } = useI18n()
   border: 1px solid var(--ecl-border);
   border-radius: var(--r-sm);
   background: var(--card-bg);
+  box-shadow: var(--ecl-shadow-surface), inset 0 1px 0 var(--glass-highlight);
+  backdrop-filter: blur(var(--glass-blur, 0px)) saturate(1.35);
+  -webkit-backdrop-filter: blur(var(--glass-blur, 0px)) saturate(1.35);
 }
 
 .lp-header {
@@ -170,7 +173,7 @@ const { t } = useI18n()
   width: 100%;
   padding: 12px 16px;
   border-radius: var(--r-sm);
-  background: var(--bg-base);
+  background: var(--bg-surface);
 }
 
 .lp-info-row {

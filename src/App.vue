@@ -2,6 +2,7 @@
   <div id="app">
     <!-- 背景层 -->
     <div class="app-background"></div>
+    <div class="aurora-bg" aria-hidden="true"></div>
     <div class="app-background-overlay"></div>
 
     <!-- 主布局 -->

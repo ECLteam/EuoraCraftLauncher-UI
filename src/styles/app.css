@@ -37,6 +37,21 @@
     filter var(--duration-normal) ease;
 }
 
+/* Folia 风格极光渐变光斑层：色板由主色派生，悬浮在背景层之上 */
+.aurora-bg {
+  position: fixed;
+  inset: -12%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: var(--aurora-opacity, 1);
+  background-image:
+    radial-gradient(42% 55% at 18% 22%, var(--aurora-c1, transparent), transparent 70%),
+    radial-gradient(38% 50% at 82% 30%, var(--aurora-c2, transparent), transparent 70%),
+    radial-gradient(50% 60% at 62% 88%, var(--aurora-c3, transparent), transparent 72%);
+  animation: aurora-drift 22s var(--ease-smooth) infinite alternate;
+  transition: opacity var(--duration-normal) ease;
+}
+
 .app-background-overlay {
   position: fixed;
   inset: 0;
@@ -45,6 +60,10 @@
   backdrop-filter: blur(var(--bg-blur, 0px));
   -webkit-backdrop-filter: blur(var(--bg-blur, 0px));
   pointer-events: none;
+}
+
+[data-aurora='0'] .aurora-bg {
+  display: none;
 }
 
 .app-layout {
@@ -90,6 +109,8 @@
   padding: var(--page-gutter);
   position: relative;
   background: transparent;
+  backdrop-filter: blur(var(--glass-blur, 0px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 0px));
 }
 
 @media (max-width: 1000px) {
