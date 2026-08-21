@@ -186,11 +186,22 @@
   display: none;
 }
 
+/* folia 下侧栏右缘白线（classic 的边框高光）在玻璃表面上是多余凸出线，移除 */
+[data-ui-skin='folia'] .sidebar {
+  box-shadow: none;
+}
+
 [data-ui-skin='folia'] .n-base-selection,
-[data-ui-skin='folia'] .n-input-wrapper,
-[data-ui-skin='folia'] .n-tabs--segment-type .n-tabs-rail {
+[data-ui-skin='folia'] .n-input-wrapper {
   background: var(--control-bg) !important;
   border: 1px solid var(--control-border) !important;
+  backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.25);
+  -webkit-backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.25);
+}
+
+/* 分段标签 rail：对齐参考（无边框），避免与输入控件共用带边框规则 */
+[data-ui-skin='folia'] .n-tabs--segment-type .n-tabs-rail {
+  background: var(--control-bg) !important;
   backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.25);
   -webkit-backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.25);
 }
@@ -256,6 +267,12 @@
   font-weight: 600;
   background: rgba(var(--primary-rgb, 91, 111, 245), 0.18);
   box-shadow: inset 0 0 0 1px rgba(var(--primary-rgb, 91, 111, 245), 0.35);
+}
+
+/* 深色下增强激活态对比（对齐 tryfrontend2 参考） */
+[data-theme='dark'][data-ui-skin='folia'] .n-tabs--segment-type .n-tabs-tab.n-tabs-tab--active {
+  background: rgba(var(--primary-rgb, 130, 145, 255), 0.26);
+  box-shadow: inset 0 0 0 1px rgba(var(--primary-rgb, 130, 145, 255), 0.45);
 }
 
 [data-ui-skin='folia'] .titlebar-nav .n-tabs-rail {
