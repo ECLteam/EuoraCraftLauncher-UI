@@ -114,52 +114,47 @@
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 2px;
-  -webkit-app-region: no-drag;
   padding: 0 4px;
-}
-
-.titlebar-nav-item {
-  display: flex;
-  align-items: center;
-  height: 38px;
-  padding: 0 11px;
-  gap: 7px;
-  border: none;
-  border-bottom: 2px solid transparent;
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  font-family: inherit;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  transition:
-    color var(--duration-fast) ease-out,
-    border-color var(--duration-fast) ease-out;
   -webkit-app-region: no-drag;
-  position: relative;
-  outline: none;
 }
 
-.titlebar-nav-item:hover {
+/* 横向标题栏导航：分段标签页但去背景去边框 */
+.titlebar-nav :deep(.n-tabs-rail) {
+  gap: 2px;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.titlebar-nav :deep(.n-tabs-tab) {
+  min-height: 32px;
+  padding: 4px 12px !important;
+  border-radius: var(--r-sm);
+  color: var(--text-secondary);
+}
+
+/* 图标与文字间距 + 图标略微上移对齐 */
+.titlebar-nav :deep(.n-tabs-tab__label) {
+  gap: 8px;
+}
+
+.titlebar-nav :deep(.n-tabs-tab) .icon {
+  transform: translateY(-1px);
+}
+
+.titlebar-nav :deep(.n-tabs-tab:hover) {
   color: var(--text-primary);
 }
 
-.titlebar-nav-item:active {
-  transform: scale(0.98);
-  transition-duration: var(--duration-instant);
-}
-
-.titlebar-nav-item.active {
-  color: var(--primary);
-  font-weight: 600;
-  border-bottom-color: var(--primary);
-}
-
-.titlebar-nav-item.active:hover {
-  color: var(--primary-hover);
+/* 激活仅主色（不加粗、无背景、无边框），覆盖 glass.css 的胶囊样式 */
+.titlebar-nav :deep(.n-tabs-tab.n-tabs-tab--active),
+.titlebar-nav :deep(.n-tabs-tab.n-tabs-tab--active:hover) {
+  color: var(--primary) !important;
+  font-weight: 500;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .titlebar-right {

@@ -118,10 +118,12 @@ function onDocClick(e: MouseEvent) {
   flex-direction: column;
   gap: 2px;
   padding: 6px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
+  background: var(--card-bg);
+  border: 1px solid var(--control-border);
   border-radius: var(--r-sm);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-lg), inset 0 1px 0 var(--glass-highlight) !important;
+  backdrop-filter: blur(var(--glass-blur, 0px)) saturate(1.35);
+  -webkit-backdrop-filter: blur(var(--glass-blur, 0px)) saturate(1.35);
   z-index: 10000;
   min-width: 140px;
 }
@@ -145,11 +147,11 @@ function onDocClick(e: MouseEvent) {
 }
 
 .tray-menu-item:hover {
-  background: var(--bg-hover);
+  background: var(--control-bg-hover);
 }
 
 .tray-menu-item:active {
-  background: var(--bg-active);
+  background: var(--control-bg-active);
 }
 
 .tray-menu-label {

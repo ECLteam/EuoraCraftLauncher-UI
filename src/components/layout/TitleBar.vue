@@ -46,18 +46,12 @@
 
     <!-- 顶部导航菜单（横向标题栏模式，绝对定位居中） -->
     <nav v-if="topNavEnabled && !isFullscreenModalVisible" class="titlebar-nav" data-no-drag>
-      <button
-        v-for="item in menuItems"
-        :key="item.path"
-        class="titlebar-nav-item"
-        :class="{
-          active: route.path === item.path || (item.path !== '/' && route.path.startsWith(item.path)),
-        }"
-        @click="handleNavClick(item)"
-      >
-        <UiIcon :name="item.iconName" :size="16" />
-        <span>{{ item.label }}</span>
-      </button>
+      <NTabs :value="activeNavPath" type="segment" size="small" @update:value="handleNavTabChange">
+        <NTab v-for="item in menuItems" :key="item.path" :name="item.path">
+          <UiIcon :name="item.iconName" :size="16" />
+          <span>{{ item.label }}</span>
+        </NTab>
+      </NTabs>
     </nav>
 
     <!-- 右侧窗口控制 -->
@@ -86,6 +80,7 @@
 </template>
 
 <script setup lang="ts">
+import { NTab, NTabs } from 'naive-ui'
 import { computed, inject, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -126,8 +121,15 @@ const menuItems = computed(() =>
   }))
 )
 
-const handleNavClick = (item: { path: string }) => {
-  router.push(item.path)
+/** 当前激活导航路径：与旧按钮一致的前缀匹配，避免子路由（如 /settings/general）不命中父菜单 */
+const activeNavPath = computed(() => {
+  const path = route.path
+  const item = menuItems.value.find((i) => path === i.path || (i.path !== '/' && path.startsWith(i.path)))
+  return item?.path ?? (path === '/' ? '/' : '')
+})
+
+const handleNavTabChange = (key: string) => {
+  router.push(key)
 }
 
 const minimize = async () => {

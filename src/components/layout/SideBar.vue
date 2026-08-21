@@ -17,13 +17,12 @@
     </button>
 
     <!-- 导航区域 -->
-    <nav class="sidebar-nav" @mouseleave="handleMouseLeave">
+    <nav class="sidebar-nav">
       <!-- 插件：侧边栏顶部插槽 -->
       <div id="plugin-slot-sidebar-top" class="plugin-slot-container sidebar-plugin-slot"></div>
-      <div v-if="!isCollapsed" ref="activeBgRef" class="sidebar-active-bg"></div>
-      <div v-if="!isCollapsed" ref="indicatorRef" class="sidebar-active-indicator"></div>
+      <div ref="activeBgRef" class="sidebar-active-bg"></div>
 
-      <template v-for="(item, index) in menuItems" :key="item.path">
+      <template v-for="item in menuItems" :key="item.path">
         <button
           class="sidebar-item"
           :data-path="item.path"
@@ -31,7 +30,6 @@
             active: route.path === item.path || (item.path !== '/' && route.path.startsWith(item.path)),
           }"
           :title="isCollapsed ? item.label : undefined"
-          @mouseenter="!isCollapsed && handleMouseEnter(index)"
           @click.prevent="handleItemClick(item)"
         >
           <span class="sidebar-item-icon">
@@ -156,7 +154,6 @@ const message = useLauncherMessage()
 const { t } = useI18n()
 const { topNavEnabled } = useTopNav()
 
-const indicatorRef = ref<HTMLElement | null>(null)
 const activeBgRef = ref<HTMLElement | null>(null)
 
 const agreementAccepted = inject(
@@ -269,26 +266,19 @@ const handleHelpClick = () => {
   openExternalUrl(URLS.docs)
 }
 
-/** 通过实际 DOM 测量获取目标菜单项位置并更新指示器 */
+/** 通过实际 DOM 测量获取目标菜单项位置并更新激活背景块（折叠/展开均生效） */
 const updateActivePosition = (targetPath: string) => {
-  if (isCollapsed.value) return
   nextTick(() => {
-    const navEl = indicatorRef.value?.parentElement
+    const navEl = activeBgRef.value?.parentElement
     const targetEl = navEl?.querySelector(`.sidebar-item[data-path="${targetPath}"]`) as HTMLElement | null
-    if (!targetEl || !indicatorRef.value || !activeBgRef.value) return
+    if (!targetEl || !activeBgRef.value) return
     const top = targetEl.offsetTop
     const height = targetEl.offsetHeight
-    indicatorRef.value.style.top = `${top + 9}px`
-    indicatorRef.value.style.height = `${height - 18}px`
-    indicatorRef.value.style.opacity = '1'
     activeBgRef.value.style.top = `${top}px`
     activeBgRef.value.style.height = `${height}px`
     activeBgRef.value.style.opacity = '1'
   })
 }
-
-const updateIndicator = (targetPath: string) => updateActivePosition(targetPath)
-const updateActiveBg = (targetPath: string) => updateActivePosition(targetPath)
 
 const getActivePath = (): string => {
   const path = route.path
@@ -308,21 +298,16 @@ const getActivePath = (): string => {
   return ''
 }
 
-const handleMouseEnter = (index: number) => {
-  if (index < menuItems.value.length) {
-    const item = menuItems.value[index]
-    if (item) updateIndicator(item.path)
+// 折叠/展开切换时重新定位激活背景块
+watch(
+  isCollapsed,
+  () => {
+    nextTick(() => {
+      const activePath = getActivePath()
+      if (activePath) updateActivePosition(activePath)
+    })
   }
-}
-
-const handleMouseLeave = () => {
-  const activePath = getActivePath()
-  if (activePath) {
-    updateIndicator(activePath)
-  } else {
-    if (indicatorRef.value) indicatorRef.value.style.opacity = '0'
-  }
-}
+)
 
 watch(
   () => route.path,
@@ -330,10 +315,8 @@ watch(
     nextTick(() => {
       const activePath = getActivePath()
       if (activePath) {
-        updateIndicator(activePath)
-        updateActiveBg(activePath)
+        updateActivePosition(activePath)
       } else {
-        if (indicatorRef.value) indicatorRef.value.style.opacity = '0'
         if (activeBgRef.value) activeBgRef.value.style.opacity = '0'
       }
     })
@@ -341,16 +324,13 @@ watch(
   { immediate: true }
 )
 
-// 子菜单展开/折叠时重新计算指示器位置
+// 子菜单展开/折叠时重新计算激活背景块位置
 watch(
   () => [...expandedMenus.value],
   () => {
     nextTick(() => {
       const activePath = getActivePath()
-      if (activePath) {
-        updateIndicator(activePath)
-        updateActiveBg(activePath)
-      }
+      if (activePath) updateActivePosition(activePath)
     })
   },
   { deep: true }
@@ -360,8 +340,7 @@ onMounted(() => {
   const activePath = getActivePath()
   if (activePath) {
     setTimeout(() => {
-      updateIndicator(activePath)
-      updateActiveBg(activePath)
+      updateActivePosition(activePath)
     }, 100)
   }
 })
