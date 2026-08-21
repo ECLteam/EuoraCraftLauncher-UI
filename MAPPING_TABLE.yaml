@@ -1,8 +1,37 @@
-# MAPPING_TABLE — Folia 皮肤组件样式补全迁移
+# MAPPING_TABLE — 前端主题系统重构（双内置主题 + 独立外观设置）
 # 源: EuoraCraftLauncher-UI 仓库 tryfrontend2 分支（Folia 玻璃化设计参考）
-# 目标: frontend 主题系统 data-ui-skin='folia' 作用域皮肤
-# 策略: 适配新架构（混合模式）。tryfrontend2 全局改 base 值；此处改为
-#       classic 默认 token + folia 作用域覆盖，保证 classic 皮肤视觉不变。
+# 目标: 移除自定义主题系统，保留 classic/folia 双内置主题 + appearance 独立设置
+
+# 阶段 A（本文件前半部分）为 Folia 皮肤迁移的映射记录；阶段 B（本段起）为重构记录。
+# 阶段 B 方向（用户已确认）：内置主题仅 classic/folia；移除主题设计器/预设库/自定义
+#   scheme/自定义 CSS/语义色/密度/减少动效；保留卡片/控件/对话框圆角、卡片透明度(新增)、
+#   字体、主色、背景、定时切换；后端精简为 theme_id + appearance；folia 双皮肤放开约束。
+
+removal-map:
+  backend:
+    - 'ECL/services/themes.py: 删除会话/preset/import-export/sanitize 等，仅保留内置主题 id 与缺省'
+    - 'ECL/api/themes.py: 删除 ThemeHandlers（20 个 theme_* 方法）'
+    - 'ECL/api/models.py: 删除 Theme*Request 模型与 request_schemas/__all__ 条目'
+    - 'ECL/api/registry.py: 从 COMMAND_NAMES 删除全部 theme_*'
+    - 'ECL/api/bridge.py: 删除 ThemeService 实例化与 theme-studio 窗口类型/白名单'
+    - 'ECL/adapters/tauri.py: 删除 theme:design_* 事件（保留 theme:activated 或一并清理）'
+    - 'ECL/plugins/permissions.py + plugin.py: 删除 PermissionScope.THEME 与 themePresets/Effects/Tokens 贡献'
+    - 'ECL/utils/config.py: ui.theme 默认值改为 theme_id + mode + primary_color + appearance(radius/card_opacity/font) + schedule'
+  frontend:
+    - 'types/api.ts: ThemeConfig 去 scheme、appearance 去 semantic/custom_css/density，增 theme_id/card_opacity；删 ThemePresetV1 等'
+    - 'config/theme.ts: 去 custom，增 BUILTIN_THEMES/CARD_OPACITY 常量'
+    - 'features/themes/: 整个目录删除（api/store/Canvas/Studio/PresetLibrary/runtime/测试）'
+    - 'composables/useTheme.ts: 增 themeId/setThemeId（写 data-ui-skin），去 scheme/custom，appearance 精简，card_opacity 写 --card-opacity'
+    - 'composables/useUiSkin.ts: UiSkin 类型本地化（去 themeRuntime 依赖）'
+    - 'App.vue: 删除 ThemeDesignerCanvas 与 themeDesigner.initialize()'
+    - 'views/settings/AppearanceTab.vue/.css: 增主题选择器+卡片透明度滑块，移除 designer/library/scheme/semantic/custom css/density'
+  keep:
+    - '外观保留：卡片/控件/对话框圆角、字体、卡片透明度(新)、主色、背景、定时切换'
+    - 'isFolia 条件标记（TitleBar/Game 等）保留'
+    - 'data-ui-skin 双皮肤架构保留'
+
+## 阶段 A 遗留映射（folia 皮肤迁移，已实施）
+# 以下为阶段 A 的记录，保留供追溯。
 
 ## 令牌映射（token）
 # 新增 --control-* token 族（classic 默认值 = 原值，folia 值 = 玻璃化）
