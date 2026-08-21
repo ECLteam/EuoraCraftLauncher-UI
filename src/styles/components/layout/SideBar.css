@@ -151,6 +151,18 @@
   background: transparent;
 }
 
+/* footer 项（调试等）位于 nav 之外，激活胶囊覆盖不到，active 时自身显示高亮 */
+.sidebar-footer .sidebar-item.active {
+  background: var(--sidebar-item-active-bg);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.sidebar-footer .sidebar-item.active:hover {
+  color: var(--primary);
+  background: var(--sidebar-item-active-bg);
+}
+
 .sidebar-item-chevron {
   display: none;
   align-items: center;

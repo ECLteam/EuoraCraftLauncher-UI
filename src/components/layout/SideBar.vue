@@ -282,10 +282,10 @@ const updateActivePosition = (targetPath: string) => {
 
 const getActivePath = (): string => {
   const path = route.path
-  // 先精确匹配子菜单项
+  // 子菜单项命中 → 返回父菜单 path（父项始终可见，激活胶囊定位到父项）
   for (const parentPath of Object.keys(subItemsMap.value)) {
     const sub = subItemsMap.value[parentPath]?.find((s) => s.path === path)
-    if (sub) return sub.path
+    if (sub) return parentPath
   }
   // 精确匹配父菜单项
   const exact = menuItems.value.find((item) => item.path === path)
