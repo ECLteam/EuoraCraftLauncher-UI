@@ -191,7 +191,8 @@
   --bg-opacity: 0.2;
   --bg-blur: 0px;
   --glass-blur: 0px;
-  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  --glass-backdrop: none;
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0);
   --aurora-opacity: 1;
 }
 
@@ -260,7 +261,8 @@
   --bg-overlay-tint: rgba(0, 0, 0, 0.2);
   --window-border: rgba(255, 255, 255, 0.12);
   --glass-blur: 0px;
-  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --glass-backdrop: none;
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0);
 }
 
 *,

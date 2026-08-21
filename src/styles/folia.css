@@ -42,6 +42,7 @@
   --control-glow: 0 4px 14px rgba(var(--primary-rgb, 91, 111, 245), 0.16);
   --slider-track: rgba(var(--primary-rgb, 91, 111, 245), 0.18);
   --glass-blur: 18px;
+  --glass-backdrop: blur(var(--glass-blur, 18px)) saturate(1.35);
   --aurora-opacity: 1;
   --aurora-c1: rgba(var(--primary-rgb, 91, 111, 245), 0.12);
   --aurora-c2: rgba(109, 155, 255, 0.1);
@@ -77,6 +78,7 @@
   --control-glow: 0 4px 16px rgba(var(--primary-rgb, 130, 145, 255), 0.22);
   --slider-track: rgba(var(--primary-rgb, 130, 145, 255), 0.28);
   --glass-blur: 18px;
+  --glass-backdrop: blur(var(--glass-blur, 18px)) saturate(1.35);
   --aurora-opacity: 1;
 }
 

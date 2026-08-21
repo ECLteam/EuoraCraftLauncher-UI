@@ -63,8 +63,8 @@
   border: 1px solid var(--control-border);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-md), inset 0 1px 0 var(--glass-highlight);
-  backdrop-filter: blur(var(--glass-blur, 0px)) saturate(1.35);
-  -webkit-backdrop-filter: blur(var(--glass-blur, 0px)) saturate(1.35);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
 }
 
 .select-search {

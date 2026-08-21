@@ -19,6 +19,8 @@
   flex-direction: column;
   background: transparent;
   overflow: hidden;
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
 }
 
 .fullscreen-modal-body {

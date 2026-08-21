@@ -14,6 +14,9 @@
   background: var(--card-bg);
   border: 1px solid var(--ecl-border);
   border-radius: var(--r-sm);
+  box-shadow: var(--ecl-shadow-pop), inset 0 1px 0 var(--glass-highlight);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
   min-width: 324px;
   max-width: 90vw;
   max-height: 90vh;
