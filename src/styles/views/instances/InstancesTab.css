@@ -54,8 +54,8 @@
   padding: 4px 9px;
   font-size: 11px;
   color: var(--text-secondary);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
+  background: var(--control-bg);
+  border: 1px solid var(--control-border);
   border-radius: var(--r-sm);
   cursor: pointer;
   white-space: nowrap;
@@ -65,7 +65,8 @@
 
 .btn-refresh:hover:not(:disabled) {
   color: var(--primary);
-  border-color: var(--primary);
+  border-color: var(--control-border-hover);
+  background: var(--control-bg-hover);
 }
 
 .btn-refresh:disabled {
@@ -80,8 +81,8 @@
   width: 216px;
   min-width: 108px;
   height: 32px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
+  background: var(--control-bg);
+  border: 1px solid var(--control-border);
   border-radius: var(--r-sm);
   transition: border-color var(--duration-fast) ease-out;
   flex-shrink: 1;
@@ -186,6 +187,7 @@
   height: 100%;
   overflow-y: auto;
   padding: var(--s-lg);
+  contain: layout;
 }
 
 .virtual-scroll-container {
@@ -281,8 +283,8 @@
   width: 29px;
   height: 29px;
   border-radius: var(--r-sm);
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
+  border: 1px solid var(--control-border);
+  background: var(--control-bg);
   color: var(--text-tertiary);
   cursor: pointer;
   transition: all var(--duration-fast) ease-out;

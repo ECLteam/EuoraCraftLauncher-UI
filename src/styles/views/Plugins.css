@@ -4,6 +4,7 @@
   min-height: 0;
   margin: 0 auto;
   overflow: auto;
+  contain: layout;
 }
 
 .plugins-panel {
@@ -46,6 +47,7 @@
   min-height: 0;
   flex: 1;
   overflow: auto;
+  contain: layout;
 }
 
 .plugins-spin,

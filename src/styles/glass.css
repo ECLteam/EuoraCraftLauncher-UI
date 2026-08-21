@@ -20,6 +20,52 @@
   -webkit-backdrop-filter: blur(var(--glass-blur, 0px)) saturate(1.35);
 }
 
+/* Select/Popselect 下拉弹层：与全局悬浮层同款玻璃材质（半透明玻璃底 + 主色倾向边框 + 顶部高光）
+   box-shadow 由 naive themeOverrides 的 Select.menuBoxShadow 注入（CSS 覆盖会被 layer 优先级覆盖） */
+.n-base-select-menu {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--control-border) !important;
+  border-radius: var(--r-sm);
+  backdrop-filter: blur(var(--glass-blur, 0px)) saturate(1.35) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur, 0px)) saturate(1.35) !important;
+}
+
+.n-base-select-menu .n-base-select-option--selected,
+.n-base-select-menu .n-base-select-option--selected:hover {
+  color: var(--primary) !important;
+}
+
+/* 高亮作用于 naive 的 ::before 药丸形状（内缩圆角块），而非整行背景 */
+.n-base-select-menu .n-base-select-option--selected::before,
+.n-base-select-menu .n-base-select-option--selected:hover::before,
+.n-base-select-menu .n-base-select-option--selected.n-base-select-option--pending::before {
+  background: var(--control-bg-active) !important;
+}
+
+.n-base-select-menu .n-base-select-option--pending::before {
+  background: var(--control-bg-hover) !important;
+}
+
+/* Select 触发器玻璃化：naive 的 --n-color 为纯白（Select.color overrides 不映射触发器），需 CSS 强制覆盖 */
+.n-base-selection {
+  background: var(--control-bg) !important;
+  border: 1px solid var(--control-border) !important;
+  backdrop-filter: blur(var(--glass-blur, 0px)) saturate(1.35) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur, 0px)) saturate(1.35) !important;
+}
+
+.n-base-selection .n-base-selection-label,
+.n-base-selection .n-base-selection-input {
+  background: transparent !important;
+}
+
+/* 分段标签页容器玻璃化：rail 背景变量不受 tabColor 控制，直接覆盖 */
+.n-tabs--segment-type .n-tabs-rail {
+  background: var(--control-bg) !important;
+  backdrop-filter: blur(var(--glass-blur, 0px)) saturate(1.35) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur, 0px)) saturate(1.35) !important;
+}
+
 /* 分段标签页激活态：主色背景胶囊 + 主色边框 + 主色文字（深色下增强对比） */
 .n-tabs--segment-type .n-tabs-tab.n-tabs-tab--active,
 .n-tabs--segment-type .n-tabs-tab.n-tabs-tab--active:hover {

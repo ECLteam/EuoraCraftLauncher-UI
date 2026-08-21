@@ -33,3 +33,4 @@ vite.config.d.ts
 
 .memory/
 docs/junsi-dev-docs/
+.playwright-mcp/

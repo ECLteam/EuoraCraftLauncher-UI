@@ -60,15 +60,17 @@
 }
 
 .running-instances-trigger.inactive {
-  border-color: var(--border-strong);
-  background: var(--bg-elevated);
+  border-color: var(--control-border);
+  background: var(--control-bg);
+  backdrop-filter: blur(var(--glass-blur, 0px)) saturate(1.35);
+  -webkit-backdrop-filter: blur(var(--glass-blur, 0px)) saturate(1.35);
   box-shadow: none;
   color: var(--text-tertiary);
 }
 
 .running-instances-trigger.inactive:hover {
-  border-color: var(--border-hover);
-  background: var(--bg-hover);
+  border-color: var(--control-border-hover);
+  background: var(--control-bg-hover);
   box-shadow: none;
   color: var(--text-secondary);
 }

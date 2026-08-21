@@ -411,6 +411,9 @@ function createThemeOverrides(
       borderHover: `1px solid ${rgba(primaryScale.primary, 0.5)}`,
       borderActive: `1px solid ${rgba(primaryScale.primary, 0.65)}`,
       boxShadowFocus: `0 0 0 2px ${rgba(primaryScale.primary, 0.18)}`,
+      menuBoxShadow: isDark
+        ? '0 8px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08)'
+        : '0 8px 24px rgba(21,31,52,0.10), inset 0 1px 0 rgba(255,255,255,0.55)',
     },
     Switch: {
       railColor: rgba(primaryScale.primary, 0.25),
@@ -446,6 +449,7 @@ function createThemeOverrides(
       padding: '20px',
     },
     Tabs: {
+      tabColor: baseColors.cardBackground,
       tabBorderRadius: '6px',
       tabColorSegment: rgba(primaryScale.primary, 0.1),
       tabBorderColorSegment: rgba(primaryScale.primary, 0.15),
