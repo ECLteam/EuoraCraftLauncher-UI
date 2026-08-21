@@ -10,13 +10,13 @@
   width: 100%;
   height: 29px;
   padding: 0 9px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--control-border);
   border-radius: var(--r-sm);
-  background: var(--bg-elevated);
+  background: var(--control-bg);
   color: var(--text-primary);
   font-size: 12px;
   outline: none;
-  transition: border-color var(--duration-fast) var(--ease-standard);
+  transition: border-color var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard);
 }
 
 .ui-input::placeholder {
@@ -24,11 +24,12 @@
 }
 
 .ui-input:hover:not(:disabled):not(:read-only) {
-  border-color: var(--border-hover);
+  border-color: var(--control-border-hover);
 }
 
 .ui-input:focus {
-  border-color: var(--border-focus);
+  border-color: var(--control-border-focus);
+  box-shadow: var(--control-ring);
 }
 
 .ui-input:disabled,

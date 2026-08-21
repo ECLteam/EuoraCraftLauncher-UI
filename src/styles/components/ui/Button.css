@@ -57,6 +57,7 @@
   background: var(--primary-hover);
   border-color: var(--primary-hover);
   transform: translateY(-1px);
+  box-shadow: var(--control-glow);
 }
 
 .btn-primary:active:not(:disabled) {
@@ -67,19 +68,20 @@
 }
 
 .btn-secondary {
-  background: var(--bg-elevated);
+  background: var(--control-bg);
   color: var(--text-primary);
-  border-color: var(--border);
+  border-color: var(--control-border);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--bg-hover);
-  border-color: var(--border-hover);
+  background: var(--control-bg-hover);
+  border-color: var(--control-border-hover);
   transform: translateY(-1px);
+  box-shadow: var(--control-glow);
 }
 
 .btn-secondary:active:not(:disabled) {
-  background: var(--bg-active);
+  background: var(--control-bg-active);
   transform: translateY(0) scale(0.98);
   transition-duration: var(--duration-instant);
 }
@@ -95,6 +97,7 @@
   border-color: var(--primary-hover);
   color: var(--primary-hover);
   transform: translateY(-1px);
+  box-shadow: var(--control-glow);
 }
 
 .btn-outline:active:not(:disabled) {
@@ -112,13 +115,13 @@
 }
 
 .btn-text:hover:not(:disabled) {
-  background: var(--bg-hover);
+  background: var(--control-bg-hover);
   color: var(--text-primary);
   transform: translateY(-1px);
 }
 
 .btn-text:active:not(:disabled) {
-  background: var(--bg-active);
+  background: var(--control-bg-active);
   color: var(--text-primary);
   transform: translateY(0) scale(0.98);
   transition-duration: var(--duration-instant);
@@ -131,14 +134,15 @@
 }
 
 .btn-ghost:hover:not(:disabled) {
-  background: var(--bg-hover);
+  background: var(--control-bg-hover);
   color: var(--text-primary);
-  border-color: var(--border-hover);
+  border-color: var(--control-border-hover);
   transform: translateY(-1px);
+  box-shadow: var(--control-glow);
 }
 
 .btn-ghost:active:not(:disabled) {
-  background: var(--bg-active);
+  background: var(--control-bg-active);
   transform: translateY(0) scale(0.96);
   transition-duration: var(--duration-instant);
 }
@@ -154,6 +158,7 @@
   border-color: var(--error);
   transform: translateY(-1px);
   filter: brightness(1.08);
+  box-shadow: 0 4px 14px rgba(229, 92, 92, 0.2);
 }
 
 .btn-danger:active:not(:disabled) {

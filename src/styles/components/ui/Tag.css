@@ -29,8 +29,8 @@
 }
 
 .ui-tag--default {
-  background: var(--ecl-hover);
-  color: var(--ecl-text-secondary);
+  background: color-mix(in srgb, var(--text-secondary) 12%, transparent);
+  color: var(--text-secondary);
 }
 
 .ui-tag--primary {
