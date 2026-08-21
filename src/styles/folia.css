@@ -160,8 +160,7 @@
   background: var(--control-bg-hover);
 }
 
-[data-ui-skin='folia'] .sidebar-item.active,
-[data-ui-skin='folia'] .sidebar-footer .sidebar-item.active {
+[data-ui-skin='folia'] .sidebar-item.active {
   background: transparent;
   box-shadow: none;
 }

@@ -282,12 +282,23 @@ const updateActivePosition = (targetPath: string) => {
     if (!targetEl || !indicatorRef.value || !activeBgRef.value) return
     const top = targetEl.offsetTop
     const height = targetEl.offsetHeight
+    // 激活背景块：隐藏状态先无过渡定位到目标再显示，避免从旧位置滑过来
+    const hidden = !activeBgRef.value.style.opacity || activeBgRef.value.style.opacity === '0'
+    if (hidden) {
+      activeBgRef.value.style.transition = 'none'
+      activeBgRef.value.style.top = `${top}px`
+      activeBgRef.value.style.height = `${height}px`
+      void activeBgRef.value.offsetHeight
+      activeBgRef.value.style.transition = ''
+      activeBgRef.value.style.opacity = '1'
+    } else {
+      activeBgRef.value.style.top = `${top}px`
+      activeBgRef.value.style.height = `${height}px`
+      activeBgRef.value.style.opacity = '1'
+    }
     indicatorRef.value.style.top = `${top + 9}px`
     indicatorRef.value.style.height = `${height - 18}px`
     indicatorRef.value.style.opacity = '1'
-    activeBgRef.value.style.top = `${top}px`
-    activeBgRef.value.style.height = `${height}px`
-    activeBgRef.value.style.opacity = '1'
   })
 }
 
@@ -296,10 +307,10 @@ const updateActiveBg = (targetPath: string) => updateActivePosition(targetPath)
 
 const getActivePath = (): string => {
   const path = route.path
-  // 先精确匹配子菜单项
+  // 子菜单项命中 → 返回父菜单 path（父项始终可见，激活胶囊定位到父项）
   for (const parentPath of Object.keys(subItemsMap.value)) {
     const sub = subItemsMap.value[parentPath]?.find((s) => s.path === path)
-    if (sub) return sub.path
+    if (sub) return parentPath
   }
   // 精确匹配父菜单项
   const exact = menuItems.value.find((item) => item.path === path)

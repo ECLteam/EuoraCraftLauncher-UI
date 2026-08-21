@@ -222,6 +222,14 @@
   background: var(--sidebar-item-active-bg);
 }
 
+/* footer 项（调试等）位于 nav 之外，激活胶囊覆盖不到，active 时自身显示高亮 */
+.sidebar-footer .sidebar-item.active,
+.sidebar-footer .sidebar-item.active:hover {
+  background: var(--sidebar-item-active-bg) !important;
+  color: var(--primary);
+  font-weight: 600;
+}
+
 .sidebar-sub-item.active .sidebar-item-icon {
   opacity: 1;
 }
