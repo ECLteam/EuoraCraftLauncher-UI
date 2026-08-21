@@ -17,7 +17,10 @@
           <template #prefix><UiIcon name="search" :size="14" /></template>
         </NInput>
 
-        <NRadioGroup v-model:value="activeFilter" size="small">
+        <NTabs v-if="isFolia" v-model:value="activeFilter" type="segment" size="small">
+          <NTab v-for="filter in filters" :key="filter.key" :name="filter.key">{{ filter.label }}</NTab>
+        </NTabs>
+        <NRadioGroup v-else v-model:value="activeFilter" size="small">
           <NRadioButton v-for="filter in filters" :key="filter.key" :value="filter.key">
             {{ filter.label }}
           </NRadioButton>
@@ -122,18 +125,20 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NEmpty, NInput, NPopconfirm, NRadioButton, NRadioGroup, NSpace, NSpin, NTag } from 'naive-ui'
+import { NButton, NEmpty, NInput, NPopconfirm, NRadioButton, NRadioGroup, NSpace, NSpin, NTab, NTabs, NTag } from 'naive-ui'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
+import { useUiSkin } from '@/composables/useUiSkin'
 import PluginSettingsModal from '@/features/plugins/components/PluginSettingsModal.vue'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { usePluginStore } from '@/features/plugins/stores/pluginStore'
 import type { PluginInfo } from '@/types/api'
 
 const { t } = useI18n()
+const { isFolia } = useUiSkin()
 const { run } = useAsyncAction({ showSuccess: false, showError: false })
 const pluginStore = usePluginStore()
 const { plugins, loading, reloadingPlugins } = storeToRefs(pluginStore)

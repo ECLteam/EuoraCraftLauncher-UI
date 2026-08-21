@@ -23,7 +23,18 @@
               />
             </div>
             <div class="wardrobe-category-row">
-              <NButtonGroup size="small">
+              <NTabs
+                v-if="isFolia"
+                :value="activeTab"
+                type="segment"
+                size="small"
+                @update:value="handleTabChange"
+              >
+                <NTab name="skin">{{ t('wardrobe.skins') }}</NTab>
+                <NTab name="cape">{{ t('wardrobe.localCapes') }}</NTab>
+                <NTab name="official">{{ t('wardrobe.officialCapes') }}</NTab>
+              </NTabs>
+              <NButtonGroup v-else size="small">
                 <NButton :type="activeTab === 'skin' ? 'primary' : 'default'" @click="activeTab = 'skin'">
                   {{ t('wardrobe.skins') }}
                 </NButton>
@@ -287,7 +298,7 @@
 </template>
 
 <script setup lang="ts">
-import { NAlert, NButton, NButtonGroup, NCheckbox, NEmpty, NInput, NPopconfirm, NSelect, NSpin, NTag } from 'naive-ui'
+import { NAlert, NButton, NButtonGroup, NCheckbox, NEmpty, NInput, NPopconfirm, NSelect, NSpin, NTab, NTabs, NTag } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import backend from '@/api/client'
@@ -296,6 +307,7 @@ import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { clearAvatarCache, fetchTextureDataUrl } from '@/composables/useAvatarRenderer'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
+import { useUiSkin } from '@/composables/useUiSkin'
 import { accountsApi } from '@/features/accounts/api/accountsApi'
 import SkinViewer3D from '@/features/accounts/components/SkinViewer3D.vue'
 import { detectSkinModel } from '@/features/accounts/composables/useSkinModelDetector'
@@ -316,11 +328,17 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const message = useLauncherMessage()
+const { isFolia } = useUiSkin()
 const accountStore = useAccountStore()
 const items = ref<WardrobeItem[]>([])
 const textureUrls = ref<Record<string, string>>({})
 const officialCapeUrls = ref<Record<string, string>>({})
 const activeTab = ref<'skin' | 'cape' | 'official'>('skin')
+
+function handleTabChange(value: string | number) {
+  if (value === 'skin' || value === 'cape' || value === 'official') activeTab.value = value
+}
+
 const selectedLocal = ref<WardrobeItem | null>(null)
 const selectedOfficialCape = ref<MicrosoftCape | null>(null)
 const selectedSkinUrl = ref('')
@@ -722,6 +740,24 @@ async function downloadSkin(): Promise<void> {
   display: flex;
   align-items: center;
   gap: var(--s-xs);
+}
+
+.wardrobe-category-row :deep(.n-tabs) {
+  flex: 0 0 auto;
+  width: 280px;
+}
+
+.wardrobe-category-row :deep(.n-tabs-rail) {
+  display: flex;
+  width: 100%;
+}
+
+.wardrobe-category-row :deep(.n-tabs-tab-wrapper) {
+  flex: 1;
+}
+
+.wardrobe-category-row :deep(.n-tabs-tab) {
+  justify-content: center;
 }
 
 .wardrobe-account-select {

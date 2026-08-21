@@ -2,7 +2,21 @@
   <div class="tab-pane appearance-settings">
     <SettingSection :title="t('settings.appearance')">
       <SettingRow :label="t('settings.theme')" :description="t('settings.themeDesc')">
-        <NRadioGroup :value="currentSettings.mode" size="small" @update:value="handleThemeChange">
+        <NTabs
+          v-if="isFolia"
+          :value="currentSettings.mode"
+          type="segment"
+          size="small"
+          @update:value="handleThemeChange"
+        >
+          <NTab v-for="option in themeOptions" :key="option.value" :name="option.value">
+            <span class="theme-option-label">
+              <UiIcon :name="option.icon" :size="14" />
+              {{ option.label }}
+            </span>
+          </NTab>
+        </NTabs>
+        <NRadioGroup v-else :value="currentSettings.mode" size="small" @update:value="handleThemeChange">
           <NRadioButton v-for="option in themeOptions" :key="option.value" :value="option.value">
             <span class="theme-option-label">
               <UiIcon :name="option.icon" :size="14" />
@@ -188,7 +202,7 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NInput, NInputGroup, NRadioButton, NRadioGroup, NSelect, NSlider, NSwitch, NTimePicker } from 'naive-ui'
+import { NButton, NInput, NInputGroup, NRadioButton, NRadioGroup, NSelect, NSlider, NSwitch, NTab, NTabs, NTimePicker } from 'naive-ui'
 import { computed, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
@@ -196,6 +210,7 @@ import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { presetColors, useTheme, type ThemeMode } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
+import { useUiSkin } from '@/composables/useUiSkin'
 import { DEFAULT_PRIMARY_COLOR, FONT_FAMILY_OPTIONS, THEME_MODE_OPTIONS } from '@/config/theme'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { settingsApi } from '@/features/settings/api/settingsApi'
@@ -243,6 +258,7 @@ const {
   colors,
 } = useTheme()
 const { topNavEnabled, toggleTopNav } = useTopNav()
+const { isFolia } = useUiSkin()
 
 const currentSettings = computed(() => ({
   mode: themeMode.value,

@@ -68,6 +68,17 @@ tokens:
     classic: "1"
     folia: "1"
     note: "[data-aurora='0'] 时置 0；main-line 已在 App.vue 添加 .aurora-bg 元素"
+  glass-backdrop:
+    source: "tryfrontend2: backdrop-filter: blur(var(--glass-blur)) saturate(1.35)（叠加层/弹窗）"
+    classic: "none"
+    folia: "blur(var(--glass-blur, 18px)) saturate(1.35)"
+    note: "classic 下为 none 保证零视觉影响；folia 下玻璃模糊。saturate(1.35) 随 --glass-blur 一并控制"
+  glass-highlight-classic:
+    source: "tryfrontend2 base.css: inset 0 1px 0 rgba(255,255,255,0.55)"
+    classic: "inset 0 1px 0 rgba(255,255,255,0)"  # 透明：classic 消费该变量时零视觉影响
+    folia: "inset 0 1px 0 rgba(255,255,255,0.55)"
+    folia-dark: "inset 0 1px 0 rgba(255,255,255,0.08)"
+    note: "Batch 1 曾设 classic 为白色高光，Batch 3 修正为透明，保证 classic 不被新增消费改变"
 
 ## 组件 CSS 映射（component → 变更）
 components:
