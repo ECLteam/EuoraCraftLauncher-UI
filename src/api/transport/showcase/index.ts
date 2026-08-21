@@ -8,8 +8,6 @@ import type {
   GameInstance,
   MinecraftAccount,
   PluginInfo,
-  ThemeDesignSessionSnapshot,
-  ThemePresetV1,
   VersionRunStats,
   WardrobeItem,
 } from '@/types/api'
@@ -82,50 +80,6 @@ export function createShowcaseTransport(): BackendTransport {
   }
   let portScanCount = 0
   let connectorStartTimer: ReturnType<typeof setTimeout> | null = null
-  let activeTheme: ThemePresetV1 = {
-    schemaVersion: 1,
-    id: 'showcase.theme',
-    meta: { name: 'Showcase Theme', author: 'ECL' },
-    schemes: {
-      light: { canvas: '#f4f6fa', surface: 'rgba(255,255,255,.88)', text: '#1d2433' },
-      dark: { canvas: '#171a21', surface: 'rgba(34,38,48,.88)', text: '#f1f3f7' },
-      midnight: { canvas: '#101322', surface: 'rgba(24,28,48,.9)', text: '#dbe2ff', primary: '#8a97ff' },
-    },
-    schemeMeta: { midnight: { label: '午夜蓝', dark: true } },
-    tokens: {
-      primary: '#5b6ff5',
-      radiusControl: '6px',
-      radiusCard: '8px',
-      radiusDialog: '10px',
-      shadowSurface: '0 1px 2px rgba(0,0,0,.08)',
-      fontBody: 'HarmonyOS Sans SC',
-    },
-    background: {},
-    componentOverrides: {},
-    nodeOverrides: {},
-    instanceOverrides: {},
-    effects: [],
-    assets: {},
-    pluginDependencies: [],
-    extensions: {},
-  }
-  let themeSession: ThemeDesignSessionSnapshot | null = null
-  const themeUndo: ThemePresetV1[] = []
-  const themeRedo: ThemePresetV1[] = []
-
-  const patchTheme = (target: Record<string, unknown>, path: string, value: unknown, remove: boolean) => {
-    const parts = path
-      .slice(1)
-      .split('/')
-      .map((part) => part.replaceAll('~1', '/').replaceAll('~0', '~'))
-    let cursor = target
-    for (const key of parts.slice(0, -1)) {
-      if (!cursor[key] || typeof cursor[key] !== 'object') cursor[key] = {}
-      cursor = cursor[key] as Record<string, unknown>
-    }
-    if (remove) delete cursor[parts.at(-1)!]
-    else cursor[parts.at(-1)!] = value
-  }
 
   const hostPlayer = {
     name: 'CloudMaple685',
@@ -259,128 +213,6 @@ export function createShowcaseTransport(): BackendTransport {
     const payload = getPayload(rawPayload)
 
     switch (command) {
-      case 'theme_list':
-        return success([
-          {
-            id: activeTheme.id,
-            name: activeTheme.meta.name,
-            author: activeTheme.meta.author,
-            source: 'user',
-            readonly: false,
-          },
-        ])
-      case 'theme_active':
-      case 'theme_get':
-      case 'theme_activate':
-        return success(structuredClone(activeTheme))
-      case 'theme_save':
-        activeTheme = structuredClone(payload.preset as ThemePresetV1)
-        return success(structuredClone(activeTheme))
-      case 'theme_delete':
-        return success()
-      case 'theme_import':
-        return success({ preset: structuredClone(activeTheme), originalId: activeTheme.id, importedId: activeTheme.id })
-      case 'theme_export':
-        return success({ path: String(payload.output_path || 'Showcase/theme.ecltheme') })
-      case 'theme_asset':
-        return failure('展示主题没有本地资源', 'THEME_ASSET_NOT_FOUND')
-      case 'theme_extensions':
-        return success({ effects: [], tokens: [], nodes: [], windows: [] })
-      case 'theme_design_start': {
-        const draft = structuredClone(activeTheme)
-        themeSession = {
-          sessionId: crypto.randomUUID().replaceAll('-', ''),
-          presetId: draft.id,
-          basePreset: structuredClone(draft),
-          draft,
-          selection: null,
-          revision: 0,
-          dirty: false,
-          canUndo: false,
-          canRedo: false,
-          showSlots: false,
-          slotHosts: [],
-          pluginDependencies: [],
-        }
-        emit('theme:design_changed', structuredClone(themeSession))
-        return success(structuredClone(themeSession))
-      }
-      case 'theme_design_get':
-        return themeSession
-          ? success(structuredClone(themeSession))
-          : failure('展示设计会话不存在', 'THEME_SESSION_NOT_FOUND')
-      case 'theme_design_select':
-        if (!themeSession) return failure('展示设计会话不存在', 'THEME_SESSION_NOT_FOUND')
-        themeSession.selection = payload.selection as ThemeDesignSessionSnapshot['selection']
-        themeSession.revision += 1
-        emit('theme:selection_changed', structuredClone(themeSession))
-        return success(structuredClone(themeSession))
-      case 'theme_design_overlay':
-        if (!themeSession) return failure('展示设计会话不存在', 'THEME_SESSION_NOT_FOUND')
-        themeSession.showSlots = payload.show_slots === true
-        if (Array.isArray(payload.slot_hosts))
-          themeSession.slotHosts = structuredClone(payload.slot_hosts) as ThemeDesignSessionSnapshot['slotHosts']
-        emit('theme:overlay_changed', structuredClone(themeSession))
-        return success(structuredClone(themeSession))
-      case 'theme_design_patch':
-        if (!themeSession) return failure('展示设计会话不存在', 'THEME_SESSION_NOT_FOUND')
-        if (payload.expected_revision !== themeSession.revision)
-          return { ...failure('revision conflict', 'THEME_REVISION_CONFLICT'), data: structuredClone(themeSession) }
-        themeUndo.push(structuredClone(themeSession.draft))
-        themeRedo.length = 0
-        for (const operation of payload.operations as Array<{ op: 'set' | 'remove'; path: string; value?: unknown }>)
-          patchTheme(
-            themeSession.draft as unknown as Record<string, unknown>,
-            operation.path,
-            operation.value,
-            operation.op === 'remove'
-          )
-        themeSession.revision += 1
-        themeSession.dirty = true
-        themeSession.canUndo = true
-        themeSession.canRedo = false
-        emit('theme:preview_changed', structuredClone(themeSession))
-        return success(structuredClone(themeSession))
-      case 'theme_design_undo':
-      case 'theme_design_redo': {
-        if (!themeSession) return failure('展示设计会话不存在', 'THEME_SESSION_NOT_FOUND')
-        const source = command.endsWith('undo') ? themeUndo : themeRedo
-        const destination = command.endsWith('undo') ? themeRedo : themeUndo
-        const draft = source.pop()
-        if (draft) {
-          destination.push(structuredClone(themeSession.draft))
-          themeSession.draft = draft
-          themeSession.revision += 1
-          themeSession.dirty = true
-        }
-        themeSession.canUndo = themeUndo.length > 0
-        themeSession.canRedo = themeRedo.length > 0
-        emit('theme:preview_changed', structuredClone(themeSession))
-        return success(structuredClone(themeSession))
-      }
-      case 'theme_design_commit':
-        if (!themeSession) return failure('展示设计会话不存在', 'THEME_SESSION_NOT_FOUND')
-        activeTheme = structuredClone(themeSession.draft)
-        themeSession.basePreset = structuredClone(activeTheme)
-        themeSession.dirty = false
-        themeSession.revision += 1
-        emit('theme:activated', { presetId: activeTheme.id, preset: structuredClone(activeTheme) })
-        emit('theme:design_committed', structuredClone(themeSession))
-        return success(structuredClone(themeSession))
-      case 'theme_design_save_as':
-        if (!themeSession) return failure('展示设计会话不存在', 'THEME_SESSION_NOT_FOUND')
-        themeSession.draft.id = `showcase.${Date.now()}`
-        themeSession.draft.meta.name = String(payload.name || 'Showcase Theme Copy')
-        activeTheme = structuredClone(themeSession.draft)
-        themeSession.presetId = activeTheme.id
-        themeSession.basePreset = structuredClone(activeTheme)
-        themeSession.dirty = false
-        themeSession.revision += 1
-        return success(structuredClone(themeSession))
-      case 'theme_design_discard':
-        if (themeSession) emit('theme:design_discarded', { sessionId: themeSession.sessionId })
-        themeSession = null
-        return success()
       case 'window_open':
         return failure('展示模式使用同页主题控制台', 'WINDOW_NATIVE_UNAVAILABLE')
       case 'window_list':
