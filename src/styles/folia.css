@@ -196,6 +196,12 @@
   -webkit-backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.25);
 }
 
+/* 搜索框聚焦：外圈圆角高亮（跟随 .search-box 圆角），覆盖各处 focus-within 仅变边框 */
+[data-ui-skin='folia'] .search-box:focus-within {
+  border-color: var(--control-border-focus) !important;
+  box-shadow: var(--control-ring) !important;
+}
+
 [data-ui-skin='folia'] .ui-btn.btn-secondary,
 [data-ui-skin='folia'] .btn-refresh,
 [data-ui-skin='folia'] .search-box,

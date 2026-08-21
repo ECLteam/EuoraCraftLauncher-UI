@@ -394,6 +394,14 @@ img {
   box-shadow: var(--glow-focus);
 }
 
+/* 输入类元素不应用全局 focus ring（交给各控件自身边框/圆角高亮），避免矩形高亮误伤 */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[contenteditable='true']:focus-visible {
+  box-shadow: none;
+}
+
 .glass {
   background: var(--card-bg);
   border-top: var(--card-border-top);

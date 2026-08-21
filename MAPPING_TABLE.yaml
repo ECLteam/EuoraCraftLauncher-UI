@@ -162,3 +162,9 @@ view-surfaces:
   - 'hover 组新增: .connect-room-card:hover .connect-main-card:hover .mod-list-row:hover → border rgba(primary,0.48) + shadow 0 8px 24px rgba(primary,0.1)'
   # Batch 6：追加进 .page-header 边框组的表头/面板头
   - '边框组追加: .mods-panel-header .task-queue-body .piv-footer → border-color var(--folia-glass-border)'
+  # Batch 8：焦点高亮组（tryfrontend2 830a699）
+  # 1) 全局 :focus-visible 输入类豁免 → base.css 追加 input/textarea/select/[contenteditable] box-shadow:none
+  #    （与参考提交逐字一致；输入框焦点交给各控件自身边框/圆角高亮）
+  # 2) .search-box:focus-within 圆角高亮 → 源在 glass.css（全局），目标皮肤层为 folia.css，
+  #    故加 [data-ui-skin='folia'] 作用域覆盖，消费 --control-border-focus + --control-ring（Batch 1 token），
+  #    覆盖视图层 InstancesTab.css / InstanceDetailModal.css "仅变边框" 的 :focus-within；classic 不受影响
