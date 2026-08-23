@@ -26,6 +26,8 @@ onMounted(() => {
   if (!props.contextKey && document.querySelectorAll(`[data-plugin-slot="${props.slotId}"]`).length === 1) {
     host.value.id = props.slotId
   }
+  // 通知插件桥重新渲染该插槽，覆盖插件在容器挂载前就已注册内容的场景。
+  window.dispatchEvent(new CustomEvent('ecl:slot-host-mounted', { detail: { slotId: props.slotId } }))
 })
 onBeforeUnmount(() => unregisterPluginSlotHost(key))
 </script>

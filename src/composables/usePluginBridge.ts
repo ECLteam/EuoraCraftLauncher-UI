@@ -590,6 +590,16 @@ let cleanupState: (() => void) | null = null
 export function initPluginBridge(router: ReturnType<typeof useRouter>) {
   cleanupState = initPluginState()
 
+  // 插槽容器挂载后补渲染已注册的 HTML/Vue 内容（插件可能在容器出现前就完成注册）。
+  const onSlotHostMounted = (event: Event) => {
+    const slotId = (event as CustomEvent).detail?.slotId as string | undefined
+    if (!slotId) return
+    renderSlot(slotId)
+    renderVueSlot(slotId)
+  }
+  window.addEventListener('ecl:slot-host-mounted', onSlotHostMounted)
+  unlistenFns.push(() => window.removeEventListener('ecl:slot-host-mounted', onSlotHostMounted))
+
   unlistenFns.push(
     pluginHostApi.subscribe('plugin:html_injected', (payload) => {
       const slot = payload.slot
