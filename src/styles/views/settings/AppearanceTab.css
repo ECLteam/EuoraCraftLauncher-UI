@@ -65,6 +65,13 @@
   width: min(430px, 48vw);
 }
 
+/* 下拉框触发框本身随内容自适应宽度（不是弹出的选项列表）；最短仍保持 220px 下限，避免长选项被截断 */
+.setting-select {
+  min-width: 220px;
+  width: max-content;
+  max-width: 100%;
+}
+
 .slider-control {
   display: grid;
   width: 310px;
@@ -105,4 +112,38 @@
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+/* 经典皮肤下的主题/亮暗模式分段控件（naive radio-button 默认实心高对比，
+   改为与极光 NTabs segment 一致的柔和玻璃态：淡紫选中 + 透明未选中）。
+   需直接覆盖 background/color 属性，naive 的选中背景不依赖 --n-color-checked。 */
+.appearance-settings :deep(.n-radio-group) {
+  gap: 4px;
+}
+
+.appearance-settings :deep(.n-radio-button) {
+  --n-border-radius: var(--r-sm, 6px);
+  --n-box-shadow-focus: 0 0 0 2px rgba(var(--primary-rgb, 91, 111, 245), 0.2) !important;
+  --n-text-color: var(--ecl-text-secondary, #5c5c5c) !important;
+  --n-text-color-checked: var(--primary, rgb(91, 111, 245)) !important;
+  background-color: transparent !important;
+  color: var(--ecl-text-secondary, #5c5c5c) !important;
+  transition: background-color var(--duration-fast, 0.15s) ease;
+}
+
+.appearance-settings :deep(.n-radio-button):hover {
+  background-color: rgba(var(--primary-rgb, 91, 111, 245), 0.1) !important;
+  color: var(--primary, rgb(91, 111, 245)) !important;
+}
+
+.appearance-settings :deep(.n-radio-button--checked),
+.appearance-settings :deep(.n-radio-button--checked):hover {
+  background-color: rgba(var(--primary-rgb, 91, 111, 245), 0.18) !important;
+  border-color: rgba(var(--primary-rgb, 91, 111, 245), 0.35) !important;
+  color: var(--primary, rgb(91, 111, 245)) !important;
+}
+
+.appearance-settings :deep(.n-radio-button--checked .n-radio-button__label),
+.appearance-settings :deep(.n-radio-button--checked:hover .n-radio-button__label) {
+  color: var(--primary, rgb(91, 111, 245)) !important;
 }

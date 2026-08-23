@@ -49,28 +49,14 @@
     <!-- 中间拖拽区 -->
     <div class="titlebar-center"></div>
 
-    <!-- 顶部导航菜单（横向标题栏模式，绝对定位居中） -->
+    <!-- 顶部导航菜单（横向标题栏模式，绝对定位居中）：所有皮肤统一 NTabs 分段控件，对齐参考项目 TitleBar -->
     <nav v-if="topNavEnabled && !isFullscreenModalVisible" class="titlebar-nav">
-      <NTabs v-if="isFolia" :value="activeNavPath" type="segment" size="small" @update:value="handleNavTabChange">
+      <NTabs :value="activeNavPath" type="segment" size="small" @update:value="handleNavTabChange">
         <NTab v-for="item in menuItems" :key="item.path" :name="item.path">
           <UiIcon :name="item.iconName" :size="16" />
           <span>{{ item.label }}</span>
         </NTab>
       </NTabs>
-      <template v-else>
-        <button
-          v-for="item in menuItems"
-          :key="item.path"
-          class="titlebar-nav-item"
-          :class="{
-            active: route.path === item.path || (item.path !== '/' && route.path.startsWith(item.path)),
-          }"
-          @click="handleNavClick(item)"
-        >
-          <UiIcon :name="item.iconName" :size="16" />
-          <span>{{ item.label }}</span>
-        </button>
-      </template>
     </nav>
 
     <!-- 右侧窗口控制 -->
@@ -111,7 +97,6 @@ import { useFullscreenModal } from '@/composables/useFullscreenModal'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
 import { useTheme } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
-import { useUiSkin } from '@/composables/useUiSkin'
 import { MENU_ITEMS } from '@/constants/menu'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 
@@ -119,7 +104,6 @@ defineOptions({ name: 'TitleBar' })
 
 const { t } = useI18n()
 const { isDark, toggleTheme } = useTheme()
-const { isFolia } = useUiSkin()
 const { topNavEnabled } = useTopNav()
 const fullscreenModal = useFullscreenModal()
 const route = useRoute()
@@ -142,10 +126,6 @@ const menuItems = computed(() =>
     iconName: item.iconName,
   }))
 )
-
-const handleNavClick = (item: { path: string }) => {
-  router.push(item.path)
-}
 
 const activeNavPath = computed(() => {
   const path = route.path
@@ -171,7 +151,11 @@ const handleClose = () => fullscreenModal.close()
 const handleDragStart = (e: MouseEvent) => {
   if (e.button !== 0) return
   const target = e.target as HTMLElement
-  if (target.closest('[data-no-drag], button, a, input, textarea, select, [contenteditable="true"], [role="button"]')) {
+  if (
+    target.closest(
+      '.titlebar-nav, [data-no-drag], button, a, input, textarea, select, [contenteditable="true"], [role="button"]'
+    )
+  ) {
     return
   }
   if (

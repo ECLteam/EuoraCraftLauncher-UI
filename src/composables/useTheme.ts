@@ -1,4 +1,5 @@
-﻿import { darkTheme, type GlobalTheme, type GlobalThemeOverrides } from 'naive-ui'
+﻿import { argbFromHex, hexFromArgb, sourceColorFromImage, themeFromSourceColor } from '@material/material-color-utilities'
+import { darkTheme, type GlobalTheme, type GlobalThemeOverrides } from 'naive-ui'
 import { defineStore, storeToRefs } from 'pinia'
 import { computed, readonly, ref } from 'vue'
 import { pinia } from '@/app/stores'
@@ -72,6 +73,209 @@ function rgba(color: string, alpha: number): string {
   return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${clamp(alpha, 0, 1)})`
 }
 
+function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
+  r /= 255
+  g /= 255
+  b /= 255
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
+  let h = 0
+  let s = 0
+  const l = (max + min) / 2
+  if (max !== min) {
+    const d = max - min
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+    switch (max) {
+      case r:
+        h = (g - b) / d + (g < b ? 6 : 0)
+        break
+      case g:
+        h = (b - r) / d + 2
+        break
+      default:
+        h = (r - g) / d + 4
+    }
+    h /= 6
+  }
+  return [h * 360, s, l]
+}
+
+function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+  h /= 360
+  let r = 0
+  let g = 0
+  let b = 0
+  if (s === 0) {
+    r = g = b = l
+  } else {
+    const hue2rgb = (p: number, q: number, t: number): number => {
+      if (t < 0) t += 1
+      if (t > 1) t -= 1
+      if (t < 1 / 6) return p + (q - p) * 6 * t
+      if (t < 1 / 2) return q
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
+      return p
+    }
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s
+    const p = 2 * l - q
+    r = hue2rgb(p, q, h + 1 / 3)
+    g = hue2rgb(p, q, h)
+    b = hue2rgb(p, q, h - 1 / 3)
+  }
+  return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)]
+}
+
+/** 色相偏移；用于浅色模式极光辅色。 */
+function shiftHue(hex: string, degrees: number): string {
+  const rgb = hexToRgb(hex)
+  const [h, s, l] = rgbToHsl(rgb.r, rgb.g, rgb.b)
+  const [r, g, b] = hslToRgb((h + degrees + 360) % 360, s, l)
+  return rgbToHex(r, g, b)
+}
+
+/** 色相偏移 + 降饱和 + 指定亮度（深色模式极光辅色，避免亮色刺眼）。 */
+function shiftHueSlim(hex: string, degrees: number, satScale: number, targetLightness: number): string {
+  const rgb = hexToRgb(hex)
+  const [h, s] = rgbToHsl(rgb.r, rgb.g, rgb.b)
+  const [r, g, b] = hslToRgb((h + degrees + 360) % 360, Math.min(1, s * satScale), targetLightness)
+  return rgbToHex(r, g, b)
+}
+
+/** 保留色相，降饱和并压暗到指定亮度（深色模式极光主色）。 */
+function dimForDark(hex: string, satScale: number, targetLightness: number): string {
+  const rgb = hexToRgb(hex)
+  const [h, s] = rgbToHsl(rgb.r, rgb.g, rgb.b)
+  const [r, g, b] = hslToRgb(h, Math.min(1, s * satScale), targetLightness)
+  return rgbToHex(r, g, b)
+}
+
+/**
+ * 由主色派生极光光斑三色（主色 + 色相偏移的两个辅色），明暗模式不同强度。
+ * 深色模式采用「低调淡光」：低透明度、降饱和、压暗亮度，避免亮色刺眼。对齐 fork useTheme.ts。
+ */
+function createAuroraColors(baseColor: string, isDark: boolean): { c1: string; c2: string; c3: string } {
+  const color = /^#([a-f\d]{6})$/i.test(normalizeHex(baseColor)) ? normalizeHex(baseColor) : DEFAULT_PRIMARY_COLOR
+  if (isDark) {
+    return {
+      c1: rgba(dimForDark(color, 0.9, 0.32), 0.3),
+      c2: rgba(shiftHueSlim(color, 45, 0.6, 0.34), 0.24),
+      c3: rgba(shiftHueSlim(color, -35, 0.55, 0.3), 0.18),
+    }
+  }
+  return {
+    c1: rgba(color, 0.12),
+    c2: rgba(shiftHue(color, 45), 0.1),
+    c3: rgba(shiftHue(color, -35), 0.085),
+  }
+}
+
+/**
+ * 从图片 URL 提取主色：canvas 缩略图 + HSL 色相聚类。
+ * 跳过近灰/极暗/极亮像素，取像素数最多的色相桶平均色；失败返回 null（功能降级）。对齐 fork useTheme.ts。
+ */
+function extractPrimaryFromImage(url: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    const image = new Image()
+    image.crossOrigin = 'anonymous'
+    image.onload = () => {
+      try {
+        const size = 48
+        const canvas = document.createElement('canvas')
+        canvas.width = size
+        canvas.height = Math.max(1, Math.round((size * image.naturalHeight) / Math.max(1, image.naturalWidth)))
+        const context = canvas.getContext('2d', { willReadFrequently: true })
+        if (!context) {
+          resolve(null)
+          return
+        }
+        context.drawImage(image, 0, 0, canvas.width, canvas.height)
+        const { data } = context.getImageData(0, 0, canvas.width, canvas.height)
+        const buckets = new Map<number, { r: number; g: number; b: number; n: number }>()
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i]!
+          const g = data[i + 1]!
+          const b = data[i + 2]!
+          const a = data[i + 3]!
+          if (a < 128) continue
+          const [h, s, l] = rgbToHsl(r, g, b)
+          if (s < 0.15 || l < 0.12 || l > 0.88) continue
+          const hueBucket = Math.floor(h / 30)
+          const bucket = buckets.get(hueBucket) ?? { r: 0, g: 0, b: 0, n: 0 }
+          bucket.r += r
+          bucket.g += g
+          bucket.b += b
+          bucket.n += 1
+          buckets.set(hueBucket, bucket)
+        }
+        let best: { r: number; g: number; b: number; n: number } | null = null
+        for (const bucket of buckets.values()) {
+          if (!best || bucket.n > best.n) best = bucket
+        }
+        if (!best || best.n < 2) {
+          resolve(null)
+          return
+        }
+        resolve(rgbToHex(Math.round(best.r / best.n), Math.round(best.g / best.n), Math.round(best.b / best.n)))
+      } catch {
+        resolve(null)
+      }
+    }
+    image.onerror = () => resolve(null)
+    image.src = url
+  })
+}
+
+/** 从图片提取 Monet 种子色（Material You，基于 HCT 色彩空间）。 */
+function monetSeedFromImage(url: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    const image = new Image()
+    image.crossOrigin = 'anonymous'
+    image.onload = async () => {
+      try {
+        const argb = await sourceColorFromImage(image)
+        resolve(hexFromArgb(argb))
+      } catch {
+        resolve(null)
+      }
+    }
+    image.onerror = () => resolve(null)
+    image.src = url
+  })
+}
+
+/** Monet tonal 色板缓存：相同种子色复用主题对象，避免重复计算 Material You 调色板。 */
+let monetPaletteCache: { seed: string; palette: { tone(tone: number): number } } | null = null
+
+function monetTone(seedHex: string, tone: number): string {
+  if (!monetPaletteCache || monetPaletteCache.seed !== seedHex) {
+    const theme = themeFromSourceColor(argbFromHex(seedHex))
+    monetPaletteCache = { seed: seedHex, palette: theme.palettes.primary }
+  }
+  return hexFromArgb(monetPaletteCache.palette.tone(tone))
+}
+
+/** 根据 Monet 种子色生成完整 Material You tonal 色阶（明暗各用 tone 40/80、30/90、20/95）。 */
+function createMonetScale(
+  seedHex: string,
+  isDark: boolean
+): {
+  primary: string
+  primaryHover: string
+  primaryPressed: string
+  primaryLight: string
+  primaryRgb: string
+} {
+  const primary = monetTone(seedHex, isDark ? 80 : 40)
+  const rgb = hexToRgb(primary)
+  return {
+    primary,
+    primaryHover: monetTone(seedHex, isDark ? 90 : 30),
+    primaryPressed: monetTone(seedHex, isDark ? 95 : 20),
+    primaryLight: rgba(primary, 0.15),
+    primaryRgb: `${rgb.r}, ${rgb.g}, ${rgb.b}`,
+  }
+}
+
 /** 解析 'HH:MM' 为当天分钟数；非法输入返回 -1。 */
 function parseTimeMinutes(value: string | undefined): number {
   if (!value) return -1
@@ -84,6 +288,15 @@ function parseTimeMinutes(value: string | undefined): number {
 }
 
 const THEME_SNAPSHOT_KEY = 'euoracraft-theme-snapshot'
+
+/** 极光流体背景（光斑）开关的本地存储键（仅前端记忆，不同步后端）。 */
+const AURORA_STORAGE_KEY = 'euoracraft-aurora'
+
+/** 背景模糊层（毛玻璃）开关的本地存储键（仅前端记忆，不同步后端）。 */
+const BLUR_LAYER_STORAGE_KEY = 'euoracraft-blur-layer'
+
+/** 从背景图提取主题色的取色模式开关的本地存储键（仅前端记忆，不同步后端）。 */
+const DERIVE_MODE_STORAGE_KEY = 'euoracraft-derive-mode'
 
 /**
  * 根据基础色生成主题主色阶。
@@ -116,6 +329,9 @@ function createPrimaryScale(
 }
 
 export type ThemeMode = 'light' | 'dark' | 'system'
+
+/** 从背景图提取主题色的取色模式：关闭 / 提取主色 / Monet 莫奈（Material You tonal 色板）。 */
+export type DeriveMode = 'off' | 'default' | 'monet'
 
 export const presetColors = PRESET_COLORS
 
@@ -260,6 +476,16 @@ export const useThemeStore = defineStore('theme', () => {
   const themeId = ref<'classic' | 'folia'>('classic')
   const themeMode = ref<ThemeMode>('system')
   const primaryColor = ref('')
+  /** 极光流体背景（光斑）是否显示。 */
+  const auroraEnabled = ref(true)
+  /** 背景模糊层（毛玻璃）是否启用。 */
+  const blurLayerEnabled = ref(true)
+  /** 从背景图提取主题色的取色模式。 */
+  const deriveMode = ref<DeriveMode>('off')
+  /** 从背景图提取出的主色（hex），为空时回退到手动选择的主色。 */
+  const derivedPrimary = ref('')
+  /** 从背景图提取出的 Monet 种子色（hex，Material You）。 */
+  const derivedMonetSeed = ref('')
   const backgroundImage = ref('')
   const backgroundImagePath = ref('')
   const backgroundOpacity = ref(1)
@@ -305,8 +531,18 @@ export const useThemeStore = defineStore('theme', () => {
     return isDark.value ? darkTheme : null
   })
 
-  /** 主色色阶：由 primaryColor + isDark 派生，仅计算一次供 themeOverrides/colors/updateTheme 复用 */
-  const primaryScale = computed(() => createPrimaryScale(primaryColor.value, isDark.value))
+  /** 生效主色：开启背景取色且提取成功时用提取色，否则回退手动主色。 */
+  const activePrimaryColor = computed(() =>
+    deriveMode.value === 'default' && derivedPrimary.value ? derivedPrimary.value : primaryColor.value
+  )
+
+  /** 主色色阶：Monet 模式用完整 tonal 色板，否则由生效主色派生。 */
+  const primaryScale = computed(() => {
+    if (deriveMode.value === 'monet' && derivedMonetSeed.value) {
+      return createMonetScale(derivedMonetSeed.value, isDark.value)
+    }
+    return createPrimaryScale(activePrimaryColor.value, isDark.value)
+  })
 
   const themeOverrides = computed<GlobalThemeOverrides>(() => {
     return createThemeOverrides(isDark.value, primaryScale.value, appearance.value)
@@ -388,6 +624,14 @@ export const useThemeStore = defineStore('theme', () => {
     document.documentElement.style.setProperty('--bg-blur', `${blurAmount.value}px`)
     document.documentElement.style.setProperty('--main-bg-layer-opacity', transparentBg.value ? '1' : '0')
 
+    // 极光开关及派生色：光斑显隐、模糊层显隐，色板由主色动态派生
+    document.documentElement.dataset.aurora = auroraEnabled.value ? '1' : '0'
+    document.documentElement.dataset.auroraBlur = blurLayerEnabled.value ? '1' : '0'
+    const aurora = createAuroraColors(primaryScale.value.primary, isDark.value)
+    document.documentElement.style.setProperty('--aurora-c1', aurora.c1)
+    document.documentElement.style.setProperty('--aurora-c2', aurora.c2)
+    document.documentElement.style.setProperty('--aurora-c3', aurora.c3)
+
     document.documentElement.setAttribute('data-sidebar-collapsed', sidebarCollapsed.value ? '1' : '0')
     document.documentElement.setAttribute('data-navigation-mode', navigationMode.value)
     document.documentElement.setAttribute('data-titlebar-hidden', titlebarHidden.value ? '1' : '0')
@@ -428,9 +672,42 @@ export const useThemeStore = defineStore('theme', () => {
   }
 
   function setPrimaryColor(color: string, persist = true) {
+    if (deriveMode.value !== 'off') setDeriveMode('off', false)
     primaryColor.value = color
     updateTheme()
     if (persist) saveThemeConfig()
+  }
+
+  /** 按当前取色模式从背景图提取主题色并同步（对准 fork deriveFromBackground）。 */
+  async function deriveFromBackground() {
+    if (deriveMode.value === 'off' || !backgroundImage.value) return
+    const url = backgroundImage.value
+    if (deriveMode.value === 'default') {
+      const color = await extractPrimaryFromImage(url)
+      derivedPrimary.value = color ?? ''
+    } else {
+      const seed = await monetSeedFromImage(url)
+      derivedMonetSeed.value = seed ?? ''
+    }
+    updateTheme()
+  }
+
+  async function setDeriveMode(mode: DeriveMode, persist = true) {
+    deriveMode.value = mode
+    if (mode !== 'off') {
+      if (backgroundImage.value) await deriveFromBackground()
+    } else {
+      derivedPrimary.value = ''
+      derivedMonetSeed.value = ''
+    }
+    updateTheme()
+    if (persist) {
+      try {
+        window.localStorage.setItem(DERIVE_MODE_STORAGE_KEY, mode)
+      } catch {
+        /* localStorage 不可用时忽略 */
+      }
+    }
   }
 
   /** 局部更新用户级外观覆盖。传入 undefined 可清除某个字段。 */
@@ -490,6 +767,10 @@ export const useThemeStore = defineStore('theme', () => {
     if (path !== undefined) backgroundImagePath.value = path
     updateTheme()
     if (persist) saveThemeConfig()
+    // 开启背景取色时，更换背景图自动重新提取主题色
+    if (deriveMode.value !== 'off' && backgroundImage.value) {
+      void deriveFromBackground()
+    }
   }
 
   function setBlurAmount(amount: number, persist = true) {
@@ -508,6 +789,30 @@ export const useThemeStore = defineStore('theme', () => {
     transparentBg.value = val
     updateTheme()
     if (persist) saveThemeConfig()
+  }
+
+  function setAuroraEnabled(val: boolean, persist = true) {
+    auroraEnabled.value = val
+    updateTheme()
+    if (persist) {
+      try {
+        window.localStorage.setItem(AURORA_STORAGE_KEY, val ? '1' : '0')
+      } catch {
+        /* localStorage 不可用时忽略 */
+      }
+    }
+  }
+
+  function setBlurLayerEnabled(val: boolean, persist = true) {
+    blurLayerEnabled.value = val
+    updateTheme()
+    if (persist) {
+      try {
+        window.localStorage.setItem(BLUR_LAYER_STORAGE_KEY, val ? '1' : '0')
+      } catch {
+        /* localStorage 不可用时忽略 */
+      }
+    }
   }
 
   function setSidebarCollapsed(val: boolean) {
@@ -644,7 +949,22 @@ export const useThemeStore = defineStore('theme', () => {
           if (themeMode.value === 'system' && schedule.value.enabled) updateTheme()
         }, 60_000)
       }
+      try {
+        const storedAurora = window.localStorage.getItem(AURORA_STORAGE_KEY)
+        if (storedAurora !== null) auroraEnabled.value = storedAurora === '1'
+        const storedBlur = window.localStorage.getItem(BLUR_LAYER_STORAGE_KEY)
+        if (storedBlur !== null) blurLayerEnabled.value = storedBlur === '1'
+        const storedDerive = window.localStorage.getItem(DERIVE_MODE_STORAGE_KEY)
+        if (storedDerive === 'off' || storedDerive === 'default' || storedDerive === 'monet')
+          deriveMode.value = storedDerive
+      } catch {
+        /* localStorage 不可用时沿用默认值 */
+      }
       updateTheme()
+      // 开启背景取色且背景图就绪后，异步补一次初始提取
+      if (deriveMode.value !== 'off' && backgroundImage.value) {
+        void deriveFromBackground()
+      }
     })()
 
     if (!uiConfig) {
@@ -658,6 +978,11 @@ export const useThemeStore = defineStore('theme', () => {
     themeId,
     themeMode,
     primaryColor,
+    auroraEnabled,
+    blurLayerEnabled,
+    deriveMode,
+    derivedPrimary,
+    derivedMonetSeed,
     backgroundImage,
     backgroundImagePath,
     backgroundOpacity,
@@ -684,6 +1009,9 @@ export const useThemeStore = defineStore('theme', () => {
     setBlurAmount,
     setBackgroundOpacity,
     setTransparentBg,
+    setAuroraEnabled,
+    setBlurLayerEnabled,
+    setDeriveMode,
     setSidebarCollapsed,
     setTitlebarHidden,
     setNavigationMode,
@@ -711,6 +1039,11 @@ export function useTheme() {
     themeId,
     themeMode,
     primaryColor,
+    auroraEnabled,
+    blurLayerEnabled,
+    deriveMode,
+    derivedPrimary,
+    derivedMonetSeed,
     backgroundImage,
     backgroundImagePath,
     backgroundOpacity,
@@ -730,6 +1063,11 @@ export function useTheme() {
     themeId: readonly(themeId),
     themeMode: readonly(themeMode),
     primaryColor: readonly(primaryColor),
+    auroraEnabled: readonly(auroraEnabled),
+    blurLayerEnabled: readonly(blurLayerEnabled),
+    deriveMode: readonly(deriveMode),
+    derivedPrimary: readonly(derivedPrimary),
+    derivedMonetSeed: readonly(derivedMonetSeed),
     backgroundImage: readonly(backgroundImage),
     backgroundImagePath: readonly(backgroundImagePath),
     backgroundOpacity: readonly(backgroundOpacity),
@@ -752,6 +1090,9 @@ export function useTheme() {
     setBackgroundImage: store.setBackgroundImage,
     setBlurAmount: store.setBlurAmount,
     setTransparentBg: store.setTransparentBg,
+    setAuroraEnabled: store.setAuroraEnabled,
+    setBlurLayerEnabled: store.setBlurLayerEnabled,
+    setDeriveMode: store.setDeriveMode,
     setBackgroundOpacity: store.setBackgroundOpacity,
     setSidebarCollapsed: store.setSidebarCollapsed,
     setNavigationMode: store.setNavigationMode,

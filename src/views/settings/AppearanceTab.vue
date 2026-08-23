@@ -2,7 +2,7 @@
   <div class="tab-pane appearance-settings">
     <SettingSection :title="t('settings.appearance')">
       <SettingRow :label="t('settings.theme')" :description="t('settings.themeDesc')">
-        <NTabs v-if="isFolia" :value="themeId" type="segment" size="small" @update:value="handleThemeIdChange">
+        <NTabs :value="themeId" type="segment" size="small" @update:value="handleThemeIdChange">
           <NTab v-for="option in builtinThemeOptions" :key="option.id" :name="option.id">
             <span class="theme-option-label">
               <UiIcon :name="option.icon" :size="14" />
@@ -10,24 +10,10 @@
             </span>
           </NTab>
         </NTabs>
-        <NRadioGroup v-else :value="themeId" size="small" @update:value="handleThemeIdChange">
-          <NRadioButton v-for="option in builtinThemeOptions" :key="option.id" :value="option.id">
-            <span class="theme-option-label">
-              <UiIcon :name="option.icon" :size="14" />
-              {{ option.label }}
-            </span>
-          </NRadioButton>
-        </NRadioGroup>
       </SettingRow>
 
       <SettingRow label="亮暗模式" description="选择亮暗显示模式（跟随系统时按系统偏好自动切换）">
-        <NTabs
-          v-if="isFolia"
-          :value="currentSettings.mode"
-          type="segment"
-          size="small"
-          @update:value="handleThemeChange"
-        >
+        <NTabs :value="currentSettings.mode" type="segment" size="small" @update:value="handleThemeChange">
           <NTab v-for="option in themeOptions" :key="option.value" :name="option.value">
             <span class="theme-option-label">
               <UiIcon :name="option.icon" :size="14" />
@@ -35,14 +21,6 @@
             </span>
           </NTab>
         </NTabs>
-        <NRadioGroup v-else :value="currentSettings.mode" size="small" @update:value="handleThemeChange">
-          <NRadioButton v-for="option in themeOptions" :key="option.value" :value="option.value">
-            <span class="theme-option-label">
-              <UiIcon :name="option.icon" :size="14" />
-              {{ option.label }}
-            </span>
-          </NRadioButton>
-        </NRadioGroup>
       </SettingRow>
 
       <SettingRow :label="t('settings.primaryColor')" :description="t('settings.primaryColorDesc')">
@@ -70,6 +48,23 @@
 
       <SettingRow :label="t('settings.topNav')" :description="t('settings.topNavDesc')">
         <NSwitch :value="topNavEnabled" @update:value="toggleTopNav" />
+      </SettingRow>
+
+      <SettingRow :label="t('settings.auroraBackground')" :description="t('settings.auroraBackgroundDesc')">
+        <NSwitch :value="auroraEnabled" @update:value="handleAuroraEnabledChange" />
+      </SettingRow>
+
+      <SettingRow :label="t('settings.backgroundBlur')" :description="t('settings.backgroundBlurDesc')">
+        <NSwitch :value="blurLayerEnabled" @update:value="handleBlurLayerEnabledChange" />
+      </SettingRow>
+
+      <SettingRow :label="t('settings.themeFromBackground')" :description="t('settings.themeFromBackgroundDesc')">
+        <NSelect
+          class="setting-select"
+          :value="deriveMode"
+          :options="deriveModeOptions"
+          @update:value="handleDeriveModeChange"
+        />
       </SettingRow>
     </SettingSection>
 
@@ -204,8 +199,6 @@ import {
   NButton,
   NInput,
   NInputGroup,
-  NRadioButton,
-  NRadioGroup,
   NSelect,
   NSlider,
   NSwitch,
@@ -220,7 +213,6 @@ import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { presetColors, useTheme, type ThemeMode } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
-import { useUiSkin } from '@/composables/useUiSkin'
 import {
   BUILTIN_THEMES,
   CARD_OPACITY_DEFAULT,
@@ -258,6 +250,9 @@ const {
   themeId,
   themeMode,
   primaryColor,
+  auroraEnabled,
+  blurLayerEnabled,
+  deriveMode,
   backgroundImagePath,
   setThemeId,
   setThemeMode,
@@ -267,13 +262,21 @@ const {
   setBackgroundOpacity,
   setAppearance,
   setSchedule,
+  setAuroraEnabled,
+  setBlurLayerEnabled,
+  setDeriveMode,
   backgroundOpacity,
   blurAmount,
   appearance,
   schedule,
 } = useTheme()
 const { topNavEnabled, toggleTopNav } = useTopNav()
-const { isFolia } = useUiSkin()
+
+const deriveModeOptions = computed<Array<{ label: string; value: string }>>(() => [
+  { label: t('settings.themeDeriveOff'), value: 'off' },
+  { label: t('settings.themeDeriveDefault'), value: 'default' },
+  { label: t('settings.themeDeriveMonet'), value: 'monet' },
+])
 
 const currentSettings = computed(() => ({
   mode: themeMode.value,
@@ -323,6 +326,19 @@ function handleThemeIdChange(id: string | number) {
   if (value !== 'classic' && value !== 'folia') return
   setThemeId(value, false)
   void run(async () => settingsStore.patchUiTheme({ theme_id: value }))
+}
+
+function handleAuroraEnabledChange(value: boolean) {
+  setAuroraEnabled(value)
+}
+
+function handleBlurLayerEnabledChange(value: boolean) {
+  setBlurLayerEnabled(value)
+}
+
+async function handleDeriveModeChange(value: string | number) {
+  const mode: 'off' | 'default' | 'monet' = value === 'default' || value === 'monet' ? value : 'off'
+  await setDeriveMode(mode)
 }
 
 const radiusCard = computed(() => appearance.value.radius_card ?? 8)

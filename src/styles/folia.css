@@ -8,6 +8,8 @@
   --bg-elevated: #ffffff;
   --bg-surface: rgba(255, 255, 255, calc(0.62 * var(--card-opacity, 1)));
   --card-bg: rgba(255, 255, 255, calc(0.6 * var(--card-opacity, 1)));
+  /* 让用 --ecl-surface 的 scoped 面板（mod/资源包/存档等实底 0.88）也走上玻璃半透明，与左侧菜单卡一致 */
+  --ecl-surface: rgba(255, 255, 255, calc(0.6 * var(--card-opacity, 1)));
   --bg-hover: #f0f1f3;
   --bg-hover-strong: rgba(var(--primary-rgb, 91, 111, 245), 0.08);
   --bg-active: rgba(var(--primary-rgb, 91, 111, 245), 0.14);
@@ -57,6 +59,7 @@
   --bg-elevated: #21242b;
   --bg-surface: rgba(32, 36, 46, calc(0.62 * var(--card-opacity, 1)));
   --card-bg: rgba(34, 38, 48, calc(0.6 * var(--card-opacity, 1)));
+  --ecl-surface: rgba(34, 38, 48, calc(0.62 * var(--card-opacity, 1)));
   --bg-hover: rgba(255, 255, 255, 0.06);
   --bg-hover-strong: rgba(var(--primary-rgb, 130, 145, 255), 0.12);
   --bg-active: rgba(var(--primary-rgb, 130, 145, 255), 0.2);
@@ -86,7 +89,8 @@
   --aurora-opacity: 1;
 }
 
-[data-ui-skin='folia'] .aurora-bg {
+/* 极光流体背景：两种皮肤共用，由 data-aurora 控制显隐，色板由主色派生 */
+.aurora-bg {
   position: fixed;
   inset: -12%;
   z-index: 0;
@@ -104,10 +108,21 @@
   transition: opacity var(--duration-normal, 180ms) ease;
 }
 
-[data-ui-skin='classic'] .aurora-bg,
-:root:not([data-ui-skin]) .aurora-bg,
 [data-aurora='0'] .aurora-bg {
   display: none;
+}
+
+/* 背景模糊层可开关：关闭时取消背景与内容区的毛玻璃模糊 */
+[data-aurora-blur='0'] .app-background,
+[data-aurora-blur='0'] .app-background-overlay {
+  filter: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+[data-aurora-blur='0'][data-ui-skin='folia'] .main-content {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 [data-ui-skin='folia'] .main-content {
@@ -136,7 +151,11 @@
 [data-ui-skin='folia'] .connect-side-panel,
 [data-ui-skin='folia'] .mods-panel,
 [data-ui-skin='folia'] .mods-results-panel,
+[data-ui-skin='folia'] .mods-search-toolbar,
+[data-ui-skin='folia'] .mod-intro-card,
+[data-ui-skin='folia'] .mod-filter-section,
 [data-ui-skin='folia'] .mod-list-row,
+[data-ui-skin='folia'] .about-card,
 [data-ui-skin='folia'] .task-queue-wrapper,
 [data-ui-skin='folia'] .piv,
 [data-ui-skin='folia'] .fll-window,
@@ -144,8 +163,6 @@
 [data-ui-skin='folia'] .install-dialog,
 [data-ui-skin='folia'] .install-loader-card,
 [data-ui-skin='folia'] .manage-container,
-[data-ui-skin='folia'] .path-panel,
-[data-ui-skin='folia'] .about-pane,
 [data-ui-skin='folia'] .dev-page,
 [data-ui-skin='folia'] .dev-header {
   background: var(--folia-glass);
@@ -199,8 +216,16 @@
   -webkit-backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.35);
 }
 
+/* 下拉选项弹层：加高 + 宽度随内容自适应（teleport 到 body，需全局选择器覆盖 naive 默认裁剪）。
+   min-width: max-content 让弹层至少和最长的选项同宽（长内容自动撑开，短内容保持触发框宽度作为下限） */
+.n-base-select-menu {
+  max-height: 360px;
+  min-width: max-content;
+  white-space: nowrap;
+}
+
 /* 分段标签 rail：对齐参考（无边框），避免与输入控件共用带边框规则 */
-[data-ui-skin='folia'] .n-tabs--segment-type .n-tabs-rail {
+.n-tabs--segment-type .n-tabs-rail {
   background: var(--control-bg) !important;
   backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.35);
   -webkit-backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.35);
@@ -217,15 +242,41 @@
 [data-ui-skin='folia'] .search-box,
 [data-ui-skin='folia'] .account-action-btn,
 [data-ui-skin='folia'] .instance-card,
-[data-ui-skin='folia'] .version-item,
 [data-ui-skin='folia'] .resource-card {
   border-color: var(--control-border);
   background: var(--control-bg);
 }
 
+/* 版本列表整体作为一块玻璃面板，与左侧 download-nav 菜单卡同一玻璃效果（半透明 + 模糊 + 圆角）。
+   核心区别于旧实现：玻璃面由 install-page 一处承担，行内不再各自描边/毛玻璃，避免出现"一堆小卡片"。
+   用 .install-page.install-page 提升特异性，压过 InstancesTab.css scoped 实底 0.88。 */
+[data-ui-skin='folia'] .install-page.install-page {
+  background: var(--folia-glass);
+  border: 1px solid var(--folia-glass-border);
+  border-radius: var(--ecl-radius-card);
+  box-shadow: var(--shadow-xs);
+  backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.25);
+  -webkit-backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.25);
+}
+
+/* 版本列表行与二级容器透明化：玻璃面统一由上方 install-page 承担，行内仅保留 hover 高亮（对齐菜单项） */
+[data-ui-skin='folia'] .version-item.version-item,
+[data-ui-skin='folia'] .version-panel,
+[data-ui-skin='folia'] .version-content,
+[data-ui-skin='folia'] .version-list-scroll {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+[data-ui-skin='folia'] .version-item.version-item:hover {
+  background: var(--control-bg-hover);
+}
+
 [data-ui-skin='folia'] .ui-card.hoverable:hover,
 [data-ui-skin='folia'] .instance-card:hover,
-[data-ui-skin='folia'] .version-item:hover,
 [data-ui-skin='folia'] .resource-card:hover {
   border-color: rgba(var(--primary-rgb, 91, 111, 245), 0.48);
   box-shadow: 0 8px 24px rgba(var(--primary-rgb, 91, 111, 245), 0.1);
@@ -263,20 +314,42 @@
   -webkit-backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.35);
 }
 
-[data-ui-skin='folia'] .n-tabs--segment-type .n-tabs-tab.n-tabs-tab--active {
+/* 分段标签页尺寸：对齐 fork glass.css，紧凑并统一 hover */
+.n-tabs--segment-type .n-tabs-tab {
+  min-height: 28px;
+  padding: 4px 12px !important;
+  border-radius: var(--r-sm);
+}
+
+.n-tabs--segment-type .n-tabs-tab:hover {
+  color: var(--primary-hover, var(--primary)) !important;
+}
+
+.n-tabs--segment-type .n-tabs-tab.n-tabs-tab--active {
   color: var(--primary) !important;
   font-weight: 600;
   background: rgba(var(--primary-rgb, 91, 111, 245), 0.18);
   box-shadow: inset 0 0 0 1px rgba(var(--primary-rgb, 91, 111, 245), 0.35);
 }
 
+/* 分段选中胶囊：naive 默认实心白，改用半透明主色调玻璃，与肤下卡一致 */
+.n-tabs--segment-type .n-tabs-capsule {
+  background: rgba(var(--primary-rgb, 91, 111, 245), 0.18) !important;
+  backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.35);
+  -webkit-backdrop-filter: blur(var(--folia-glass-blur)) saturate(1.35);
+}
+
 /* 深色下增强激活态对比（对齐 tryfrontend2 参考） */
-[data-theme='dark'][data-ui-skin='folia'] .n-tabs--segment-type .n-tabs-tab.n-tabs-tab--active {
+[data-theme='dark'] .n-tabs--segment-type .n-tabs-tab.n-tabs-tab--active {
   background: rgba(var(--primary-rgb, 130, 145, 255), 0.26);
   box-shadow: inset 0 0 0 1px rgba(var(--primary-rgb, 130, 145, 255), 0.45);
 }
 
-[data-ui-skin='folia'] .titlebar-nav .n-tabs-rail {
+[data-theme='dark'] .n-tabs--segment-type .n-tabs-capsule {
+  background: rgba(var(--primary-rgb, 130, 145, 255), 0.26) !important;
+}
+
+.titlebar-nav .n-tabs-rail {
   gap: 2px;
   border: 0 !important;
   background: transparent !important;
@@ -284,11 +357,34 @@
   backdrop-filter: none !important;
 }
 
-[data-ui-skin='folia'] .titlebar-nav .n-tabs-tab,
-[data-ui-skin='folia'] .titlebar-nav .n-tabs-tab.n-tabs-tab--active {
+.titlebar-nav .n-tabs-tab,
+.titlebar-nav .n-tabs-tab.n-tabs-tab--active {
   min-height: 32px;
   padding: 4px 12px !important;
   border-radius: var(--r-sm);
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--text-secondary);
+}
+
+.titlebar-nav .n-tabs-tab:hover {
+  color: var(--text-primary);
+}
+
+/* 图标与文字间距 + 图标略微上移对齐（对齐 fork TitleBar.css） */
+.titlebar-nav .n-tabs-tab__label {
+  gap: 8px;
+}
+
+.titlebar-nav .n-tabs-tab .icon {
+  transform: translateY(-1px);
+}
+
+/* 顶部导航激活态：纯主色文字，无胶囊背景（对齐 fork TitleBar.css） */
+.titlebar-nav .n-tabs-tab.n-tabs-tab--active,
+.titlebar-nav .n-tabs-tab.n-tabs-tab--active:hover {
+  color: var(--primary) !important;
+  font-weight: 500;
   background: transparent !important;
   box-shadow: none !important;
 }
@@ -314,7 +410,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-ui-skin='folia'] .aurora-bg {
+  .aurora-bg {
     animation: none;
   }
 }
