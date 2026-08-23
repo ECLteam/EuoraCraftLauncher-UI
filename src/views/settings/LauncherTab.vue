@@ -31,7 +31,11 @@
           @update:value="handleProxyModeChange"
         />
       </SettingRow>
-      <SettingRow v-if="proxyMode === 'custom'" :label="t('settings.proxyUrl')" :description="t('settings.proxyUrlDesc')">
+      <SettingRow
+        v-if="proxyMode === 'custom'"
+        :label="t('settings.proxyUrl')"
+        :description="t('settings.proxyUrlDesc')"
+      >
         <NInput
           :value="proxyUrl"
           :placeholder="t('settings.proxyUrlPlaceholder')"

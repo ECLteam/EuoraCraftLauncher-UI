@@ -156,19 +156,6 @@ export const useSettingsStore = defineStore('settings', () => {
     return { path, imageUrl: await resolveLocalImageUrl(path) }
   }
 
-  async function chooseBackgroundFolder(): Promise<{
-    path: string
-    files: string[]
-    firstImageUrl: string | null
-  } | null> {
-    const path = await settingsApi.selectDirectory()
-    if (!path) return null
-    const files = await settingsApi.listBackgroundImages(path)
-    const firstImageUrl = files[0] ? await resolveLocalImageUrl(files[0]) : null
-    await patchUiBackground({ type: 'custom', path, mode: 'carousel', interval: 10 })
-    return { path, files, firstImageUrl }
-  }
-
   async function saveRemoteBackground(url: string): Promise<{ path: string; imageUrl: string | null } | null> {
     const result = await settingsApi.saveImageUrl(url)
     if (!result) return null
@@ -194,7 +181,6 @@ export const useSettingsStore = defineStore('settings', () => {
     patchLauncher,
     patchDownload,
     chooseBackgroundImage,
-    chooseBackgroundFolder,
     saveRemoteBackground,
   }
 })

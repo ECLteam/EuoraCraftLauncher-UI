@@ -90,6 +90,21 @@
   width: min(320px, 100%);
 }
 
+.folder-source-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.folder-source-path {
+  max-width: 260px;
+  overflow: hidden;
+  color: var(--ecl-text-secondary);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .schedule-row {
   display: flex;
   align-items: center;

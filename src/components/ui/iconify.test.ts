@@ -1,5 +1,6 @@
 import { icons } from '@iconify-json/tabler'
 import { describe, expect, it } from 'vitest'
+import { BUILTIN_THEMES } from '@/config/theme'
 import { ICON_MAP } from './iconify'
 
 describe('图标映射', () => {
@@ -42,6 +43,12 @@ describe('图标映射', () => {
   it('联机页面使用的图标短名均已注册', () => {
     for (const shortName of ['wifi', 'network', 'login', 'logout', 'link', 'plus', 'alert-circle', 'users', 'crown']) {
       expect(ICON_MAP[shortName], `联机图标 ${shortName} 未注册`).toBeDefined()
+    }
+  })
+
+  it('外观设置内置主题使用的图标短名均已注册', () => {
+    for (const { id, icon } of BUILTIN_THEMES) {
+      expect(ICON_MAP[icon], `主题 ${id} 的图标 ${icon} 未注册`).toBeDefined()
     }
   })
 })

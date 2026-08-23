@@ -1,4 +1,9 @@
-﻿import { argbFromHex, hexFromArgb, sourceColorFromImage, themeFromSourceColor } from '@material/material-color-utilities'
+﻿import {
+  argbFromHex,
+  hexFromArgb,
+  sourceColorFromImage,
+  themeFromSourceColor,
+} from '@material/material-color-utilities'
 import { darkTheme, type GlobalTheme, type GlobalThemeOverrides } from 'naive-ui'
 import { defineStore, storeToRefs } from 'pinia'
 import { computed, readonly, ref } from 'vue'
@@ -11,6 +16,13 @@ import {
   PRESET_COLORS,
 } from '@/config/theme'
 import { resolveLocalImageUrl, settingsApi } from '@/features/settings/api/settingsApi'
+import {
+  BACKGROUND_INTERVAL_DEFAULT,
+  clampBackgroundInterval,
+  isCarouselMode,
+  nextBackgroundIndex,
+  type BackgroundMode,
+} from '@/features/settings/model/backgroundMode'
 import { resolveNavigationMode } from '@/features/settings/model/navigation'
 import type {
   BackgroundConfig,
@@ -490,6 +502,17 @@ export const useThemeStore = defineStore('theme', () => {
   const backgroundImagePath = ref('')
   const backgroundOpacity = ref(1)
   const blurAmount = ref(0)
+  /** 背景模式：single=单张 / carousel=顺序轮播 / random=随机切换。 */
+  const bgMode = ref<BackgroundMode>('single')
+  /** 轮播/随机模式下的图片来源文件夹路径（single 模式存 backgroundImagePath）。 */
+  const bgFolderPath = ref('')
+  /** 轮播/随机切换间隔（秒）。 */
+  const bgInterval = ref(BACKGROUND_INTERVAL_DEFAULT)
+  /** 轮播/随机来源文件列表（绝对路径，按文件名排序）。 */
+  const bgSources = ref<string[]>([])
+  /** 当前展示的文件索引。 */
+  const bgIndex = ref(0)
+  let bgRotateTimer: ReturnType<typeof setInterval> | null = null
   const transparentBg = ref(false)
   const sidebarCollapsed = ref(true)
   const navigationMode = ref<NavigationMode>('sidebar')
@@ -785,6 +808,91 @@ export const useThemeStore = defineStore('theme', () => {
     if (persist) saveThemeConfig()
   }
 
+  /** 切换并加载下一张背景图；随机/顺序由 bgMode 决定。 */
+  async function advanceBackground() {
+    const sources = bgSources.value
+    if (bgMode.value === 'single' || sources.length < 2) return
+    const next = nextBackgroundIndex(bgMode.value, sources.length, bgIndex.value)
+    bgIndex.value = next
+    const source = sources[next]
+    if (!source) return
+    try {
+      const url = await resolveLocalImageUrl(source)
+      if (!url) return
+      await preloadBackgroundImage(url)
+      if (bgSources.value.length >= 2) {
+        setBackgroundImage(resolveImageUrl(url), undefined, false)
+      }
+    } catch {
+      /* 单张加载失败跳过本轮 */
+    }
+  }
+
+  /** 停止并重启轮播定时器；非轮播模式或来源不足时保持停止。 */
+  function restartBgRotation() {
+    if (bgRotateTimer) {
+      clearInterval(bgRotateTimer)
+      bgRotateTimer = null
+    }
+    if (bgMode.value === 'single' || bgSources.value.length < 2) return
+    const intervalMs = clampBackgroundInterval(bgInterval.value) * 1000
+    bgRotateTimer = setInterval(() => {
+      void advanceBackground()
+    }, intervalMs)
+  }
+
+  /** 切换背景模式；切到单张时保留当前展示图，轮播来源可在切回后复用。 */
+  function setBgMode(mode: BackgroundMode, persist = true) {
+    bgMode.value = mode
+    restartBgRotation()
+    updateTheme()
+    if (persist) saveThemeConfig()
+  }
+
+  /** 设置轮播/随机切换间隔（秒）。 */
+  function setBgInterval(seconds: number, persist = true) {
+    bgInterval.value = clampBackgroundInterval(seconds)
+    restartBgRotation()
+    if (persist) saveThemeConfig()
+  }
+
+  /**
+   * 应用文件夹轮播来源：记录文件夹路径与文件列表，加载首张并启动轮播。
+   * @param folderPath - 图片所在文件夹绝对路径
+   * @param files - 文件夹内图片文件绝对路径列表（需非空）
+   * @param mode - 目标模式，默认沿用当前模式（carousel/random），否则回退 carousel
+   */
+  async function applyBackgroundFolder(
+    folderPath: string,
+    files: string[],
+    mode: BackgroundMode = bgMode.value,
+    persist = true
+  ): Promise<void> {
+    if (!files.length) return
+    bgFolderPath.value = folderPath
+    bgSources.value = files
+    bgIndex.value = 0
+    bgMode.value = isCarouselMode(mode) ? mode : 'carousel'
+    const first = files[0]
+    if (first) {
+      const url = await resolveLocalImageUrl(first)
+      if (url) setBackgroundImage(resolveImageUrl(url), undefined, false)
+    }
+    restartBgRotation()
+    if (persist) saveThemeConfig()
+  }
+
+  /** 移除轮播来源（用于清空背景时同步重置）。 */
+  function clearBackgroundSource() {
+    if (bgRotateTimer) {
+      clearInterval(bgRotateTimer)
+      bgRotateTimer = null
+    }
+    bgSources.value = []
+    bgIndex.value = 0
+    bgFolderPath.value = ''
+  }
+
   function setTransparentBg(val: boolean, persist = true) {
     transparentBg.value = val
     updateTheme()
@@ -856,8 +964,10 @@ export const useThemeStore = defineStore('theme', () => {
         background: {
           ...(ui.background || {}),
           type: backgroundImage.value ? 'custom' : 'none',
-          path: backgroundImagePath.value,
+          path: isCarouselMode(bgMode.value) ? bgFolderPath.value : backgroundImagePath.value,
           opacity: backgroundOpacity.value,
+          mode: bgMode.value,
+          interval: clampBackgroundInterval(bgInterval.value),
         },
       })
     }, 100)
@@ -916,18 +1026,41 @@ export const useThemeStore = defineStore('theme', () => {
       if (payload?.background) {
         backgroundChanged = true
         const bgData = payload.background
-        backgroundImagePath.value = bgData.path ?? ''
+        bgMode.value = bgData.mode === 'carousel' || bgData.mode === 'random' ? bgData.mode : 'single'
+        bgInterval.value = clampBackgroundInterval(bgData.interval ?? BACKGROUND_INTERVAL_DEFAULT)
+        bgSources.value = []
+        bgIndex.value = 0
+        bgFolderPath.value = ''
+        backgroundImagePath.value = ''
+        backgroundImage.value = ''
 
-        if (bgData.image_base64) {
+        if (bgMode.value === 'carousel' || bgMode.value === 'random') {
+          if (bgData.path) {
+            bgFolderPath.value = bgData.path
+            try {
+              const files = await settingsApi.listBackgroundImages(bgData.path)
+              bgSources.value = files
+              const first = files[0]
+              if (first) {
+                bgIndex.value = 0
+                const url = await resolveLocalImageUrl(first)
+                if (url) backgroundImage.value = resolveImageUrl(url)
+              }
+            } catch {
+              /* 目录读取失败时保持空来源 */
+            }
+          }
+        } else if (bgData.image_base64) {
+          backgroundImagePath.value = bgData.path ?? ''
           backgroundImage.value = resolveImageUrl(bgData.image_base64)
         } else if (settingsApi.isShowcase && bgData.path?.startsWith('http')) {
+          backgroundImagePath.value = bgData.path ?? ''
           backgroundImage.value = bgData.path
         } else if (bgData.path && bgData.type !== 'default') {
           // 桌面端统一通过后端读取 Base64，并将大图转换为 Blob URL 供 CSS 使用
+          backgroundImagePath.value = bgData.path
           const imageUrl = await resolveLocalImageUrl(bgData.path)
           backgroundImage.value = imageUrl ? resolveImageUrl(imageUrl) : ''
-        } else {
-          backgroundImage.value = ''
         }
 
         if (typeof bgData.opacity === 'number') {
@@ -961,6 +1094,7 @@ export const useThemeStore = defineStore('theme', () => {
         /* localStorage 不可用时沿用默认值 */
       }
       updateTheme()
+      restartBgRotation()
       // 开启背景取色且背景图就绪后，异步补一次初始提取
       if (deriveMode.value !== 'off' && backgroundImage.value) {
         void deriveFromBackground()
@@ -995,6 +1129,11 @@ export const useThemeStore = defineStore('theme', () => {
     systemDark,
     appearance,
     schedule,
+    bgMode,
+    bgFolderPath,
+    bgInterval,
+    bgSources,
+    bgIndex,
     naiveTheme,
     themeOverrides,
     colors,
@@ -1015,6 +1154,10 @@ export const useThemeStore = defineStore('theme', () => {
     setSidebarCollapsed,
     setTitlebarHidden,
     setNavigationMode,
+    setBgMode,
+    setBgInterval,
+    applyBackgroundFolder,
+    clearBackgroundSource,
     saveThemeConfig,
     toggleTheme,
     initTheme,
@@ -1055,6 +1198,11 @@ export function useTheme() {
     isDark,
     appearance,
     schedule,
+    bgMode,
+    bgFolderPath,
+    bgInterval,
+    bgSources,
+    bgIndex,
     naiveTheme,
     themeOverrides,
     colors,
@@ -1079,6 +1227,11 @@ export function useTheme() {
     isDark: readonly(isDark),
     appearance: readonly(appearance),
     schedule: readonly(schedule),
+    bgMode: readonly(bgMode),
+    bgFolderPath: readonly(bgFolderPath),
+    bgInterval: readonly(bgInterval),
+    bgSources: readonly(bgSources),
+    bgIndex: readonly(bgIndex),
     naiveTheme,
     themeOverrides,
     colors,
@@ -1097,6 +1250,10 @@ export function useTheme() {
     setSidebarCollapsed: store.setSidebarCollapsed,
     setNavigationMode: store.setNavigationMode,
     setTitlebarHidden: store.setTitlebarHidden,
+    setBgMode: store.setBgMode,
+    setBgInterval: store.setBgInterval,
+    applyBackgroundFolder: store.applyBackgroundFolder,
+    clearBackgroundSource: store.clearBackgroundSource,
     toggleTheme: store.toggleTheme,
     initTheme,
     updateTheme: store.updateTheme,

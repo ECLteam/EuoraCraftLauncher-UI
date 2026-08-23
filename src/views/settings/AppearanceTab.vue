@@ -1,7 +1,7 @@
 <template>
   <div class="tab-pane appearance-settings">
-    <SettingSection :title="t('settings.appearance')">
-      <SettingRow :label="t('settings.theme')" :description="t('settings.themeDesc')">
+    <SettingSection :title="t('settings.appearanceSectionTheme')">
+      <SettingRow :label="t('settings.themeStyle')" :description="t('settings.themeDesc')">
         <NTabs :value="themeId" type="segment" size="small" @update:value="handleThemeIdChange">
           <NTab v-for="option in builtinThemeOptions" :key="option.id" :name="option.id">
             <span class="theme-option-label">
@@ -46,18 +46,6 @@
         </div>
       </SettingRow>
 
-      <SettingRow :label="t('settings.topNav')" :description="t('settings.topNavDesc')">
-        <NSwitch :value="topNavEnabled" @update:value="toggleTopNav" />
-      </SettingRow>
-
-      <SettingRow :label="t('settings.auroraBackground')" :description="t('settings.auroraBackgroundDesc')">
-        <NSwitch :value="auroraEnabled" @update:value="handleAuroraEnabledChange" />
-      </SettingRow>
-
-      <SettingRow :label="t('settings.backgroundBlur')" :description="t('settings.backgroundBlurDesc')">
-        <NSwitch :value="blurLayerEnabled" @update:value="handleBlurLayerEnabledChange" />
-      </SettingRow>
-
       <SettingRow :label="t('settings.themeFromBackground')" :description="t('settings.themeFromBackgroundDesc')">
         <NSelect
           class="setting-select"
@@ -68,7 +56,22 @@
       </SettingRow>
     </SettingSection>
 
-    <SettingSection title="外观细节">
+    <SettingSection :title="t('settings.appearanceSectionLayout')">
+      <SettingRow :label="t('settings.topNav')" :description="t('settings.topNavDesc')">
+        <NSwitch :value="topNavEnabled" @update:value="toggleTopNav" />
+      </SettingRow>
+    </SettingSection>
+
+    <SettingSection v-if="themeId === 'folia'" :title="t('settings.appearanceSectionEffects')">
+      <SettingRow :label="t('settings.auroraBackground')" :description="t('settings.auroraBackgroundDesc')">
+        <NSwitch :value="auroraEnabled" @update:value="handleAuroraEnabledChange" />
+      </SettingRow>
+      <SettingRow :label="t('settings.backgroundBlurLayer')" :description="t('settings.backgroundBlurLayerDesc')">
+        <NSwitch :value="blurLayerEnabled" @update:value="handleBlurLayerEnabledChange" />
+      </SettingRow>
+    </SettingSection>
+
+    <SettingSection :title="t('settings.appearanceSectionDetails')">
       <SettingRow label="卡片圆角" description="用户级覆盖；未设置时由主题预设决定">
         <div class="slider-control">
           <NSlider
@@ -130,7 +133,19 @@
     </SettingSection>
 
     <SettingSection :title="t('settings.background')">
-      <SettingRow :label="t('settings.background')" :description="t('settings.backgroundDesc')">
+      <SettingRow :label="t('settings.backgroundMode')" :description="t('settings.backgroundModeDesc')">
+        <NTabs :value="bgMode" type="segment" size="small" @update:value="handleBgModeChange">
+          <NTab v-for="option in bgModeOptions" :key="option.value" :name="option.value">
+            {{ option.label }}
+          </NTab>
+        </NTabs>
+      </SettingRow>
+
+      <SettingRow
+        v-if="bgMode === 'single'"
+        :label="t('settings.background')"
+        :description="t('settings.backgroundDesc')"
+      >
         <NInputGroup class="background-input-group">
           <NInput
             :value="backgroundInput"
@@ -150,6 +165,23 @@
         />
       </SettingRow>
 
+      <template v-else>
+        <SettingRow :label="t('settings.backgroundSource')">
+          <div class="folder-source-control">
+            <span class="folder-source-path" :title="bgFolderPath">
+              {{ bgFolderPath || t('settings.backgroundSourceEmpty') }}
+            </span>
+            <NButton size="small" @click="selectBackgroundFolder">{{ t('settings.selectFolder') }}</NButton>
+          </div>
+        </SettingRow>
+        <SettingRow :label="t('settings.carouselInterval')" :description="t('settings.carouselIntervalDesc')">
+          <div class="slider-control">
+            <NSlider :value="bgInterval" :min="5" :max="60" :tooltip="false" @update:value="handleBgIntervalChange" />
+            <span>{{ bgInterval }} {{ t('settings.carouselIntervalUnit') }}</span>
+          </div>
+        </SettingRow>
+      </template>
+
       <SettingRow :label="t('settings.backgroundBrightness')" :description="t('settings.backgroundBrightnessDesc')">
         <div class="slider-control">
           <NSlider :value="bgBrightness" :min="0" :max="100" :tooltip="false" @update:value="handleBrightnessChange" />
@@ -165,7 +197,7 @@
       </SettingRow>
     </SettingSection>
 
-    <SettingSection title="定时自动切换">
+    <SettingSection :title="t('settings.appearanceSectionSchedule')">
       <SettingRow label="启用定时切换" description="仅在「跟随系统」模式下生效：按时间窗口强制亮暗，忽略系统偏好">
         <NSwitch :value="scheduleEnabled" @update:value="handleScheduleEnable" />
       </SettingRow>
@@ -195,18 +227,8 @@
 </template>
 
 <script setup lang="ts">
-import {
-  NButton,
-  NInput,
-  NInputGroup,
-  NSelect,
-  NSlider,
-  NSwitch,
-  NTab,
-  NTabs,
-  NTimePicker,
-} from 'naive-ui'
-import { computed, onUnmounted, ref } from 'vue'
+import { NButton, NInput, NInputGroup, NSelect, NSlider, NSwitch, NTab, NTabs, NTimePicker } from 'naive-ui'
+import { computed, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
@@ -226,6 +248,7 @@ import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { settingsApi } from '@/features/settings/api/settingsApi'
 import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
+import type { BackgroundMode } from '@/features/settings/model/backgroundMode'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import type { ThemeAppearanceConfig } from '@/types/api'
 
@@ -254,6 +277,9 @@ const {
   blurLayerEnabled,
   deriveMode,
   backgroundImagePath,
+  bgMode,
+  bgFolderPath,
+  bgInterval,
   setThemeId,
   setThemeMode,
   setPrimaryColor,
@@ -265,6 +291,9 @@ const {
   setAuroraEnabled,
   setBlurLayerEnabled,
   setDeriveMode,
+  setBgMode,
+  setBgInterval,
+  applyBackgroundFolder,
   backgroundOpacity,
   blurAmount,
   appearance,
@@ -288,6 +317,17 @@ const currentSettings = computed(() => ({
 const bgBrightness = ref(Math.round(backgroundOpacity.value * 100))
 const backgroundInput = ref(backgroundImagePath.value)
 const showcaseImageInputRef = ref<HTMLInputElement | null>(null)
+
+const bgModeOptions = computed<Array<{ value: BackgroundMode; label: string }>>(() => [
+  { value: 'single', label: t('settings.backgroundModeSingle') },
+  { value: 'carousel', label: t('settings.backgroundModeCarousel') },
+  { value: 'random', label: t('settings.backgroundModeRandom') },
+])
+
+// 从轮播切回单张时，把输入框重置为单张图片路径（避免残留文件夹路径）
+watch(bgMode, (mode) => {
+  if (mode === 'single') backgroundInput.value = backgroundImagePath.value
+})
 
 const themeOptions = computed(() =>
   THEME_MODE_OPTIONS.map((option) => ({
@@ -365,6 +405,45 @@ function handleCardOpacityChange(value: number | null) {
 
 function handleFontFamilyChange(value: string) {
   setAppearance({ font_family: value || undefined }, true)
+}
+
+function handleBgModeChange(value: string | number) {
+  const mode: BackgroundMode = value === 'random' ? 'random' : value === 'carousel' ? 'carousel' : 'single'
+  setBgMode(mode)
+  void run(async () => {
+    if (mode === 'single') {
+      await settingsStore.patchUiBackground({ mode, path: backgroundImagePath.value })
+    } else {
+      await settingsStore.patchUiBackground({ mode })
+    }
+  })
+}
+
+function handleBgIntervalChange(value: number | null) {
+  if (typeof value !== 'number') return
+  const seconds = Math.round(value)
+  setBgInterval(seconds)
+  void run(async () => settingsStore.patchUiBackground({ interval: seconds }))
+}
+
+async function selectBackgroundFolder() {
+  if (settingsApi.isShowcase) {
+    message.error(t('settings.carouselShowcaseNotSupported'))
+    return
+  }
+  const path = await settingsApi.selectDirectory()
+  if (!path) return
+  const files = await settingsApi.listBackgroundImages(path)
+  if (!files.length) {
+    message.error(t('settings.carouselNoImages'))
+    return
+  }
+  const mode: BackgroundMode = bgMode.value === 'random' ? 'random' : 'carousel'
+  await run(async () => {
+    await applyBackgroundFolder(path, files, mode)
+    await settingsStore.patchUiBackground({ type: 'custom', path, mode, interval: Math.round(bgInterval.value) })
+  })
+  message.success(t('common.success'))
 }
 
 const scheduleEnabled = computed(() => schedule.value.enabled === true)
