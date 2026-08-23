@@ -190,8 +190,8 @@ const menuItems = computed(() =>
 
 // 子菜单定义
 const settingsSubItems = computed(() => [
-  { path: '/settings/appearance', label: t('settings.appearance'), iconName: 'brush' },
   { path: '/settings/launcher', label: t('settings.launcherSettings'), iconName: 'settings' },
+  { path: '/settings/appearance', label: t('settings.appearance'), iconName: 'brush' },
   { path: '/settings/game', label: t('settings.gameSettings'), iconName: 'game' },
   { path: '/settings/about', label: t('settings.about'), iconName: 'info' },
 ])

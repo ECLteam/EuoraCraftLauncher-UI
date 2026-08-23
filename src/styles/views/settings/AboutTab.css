@@ -148,6 +148,26 @@
   line-height: 1.4;
 }
 
+.about-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  line-height: 1;
+}
+
+.about-mode-badge--dev {
+  color: #7aa2f7;
+  background: rgba(122, 162, 247, 0.12);
+  border: 1px solid rgba(122, 162, 247, 0.4);
+}
+
 .launcher-summary__action {
   display: flex;
   justify-content: flex-end;

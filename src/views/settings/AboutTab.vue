@@ -9,7 +9,12 @@
             <img src="/favicon.ico" alt="EuoraCraft" class="launcher-summary__logo" />
           </div>
           <div class="launcher-summary__content">
-            <div class="launcher-summary__name">EuoraCraft Launcher</div>
+            <div class="launcher-summary__name">
+              EuoraCraft Launcher
+              <span v-if="isDevMode" class="about-mode-badge about-mode-badge--dev" title="开发模式：Vite 开发构建">
+                DEV
+              </span>
+            </div>
             <div v-if="versionText" class="launcher-summary__version">
               {{ versionText }}
             </div>
@@ -126,6 +131,7 @@ const launcherVersionType = inject<Readonly<Ref<'dev' | 'beta' | 'release'>>>('l
 const runtimeMode = inject<AppRuntimeMode>('runtimeMode', 'browser')
 const launcherInfo = ref<LauncherInfo | null>(null)
 const frontendVersion = import.meta.env.VITE_APP_VERSION?.trim() || ''
+const isDevMode = import.meta.env.DEV
 const translateVersion = (key: string): string => t(`settings.aboutTab.version.${key}`)
 
 const versionText = computed(() => {
@@ -134,9 +140,9 @@ const versionText = computed(() => {
       ? `${translateVersion('demoMode')} · ${translateVersion('frontendLabel')} v${frontendVersion}`
       : translateVersion('demoMode')
   }
-  if (runtimeMode !== 'desktop') return ''
 
-  const version = launcherInfo.value?.version || launcherVersion?.value
+  // 开发/浏览器模式后端无启动器版本时退回前端包版本，保证 DEV 徽标旁始终有版本号
+  const version = launcherInfo.value?.version || launcherVersion?.value || frontendVersion
   const versionType = launcherInfo.value?.version_type || launcherVersionType?.value
   if (!version) return ''
   const status = versionType && versionType !== 'release' ? translateVersion(`types.${versionType}`) : ''
@@ -148,7 +154,8 @@ onMounted(async () => {
   launcherInfo.value = await aboutApi.getLauncherInfo()
 })
 
-const expandedTechnologyCategoryIds = ref<Set<string>>(new Set(['runtime-frameworks', 'backend-runtime']))
+// 技术栈分类默认全部收起：避免默认展开的"后端运行依赖"等把卡片撑成超出视口的大块，与下拉/折叠式行设计一致
+const expandedTechnologyCategoryIds = ref<Set<string>>(new Set())
 
 function isTechnologyCategoryExpanded(categoryId: string): boolean {
   return expandedTechnologyCategoryIds.value.has(categoryId)

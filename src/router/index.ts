@@ -29,9 +29,9 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/settings',
     component: withErrorBoundary(() => import('@/views/Settings.vue')),
-    redirect: '/settings/appearance',
+    redirect: '/settings/launcher',
     children: [
-      { path: 'general', name: 'settings-general', redirect: '/settings/appearance' },
+      { path: 'general', name: 'settings-general', redirect: '/settings/launcher' },
       {
         path: 'appearance',
         name: 'settings-appearance',

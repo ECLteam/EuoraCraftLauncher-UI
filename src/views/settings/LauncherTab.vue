@@ -22,29 +22,22 @@
       </SettingRow>
     </SettingSection>
 
-    <SettingSection :title="t('settings.instanceCompatibility')">
-      <SettingRow :label="t('settings.qomicexInstanceIndex')" :description="t('settings.qomicexInstanceIndexDesc')">
-        <div class="path-selector">
-          <NInput
-            :value="gameSettings.qomicex_instances_path || ''"
-            :placeholder="t('settings.autoDetect')"
-            clearable
-            @update:value="handleQomicexPathChange"
-          />
-          <NButton size="small" @click="browseQomicexIndex">{{ t('common.browse') }}</NButton>
-        </div>
+    <SettingSection :title="t('settings.network')">
+      <SettingRow :label="t('settings.proxyMode')" :description="t('settings.proxyModeDesc')">
+        <NSelect
+          class="setting-select"
+          :value="proxyMode"
+          :options="proxyModeOptions"
+          @update:value="handleProxyModeChange"
+        />
       </SettingRow>
-    </SettingSection>
-
-    <SettingSection :title="t('settings.developer')">
-      <SettingRow :label="t('settings.debugMode')" :description="t('settings.debugModeDesc')">
-        <NSwitch :value="debugMode" @update:value="handleDebugModeChange" />
-      </SettingRow>
-      <SettingRow :label="t('settings.disableSslVerify')" :description="t('settings.disableSslVerifyDesc')">
-        <NSwitch :value="disableSslVerify" @update:value="handleDisableSslVerifyChange" />
-      </SettingRow>
-      <SettingRow :label="t('settings.ignoreProxy')" :description="t('settings.ignoreProxyDesc')">
-        <NSwitch :value="ignoreProxy" @update:value="handleIgnoreProxyChange" />
+      <SettingRow v-if="proxyMode === 'custom'" :label="t('settings.proxyUrl')" :description="t('settings.proxyUrlDesc')">
+        <NInput
+          :value="proxyUrl"
+          :placeholder="t('settings.proxyUrlPlaceholder')"
+          clearable
+          @update:value="handleProxyUrlChange"
+        />
       </SettingRow>
       <SettingRow :label="t('settings.requestTimeout')" :description="t('settings.requestTimeoutDesc')">
         <NInputNumber
@@ -66,6 +59,15 @@
           @update:value="handleRequestRetriesChange"
         />
       </SettingRow>
+      <SettingRow :label="t('settings.disableSslVerify')" :description="t('settings.disableSslVerifyDesc')">
+        <NSwitch :value="disableSslVerify" @update:value="handleDisableSslVerifyChange" />
+      </SettingRow>
+    </SettingSection>
+
+    <SettingSection :title="t('settings.developer')">
+      <SettingRow :label="t('settings.debugMode')" :description="t('settings.debugModeDesc')">
+        <NSwitch :value="debugMode" @update:value="handleDebugModeChange" />
+      </SettingRow>
     </SettingSection>
 
     <PluginSlotHost slotId="plugin-slot-settings-download-section-after" class="plugin-slot-container" />
@@ -75,11 +77,10 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NInput, NInputNumber, NSelect, NSwitch } from 'naive-ui'
+import { NInput, NInputNumber, NSelect, NSwitch } from 'naive-ui'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import backend from '@/api/client'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useDebugMode } from '@/composables/useDebugMode'
 import { MIRROR_OPTIONS } from '@/config/version'
@@ -88,18 +89,34 @@ import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import { setLocale, supportedLocales, type LocaleCode } from '@/i18n'
+import type { LauncherConfig } from '@/types/api'
+
+type ProxyMode = NonNullable<LauncherConfig['proxy_mode']>
 
 const { t, locale } = useI18n()
 const { run } = useAsyncAction({ showSuccess: false, showError: true, errorMessage: t('common.error') })
 const settingsStore = useSettingsStore()
-const { game: gameSettings, download: downloadSettings } = storeToRefs(settingsStore)
+const { download: downloadSettings } = storeToRefs(settingsStore)
 const { debugMode, setDebugMode } = useDebugMode()
 
 const currentLocale = computed(() => locale.value as LocaleCode)
 const disableSslVerify = computed(() => settingsStore.launcher.disable_ssl_verify === true)
-const ignoreProxy = computed(() => settingsStore.launcher.ignore_proxy !== false)
+const proxyMode = computed<ProxyMode>(() => {
+  const mode = settingsStore.launcher.proxy_mode
+  if (mode === 'custom' || mode === 'system') return mode
+  // 兼容旧版 ignore_proxy 布尔配置：false→使用系统代理、true/缺失使用代理
+  const legacy = (settingsStore.launcher as LauncherConfig & { ignore_proxy?: boolean }).ignore_proxy
+  return legacy === false ? 'system' : 'none'
+})
+const proxyUrl = computed(() => settingsStore.launcher.proxy_url ?? '')
 const requestTimeout = computed(() => settingsStore.launcher.request_timeout ?? 15)
 const requestRetries = computed(() => settingsStore.launcher.request_retries ?? 2)
+
+const proxyModeOptions = computed(() => [
+  { label: t('settings.proxyNone'), value: 'none' },
+  { label: t('settings.proxySystem'), value: 'system' },
+  { label: t('settings.proxyCustom'), value: 'custom' },
+])
 
 const languageOptions = computed(() =>
   supportedLocales.map((language) => ({
@@ -129,16 +146,6 @@ async function handleDownloadSourceChange(value: 'official' | 'bmclapi'): Promis
   await run(() => settingsStore.patchDownload({ mirror_source: value }))
 }
 
-async function handleQomicexPathChange(value: string): Promise<void> {
-  await run(() => settingsStore.patchGame({ qomicex_instances_path: value }))
-}
-
-async function browseQomicexIndex(): Promise<void> {
-  const response = await backend.command('select_file')
-  if (!response.success || !response.data?.path) return
-  await handleQomicexPathChange(response.data.path)
-}
-
 async function handleDebugModeChange(value: boolean): Promise<void> {
   await run(() => setDebugMode(value))
 }
@@ -147,8 +154,12 @@ async function handleDisableSslVerifyChange(value: boolean): Promise<void> {
   await run(() => settingsStore.patchLauncher({ disable_ssl_verify: value }))
 }
 
-async function handleIgnoreProxyChange(value: boolean): Promise<void> {
-  await run(() => settingsStore.patchLauncher({ ignore_proxy: value }))
+async function handleProxyModeChange(value: string): Promise<void> {
+  await run(() => settingsStore.patchLauncher({ proxy_mode: value as ProxyMode }))
+}
+
+async function handleProxyUrlChange(value: string): Promise<void> {
+  await run(() => settingsStore.patchLauncher({ proxy_url: value }))
 }
 
 async function handleRequestTimeoutChange(value: number | null): Promise<void> {

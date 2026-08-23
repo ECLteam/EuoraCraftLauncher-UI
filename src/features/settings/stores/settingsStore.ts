@@ -24,7 +24,8 @@ export const useSettingsStore = defineStore('settings', () => {
   const launcher = ref<LauncherConfig>({
     debug: false,
     disable_ssl_verify: false,
-    ignore_proxy: true,
+    proxy_mode: 'none',
+    proxy_url: '',
     request_timeout: 15,
     request_retries: 2,
   })

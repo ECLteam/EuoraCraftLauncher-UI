@@ -54,8 +54,10 @@ export interface LauncherConfig {
   /** 由 ECL_CONFIG_launcher_showcase 环境变量控制，启用后使用 mock 数据替代真实后端 */
   showcase?: boolean
   disable_ssl_verify?: boolean
-  /** 忽略系统/环境代理，让所有网络请求直连 */
-  ignore_proxy?: boolean
+  /** 代理模式：none=不使用代理(直连) / system=使用系统代理 / custom=自定义代理 */
+  proxy_mode?: 'none' | 'system' | 'custom'
+  /** 自定义代理地址（proxy_mode 为 custom 时生效），需含协议前缀 */
+  proxy_url?: string
   /** 单次网络请求的总超时秒数 */
   request_timeout?: number
   /** 首次请求失败后允许的额外重试次数 */
