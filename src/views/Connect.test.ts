@@ -147,7 +147,7 @@ describe('Connect view', () => {
   it('加入房间成功后主动刷新一次成员', async () => {
     const state = connectorState(idleStatus())
     const wrapper = mountConnect(state)
-    await wrapper.get('#connect-room-code').setValue('U/TEST-ROOM')
+    await wrapper.get('#connect-room-code').setValue('U/YZ0P-UV89-9QG6-WVVT')
 
     await wrapper
       .findAll('button')
@@ -155,8 +155,23 @@ describe('Connect view', () => {
       ?.trigger('click')
     await flushPromises()
 
-    expect(state.join).toHaveBeenCalledWith('U/TEST-ROOM')
+    expect(state.join).toHaveBeenCalledWith('U/YZ0P-UV89-9QG6-WVVT')
     expect(state.refreshStatus).toHaveBeenCalledTimes(1)
+  })
+
+  it('加入房间时拒绝格式非法的房间码', async () => {
+    const state = connectorState(idleStatus())
+    const wrapper = mountConnect(state)
+    await wrapper.get('#connect-room-code').setValue('2026-08-22 22:07:48 ERROR 无法找到联机大厅')
+
+    await wrapper
+      .findAll('button')
+      .find((candidate) => candidate.text().includes('加入房间'))
+      ?.trigger('click')
+    await flushPromises()
+
+    expect(state.join).not.toHaveBeenCalled()
+    expect(state.refreshStatus).not.toHaveBeenCalled()
   })
 
   it('renders launch failures as a stable starting-state card', () => {
