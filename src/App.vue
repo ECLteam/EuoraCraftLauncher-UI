@@ -1,5 +1,11 @@
 <template>
-  <div id="app" @dragover.prevent @drop="handleGlobalDrop">
+  <div
+    id="app"
+    @dragenter.prevent="handleDragEnter"
+    @dragover.prevent="handleDragOver"
+    @dragleave="handleDragLeave"
+    @drop="handleGlobalDrop"
+  >
     <!-- 背景层 -->
     <div class="app-background"></div>
     <div class="aurora-bg" aria-hidden="true"></div>
@@ -113,11 +119,21 @@
         </main>
       </div>
     </div>
+
+    <!-- 全局文件拖放反馈层 -->
+    <Transition name="drop-fade">
+      <div v-if="dragging" class="global-drop-overlay" aria-hidden="true">
+        <div class="global-drop-overlay__box">
+          <UiIcon name="archive" :size="42" />
+          <span>{{ t('modpackImport.dropHint') }}</span>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, provide, readonly, ref } from 'vue'
+import { onBeforeUnmount, onMounted, onUnmounted, provide, readonly, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { loadShowcaseTasks } from '@/api/transport/showcase/fixtures'
@@ -156,8 +172,53 @@ const fullscreenModal = useFullscreenModal()
 const message = useLauncherMessage()
 const modpackImport = useModpackImportStore()
 
-// 全局文件拖放：未被子面板（模组/存档等）拦截时，识别整合包文件并打开导入对话框
+// ── 全局文件拖放：识别整合包文件并打开导入对话框（未被子面板拦截时）──
+const dragging = ref(false)
+let dragDepth = 0
+let lastDropAt = 0
+const PACK_EXT_RE = /\.(eclmodpack|zip|mrpack)$/i
+const NATIVE_DRAG_EVENTS = ['tauri://drag-enter', 'tauri://drag-over', 'tauri://drag-drop', 'tauri://drag-leave']
+
+function hasFileTypes(event: DragEvent): boolean {
+  return Array.from(event.dataTransfer?.types || []).includes('Files')
+}
+
+// 拖到子面板（模组/存档等自带拖放区）上方时不显示全局反馈层，避免与面板自身覆盖层叠加
+function overDropZone(event: DragEvent): boolean {
+  const target = event.target
+  return target instanceof Element && Boolean(target.closest('[data-drop-zone]'))
+}
+
+function handleDragEnter(event: DragEvent) {
+  if (!hasFileTypes(event) || overDropZone(event)) return
+  dragDepth += 1
+  dragging.value = true
+}
+
+function handleDragOver(event: DragEvent) {
+  if (!hasFileTypes(event)) return
+  event.preventDefault()
+  if (!overDropZone(event)) dragging.value = true
+}
+
+function handleDragLeave() {
+  dragDepth -= 1
+  if (dragDepth <= 0) {
+    dragDepth = 0
+    dragging.value = false
+  }
+}
+
+function openPackImport(path: string) {
+  const now = Date.now()
+  if (now - lastDropAt < 1000) return
+  lastDropAt = now
+  void modpackImport.open({ sourcePath: path })
+}
+
 function handleGlobalDrop(event: DragEvent) {
+  dragDepth = 0
+  dragging.value = false
   // 内层面板的 @drop.prevent 已处理时，defaultPrevented 为 true，此处直接跳过
   if (event.defaultPrevented) return
   const files = event.dataTransfer?.files
@@ -165,8 +226,29 @@ function handleGlobalDrop(event: DragEvent) {
   event.preventDefault()
   const pack = extractPackPath(files)
   if (!pack) return
-  void modpackImport.open({ sourcePath: pack })
+  openPackImport(pack)
 }
+
+function handleNativeDragEvent(event: Event) {
+  const type = event.type.replace('tauri://drag-', '')
+  const detail = (event as CustomEvent<{ paths?: string[] }>).detail ?? {}
+  if (type === 'enter' || type === 'over') {
+    dragging.value = true
+  } else if (type === 'leave') {
+    dragging.value = false
+  } else if (type === 'drop') {
+    dragging.value = false
+    const pack = detail.paths?.find((path) => PACK_EXT_RE.test(path))
+    if (pack) openPackImport(pack)
+  }
+}
+
+onMounted(() => {
+  NATIVE_DRAG_EVENTS.forEach((name) => window.addEventListener(name, handleNativeDragEvent))
+})
+onBeforeUnmount(() => {
+  NATIVE_DRAG_EVENTS.forEach((name) => window.removeEventListener(name, handleNativeDragEvent))
+})
 
 // 让 unwrapResponse 的 message 级失败统一走顶部通知，避免调用方遗漏导致用户无感知
 setErrorNotifier((msg) => message.errorRaw(msg))

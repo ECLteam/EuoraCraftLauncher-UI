@@ -1446,6 +1446,7 @@
     "versionNamePlaceholder": "输入实例名称",
     "versionNameHint": "将作为实例文件夹名",
     "import": "导入",
-    "success": "整合包导入任务已创建"
+    "success": "整合包导入任务已创建",
+    "dropHint": "松开以导入整合包"
   }
 }

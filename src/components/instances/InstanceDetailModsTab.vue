@@ -1,6 +1,7 @@
 ﻿<template>
   <div
     class="mods-panel"
+    data-drop-zone
     @dragover.prevent
     @drop.prevent="handleModDrop"
     @dragenter.prevent="handleModDragEnter"

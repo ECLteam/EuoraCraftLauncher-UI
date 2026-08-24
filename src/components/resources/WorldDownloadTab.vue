@@ -1,6 +1,7 @@
 <template>
   <section
     class="world-download-tab"
+    data-drop-zone
     @dragover.prevent
     @drop.prevent="handleDrop"
     @dragenter="handleDragEnter"

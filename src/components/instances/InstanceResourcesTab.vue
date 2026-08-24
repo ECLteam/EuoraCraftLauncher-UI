@@ -1,5 +1,5 @@
 <template>
-  <section class="workspace-panel" @dragover.prevent @drop.prevent="installDropped">
+  <section class="workspace-panel" data-drop-zone @dragover.prevent @drop.prevent="installDropped">
     <header class="workspace-toolbar">
       <div v-if="types.length > 1" class="resource-tabs">
         <NButton

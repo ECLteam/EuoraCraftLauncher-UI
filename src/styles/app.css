@@ -212,3 +212,44 @@
   transform: translateY(0) scale(0.97);
   transition-duration: 0.06s;
 }
+
+/* 全局文件拖放反馈层：拖动文件到窗口任意位置时全窗模糊 + 提示文字 */
+.global-drop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background: rgba(20, 24, 32, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  pointer-events: none;
+}
+
+.global-drop-overlay__box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 28px 48px;
+  border: 1.5px dashed var(--ecl-border);
+  border-radius: var(--r-md, 12px);
+  background: var(--ecl-surface);
+  color: var(--ecl-text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.global-drop-overlay__box .icon {
+  color: var(--primary);
+}
+
+.drop-fade-enter-active,
+.drop-fade-leave-active {
+  transition: opacity 0.18s ease;
+}
+
+.drop-fade-enter-from,
+.drop-fade-leave-to {
+  opacity: 0;
+}

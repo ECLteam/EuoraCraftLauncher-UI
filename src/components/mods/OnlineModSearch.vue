@@ -1,6 +1,7 @@
 ﻿<template>
   <div
     class="oms-root"
+    data-drop-zone
     @dragover.prevent
     @drop.prevent="handleDrop"
     @dragenter="handleDragEnter"
