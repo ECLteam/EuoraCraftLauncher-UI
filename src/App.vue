@@ -1,5 +1,5 @@
 <template>
-  <div id="app" @dragover.prevent @drop.prevent="handleGlobalDrop">
+  <div id="app" @dragover.prevent @drop="handleGlobalDrop">
     <!-- 背景层 -->
     <div class="app-background"></div>
     <div class="aurora-bg" aria-hidden="true"></div>
@@ -136,7 +136,7 @@ import { useFullscreenModal } from '@/composables/useFullscreenModal'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
 import { useUserAgreement } from '@/composables/useUserAgreement'
-import { useModpackImportStore } from '@/features/instances/stores/modpackImportStore'
+import { useModpackImportStore, extractPackPath } from '@/features/instances/stores/modpackImportStore'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import FloatingLauncherLog from '@/features/terminal/components/FloatingLauncherLog.vue'
 import { getErrorMessage } from '@/utils/error'
@@ -158,11 +158,12 @@ const modpackImport = useModpackImportStore()
 
 // 全局文件拖放：未被子面板（模组/存档等）拦截时，识别整合包文件并打开导入对话框
 function handleGlobalDrop(event: DragEvent) {
+  // 内层面板的 @drop.prevent 已处理时，defaultPrevented 为 true，此处直接跳过
   if (event.defaultPrevented) return
-  const paths = [...(event.dataTransfer?.files || [])]
-    .map((file) => (file as File & { path?: string }).path)
-    .filter((path): path is string => Boolean(path))
-  const pack = paths.find((path) => /\.(eclmodpack|zip|mrpack)$/i.test(path))
+  const files = event.dataTransfer?.files
+  if (!files || files.length === 0) return
+  event.preventDefault()
+  const pack = extractPackPath(files)
   if (!pack) return
   void modpackImport.open({ sourcePath: pack })
 }
