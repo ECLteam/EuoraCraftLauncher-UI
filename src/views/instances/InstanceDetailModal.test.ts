@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
   getStats: vi.fn(),
   onStatsChanged: vi.fn(),
   analyzeCrash: vi.fn(),
+  listCrashCandidates: vi.fn(),
 }))
 const mock = vi.hoisted<{ state?: BackendMockState }>(() => ({ state: undefined }))
 vi.mock('@/api/client', async () => {
@@ -22,8 +23,6 @@ vi.mock('@/api/client', async () => {
   mock.state = createMockBackend()
   return mock.state.backend
 })
-
-const { mocks: backendMocks } = mock.state!
 
 vi.mock('@/features/instances/api/instanceSettingsApi', () => ({
   instanceSettingsApi: {
@@ -59,6 +58,7 @@ vi.mock('@/features/instances/api/instanceRuntimeApi', () => ({
     getStats: mocks.getStats,
     onChanged: mocks.onStatsChanged,
     analyzeCrash: mocks.analyzeCrash,
+    listCrashCandidates: mocks.listCrashCandidates,
   },
 }))
 
@@ -111,7 +111,9 @@ describe('InstanceDetailModal', () => {
       totalRunDurationSeconds: 3665,
     })
     mocks.onStatsChanged.mockReturnValue(vi.fn())
-    backendMocks.command.mockResolvedValue({ success: true, data: { path: 'D:/Logs/latest.log' } })
+    mocks.listCrashCandidates.mockResolvedValue([
+      { path: 'D:/Games/.minecraft/logs/latest.log', name: 'latest.log', size: 1024, mtime: 1700000000 },
+    ])
     mocks.analyzeCrash.mockResolvedValue({
       reportId: 'b'.repeat(32),
       versionId: '1.21.5',
@@ -173,7 +175,7 @@ describe('InstanceDetailModal', () => {
     expect(mocks.getStats).toHaveBeenCalledWith('D:/Games/.minecraft', '1.21.5')
   })
 
-  it('selects and analyzes a crash log from quick actions', async () => {
+  it('opens the crash log picker and lists detected logs from the instance folder', async () => {
     const wrapper = mountModal('overview')
     await flushPromises()
     const analyzeButton = wrapper.findAll('button').find((button) => button.text().includes('分析崩溃日志'))
@@ -181,14 +183,11 @@ describe('InstanceDetailModal', () => {
     await analyzeButton?.trigger('click')
     await flushPromises()
 
-    expect(backendMocks.command).toHaveBeenCalledWith('select_file', { purpose: 'crash-analysis' })
-    expect(mocks.analyzeCrash).toHaveBeenCalledWith('D:/Logs/latest.log', 'D:/Games/.minecraft', '1.21.5')
+    expect(mocks.listCrashCandidates).toHaveBeenCalledWith('D:/Games/.minecraft', '1.21.5')
+    expect(wrapper.find('.crash-picker-modal').exists()).toBe(true)
   })
 
-  it('does nothing when crash log selection is cancelled', async () => {
-    backendMocks.command.mockImplementation(async (command: string) =>
-      command === 'select_file' ? { success: true, data: { path: '' } } : { success: true, data: [] }
-    )
+  it('closing the crash log picker does not analyze anything', async () => {
     const wrapper = mountModal('overview')
     await flushPromises()
     const analyzeButton = wrapper.findAll('button').find((button) => button.text().includes('分析崩溃日志'))
@@ -196,6 +195,7 @@ describe('InstanceDetailModal', () => {
     await analyzeButton?.trigger('click')
     await flushPromises()
 
+    expect(wrapper.find('.crash-picker-modal').exists()).toBe(true)
     expect(mocks.analyzeCrash).not.toHaveBeenCalled()
   })
 

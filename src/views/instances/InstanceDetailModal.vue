@@ -120,14 +120,20 @@
       <button @click="chooseLocalProfileIcon"><UiIcon name="photo" :size="28" /><span>本地图片</span></button>
     </div>
   </Modal>
+  <CrashLogPickerModal
+    v-model:visible="showCrashPicker"
+    :version="version"
+    :gamePath="getGamePath() ?? ''"
+    @analyze="runCrashAnalysis"
+  />
 </template>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import backend from '@/api/client'
 import { launcherErrorQueue } from '@/app/runtime/errorPresentation'
+import CrashLogPickerModal from '@/components/instances/CrashLogPickerModal.vue'
 import InstanceDetailModsTab from '@/components/instances/InstanceDetailModsTab.vue'
 import InstanceDetailOverviewTab from '@/components/instances/InstanceDetailOverviewTab.vue'
 import InstanceDetailProfileTab from '@/components/instances/InstanceDetailProfileTab.vue'
@@ -206,6 +212,7 @@ const runStats = reactive<VersionRunStats>({
 })
 const statsLoading = ref(false)
 const crashAnalyzing = ref(false)
+const showCrashPicker = ref(false)
 let statsRequestId = 0
 
 const isModdedInstance = computed(() => hasModLoader(props.version))
@@ -292,18 +299,17 @@ async function loadRunStats() {
 }
 
 async function handleAnalyzeCrash() {
+  if (!props.version || !getGamePath() || crashAnalyzing.value) return
+  showCrashPicker.value = true
+}
+
+async function runCrashAnalysis(filePath: string) {
   const version = props.version
   const gamePath = getGamePath()
   if (!version || !gamePath || crashAnalyzing.value) return
   crashAnalyzing.value = true
   try {
-    const selected = await backend.command('select_file', { purpose: 'crash-analysis' })
-    if (!selected.success) {
-      message.error(selected.message || t('versions.detail.crashAnalysisFailed'))
-      return
-    }
-    if (!selected.data?.path) return
-    const result = await instanceRuntimeApi.analyzeCrash(selected.data.path, gamePath, version.versionId || version.id)
+    const result = await instanceRuntimeApi.analyzeCrash(filePath, gamePath, version.versionId || version.id)
     launcherErrorQueue.enqueue({
       error_id: result.reportId,
       title: t('error.crash.title'),

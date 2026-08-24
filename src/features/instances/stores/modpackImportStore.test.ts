@@ -4,8 +4,8 @@ import { derivePackName, extractPackPath } from './modpackImportStore'
 describe('extractPackPath 从拖放文件列表提取整合包', () => {
   const file = (path: string) => ({ path }) as unknown as File
 
-  it('识别 .eclmodpack / .zip / .mrpack 路径', () => {
-    expect(extractPackPath([file('D:/packs/My.eclmodpack')])).toBe('D:/packs/My.eclmodpack')
+  it('识别 .zip / .mrpack 路径', () => {
+    expect(extractPackPath([file('D:/packs/My.zip')])).toBe('D:/packs/My.zip')
     expect(extractPackPath([file('/packs/Curse.zip')])).toBe('/packs/Curse.zip')
     expect(extractPackPath([file('C:/packs/Mr.mrpack')])).toBe('C:/packs/Mr.mrpack')
   })
@@ -25,15 +25,14 @@ describe('extractPackPath 从拖放文件列表提取整合包', () => {
 })
 
 describe('derivePackName 从整合包文件路径推导实例名', () => {
-  it('去除目录前缀与 .eclmodpack/.zip/.mrpack 后缀', () => {
-    expect(derivePackName('D:\\Modpacks\\My Pack.eclmodpack')).toBe('My Pack')
-    expect(derivePackName('/home/user/packs/SkyBlock.zip')).toBe('SkyBlock')
-    expect(derivePackName('C:/packs/ATM9.mrpack')).toBe('ATM9')
+  it('去除目录前缀与 .zip/.mrpack 后缀', () => {
+    expect(derivePackName('D:\\Modpacks\\My Pack.zip')).toBe('My Pack')
+    expect(derivePackName('/home/user/packs/SkyBlock.mrpack')).toBe('SkyBlock')
   })
 
   it('大小写不敏感识别后缀', () => {
     expect(derivePackName('packs/Modern.ZIP')).toBe('Modern')
-    expect(derivePackName('packs/Craft.ECLMODPACK')).toBe('Craft')
+    expect(derivePackName('packs/Craft.MRPACK')).toBe('Craft')
   })
 
   it('清理非法文件名字符', () => {

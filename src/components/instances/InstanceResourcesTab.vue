@@ -23,36 +23,32 @@
       />
       <NInput v-model:value="query" clearable size="small" placeholder="搜索资源名称、版本或来源" />
       <div class="toolbar-actions">
-        <NButton size="small" :loading="loading" @click="load">
-          <template #icon><UiIcon name="refresh" :size="13" /></template>
-          刷新
+        <NButton quaternary circle size="small" :loading="loading" title="刷新" @click="load">
+          <template #icon><UiIcon name="refresh" :size="16" /></template>
         </NButton>
-        <NButton size="small" type="primary" @click="chooseAndInstall">
+        <NButton quaternary circle size="small" title="在线搜索" @click="onlineVisible = true">
+          <template #icon><UiIcon name="search" :size="16" /></template>
+        </NButton>
+        <NButton quaternary circle size="small" title="导出清单" @click="exportManifest">
+          <template #icon><UiIcon name="file-download" :size="16" /></template>
+        </NButton>
+        <NButton
+          quaternary
+          circle
+          size="small"
+          type="error"
+          title="删除"
+          :disabled="selected.size === 0"
+          @click="removeSelected"
+        >
+          <template #icon><UiIcon name="trash" :size="16" /></template>
+        </NButton>
+        <NButton size="small" type="primary" class="toolbar-primary-btn" @click="chooseAndInstall">
           <template #icon><UiIcon name="plus" :size="13" /></template>
           安装资源
         </NButton>
-        <NButton size="small" secondary @click="onlineVisible = true">
-          <template #icon><UiIcon name="search" :size="13" /></template>
-          在线搜索
-        </NButton>
-        <NButton size="small" secondary :loading="updateLoading" @click="checkUpdates">
-          <template #icon><UiIcon name="refresh" :size="13" /></template>
-          检查更新
-        </NButton>
-        <NButton size="small" secondary @click="exportManifest">
-          <template #icon><UiIcon name="file-download" :size="13" /></template>
-          导出清单
-        </NButton>
-        <NButton size="small" type="error" secondary :disabled="selected.size === 0" @click="removeSelected">
-          <template #icon><UiIcon name="trash" :size="13" /></template>
-          移入回收站
-        </NButton>
       </div>
     </header>
-    <p class="drop-hint">
-      <UiIcon name="upload" :size="12" />
-      可把资源文件拖到这里安装；删除始终进入系统回收站。
-    </p>
     <NSpin :show="loading">
       <div v-if="filtered.length" class="resource-table">
         <div v-for="item in filtered" :key="item.id" class="resource-row">
@@ -70,7 +66,6 @@
           <span v-else class="resource-na">—</span>
           <div class="resource-actions">
             <NButton size="tiny" type="error" quaternary @click="removeOne(item)">删除</NButton>
-            <NButton v-if="updates[item.id]" size="tiny" type="primary" @click="confirmUpdate(item)">更新</NButton>
           </div>
         </div>
       </div>
@@ -134,8 +129,6 @@ const onlineQuery = ref('')
 const onlineSource = ref<'modrinth' | 'curseforge'>('modrinth')
 const onlineItems = ref<unknown[]>([])
 const onlineLoading = ref(false)
-const updateLoading = ref(false)
-const updates = ref<Record<string, Record<string, unknown>>>({})
 const allTypes: Array<{ value: GameResourceType; label: string }> = [
   { value: 'mod', label: '模组' },
   { value: 'resourcepack', label: '资源包' },
@@ -208,8 +201,8 @@ function toggleSelected(id: string) {
 }
 function confirmDelete(ids: string[]) {
   openConfirm(
-    '移入回收站',
-    `将 ${ids.length} 个资源移入系统回收站？`,
+    '删除',
+    `确定删除 ${ids.length} 个资源？`,
     async () => {
       await instanceWorkspaceApi.deleteResources(target.value, resourceType.value, ids, worldId.value || undefined)
       selected.value = new Set()
@@ -242,22 +235,6 @@ async function searchOnline() {
     onlineLoading.value = false
   }
 }
-async function checkUpdates() {
-  updateLoading.value = true
-  try {
-    const items = await instanceWorkspaceApi.checkResourceUpdates(
-      target.value,
-      resourceType.value,
-      props.version.vanillaName || props.version.versionId,
-      props.version.primaryLoader,
-      worldId.value || undefined
-    )
-    updates.value = Object.fromEntries(items.map((item) => [String(item.resourceId), item]))
-    message.success(items.length ? `发现 ${items.length} 个可用更新` : '当前资源均为最新')
-  } finally {
-    updateLoading.value = false
-  }
-}
 async function exportManifest() {
   const selected = unwrapResponse(
     await backend.command('select_save_file', { purpose: 'resource-manifest' }),
@@ -273,24 +250,6 @@ async function exportManifest() {
     worldId.value || undefined
   )
   message.success('资源清单已导出')
-}
-function confirmUpdate(item: GameResource) {
-  const update = updates.value[item.id]
-  if (!update) return
-  openConfirm(
-    '确认资源更新',
-    `将 ${item.name} 更新至 ${String(update.versionNumber || '新版本')}。旧文件会移入回收站。`,
-    async () => {
-      await instanceWorkspaceApi.updateResource(
-        target.value,
-        resourceType.value,
-        item.id,
-        update,
-        worldId.value || undefined
-      )
-      message.success('资源更新任务已创建')
-    }
-  )
 }
 watch([resourceType, worldId], load)
 
@@ -354,9 +313,14 @@ onMounted(load)
 .toolbar-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   margin-left: auto;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+}
+
+/* 主操作按钮与辅助按钮分隔，作为工具栏的视觉终点 */
+.toolbar-actions .toolbar-primary-btn {
+  margin-left: 12px;
 }
 
 .resource-tabs {
@@ -377,15 +341,6 @@ onMounted(load)
   width: 180px;
 }
 
-.drop-hint {
-  flex-shrink: 0;
-  margin: 12px 16px 0;
-  padding: 10px 12px;
-  border: 1px dashed var(--ecl-border-strong);
-  border-radius: var(--ecl-radius-control);
-  color: var(--ecl-text-secondary);
-  font-size: 12px;
-}
 
 .resource-table {
   display: flex;

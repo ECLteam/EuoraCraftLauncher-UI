@@ -1,12 +1,14 @@
-import { icons } from '@iconify-json/tabler'
 import { describe, expect, it } from 'vitest'
 import { BUILTIN_THEMES } from '@/config/theme'
 import { ICON_MAP } from './iconify'
+import { icons } from './tabler-subset'
 
 describe('图标映射', () => {
-  it('ICON_MAP 中所有 Tabler 图标名均存在于 tabler 图标集', () => {
+  it('ICON_MAP 中所有 Tabler 图标名均存在于运行时使用的 tabler-subset（含别名）', () => {
+    const iconSet = icons as { icons: Record<string, unknown>; aliases?: Record<string, unknown> }
     for (const [short, tablerName] of Object.entries(ICON_MAP)) {
-      expect(icons.icons[tablerName], `短名 ${short} -> tabler:${tablerName} 不存在`).toBeDefined()
+      const resolved = iconSet.icons[tablerName] ?? iconSet.aliases?.[tablerName]
+      expect(resolved, `短名 ${short} -> tabler:${tablerName} 未包含在 tabler-subset`).toBeDefined()
     }
   })
 

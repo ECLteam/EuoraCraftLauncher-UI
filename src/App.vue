@@ -176,7 +176,7 @@ const modpackImport = useModpackImportStore()
 const dragging = ref(false)
 let dragDepth = 0
 let lastDropAt = 0
-const PACK_EXT_RE = /\.(eclmodpack|zip|mrpack)$/i
+const PACK_EXT_RE = /\.(zip|mrpack)$/i
 const NATIVE_DRAG_EVENTS = [
   'tauri://drag-enter',
   'tauri://drag-over',

@@ -1,8 +1,5 @@
 import { addCollection } from '@iconify/vue/offline'
-import { icons } from '@iconify-json/tabler'
-
-// 全量注册 Tabler 图标集，保证 Icon 组件完全离线渲染（不触发 Iconify 网络 API）
-addCollection(icons)
+import { icons } from './tabler-subset'
 
 /** 短名 → Tabler 图标名（全部经 Iconify 官方 API 验证存在） */
 export const ICON_MAP: Record<string, string> = {
@@ -151,3 +148,7 @@ export const ICON_MAP: Record<string, string> = {
 export function getIconName(name: string): string {
   return ICON_MAP[name] || 'help-circle'
 }
+
+// 只打包 tabler-subset.ts 中实际用到的图标子集（约 20KB），
+// 保证 Icon 组件完全离线渲染（不触发 Iconify 网络 API）。
+addCollection(icons)

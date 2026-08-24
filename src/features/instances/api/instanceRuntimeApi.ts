@@ -1,6 +1,12 @@
 import backend from '@/api/client'
 import { unwrapResponse as assertSuccess } from '@/app/runtime/errorPresentation'
-import type { CrashAnalysisResult, GameInstance, GameInstancesChangedEvent, VersionRunStats } from '@/types/api'
+import type {
+  CrashAnalysisResult,
+  CrashCandidateFile,
+  GameInstance,
+  GameInstancesChangedEvent,
+  VersionRunStats,
+} from '@/types/api'
 
 export const instanceRuntimeApi = {
   async list(): Promise<GameInstance[]> {
@@ -15,6 +21,15 @@ export const instanceRuntimeApi = {
     return assertSuccess(
       await backend.command('game_version_stats', { game_path: gamePath, version_id: versionId }),
       '读取版本运行统计'
+    )
+  },
+
+  async listCrashCandidates(gamePath: string, versionId: string): Promise<CrashCandidateFile[]> {
+    return (
+      assertSuccess(
+        await backend.command('game_crash_list', { game_path: gamePath, version_id: versionId }),
+        '读取崩溃日志候选'
+      ) ?? []
     )
   },
 

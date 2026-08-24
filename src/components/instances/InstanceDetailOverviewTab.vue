@@ -64,11 +64,7 @@
       </NButton>
       <NButton secondary @click="emit('action', 'export')">
         <template #icon><UiIcon name="archive" :size="15" /></template>
-        导出整合包
-      </NButton>
-      <NButton secondary @click="emit('action', 'import')">
-        <template #icon><UiIcon name="upload" :size="15" /></template>
-        导入整合包
+        导出实例
       </NButton>
       <NButton type="error" secondary @click="emit('delete')">
         <template #icon><UiIcon name="trash" :size="15" /></template>

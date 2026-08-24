@@ -326,6 +326,15 @@
       "empty": "Select a target instance and import a world to see it here"
     }
   },
+  "crashPick": {
+    "title": "Analyze Crash Log",
+    "logFile": "Log file",
+    "selectFile": "Choose file...",
+    "analyze": "Analyze",
+    "loading": "Reading instance logs...",
+    "placeholder": "Select a log from the instance folder",
+    "empty": "No logs detected in the instance folder. Use \"Choose file...\" to pick one manually"
+  },
   "versions": {
     "title": "Instance Management",
     "manageTab": "Manage Instances",
@@ -477,6 +486,7 @@
       "searchPlaceholder": "Search mods...",
       "addMod": "Add Mod",
       "noMods": "No mods available",
+      "loaderNotSupported": "The current loader does not support mods",
       "addOne": "Add one?",
       "addModPending": "Add mod feature coming soon",
       "viewDetails": "View mod details: {name}",
@@ -907,6 +917,12 @@
     "proxyUrlPlaceholder": "http://127.0.0.1:7890",
     "debugMode": "Debug Mode",
     "debugModeDesc": "Controls the launcher config file's debug mode (launcher.debug). Applies immediately.",
+    "debugLogLevel": "Log Level",
+    "debugLogLevelDesc": "Controls the minimum level of logs shown in the console, independent of debug mode. Applies immediately.",
+    "logLevelDebug": "Debug (DEBUG)",
+    "logLevelInfo": "Info (INFO)",
+    "logLevelWarning": "Warning (WARNING)",
+    "logLevelError": "Error (ERROR)",
     "disableSslVerify": "Disable SSL Certificate Verification",
     "disableSslVerifyDesc": "Globally disables HTTPS certificate verification; shared requests apply immediately, Microsoft login applies after restart",
     "requestTimeout": "Request Timeout",
@@ -1384,6 +1400,7 @@
     "noWorld": "This instance has no worlds",
     "dropToInstall": "Release to install to the current instance",
     "selectCompatibleInstance": "Compatible instance:",
+    "instanceCompatibleWarning": "The selected file is not compatible with this instance's game version or loader. Installation canceled.",
     "filterVersion": "Version",
     "none": "None",
     "testGroup": "Snapshot",
@@ -1529,7 +1546,7 @@
   "modpackImport": {
     "title": "Import Modpack",
     "fileLabel": "Modpack File",
-    "filePlaceholder": "Select a modpack file (.eclmodpack / .zip / .mrpack)",
+    "filePlaceholder": "Select a modpack file (.zip / .mrpack)",
     "selectFile": "Browse",
     "gameDir": "Install Directory",
     "gameDirPlaceholder": "Select install directory",

@@ -10,8 +10,8 @@
     <NSpin :show="loading">
       <div v-if="filtered.length" class="world-grid">
         <article v-for="world in filtered" :key="world.id" class="world-card">
-          <img v-if="world.iconPath" :src="iconUrls[world.id]" alt="" class="world-icon" />
-          <div v-else class="world-icon fallback">🌍</div>
+          <img v-if="world.iconPath" :src="iconUrls[world.id]" :alt="world.name" class="world-cover" />
+          <div v-else class="world-cover fallback">🌍</div>
           <div class="world-copy">
             <strong>{{ world.name }}</strong
             ><small>{{ world.id }}</small>
@@ -24,15 +24,33 @@
             <p v-if="world.error" class="world-error">{{ world.error }}</p>
           </div>
           <div class="world-actions">
-            <NButton size="tiny" type="primary" @click="quickPlay(world)">快速进入</NButton>
-            <NButton size="tiny" @click="editWorld(world)">难度与作弊</NButton>
-            <NButton size="tiny" @click="backup(world)">备份</NButton>
-            <NButton size="tiny" @click="manageBackups(world)">恢复</NButton>
-            <NButton size="tiny" @click="setIcon(world)">图标</NButton>
-            <NButton size="tiny" @click="copyWorld(world)">复制</NButton>
-            <NButton size="tiny" @click="exportWorld(world)">导出</NButton>
-            <NButton size="tiny" @click="chunkbase(world)">Chunkbase</NButton>
-            <NButton size="tiny" type="error" secondary @click="remove(world)">删除</NButton>
+            <NButton quaternary circle size="tiny" type="primary" title="快速进入" @click="quickPlay(world)">
+              <template #icon><UiIcon name="player-play" :size="14" /></template>
+            </NButton>
+            <NButton quaternary circle size="tiny" title="备份" @click="backup(world)">
+              <template #icon><UiIcon name="archive" :size="14" /></template>
+            </NButton>
+            <NButton quaternary circle size="tiny" title="难度与作弊" @click="editWorld(world)">
+              <template #icon><UiIcon name="settings" :size="14" /></template>
+            </NButton>
+            <NButton quaternary circle size="tiny" title="恢复" @click="manageBackups(world)">
+              <template #icon><UiIcon name="rotate-2" :size="14" /></template>
+            </NButton>
+            <NButton quaternary circle size="tiny" title="图标" @click="setIcon(world)">
+              <template #icon><UiIcon name="photo" :size="14" /></template>
+            </NButton>
+            <NButton quaternary circle size="tiny" title="复制" @click="copyWorld(world)">
+              <template #icon><UiIcon name="copy" :size="14" /></template>
+            </NButton>
+            <NButton quaternary circle size="tiny" title="导出" @click="exportWorld(world)">
+              <template #icon><UiIcon name="file-download" :size="14" /></template>
+            </NButton>
+            <NButton quaternary circle size="tiny" title="Chunkbase" @click="chunkbase(world)">
+              <template #icon><UiIcon name="external-link" :size="14" /></template>
+            </NButton>
+            <NButton quaternary circle size="tiny" type="error" title="删除" @click="remove(world)">
+              <template #icon><UiIcon name="trash" :size="14" /></template>
+            </NButton>
           </div>
         </article>
       </div>
@@ -82,6 +100,7 @@ import backend from '@/api/client'
 import { unwrapResponse } from '@/app/runtime/errorPresentation'
 import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import Modal from '@/components/modals/Modal.vue'
+import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
 import type { ScannedVersion, WorldEntry } from '@/types/api'
@@ -300,47 +319,47 @@ onMounted(load)
 
 .world-grid {
   display: grid;
-  gap: 0;
-  padding: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  padding: 12px;
 }
 
 .world-card {
-  display: grid;
-  grid-template-columns: 64px minmax(240px, 1fr) auto;
-  gap: 14px;
-  align-items: center;
-  padding: 12px;
-  border-bottom: 1px solid var(--ecl-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid var(--ecl-border);
   border-radius: var(--ecl-radius-card);
-  transition: background 0.15s ease;
-}
-
-.world-card:last-child {
-  border-bottom: 0;
+  background: var(--ecl-surface);
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .world-card:hover {
+  border-color: var(--ecl-border);
   background: var(--ecl-hover);
 }
 
-.world-icon {
-  width: 64px;
-  height: 64px;
+.world-cover {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
   object-fit: cover;
-  border-radius: var(--ecl-radius-control);
+  background: var(--ecl-hover);
 }
 
-.world-icon.fallback {
+.world-cover.fallback {
   display: grid;
   place-items: center;
-  background: var(--ecl-hover);
-  font-size: 30px;
+  font-size: 52px;
 }
 
 .world-copy {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  gap: 2px;
+  padding: 10px 12px;
 }
 
 .world-copy strong {
@@ -354,7 +373,7 @@ onMounted(load)
 
 .world-copy small,
 .world-copy p {
-  margin: 2px 0;
+  margin: 0;
   color: var(--ecl-text-secondary);
 }
 
@@ -383,9 +402,9 @@ onMounted(load)
 .world-actions {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 6px;
-  max-width: 400px;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 10px 12px;
 }
 
 .world-error {

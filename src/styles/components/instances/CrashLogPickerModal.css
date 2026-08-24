@@ -1,0 +1,44 @@
+.crash-picker-modal {
+  max-width: 640px;
+}
+
+.crash-picker-modal-body {
+  padding: 8px 0;
+}
+
+.crash-picker-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 4px;
+  color: var(--ecl-text-secondary, #8a8f98);
+  font-size: 13px;
+}
+
+.cp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cp-field > span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ecl-text-primary, #cdd0d6);
+}
+
+.cp-field > small {
+  font-size: 12px;
+  color: var(--ecl-text-secondary, #8a8f98);
+}
+
+.cp-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.cp-row .n-select {
+  flex: 1;
+  min-width: 0;
+}

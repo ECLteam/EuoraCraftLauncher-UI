@@ -1,33 +1,58 @@
 <template>
   <section class="servers-panel">
     <header class="servers-toolbar">
-      <NInput v-model:value="query" clearable placeholder="搜索服务器名称、地址或 MOTD" /><NButton
-        :loading="loading"
-        @click="load"
-        >刷新列表</NButton
-      ><NButton :loading="statusLoading" @click="refreshStatus">刷新状态</NButton
-      ><NButton type="primary" @click="edit()">添加服务器</NButton>
+      <NInput v-model:value="query" clearable placeholder="搜索服务器名称、地址或 MOTD" />
+      <div class="toolbar-actions">
+        <NButton quaternary circle :loading="loading" title="刷新列表" @click="load">
+          <template #icon><UiIcon name="refresh" :size="16" /></template>
+        </NButton>
+        <NButton quaternary circle :loading="statusLoading" title="刷新状态" @click="refreshStatus">
+          <template #icon><UiIcon name="wifi" :size="16" /></template>
+        </NButton>
+        <NButton type="primary" class="toolbar-primary-btn" @click="edit()">
+          <template #icon><UiIcon name="plus" :size="13" /></template>
+          添加服务器
+        </NButton>
+      </div>
     </header>
     <NSpin :show="loading">
       <div v-if="filtered.length" class="server-list">
         <article v-for="server in filtered" :key="server.id" class="server-row">
-          <div :class="['status-dot', { online: statuses[server.address]?.online }]" />
-          <div class="server-copy">
-            <strong>{{ server.name }} <span v-if="server.favorite">★</span></strong
-            ><small>{{ server.address }}</small>
-            <p>{{ statuses[server.address]?.motd || statuses[server.address]?.error || '尚未查询状态' }}</p>
-          </div>
-          <div class="server-stats">
-            <span v-if="statuses[server.address]?.online"
-              >{{ statuses[server.address]?.playersOnline }}/{{ statuses[server.address]?.playersMax }} 人</span
-            ><span v-if="statuses[server.address]?.latency">{{ statuses[server.address]?.latency }} ms</span
-            ><small>{{ statuses[server.address]?.version }}</small>
+          <div class="server-row-main">
+            <div :class="['status-dot', statusClass(server)]" :title="statusLabel(server)" />
+            <div class="server-info">
+              <div class="server-name-row">
+                <span class="server-name">{{ server.name }}</span>
+                <span v-if="server.favorite" class="server-fav">★</span>
+                <span class="server-address">{{ server.address }}</span>
+              </div>
+              <p class="server-motd">{{ motdText(server) }}</p>
+              <div v-if="statuses[server.address]?.online" class="server-badges">
+                <span class="server-badge players">
+                  <UiIcon name="users" :size="12" />
+                  {{ statuses[server.address]?.playersOnline }}/{{ statuses[server.address]?.playersMax }}
+                </span>
+                <span :class="['server-badge', 'latency', latencyClass(server)]">
+                  <UiIcon name="bolt" :size="12" />
+                  {{ statuses[server.address]?.latency }} ms
+                </span>
+                <span v-if="statuses[server.address]?.version" class="server-badge version">
+                  {{ statuses[server.address]?.version }}
+                </span>
+              </div>
+            </div>
           </div>
           <div class="server-actions">
-            <NButton size="small" type="primary" @click="connect(server)">启动并连接</NButton
-            ><NButton size="small" @click="copyAddress(server)">复制地址</NButton
-            ><NButton size="small" @click="edit(server)">编辑</NButton
-            ><NButton size="small" type="error" secondary @click="remove(server)">删除</NButton>
+            <NButton size="small" type="primary" @click="connect(server)">启动并连接</NButton>
+            <NButton quaternary circle size="small" title="复制地址" @click="copyAddress(server)">
+              <template #icon><UiIcon name="copy" :size="15" /></template>
+            </NButton>
+            <NButton quaternary circle size="small" title="编辑" @click="edit(server)">
+              <template #icon><UiIcon name="settings" :size="15" /></template>
+            </NButton>
+            <NButton quaternary circle size="small" type="error" title="删除" @click="remove(server)">
+              <template #icon><UiIcon name="trash" :size="15" /></template>
+            </NButton>
           </div>
         </article>
       </div>
@@ -61,6 +86,7 @@ import { NButton, NEmpty, NInput, NSpin, NSwitch } from 'naive-ui'
 import { computed, onMounted, reactive, ref } from 'vue'
 import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import Modal from '@/components/modals/Modal.vue'
+import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
 import type { ScannedVersion, ServerEntry, ServerStatus } from '@/types/api'
@@ -84,6 +110,33 @@ const filtered = computed(() => {
     (s) => !needle || `${s.name} ${s.address} ${statuses[s.address]?.motd || ''}`.toLocaleLowerCase().includes(needle)
   )
 })
+function statusOf(server: ServerEntry): ServerStatus | undefined {
+  return statuses[server.address]
+}
+function statusClass(server: ServerEntry): string {
+  const st = statusOf(server)
+  if (!st) return 'unknown'
+  if (st.online) return 'online'
+  return 'offline'
+}
+function statusLabel(server: ServerEntry): string {
+  const st = statusOf(server)
+  if (!st) return '尚未查询状态'
+  if (st.online) return '在线'
+  return st.error || '离线'
+}
+function motdText(server: ServerEntry): string {
+  const st = statusOf(server)
+  if (!st) return '尚未查询状态'
+  return st.motd || st.error || '无 MOTD'
+}
+function latencyClass(server: ServerEntry): string {
+  const ms = statusOf(server)?.latency ?? 0
+  if (ms <= 0) return ''
+  if (ms < 80) return 'good'
+  if (ms < 200) return 'ok'
+  return 'bad'
+}
 async function load() {
   loading.value = true
   try {
@@ -182,27 +235,50 @@ async function handleConfirm() {
 }
 .servers-toolbar {
   display: flex;
+  align-items: center;
   gap: 8px;
 }
 .servers-toolbar > .n-input {
   flex: 1;
+}
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  margin-left: auto;
+}
+.toolbar-primary-btn {
+  margin-left: 4px;
 }
 .server-list {
   display: grid;
   gap: 8px;
 }
 .server-row {
-  display: grid;
-  grid-template-columns: 12px minmax(260px, 1fr) 140px auto;
+  display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px;
-  border: 1px solid var(--border-color);
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--ecl-border);
   border-radius: 10px;
+  transition: background 0.15s ease;
+}
+.server-row:hover {
+  background: var(--ecl-hover);
+}
+.server-row-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
 }
 .status-dot {
   width: 10px;
   height: 10px;
+  flex-shrink: 0;
   border-radius: 50%;
   background: #929aa6;
 }
@@ -210,25 +286,84 @@ async function handleConfirm() {
   background: #48b96b;
   box-shadow: 0 0 8px #48b96b;
 }
-.server-copy {
+.status-dot.offline {
+  background: #e5484d;
+}
+.server-info {
   display: flex;
   flex-direction: column;
+  gap: 3px;
+  min-width: 0;
 }
-.server-copy small,
-.server-copy p,
-.server-stats small {
-  margin: 2px 0;
-  color: var(--text-secondary);
-}
-.server-stats {
+.server-name-row {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.server-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ecl-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+.server-fav {
+  color: #f5a623;
+  font-size: 13px;
+}
+.server-address {
+  font-size: 12px;
+  color: var(--ecl-text-secondary);
+  font-family: 'JetBrains Mono', 'Consolas', 'Cascadia Code', monospace;
+}
+.server-motd {
+  font-size: 12px;
+  color: var(--ecl-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 480px;
+}
+.server-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.server-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  background: var(--ecl-hover);
+  color: var(--ecl-text-secondary);
+}
+.server-badge.players {
+  color: #48b96b;
+}
+.server-badge.latency.good {
+  color: #48b96b;
+}
+.server-badge.latency.ok {
+  color: #f5a623;
+}
+.server-badge.latency.bad {
+  color: #e5484d;
+}
+.server-badge.version {
+  font-family: 'JetBrains Mono', 'Consolas', 'Cascadia Code', monospace;
 }
 .server-actions {
   display: flex;
+  align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
+  flex-shrink: 0;
 }
 .server-form {
   display: grid;

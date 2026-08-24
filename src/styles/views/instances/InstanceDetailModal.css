@@ -598,7 +598,7 @@
 .mods-list-header,
 .mod-list-row {
   display: grid;
-  grid-template-columns: minmax(230px, 2fr) minmax(110px, 0.9fr) 90px 90px minmax(170px, auto);
+  grid-template-columns: minmax(0, 2fr) minmax(90px, 1fr) minmax(80px, 0.6fr) auto;
   align-items: center;
   column-gap: 14px;
 }
@@ -648,7 +648,13 @@
   height: 34px;
   border-radius: var(--ecl-radius-control);
   color: var(--ecl-primary);
-  background: var(--ecl-primary-alpha);
+  overflow: hidden;
+}
+
+.mod-list-icon-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .mod-list-title,
@@ -1011,27 +1017,19 @@
   }
 
   .mod-list-row {
-    grid-template-columns: minmax(220px, 1fr) 90px minmax(160px, auto);
+    grid-template-columns: minmax(0, 1fr) 88px auto;
     row-gap: 5px;
-  }
-
-  .mod-list-version,
-  .mod-list-file {
-    grid-row: 2;
   }
 
   .mod-list-version {
     grid-column: 1;
+    grid-row: 2;
     padding-left: 44px;
   }
 
   .mod-list-loader {
     grid-column: 2;
     grid-row: 1;
-  }
-
-  .mod-list-file {
-    grid-column: 2;
   }
 
   .mod-list-actions {

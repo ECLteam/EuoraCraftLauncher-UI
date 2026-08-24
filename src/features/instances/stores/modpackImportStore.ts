@@ -7,14 +7,14 @@ import type { MinecraftPathEntry } from '@/types/api'
 function derivePackName(path: string): string {
   if (!path) return ''
   const base = path.split(/[\\/]/).pop() || ''
-  const stem = base.replace(/\.(eclmodpack|zip|mrpack)$/i, '')
+  const stem = base.replace(/\.(zip|mrpack)$/i, '')
   return stem.replace(/[\\/:*?"<>|]/g, ' ').trim() || ''
 }
 
 export { derivePackName }
 
 /**
- * 从拖放的 File 列表中提取首个整合包文件绝对路径（.eclmodpack / .zip / .mrpack）。
+ * 从拖放的 File 列表中提取首个整合包文件绝对路径（.zip / .mrpack）。
  * 供全局拖放使用；模组(.jar)/存档(.zip) 由各自面板的 @drop.prevent 先行拦截。
  */
 export function extractPackPath(files: ArrayLike<File> | undefined): string | undefined {
@@ -22,7 +22,7 @@ export function extractPackPath(files: ArrayLike<File> | undefined): string | un
   return Array.from(files)
     .map((file) => (file as File & { path?: string }).path)
     .filter((path): path is string => Boolean(path))
-    .find((path) => /\.(eclmodpack|zip|mrpack)$/i.test(path))
+    .find((path) => /\.(zip|mrpack)$/i.test(path))
 }
 
 /**

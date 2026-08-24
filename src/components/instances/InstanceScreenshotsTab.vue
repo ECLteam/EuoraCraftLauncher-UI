@@ -18,11 +18,21 @@
               ><small>{{ shot.width }}×{{ shot.height }} · {{ formatSize(shot.size) }}</small>
             </div>
             <div class="shot-actions">
-              <NButton size="tiny" @click="copy(shot)">复制</NButton
-              ><NButton size="tiny" @click="saveAs(shot)">另存为</NButton
-              ><NButton size="tiny" @click="cover(shot)">设为封面</NButton
-              ><NButton size="tiny" @click="background(shot)">设为背景</NButton
-              ><NButton size="tiny" type="error" secondary @click="remove(shot)">删除</NButton>
+              <NButton quaternary circle size="tiny" title="复制" @click="copy(shot)">
+                <template #icon><UiIcon name="copy" :size="14" /></template>
+              </NButton>
+              <NButton quaternary circle size="tiny" title="另存为" @click="saveAs(shot)">
+                <template #icon><UiIcon name="file-download" :size="14" /></template>
+              </NButton>
+              <NButton quaternary circle size="tiny" title="设为封面" @click="cover(shot)">
+                <template #icon><UiIcon name="photo" :size="14" /></template>
+              </NButton>
+              <NButton quaternary circle size="tiny" title="设为背景" @click="background(shot)">
+                <template #icon><UiIcon name="layout-grid" :size="14" /></template>
+              </NButton>
+              <NButton quaternary circle size="tiny" type="error" title="删除" @click="remove(shot)">
+                <template #icon><UiIcon name="trash" :size="14" /></template>
+              </NButton>
             </div>
           </article>
         </div>
@@ -47,6 +57,7 @@ import { computed, onMounted, ref } from 'vue'
 import backend from '@/api/client'
 import { unwrapResponse } from '@/app/runtime/errorPresentation'
 import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
+import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
 import type { ScannedVersion, ScreenshotEntry } from '@/types/api'
@@ -205,8 +216,9 @@ onMounted(load)
 }
 .shot-actions {
   flex-direction: row !important;
-  gap: 5px;
+  gap: 4px;
   flex-wrap: wrap;
+  justify-content: center;
   padding-top: 0 !important;
 }
 </style>

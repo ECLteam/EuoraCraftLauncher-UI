@@ -51,6 +51,8 @@ export interface LauncherConfig {
   version?: string
   version_type?: 'dev' | 'beta' | 'release'
   debug?: boolean
+  /** 控制台日志最低级别，与 debug 模式相互独立 */
+  debug_log_level?: 'debug' | 'info' | 'warning' | 'error'
   /** 由 ECL_CONFIG_launcher_showcase 环境变量控制，启用后使用 mock 数据替代真实后端 */
   showcase?: boolean
   disable_ssl_verify?: boolean
@@ -530,6 +532,13 @@ export interface CrashReason {
   parameters: Record<string, unknown>
 }
 
+export interface CrashCandidateFile {
+  path: string
+  name: string
+  size: number
+  mtime: number
+}
+
 export interface CrashAnalysisResult {
   reportId: string
   versionId: string
@@ -829,6 +838,8 @@ export interface ModItem {
   dependencies: string[]
   enabled: boolean
   size: number
+  /** 从模组 jar 内提取的图标数据 URL，无图标时为空字符串 */
+  icon_data: string
   modified_at: string
 }
 
@@ -1391,8 +1402,7 @@ export interface CommandPayloadMap {
   game_instance_import: { game_path: string; source_path: string; new_version_id: string }
   game_instance_export: InstanceTargetPayload & {
     output_path: string
-    pack_format: 'ecl' | 'modrinth' | 'curseforge'
-    includes?: string[]
+    pack_format: 'modrinth'
   }
   game_instance_files_check: InstanceTargetPayload
   game_instance_files_repair: InstanceTargetPayload
@@ -1484,6 +1494,7 @@ export interface CommandPayloadMap {
   }
   game_launch_cancel: undefined
   game_instance_stop: { instance_id: string }
+  game_crash_list: { game_path: string; version_id: string }
   game_crash_analyze: { file_path: string; game_path: string; version_id: string }
   game_crash_output: { report_id: string }
   game_crash_export: { report_id: string; output_path?: string }
@@ -1763,6 +1774,7 @@ export const COMMAND_NAMES = {
   game_launch: 'game_launch',
   game_launch_cancel: 'game_launch_cancel',
   game_instance_stop: 'game_instance_stop',
+  game_crash_list: 'game_crash_list',
   game_crash_analyze: 'game_crash_analyze',
   game_crash_output: 'game_crash_output',
   game_crash_export: 'game_crash_export',
@@ -2011,6 +2023,7 @@ export interface CommandResponseMap {
   process_stop: { stopped: boolean }
   debug_process_spawn: { instanceId: string }
   game_instance_stop: void
+  game_crash_list: CrashCandidateFile[]
   game_crash_analyze: CrashAnalysisResult
   game_crash_output: { name: string; content: string }
   game_crash_export: { path: string }

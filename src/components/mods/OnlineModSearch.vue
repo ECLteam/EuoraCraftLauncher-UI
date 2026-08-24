@@ -500,7 +500,7 @@ import ResourceInstanceSelect from '@/components/resources/ResourceInstanceSelec
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
-import { instanceKey, useResourceInstallTarget } from '@/composables/useResourceInstallTarget'
+import { instanceKey, parseInstanceKey, useResourceInstallTarget } from '@/composables/useResourceInstallTarget'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
 import { LOADERS } from '@/config/version'
 import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
@@ -862,18 +862,7 @@ watch(
       })
       .catch(() => {})
     const queryQ = typeof route.query.q === 'string' ? route.query.q : ''
-    const queryInstance = typeof route.query.instance === 'string' ? route.query.instance : ''
-    if (queryInstance) {
-      const hit = target.installableInstances.value.find((version) => instanceKey(version) === queryInstance)
-      if (hit) {
-        target.setTarget(hit)
-        void target.persist()
-      }
-      // 应用一次后清除 query，避免切换页面时反复覆盖用户的选择
-      const restQuery = { ...route.query }
-      delete restQuery.instance
-      void router.replace({ query: restQuery })
-    }
+    handleQueryInstance()
     // 有搜索参数：自动搜索；无参数：恢复缓存视图或加载热门列表
     if (queryQ) {
       query.value = queryQ
@@ -887,6 +876,41 @@ watch(
     listBootstrapped = true
   },
   { immediate: true }
+)
+
+// 归一化实例路径用于跨来源匹配：统一分隔符、忽略尾部斜杠，Windows 下忽略大小写
+function normalizeInstancePath(value: string): string {
+  return value.replace(/\\/g, '/').replace(/\/+$/, '')
+}
+
+// 读取 query.instance 并按当前实例自动选中安装位置，随后清除该参数
+function handleQueryInstance(): void {
+  const queryInstance = typeof route.query.instance === 'string' ? route.query.instance : ''
+  if (!queryInstance) return
+  const parsed = parseInstanceKey(queryInstance)
+  const hit =
+    target.installableInstances.value.find((version) => instanceKey(version) === queryInstance) ??
+    target.installableInstances.value.find(
+      (version) =>
+        version.versionId === parsed.versionId &&
+        normalizeInstancePath(version.path).toLowerCase() === normalizeInstancePath(parsed.path).toLowerCase()
+    )
+  if (hit) {
+    target.setTarget(hit)
+    void target.persist()
+  }
+  // 应用一次后清除 query，避免切页/后退时反复覆盖用户的选择
+  const restQuery = { ...route.query }
+  delete restQuery.instance
+  void router.replace({ query: restQuery })
+}
+
+// 组件复用时（同路由仅 query 变化）也能响应新的 instance 参数
+watch(
+  () => route.query.instance,
+  (value) => {
+    if (typeof value === 'string') handleQueryInstance()
+  }
 )
 
 // 实例切换后按新实例的派生条件（版本/加载器）刷新列表；用户手动条件仍优先
@@ -1042,7 +1066,8 @@ async function selectVersionFile(group: ModVersionGroup, file: ModVersion): Prom
   selectedGroupKey.value = group.key
   selectedFileId.value = file.id
   selectedVersionContext.value = { gameVersion: group.gameVersion, loader: group.loader }
-  updateVersionCompatibility(file)
+  // 兼容实例始终继承所选 mod 的项目级兼容选项（openDetails 已按 mod.gameVersions/loaders 设置），
+  // 不随所选文件收窄，保证弹窗「选择兼容实例」与下载页保持一致。
   if (props.resourceType === 'mod') void loadRequiredDependencies(file, group.key)
   if (!usesDirectVersionAction.value) return
 
@@ -1411,6 +1436,11 @@ async function installSelected() {
   const platform = activeSourceRef.value
   const fileId = selectedFileId.value
   if (!mod || !inst || !platform || !fileId) return
+  // 兼容实例继承 mod 项目级选项，安装前仍需校验所选文件与实例的游戏版本/加载器是否匹配，避免装错
+  if (selectedFile.value && !isModVersionCompatible(selectedFile.value, inst.vanillaName, inst.primaryLoader)) {
+    message.warning(t('mods.instanceCompatibleWarning'))
+    return
+  }
   if (props.resourceType === 'datapack' && !selectedWorldId.value) {
     message.warning(t('mods.selectWorld'))
     return

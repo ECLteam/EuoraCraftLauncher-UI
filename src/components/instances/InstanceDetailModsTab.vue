@@ -11,7 +11,7 @@
       <UiIcon name="download" :size="22" />
       <span>{{ t('versions.mods.selectModFileHint') }}</span>
     </div>
-    <div class="mods-panel-header">
+    <div v-if="modSupported" class="mods-panel-header">
       <div class="mods-panel-header-left">
         <div class="search-box">
           <UiIcon name="search" :size="15" class="search-icon" />
@@ -40,30 +40,28 @@
         <span v-if="filteredMods.length" class="mods-count">{{
           t('versions.mods.count', { count: filteredMods.length })
         }}</span>
-        <NButton size="tiny" secondary @click="emit('openOnlineSearch')">
+        <NButton size="small" type="primary" @click="emit('openOnlineSearch')">
           <template #icon><UiIcon name="search" :size="14" /></template>
-          {{ t('versions.mods.onlineSearch') }}
-        </NButton>
-        <NButton size="tiny" secondary @click="handleAddMod">
-          <template #icon><UiIcon name="add" :size="14" /></template>
           {{ t('versions.mods.addMod') }}
         </NButton>
-        <NButton size="tiny" secondary @click="handleOpenModsFolder">
-          <template #icon><UiIcon name="folder" :size="14" /></template>
-          {{ t('versions.mods.openFolder') }}
+        <NButton quaternary circle size="small" :title="t('versions.mods.openFolder')" @click="handleOpenModsFolder">
+          <template #icon><UiIcon name="folder-open" :size="16" /></template>
         </NButton>
       </div>
     </div>
 
     <div class="mods-panel-content">
-      <NSpin :show="modsLoading" class="mods-spin">
+      <div v-if="!modSupported" class="mods-empty empty-state">
+        <UiIcon name="puzzle" :size="36" class="empty-icon" />
+        <p class="empty-text">{{ t('versions.mods.loaderNotSupported') }}</p>
+      </div>
+      <NSpin v-else :show="modsLoading" class="mods-spin">
         <template v-if="filteredMods.length">
           <div class="mods-list">
             <div class="mods-list-header" aria-hidden="true">
               <span>{{ t('versions.mods.modName') }}</span>
               <span>{{ t('versions.mods.modVersion') }}</span>
               <span>{{ t('versions.mods.loader') }}</span>
-              <span>{{ t('versions.mods.fileSize') }}</span>
               <span>{{ t('versions.mods.status') }}</span>
             </div>
             <article
@@ -72,7 +70,10 @@
               :class="['mod-list-row', { 'is-disabled': !mod.enabled }]"
             >
               <div class="mod-list-identity">
-                <span class="mod-list-icon"><UiIcon name="cube" :size="17" /></span>
+                <span class="mod-list-icon">
+                  <img v-if="mod.icon_data" :src="mod.icon_data" alt="" class="mod-list-icon-img" loading="lazy" />
+                  <UiIcon v-else name="cube" :size="17" />
+                </span>
                 <div class="mod-list-title">
                   <strong>{{ modDisplayName(mod) }}</strong>
                   <span v-if="hasTranslatedName(mod)" class="mod-original-name">{{ mod.name }}</span>
@@ -90,15 +91,6 @@
                   {{ getLoaderName(mod.loader_type) }}
                 </span>
                 <span v-else class="badge badge-vanilla">{{ t('versions.manage.vanilla') }}</span>
-              </div>
-
-              <div class="mod-list-file" :title="mod.dependencies.join(', ')">
-                <strong>{{ formatFileSize(mod.size) }}</strong>
-                <span>{{
-                  mod.dependencies.length
-                    ? t('versions.mods.dependencyCount', { count: mod.dependencies.length })
-                    : t('versions.mods.noDependencies')
-                }}</span>
               </div>
 
               <div class="mod-list-actions">
@@ -125,13 +117,9 @@
           <UiIcon name="puzzle" :size="36" class="empty-icon" />
           <p class="empty-text">{{ t('versions.mods.noMods') }}</p>
           <div class="empty-actions" style="display: flex; gap: 8px; margin-top: 4px">
-            <NButton size="small" secondary @click="handleAddMod">
-              <template #icon><UiIcon name="add" :size="14" /></template>
-              {{ t('versions.mods.addMod') }}
-            </NButton>
-            <NButton size="small" secondary @click="emit('openOnlineSearch')">
+            <NButton size="small" type="primary" @click="emit('openOnlineSearch')">
               <template #icon><UiIcon name="search" :size="14" /></template>
-              {{ t('versions.mods.onlineSearch') }}
+              {{ t('versions.mods.addMod') }}
             </NButton>
           </div>
         </div>
@@ -154,7 +142,6 @@
 import { NButton, NSpin, NSwitch } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import backend from '@/api/client'
 import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
@@ -180,6 +167,11 @@ const mods = ref<ModItem[]>([])
 const modsLoading = ref(false)
 const modSearchQuery = ref('')
 const modFilter = ref<'all' | 'enabled' | 'disabled'>('all')
+
+const UNSUPPORTED_MOD_LOADERS = ['vanilla', 'optifine']
+const modSupported = computed(
+  () => !!props.version && !UNSUPPORTED_MOD_LOADERS.includes(props.version.primaryLoader?.toLowerCase())
+)
 
 const modFilterOptions = computed(() => [
   { label: t('versions.mods.filterAll'), value: 'all' as const },
@@ -207,6 +199,7 @@ function getGamePath(): string | null {
 }
 
 async function loadMods() {
+  if (!modSupported.value) return
   const gamePath = getGamePath()
   if (!gamePath) return
   modsLoading.value = true
@@ -246,20 +239,6 @@ function handleDeleteMod(mod: ModItem) {
   })
 }
 
-async function handleAddMod() {
-  const gamePath = getGamePath()
-  if (!gamePath) return
-  try {
-    const result = await backend.command('select_file')
-    if (!result.success || !result.data?.path) return
-    await localModsApi.add(gamePath, result.data.path)
-    message.success(t('versions.mods.modAdded'))
-    await loadMods()
-  } catch (error) {
-    message.error(error instanceof Error ? error.message : t('versions.mods.modAddFailed'))
-  }
-}
-
 const modDragging = ref(false)
 let modDragDepth = 0
 
@@ -276,6 +255,7 @@ function handleModDragLeave() {
 async function handleModDrop(event: DragEvent) {
   modDragging.value = false
   modDragDepth = 0
+  if (!modSupported.value) return
   const gamePath = getGamePath()
   if (!gamePath) return
   const paths = [...(event.dataTransfer?.files || [])]
@@ -302,14 +282,6 @@ async function handleOpenModsFolder() {
   } catch (error) {
     message.error(error instanceof Error ? error.message : t('versions.mods.modAddFailed'))
   }
-}
-
-function formatFileSize(bytes: number): string {
-  if (!bytes) return '0 B'
-  const units = ['B', 'KB', 'MB', 'GB']
-  const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1)
-  const value = bytes / 1024 ** index
-  return `${value >= 100 ? Math.round(value) : value.toFixed(1)} ${units[index]}`
 }
 
 function modDisplayName(mod: ModItem): string {

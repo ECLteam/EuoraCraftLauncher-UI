@@ -72,6 +72,14 @@
       <SettingRow :label="t('settings.debugMode')" :description="t('settings.debugModeDesc')">
         <NSwitch :value="debugMode" @update:value="handleDebugModeChange" />
       </SettingRow>
+      <SettingRow :label="t('settings.debugLogLevel')" :description="t('settings.debugLogLevelDesc')">
+        <NSelect
+          class="setting-select"
+          :value="debugLogLevel"
+          :options="logLevelOptions"
+          @update:value="handleDebugLogLevelChange"
+        />
+      </SettingRow>
     </SettingSection>
 
     <PluginSlotHost slotId="plugin-slot-settings-download-section-after" class="plugin-slot-container" />
@@ -101,7 +109,7 @@ const { t, locale } = useI18n()
 const { run } = useAsyncAction({ showSuccess: false, showError: true, errorMessage: t('common.error') })
 const settingsStore = useSettingsStore()
 const { download: downloadSettings } = storeToRefs(settingsStore)
-const { debugMode, setDebugMode } = useDebugMode()
+const { debugMode, setDebugMode, debugLogLevel, setDebugLogLevel } = useDebugMode()
 
 const currentLocale = computed(() => locale.value as LocaleCode)
 const disableSslVerify = computed(() => settingsStore.launcher.disable_ssl_verify === true)
@@ -137,6 +145,13 @@ const downloadSourceOptions = computed(() =>
   }))
 )
 
+const logLevelOptions = computed(() => [
+  { label: t('settings.logLevelDebug'), value: 'debug' },
+  { label: t('settings.logLevelInfo'), value: 'info' },
+  { label: t('settings.logLevelWarning'), value: 'warning' },
+  { label: t('settings.logLevelError'), value: 'error' },
+])
+
 async function handleLanguageChange(languageCode: LocaleCode): Promise<void> {
   await setLocale(languageCode)
   await run(() => settingsStore.patchUi({ locale: languageCode }))
@@ -152,6 +167,12 @@ async function handleDownloadSourceChange(value: 'official' | 'bmclapi'): Promis
 
 async function handleDebugModeChange(value: boolean): Promise<void> {
   await run(() => setDebugMode(value))
+}
+
+async function handleDebugLogLevelChange(value: string): Promise<void> {
+  await run(() =>
+    setDebugLogLevel(value as NonNullable<LauncherConfig['debug_log_level']>)
+  )
 }
 
 async function handleDisableSslVerifyChange(value: boolean): Promise<void> {

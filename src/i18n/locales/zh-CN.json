@@ -326,6 +326,15 @@
       "empty": "选择目标实例并导入存档后，会显示在这里"
     }
   },
+  "crashPick": {
+    "title": "分析崩溃日志",
+    "logFile": "日志文件",
+    "selectFile": "选择文件...",
+    "analyze": "分析",
+    "loading": "正在读取实例日志...",
+    "placeholder": "选择实例文件夹内的日志",
+    "empty": "未在实例文件夹内检测到日志，可点击「选择文件...」手动选择"
+  },
   "versions": {
     "title": "实例管理",
     "manageTab": "实例管理",
@@ -477,6 +486,7 @@
       "searchPlaceholder": "搜索模组...",
       "addMod": "添加模组",
       "noMods": "暂无模组",
+      "loaderNotSupported": "当前加载器不支持模组",
       "addOne": "添加一个？",
       "addModPending": "添加模组功能待实现",
       "viewDetails": "查看模组详情: {name}",
@@ -907,6 +917,12 @@
     "proxyUrlPlaceholder": "http://127.0.0.1:7890",
     "debugMode": "调试模式",
     "debugModeDesc": "控制启动器配置文件的调试模式",
+    "debugLogLevel": "日志级别",
+    "debugLogLevelDesc": "控制控制台输出的日志最低级别，与调试模式相互独立，修改后即时生效",
+    "logLevelDebug": "调试 (DEBUG)",
+    "logLevelInfo": "信息 (INFO)",
+    "logLevelWarning": "警告 (WARNING)",
+    "logLevelError": "错误 (ERROR)",
     "disableSslVerify": "关闭 SSL 证书校验",
     "disableSslVerifyDesc": "全局关闭 HTTPS 证书校验；共享网络请求即时生效，微软登录需重启后应用",
     "requestTimeout": "请求超时",
@@ -1293,6 +1309,7 @@
     "noWorld": "当前实例暂无存档",
     "dropToInstall": "松开以安装到当前实例",
     "selectCompatibleInstance": "选择兼容的实例：",
+    "instanceCompatibleWarning": "所选文件与该实例的游戏版本或加载器不兼容，已取消安装。",
     "filterVersion": "选择版本",
     "none": "无",
     "testGroup": "快照版",
@@ -1438,7 +1455,7 @@
   "modpackImport": {
     "title": "导入整合包",
     "fileLabel": "整合包文件",
-    "filePlaceholder": "请选择整合包文件（.eclmodpack / .zip / .mrpack）",
+    "filePlaceholder": "请选择整合包文件（.zip / .mrpack）",
     "selectFile": "选择文件",
     "gameDir": "安装目录",
     "gameDirPlaceholder": "选择安装目录",
