@@ -177,7 +177,14 @@ const dragging = ref(false)
 let dragDepth = 0
 let lastDropAt = 0
 const PACK_EXT_RE = /\.(eclmodpack|zip|mrpack)$/i
-const NATIVE_DRAG_EVENTS = ['tauri://drag-enter', 'tauri://drag-over', 'tauri://drag-drop', 'tauri://drag-leave']
+const NATIVE_DRAG_EVENTS = [
+  'tauri://drag-enter',
+  'tauri://drag-over',
+  'tauri://drag-drop',
+  'tauri://drag-leave',
+] as const
+type NativeDragKind = 'enter' | 'over' | 'drop' | 'leave'
+const nativeDragUnlisten: Array<() => void> = []
 
 function hasFileTypes(event: DragEvent): boolean {
   return Array.from(event.dataTransfer?.types || []).includes('Files')
@@ -229,25 +236,69 @@ function handleGlobalDrop(event: DragEvent) {
   openPackImport(pack)
 }
 
-function handleNativeDragEvent(event: Event) {
-  const type = event.type.replace('tauri://drag-', '')
-  const detail = (event as CustomEvent<{ paths?: string[] }>).detail ?? {}
-  if (type === 'enter' || type === 'over') {
+function applyNativeDrag(kind: NativeDragKind, paths: string[]) {
+  if (kind === 'enter' || kind === 'over') {
     dragging.value = true
-  } else if (type === 'leave') {
+  } else if (kind === 'leave') {
     dragging.value = false
-  } else if (type === 'drop') {
+  } else if (kind === 'drop') {
     dragging.value = false
-    const pack = detail.paths?.find((path) => PACK_EXT_RE.test(path))
+    const pack = paths.find((path) => PACK_EXT_RE.test(path))
     if (pack) openPackImport(pack)
   }
 }
 
-onMounted(() => {
+function decodeDragPayload(payload: unknown): { paths?: string[] } {
+  if (typeof payload === 'string') {
+    try {
+      return JSON.parse(payload) as { paths?: string[] }
+    } catch {
+      return {}
+    }
+  }
+  return (payload ?? {}) as { paths?: string[] }
+}
+
+// Tauri 原生拖放事件走事件系统（listen）分发；DOM CustomEvent 仅作部分平台兜底。
+// Windows WebView2 下 HTML5 dataTransfer.files 被 Tauri 拦截，原生事件是唯一可靠路径。
+function handleNativeDragEvent(event: Event) {
+  const kind = event.type.replace('tauri://drag-', '') as NativeDragKind
+  const detail = (event as CustomEvent<{ paths?: string[] }>).detail ?? {}
+  applyNativeDrag(kind, detail.paths ?? [])
+}
+
+interface TauriDragListener {
+  listen: (event: string, handler: (event: { payload: unknown }) => void) => Promise<() => void>
+}
+
+onMounted(async () => {
   NATIVE_DRAG_EVENTS.forEach((name) => window.addEventListener(name, handleNativeDragEvent))
+  const tauri = (window as unknown as { __TAURI__?: { event?: TauriDragListener } }).__TAURI__
+  if (tauri?.event) {
+    for (const name of NATIVE_DRAG_EVENTS) {
+      try {
+        const unlisten = await tauri.event.listen(name, (event) => {
+          applyNativeDrag(
+            name.replace('tauri://drag-', '') as NativeDragKind,
+            decodeDragPayload(event.payload).paths ?? []
+          )
+        })
+        if (typeof unlisten === 'function') nativeDragUnlisten.push(unlisten)
+      } catch {
+        /* 事件系统未就绪时仅保留 DOM 通道 */
+      }
+    }
+  }
 })
 onBeforeUnmount(() => {
   NATIVE_DRAG_EVENTS.forEach((name) => window.removeEventListener(name, handleNativeDragEvent))
+  nativeDragUnlisten.forEach((dispose) => {
+    try {
+      dispose()
+    } catch {
+      /* 忽略清理错误 */
+    }
+  })
 })
 
 // 让 unwrapResponse 的 message 级失败统一走顶部通知，避免调用方遗漏导致用户无感知
