@@ -143,6 +143,7 @@ import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
 import { findGamePathIndex, type GamePath } from '@/features/instances/model/gamePath'
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
+import { useModpackImportStore } from '@/features/instances/stores/modpackImportStore'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import type { LaunchProgress, MinecraftPathEntry, ScannedVersion } from '@/types/api'
@@ -155,6 +156,7 @@ const router = useRouter()
 const message = useLauncherMessage()
 const instanceStore = useInstanceStore()
 const settingsStore = useSettingsStore()
+const modpackImport = useModpackImportStore()
 
 const gamePaths = ref<GamePath[]>([])
 const selectedPathIndex = ref<number>(-1)
@@ -657,16 +659,7 @@ async function handleInstanceAction(action: string, version: ScannedVersion) {
     return
   }
   if (action === 'import') {
-    const selected = await backend.command('select_file', { purpose: 'modpack' })
-    if (!selected.success || !selected.data?.path) return
-    const newId = `${version.versionId}-imported`
-    const response = await backend.command('game_instance_import', {
-      game_path: version.path,
-      source_path: selected.data.path,
-      new_version_id: newId,
-    })
-    if (!response.success) throw new Error(response.message)
-    message.success(`整合包导入任务已创建：${newId}`)
+    modpackImport.open()
   }
 }
 

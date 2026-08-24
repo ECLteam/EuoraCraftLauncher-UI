@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" @dragover.prevent @drop.prevent="handleGlobalDrop">
     <!-- 背景层 -->
     <div class="app-background"></div>
     <div class="aurora-bg" aria-hidden="true"></div>
@@ -66,6 +66,9 @@
             @confirm="handleQuitConfirm"
           />
 
+          <!-- 整合包导入对话框（实例详情按钮 / 全局文件拖放触发） -->
+          <ModpackImportModal />
+
           <!-- 全局错误弹窗 -->
           <ErrorModal
             :visible="showErrorModal"
@@ -121,6 +124,7 @@ import { loadShowcaseTasks } from '@/api/transport/showcase/fixtures'
 import { desktopWindow } from '@/app/runtime/desktopWindow'
 import { setErrorNotifier } from '@/app/runtime/errorPresentation'
 import { useAppRuntime } from '@/app/runtime/useAppRuntime'
+import ModpackImportModal from '@/components/instances/ModpackImportModal.vue'
 import SideBar from '@/components/layout/SideBar.vue'
 import TitleBar from '@/components/layout/TitleBar.vue'
 import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
@@ -132,6 +136,7 @@ import { useFullscreenModal } from '@/composables/useFullscreenModal'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
 import { useUserAgreement } from '@/composables/useUserAgreement'
+import { useModpackImportStore } from '@/features/instances/stores/modpackImportStore'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import FloatingLauncherLog from '@/features/terminal/components/FloatingLauncherLog.vue'
 import { getErrorMessage } from '@/utils/error'
@@ -149,6 +154,18 @@ const {
 } = useUserAgreement()
 const fullscreenModal = useFullscreenModal()
 const message = useLauncherMessage()
+const modpackImport = useModpackImportStore()
+
+// 全局文件拖放：未被子面板（模组/存档等）拦截时，识别整合包文件并打开导入对话框
+function handleGlobalDrop(event: DragEvent) {
+  if (event.defaultPrevented) return
+  const paths = [...(event.dataTransfer?.files || [])]
+    .map((file) => (file as File & { path?: string }).path)
+    .filter((path): path is string => Boolean(path))
+  const pack = paths.find((path) => /\.(eclmodpack|zip|mrpack)$/i.test(path))
+  if (!pack) return
+  void modpackImport.open({ sourcePath: pack })
+}
 
 // 让 unwrapResponse 的 message 级失败统一走顶部通知，避免调用方遗漏导致用户无感知
 setErrorNotifier((msg) => message.errorRaw(msg))

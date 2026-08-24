@@ -1434,5 +1434,18 @@
       "running": "运行中",
       "gameType": "游戏"
     }
+  },
+  "modpackImport": {
+    "title": "导入整合包",
+    "fileLabel": "整合包文件",
+    "filePlaceholder": "请选择整合包文件（.eclmodpack / .zip / .mrpack）",
+    "selectFile": "选择文件",
+    "gameDir": "安装目录",
+    "gameDirPlaceholder": "选择安装目录",
+    "versionName": "实例名称",
+    "versionNamePlaceholder": "输入实例名称",
+    "versionNameHint": "将作为实例文件夹名",
+    "import": "导入",
+    "success": "整合包导入任务已创建"
   }
 }

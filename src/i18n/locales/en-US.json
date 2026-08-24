@@ -1525,5 +1525,18 @@
       "running": "Running",
       "gameType": "Game"
     }
+  },
+  "modpackImport": {
+    "title": "Import Modpack",
+    "fileLabel": "Modpack File",
+    "filePlaceholder": "Select a modpack file (.eclmodpack / .zip / .mrpack)",
+    "selectFile": "Browse",
+    "gameDir": "Install Directory",
+    "gameDirPlaceholder": "Select install directory",
+    "versionName": "Instance Name",
+    "versionNamePlaceholder": "Enter instance name",
+    "versionNameHint": "Used as the instance folder name",
+    "import": "Import",
+    "success": "Modpack import task created"
   }
 }

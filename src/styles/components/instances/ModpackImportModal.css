@@ -1,0 +1,28 @@
+.modpack-import-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mp-field > span {
+  color: var(--ecl-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.mp-field small {
+  color: var(--ecl-text-secondary);
+  font-size: 11px;
+}
+
+.mp-file-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
