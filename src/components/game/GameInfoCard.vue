@@ -201,14 +201,12 @@ function announcementPreview(content: string): string {
   background: transparent;
   border: 0;
   border-bottom: 1px solid var(--divider);
-  transition:
-    color var(--duration-fast) var(--ease-standard),
-    transform var(--duration-fast) var(--ease-standard);
+  transition: color var(--duration-fast) var(--ease-standard);
 }
 
 .announce-item:hover,
 .announce-item:focus-visible {
-  transform: translateX(2px);
+  color: var(--primary);
 }
 
 .announce-item:focus-visible {

@@ -331,13 +331,11 @@ const { t } = useI18n()
   background: var(--primary-alpha-strong) !important;
   transition:
     background-color var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard),
-    transform var(--duration-fast) var(--ease-standard);
+    border-color var(--duration-fast) var(--ease-standard);
 }
 
 .launch-manage-button:hover:not(:disabled) {
   filter: brightness(0.92);
-  transform: translateY(-1px);
 }
 
 .launch-version {
@@ -364,15 +362,13 @@ const { t } = useI18n()
   transition:
     background-color var(--duration-fast) var(--ease-standard),
     border-color var(--duration-fast) var(--ease-standard),
-    color var(--duration-fast) var(--ease-standard),
-    transform var(--duration-fast) var(--ease-standard);
+    color var(--duration-fast) var(--ease-standard);
 }
 
 .launch-settings-button:hover:not(:disabled) {
   color: var(--primary) !important;
   background: var(--bg-hover) !important;
   border-color: var(--border-hover) !important;
-  transform: translateY(-1px);
 }
 
 .launch-settings-button:disabled {

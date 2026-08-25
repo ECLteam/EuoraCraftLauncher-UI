@@ -134,7 +134,6 @@ const technologies = {
   naiveUi: createGithubEntry('naive-ui', 'Naive UI', 'N', 'naiveUi', URLS.naiveUi.repo),
   tailwind: createGithubEntry('tailwind', 'Tailwind CSS', 'T', 'tailwind', URLS.tailwind.repo),
   vueUse: createGithubEntry('vue-use', 'VueUse', 'VU', 'vueUse', URLS.vueUse.repo),
-  gsap: createGithubEntry('gsap', 'GSAP', 'G', 'gsap', URLS.gsap.repo),
   skinview3d: createGithubEntry('skinview3d', 'skinview3d', 'S', 'skinview3d', URLS.skinview3d.repo),
 } satisfies Record<string, AboutEntry>
 
@@ -225,7 +224,7 @@ export const technologyCategories: TechnologyCategory[] = [
   {
     id: 'frontend-utilities',
     titleKey: 'frontendUtilities',
-    entries: [technologies.vueUse, technologies.gsap, ...frontendUtilityEntries],
+    entries: [technologies.vueUse, ...frontendUtilityEntries],
   },
   { id: 'rendering', titleKey: 'rendering', entries: [technologies.skinview3d] },
   { id: 'fonts-icons', titleKey: 'fontsAndIcons', entries: fontAndIconEntries },

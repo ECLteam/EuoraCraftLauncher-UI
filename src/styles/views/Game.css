@@ -38,7 +38,6 @@
   font-weight: 600;
   white-space: nowrap;
   transition:
-    transform var(--duration-fast) ease-out,
     background var(--duration-fast) ease-out,
     box-shadow var(--duration-fast) ease-out;
 }
@@ -46,7 +45,6 @@
 .running-instances-trigger:hover {
   background: var(--primary-hover);
   box-shadow: 0 10px 26px color-mix(in srgb, var(--primary), transparent 56%);
-  transform: translateY(-2px);
 }
 
 .running-instances-trigger:active {

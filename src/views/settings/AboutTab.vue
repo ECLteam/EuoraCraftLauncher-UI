@@ -237,12 +237,6 @@ const licenseEntries: LicenseEntry[] = [
     license: URLS.vueUse.license,
   },
   {
-    name: 'GSAP',
-    text: 'Copyright GreenSock. Licensed under Standard "No Charge" License.',
-    repo: URLS.gsap.repo,
-    license: URLS.gsap.license,
-  },
-  {
     name: 'Valibot',
     text: 'Copyright Fabian Hiller. Licensed under MIT.',
     repo: URLS.valibot.repo,
