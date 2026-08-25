@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
+import { useAsyncState } from '@/composables/useAsyncState'
 import { resolveLocalImageUrl, settingsApi } from '@/features/settings/api/settingsApi'
 import type { DownloadConfig, GameConfig, LauncherConfig, UiConfig } from '@/types/api'
 
@@ -29,14 +30,12 @@ export const useSettingsStore = defineStore('settings', () => {
     request_timeout: 15,
     request_retries: 2,
   })
-  const status = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const { status, isLoading } = useAsyncState()
   const error = ref('')
   let loadPromise: Promise<void> | null = null
   let latestLoadId = 0
   let configRevision = 0
   const writeQueues = new Map<string, Promise<void>>()
-
-  const isLoading = computed(() => status.value === 'loading')
 
   async function load(force = false): Promise<void> {
     if (!force && status.value === 'ready') return

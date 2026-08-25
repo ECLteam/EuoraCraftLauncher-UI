@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
+import { useAsyncState } from '@/composables/useAsyncState'
 import { accountsApi } from '@/features/accounts/api/accountsApi'
 import type {
   AuthlibLoginConfigData,
@@ -14,19 +15,6 @@ import type {
   MicrosoftPollData,
 } from '@/types/api'
 
-export type AsyncStatus = 'idle' | 'loading' | 'ready' | 'error'
-
-/**
- * 创建一组「状态 + 是否加载中」的响应式对。
- * 账户 Store 内多个异步数据源（账户列表/Authlib 服务器/登录配置）共用此模式，
- * 避免重复声明 status ref 与 isLoading computed。
- */
-function createAsyncState(initial: AsyncStatus = 'idle') {
-  const status = ref<AsyncStatus>(initial)
-  const isLoading = computed(() => status.value === 'loading')
-  return { status, isLoading }
-}
-
 export const useAccountStore = defineStore('accounts', () => {
   const accounts = ref<MinecraftAccount[]>([])
   const currentAccount = ref<MinecraftAccount | null>(null)
@@ -39,10 +27,10 @@ export const useAccountStore = defineStore('accounts', () => {
   const authlibLoginConfig = ref<AuthlibLoginConfigData>({
     available: false,
   })
-  const { status, isLoading } = createAsyncState()
-  const { status: authlibStatus, isLoading: isAuthlibLoading } = createAsyncState()
-  const { status: microsoftLoginConfigStatus, isLoading: isMicrosoftLoginConfigLoading } = createAsyncState()
-  const { status: authlibLoginConfigStatus, isLoading: isAuthlibLoginConfigLoading } = createAsyncState()
+  const { status, isLoading } = useAsyncState()
+  const { status: authlibStatus, isLoading: isAuthlibLoading } = useAsyncState()
+  const { status: microsoftLoginConfigStatus, isLoading: isMicrosoftLoginConfigLoading } = useAsyncState()
+  const { status: authlibLoginConfigStatus, isLoading: isAuthlibLoginConfigLoading } = useAsyncState()
   const error = ref('')
 
   function accountIdentity(account: MinecraftAccount): string {
