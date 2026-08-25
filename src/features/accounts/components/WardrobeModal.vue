@@ -735,6 +735,8 @@ async function downloadSkin(): Promise<void> {
   align-items: center;
   justify-content: space-between;
   gap: var(--s-sm);
+  flex-wrap: wrap;
+  row-gap: var(--s-xs);
 }
 
 .wardrobe-account-row > span {
@@ -747,11 +749,14 @@ async function downloadSkin(): Promise<void> {
   display: flex;
   align-items: center;
   gap: var(--s-xs);
+  flex-shrink: 0;
 }
 
 .wardrobe-category-row :deep(.n-tabs) {
-  flex: 0 0 auto;
-  width: 280px;
+  flex: 0 1 auto;
+  min-width: 200px;
+  width: auto;
+  max-width: 280px;
 }
 
 .wardrobe-category-row :deep(.n-tabs-rail) {
@@ -765,6 +770,14 @@ async function downloadSkin(): Promise<void> {
 
 .wardrobe-category-row :deep(.n-tabs-tab) {
   justify-content: center;
+}
+
+/* 深色模式：分类行选中项高可读性（实底主色 + 深色文字，兼容亮主色） */
+html[data-theme='dark'] .wardrobe-category-row :deep(.n-tabs-tab.n-tabs-tab--active),
+html[data-theme='dark'] .wardrobe-category-row :deep(.n-button.n-button--primary-type) {
+  background-color: var(--primary) !important;
+  color: var(--bg-base) !important;
+  font-weight: 600;
 }
 
 .wardrobe-account-select {
