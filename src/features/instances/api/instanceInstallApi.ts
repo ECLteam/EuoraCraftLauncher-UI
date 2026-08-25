@@ -1,5 +1,7 @@
+import { nonEmpty, object, optional, picklist, pipe, string } from 'valibot'
 import backend from '@/api/client'
 import { unwrapResponse as assertSuccess } from '@/app/runtime/errorPresentation'
+import { assertParams } from '@/app/validation'
 import type { SelectResult } from '@/types/accounts'
 import type { CommandPayloadMap } from '@/types/api'
 import type { InstallVersionResult, MinecraftVersionCatalog, ScannedVersion } from '@/types/instances'
@@ -42,6 +44,15 @@ export const instanceInstallApi = {
   },
 
   async getLoaderVersions(loader: InstallableLoader, gameVersion: string): Promise<string[]> {
+    assertParams(
+      object({
+        loader: pipe(string(), nonEmpty('加载器不能为空')),
+        gameVersion: pipe(string(), nonEmpty('游戏版本不能为空')),
+      }),
+      { loader, gameVersion },
+      '获取加载器版本'
+    )
+
     return assertSuccess(
       await backend.command('game_loader_versions', { loader, game_version: gameVersion }),
       `获取 ${loader} 版本`
@@ -49,6 +60,12 @@ export const instanceInstallApi = {
   },
 
   async getFabricApiVersions(gameVersion: string): Promise<string[]> {
+    assertParams(
+      object({ gameVersion: pipe(string(), nonEmpty('游戏版本不能为空')) }),
+      { gameVersion },
+      '获取 Fabric API 版本'
+    )
+
     return assertSuccess(
       await backend.command('game_fabric_api_versions', { loader: 'fabric', game_version: gameVersion }),
       '获取 Fabric API 版本'
@@ -94,12 +111,34 @@ export const instanceInstallApi = {
   },
 
   async install(params: CommandPayloadMap['game_install']): Promise<InstallVersionResult> {
+    assertParams(
+      object({
+        version_id: pipe(string(), nonEmpty('版本 ID 不能为空')),
+        game_path: pipe(string(), nonEmpty('游戏路径不能为空')),
+        version_name: optional(string()),
+        loader_type: optional(picklist(['fabric', 'forge', 'neoforge', 'quilt'], '无效的加载器类型')),
+        loader_version: optional(string()),
+        fabric_api_version: optional(string()),
+      }),
+      params,
+      '安装实例'
+    )
+
     const result = assertSuccess(await backend.command('game_install', params), '安装实例')
     if (params.game_path) invalidateScanCache(params.game_path)
     return result
   },
 
   async uninstall(versionId: string, gamePath: string): Promise<void> {
+    assertParams(
+      object({
+        versionId: pipe(string(), nonEmpty('版本 ID 不能为空')),
+        gamePath: pipe(string(), nonEmpty('游戏路径不能为空')),
+      }),
+      { versionId, gamePath },
+      '卸载实例'
+    )
+
     assertSuccess(await backend.command('game_uninstall', { version_id: versionId, game_path: gamePath }), '卸载实例')
     invalidateScanCache(gamePath)
   },

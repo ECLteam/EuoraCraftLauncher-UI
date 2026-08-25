@@ -1,5 +1,7 @@
+import { minLength, nonEmpty, object, pipe, string } from 'valibot'
 import backend from '@/api/client'
 import { unwrapResponse as assertSuccess } from '@/app/runtime/errorPresentation'
+import { assertParams } from '@/app/validation'
 import type { AccountListData, AccountTextures, AuthProvider, AuthlibLoginConfigData, AuthlibServer, DefaultSkin, MicrosoftCompleteData, MicrosoftLoginConfigData, MicrosoftLoginData, MicrosoftLoginStatusEvent, MicrosoftPollData, MinecraftAccount, SkinModel, WardrobeImportResult, WardrobeItem, WardrobeKind } from '@/types/accounts'
 
 export const accountsApi = {
@@ -20,6 +22,15 @@ export const accountsApi = {
   },
 
   async addOffline(username: string, uuid?: string, skin?: string): Promise<MinecraftAccount> {
+    assertParams(
+      object({
+        username: pipe(string(), minLength(1, '用户名不能为空'), nonEmpty('用户名不能为空')),
+        uuid: pipe(string(), nonEmpty('UUID 不能为空')),
+      }),
+      { username, uuid: uuid ?? '' },
+      '添加离线账户'
+    )
+
     return assertSuccess(await backend.command('accounts_add_offline', { username, uuid, skin }), '添加离线账户')
   },
 
@@ -35,6 +46,16 @@ export const accountsApi = {
   },
 
   async addAuthlib(serverUrl: string, email: string, password: string): Promise<MinecraftAccount> {
+    assertParams(
+      object({
+        serverUrl: pipe(string(), nonEmpty('服务器地址不能为空')),
+        email: pipe(string(), nonEmpty('邮箱不能为空')),
+        password: pipe(string(), nonEmpty('密码不能为空')),
+      }),
+      { serverUrl, email, password },
+      '添加外置登录账户'
+    )
+
     return assertSuccess(
       await backend.command('accounts_add_authlib', {
         server_url: serverUrl,
@@ -56,6 +77,12 @@ export const accountsApi = {
   },
 
   async resolveAuthlibServer(serverUrl: string): Promise<string> {
+    assertParams(
+      object({ serverUrl: pipe(string(), nonEmpty('服务器地址不能为空')) }),
+      { serverUrl },
+      '识别外置登录服务器'
+    )
+
     return assertSuccess(
       await backend.command('authlib_resolve_server', { server_url: serverUrl }),
       '识别外置登录服务器'
