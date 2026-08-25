@@ -1,6 +1,8 @@
+import { VueQueryPlugin } from '@tanstack/vue-query'
 import { create as createNaiveUI } from 'naive-ui'
 import { createApp } from 'vue'
 import AppProviders from '@/app/AppProviders.vue'
+import { queryClient } from '@/app/queryClient'
 import { pinia } from '@/app/stores'
 import { initTheme } from '@/composables/useTheme'
 import { i18n, getCurrentLocale, loadLocaleFromBackend } from '@/i18n'
@@ -24,6 +26,7 @@ loadLocaleFromBackend().catch(() => {})
 const naive = createNaiveUI()
 const app = createApp(AppProviders)
 app.use(pinia)
+app.use(VueQueryPlugin, { queryClient })
 app.use(router)
 app.use(naive)
 app.use(i18n)

@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { queryClient } from '@/app/queryClient'
+import { queryKeys } from '@/app/queryKeys'
 import { useAsyncState } from '@/composables/useAsyncState'
 import { gameHomeApi } from '@/features/game-home/api/gameHomeApi'
 import { EMPTY_INFO_CARD, normalizeInfoCard } from '@/features/game-home/model/infoCard'
@@ -18,7 +20,13 @@ export const useGameHomeStore = defineStore('game-home', () => {
     status.value = 'loading'
     error.value = ''
     try {
-      const [card] = await Promise.all([gameHomeApi.getInfoCard(), settingsStore.load()])
+      const [card] = await Promise.all([
+        queryClient.fetchQuery({
+          queryKey: queryKeys.gameHome.infoCard,
+          queryFn: () => gameHomeApi.getInfoCard(),
+        }),
+        settingsStore.load(),
+      ])
       infoCard.value = normalizeInfoCard(card)
       status.value = 'ready'
     } catch (reason) {
@@ -29,7 +37,7 @@ export const useGameHomeStore = defineStore('game-home', () => {
   }
 
   function cancelLaunch(): Promise<void> {
-    return gameHomeApi.cancelLaunch()
+    return gameHomeApi.cancelLaunch().finally(() => queryClient.invalidateQueries({ queryKey: queryKeys.gameHome.infoCard }))
   }
 
   return {

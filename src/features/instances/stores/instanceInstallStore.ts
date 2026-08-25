@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, reactive, ref } from 'vue'
+import { queryClient } from '@/app/queryClient'
+import { queryKeys } from '@/app/queryKeys'
 import { instanceInstallApi, type InstallableLoader } from '@/features/instances/api/instanceInstallApi'
 import type { CommandPayloadMap } from '@/types/api'
 
@@ -27,7 +29,12 @@ export const useInstanceInstallStore = defineStore('version-install', () => {
     const requestId = ++loaderRequestId
     loaderVersionsLoading.value = true
     try {
-      const result = (await instanceInstallApi.getLoaderVersions(loader, gameVersion)).slice(0, 20)
+      const result = (
+        await queryClient.fetchQuery({
+          queryKey: queryKeys.instanceInstall.loaderVersions(loader, gameVersion),
+          queryFn: () => instanceInstallApi.getLoaderVersions(loader, gameVersion),
+        })
+      ).slice(0, 20)
       if (requestId === loaderRequestId) loaderVersions[loader] = result
       return result
     } finally {
@@ -43,7 +50,12 @@ export const useInstanceInstallStore = defineStore('version-install', () => {
     const requestId = ++fabricApiRequestId
     fabricApiVersionsLoading.value = true
     try {
-      const result = (await instanceInstallApi.getFabricApiVersions(gameVersion)).slice(0, 20)
+      const result = (
+        await queryClient.fetchQuery({
+          queryKey: queryKeys.instanceInstall.fabricApiVersions(gameVersion),
+          queryFn: () => instanceInstallApi.getFabricApiVersions(gameVersion),
+        })
+      ).slice(0, 20)
       if (requestId === fabricApiRequestId) fabricApiVersions.value = result
       return result
     } finally {
