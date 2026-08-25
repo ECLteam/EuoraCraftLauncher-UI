@@ -1,4 +1,4 @@
-import type { MinecraftPathEntry } from '@/types/api'
+import type { MinecraftPathEntry } from '@/types/config'
 
 export type GamePath = Exclude<MinecraftPathEntry, string>
 

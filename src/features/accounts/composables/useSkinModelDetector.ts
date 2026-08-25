@@ -1,4 +1,4 @@
-import type { SkinModel } from '@/types/api'
+import type { SkinModel } from '@/types/accounts'
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {

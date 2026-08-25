@@ -69,7 +69,7 @@ import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import backend from '@/api/client'
 import UiIcon from '@/components/ui/Icon.vue'
-import type { TerminalLogEntry } from '@/types/api'
+import type { TerminalLogEntry } from '@/types/system'
 import { terminalApi } from '../api/terminalApi'
 import {
   LAUNCHER_LOG_LEVELS,

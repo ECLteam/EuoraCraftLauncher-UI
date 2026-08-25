@@ -1,16 +1,6 @@
 import backend from '@/api/client'
 import { unwrapResponse } from '@/app/runtime/errorPresentation'
-import type {
-  GameOperation,
-  GameResource,
-  GameResourceType,
-  InstanceTargetPayload,
-  ScannedVersion,
-  ScreenshotEntry,
-  ServerEntry,
-  ServerStatus,
-  WorldEntry,
-} from '@/types/api'
+import type { GameOperation, GameResource, GameResourceType, InstanceTargetPayload, ScannedVersion, ScreenshotEntry, ServerEntry, ServerStatus, WorldEntry } from '@/types/instances'
 
 export function workspaceTarget(version: ScannedVersion, versionIsolation = false): InstanceTargetPayload {
   return { game_path: version.path, version_id: version.versionId, version_isolation: versionIsolation }

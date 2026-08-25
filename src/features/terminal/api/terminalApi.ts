@@ -1,6 +1,6 @@
 import backend from '@/api/client'
 import { unwrapResponse } from '@/app/runtime/errorPresentation'
-import type { ProcessInstance, TerminalLogEntry } from '@/types/api'
+import type { ProcessInstance, TerminalLogEntry } from '@/types/system'
 
 export const terminalApi = {
   getLogHistory(): Promise<TerminalLogEntry[]> {

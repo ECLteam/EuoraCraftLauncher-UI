@@ -4,7 +4,7 @@ import { useAsyncState } from '@/composables/useAsyncState'
 import { gameHomeApi } from '@/features/game-home/api/gameHomeApi'
 import { EMPTY_INFO_CARD, normalizeInfoCard } from '@/features/game-home/model/infoCard'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
-import type { InfoCardData } from '@/types/api'
+import type { InfoCardData } from '@/types/system'
 
 export const useGameHomeStore = defineStore('game-home', () => {
   const settingsStore = useSettingsStore()

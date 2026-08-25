@@ -11,7 +11,7 @@ import {
 import { instanceSettingsApi } from '@/features/instances/api/instanceSettingsApi'
 import { createDefaultVersionSettings, parseLaunchArguments } from '@/features/instances/model/instanceSettings'
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
-import type { LaunchProgress } from '@/types/api'
+import type { LaunchProgress } from '@/types/system'
 import { useLauncherMessage } from './useLauncherMessage'
 import { globalLaunchProgress } from './useLaunchProgress'
 

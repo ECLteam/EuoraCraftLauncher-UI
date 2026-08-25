@@ -1,7 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { accountsApi } from '@/features/accounts/api/accountsApi'
-import type { MicrosoftLoginStatusEvent } from '@/types/api'
+import type { MicrosoftLoginStatusEvent } from '@/types/accounts'
 import { openExternalUrl } from '@/utils/openExternal'
 import { useAccountManager } from './useAccountManager'
 

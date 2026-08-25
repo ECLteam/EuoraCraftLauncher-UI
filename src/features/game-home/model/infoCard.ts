@@ -1,4 +1,4 @@
-import type { InfoCardData, InfoCardMode } from '@/types/api'
+import type { InfoCardData, InfoCardMode } from '@/types/system'
 
 export type InfoCardView = 'tip' | 'announce'
 

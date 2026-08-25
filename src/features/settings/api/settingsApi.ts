@@ -1,15 +1,9 @@
 import backend from '@/api/client'
 import { unwrapResponse as assertSuccess } from '@/app/runtime/errorPresentation'
-import type {
-  DownloadConfig,
-  GameConfig,
-  ImageSaveAsPayload,
-  ImageSaveUrlResult,
-  JavaInstallation,
-  LauncherConfig,
-  SystemMemoryInfo,
-  UiConfig,
-} from '@/types/api'
+import type { ImageSaveUrlResult } from '@/types/accounts'
+import type { DownloadConfig, GameConfig, LauncherConfig, SystemMemoryInfo, UiConfig } from '@/types/config'
+import type { JavaInstallation } from '@/types/instances'
+import type { ImageSaveAsPayload } from '@/types/system'
 
 // 图片 URL 内存缓存：避免重复 IPC 读取与解码（按路径缓存，上限 32 条）
 const IMAGE_URL_CACHE_LIMIT = 32

@@ -2,7 +2,7 @@ import { computed, onMounted, ref } from 'vue'
 import backend from '@/api/client'
 import { unwrapResponse } from '@/app/runtime/errorPresentation'
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
-import type { ScannedVersion } from '@/types/api'
+import type { ScannedVersion } from '@/types/instances'
 
 /** 安装位置缓存键：在线资源类型 + 存档（存档仅本地导入）。 */
 export type InstallTargetKey = string

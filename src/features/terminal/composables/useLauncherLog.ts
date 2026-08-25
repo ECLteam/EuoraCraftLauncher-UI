@@ -1,5 +1,5 @@
 import { computed, reactive, ref } from 'vue'
-import type { TerminalLogEntry } from '@/types/api'
+import type { TerminalLogEntry } from '@/types/system'
 
 /** 日志级别，入参后端标准化后的 levelname */
 export type LauncherLogLevel = TerminalLogEntry['level']

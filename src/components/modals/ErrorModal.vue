@@ -91,7 +91,7 @@ import { unwrapResponse } from '@/app/runtime/errorPresentation'
 import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
-import type { CrashAnalysisResult } from '@/types/api'
+import type { CrashAnalysisResult } from '@/types/instances'
 import { getErrorMessage } from '@/utils/error'
 
 defineOptions({ name: 'ErrorModal' })

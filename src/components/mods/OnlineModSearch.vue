@@ -516,19 +516,9 @@ import {
   type VersionGroupType,
 } from '@/features/mods/model/modVersionGroups'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
-import type {
-  GameResourceType,
-  DownloadConfig,
-  MinecraftVersionCatalog,
-  MinecraftVersionItem,
-  MinecraftVersionType,
-  ModInfo,
-  ModSearchItem,
-  ModSourceReference,
-  ModSourceStatus,
-  ModVersion,
-  ScannedVersion,
-} from '@/types/api'
+import type { DownloadConfig } from '@/types/config'
+import type { GameResourceType, MinecraftVersionCatalog, MinecraftVersionItem, MinecraftVersionType, ScannedVersion } from '@/types/instances'
+import type { ModInfo, ModSearchItem, ModSourceReference, ModSourceStatus, ModVersion } from '@/types/mods'
 import { getErrorMessage } from '@/utils/error'
 
 const props = withDefaults(

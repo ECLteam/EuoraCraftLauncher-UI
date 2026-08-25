@@ -1,3 +1,9 @@
+import { computed, readonly, ref } from 'vue'
+import { launcherErrorQueue } from '@/app/runtime/errorPresentation'
+import type { AppRuntimeMode } from '@/app/runtime/mode'
+import type { ApiResponse, BackendEventName, BackendEvents, CommandPayloadMap, CommandResponseMap } from '@/types/api'
+import type { ConfigSection } from '@/types/config'
+import type { FileContent, FsEntry, PathInfo } from '@/types/system'
 /**
  * 通用 API 客户端。
  *
@@ -11,21 +17,6 @@
  *
  * 前端定义所有数据类型。社区替换前端时只需保持接口不变。
  */
-
-import { computed, readonly, ref } from 'vue'
-import { launcherErrorQueue } from '@/app/runtime/errorPresentation'
-import type { AppRuntimeMode } from '@/app/runtime/mode'
-import type {
-  ApiResponse,
-  BackendEvents,
-  BackendEventName,
-  CommandPayloadMap,
-  CommandResponseMap,
-  ConfigSection,
-  FileContent,
-  FsEntry,
-  PathInfo,
-} from '@/types/api'
 import { getErrorMessage } from '@/utils/error'
 import { createBackendTransport } from './transport'
 import { createShowcaseTransport } from './transport/showcase'

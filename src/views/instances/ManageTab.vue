@@ -145,7 +145,9 @@ import { findGamePathIndex, type GamePath } from '@/features/instances/model/gam
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
-import type { LaunchProgress, MinecraftPathEntry, ScannedVersion } from '@/types/api'
+import type { MinecraftPathEntry } from '@/types/config'
+import type { ScannedVersion } from '@/types/instances'
+import type { LaunchProgress } from '@/types/system'
 import { getErrorMessage } from '@/utils/error'
 import InstanceDetailModal from '@/views/instances/InstanceDetailModal.vue'
 

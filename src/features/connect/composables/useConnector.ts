@@ -1,12 +1,7 @@
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { connectorApi } from '@/features/connect/api/connectorApi'
-import type {
-  ConnectorPlayer,
-  ConnectorStatus,
-  EasyTierStatus,
-  InstanceTargetPayload,
-  NatTypeResult,
-} from '@/types/api'
+import type { ConnectorPlayer, ConnectorStatus, EasyTierStatus, NatTypeResult } from '@/types/connect'
+import type { InstanceTargetPayload } from '@/types/instances'
 import { getErrorMessage } from '@/utils/error'
 
 const STATUS_POLL_MS = 2_000

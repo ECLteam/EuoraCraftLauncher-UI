@@ -28,7 +28,7 @@ import { transpileTS } from '@/plugin-sdk/transpile'
 import type { PluginSdkContext } from '@/plugin-sdk/types'
 import * as ui from '@/plugin-sdk/ui'
 import * as widgets from '@/plugin-sdk/widgets'
-import type { PluginRoute, PluginSlotItem, VueComponentDef, VueSlotItem } from '@/types/api'
+import type { PluginRoute, PluginSlotItem, VueComponentDef, VueSlotItem } from '@/types/plugins'
 import type { useRouter } from 'vue-router'
 
 interface PluginSdkGlobal {

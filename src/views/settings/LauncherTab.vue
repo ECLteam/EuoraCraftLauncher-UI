@@ -101,7 +101,7 @@ import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import { setLocale, supportedLocales, type LocaleCode } from '@/i18n'
-import type { LauncherConfig } from '@/types/api'
+import type { LauncherConfig } from '@/types/config'
 
 type ProxyMode = NonNullable<LauncherConfig['proxy_mode']>
 

@@ -1,5 +1,5 @@
 import backend from '@/api/client'
-import type { ModItem } from '@/types/api'
+import type { ModItem } from '@/types/mods'
 
 function requireData<T>(response: { success: boolean; data?: T; message?: string }, operation: string): T {
   if (!response.success || response.data === undefined) {

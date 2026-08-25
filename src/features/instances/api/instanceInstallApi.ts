@@ -1,12 +1,8 @@
 import backend from '@/api/client'
 import { unwrapResponse as assertSuccess } from '@/app/runtime/errorPresentation'
-import type {
-  CommandPayloadMap,
-  InstallVersionResult,
-  MinecraftVersionCatalog,
-  ScannedVersion,
-  SelectResult,
-} from '@/types/api'
+import type { SelectResult } from '@/types/accounts'
+import type { CommandPayloadMap } from '@/types/api'
+import type { InstallVersionResult, MinecraftVersionCatalog, ScannedVersion } from '@/types/instances'
 import { normalizeGamePath } from '@/utils/path'
 
 export type InstallableLoader = 'fabric' | 'forge' | 'neoforge' | 'quilt'

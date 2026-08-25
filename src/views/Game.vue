@@ -599,7 +599,7 @@ import { instanceDisplayName } from '@/features/instances/model/instancePresenta
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import InstanceTerminalModule from '@/features/terminal/components/InstanceTerminalModule.vue'
-import type { AccountTextures, MinecraftAccount } from '@/types/api'
+import type { AccountTextures, MinecraftAccount } from '@/types/accounts'
 import { getAccountTypeLabelKey, getAccountTypeShortLabelKey } from '@/utils/enums'
 import { normalizeGamePath } from '@/utils/path'
 import RunningInstancesTab from '@/views/instances/RunningInstancesTab.vue'

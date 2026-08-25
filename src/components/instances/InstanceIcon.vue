@@ -10,7 +10,7 @@ import { computed, ref, watch } from 'vue'
 import backend from '@/api/client'
 import UiIcon from '@/components/ui/Icon.vue'
 import { getLoaderIcon, getLoaderImage, getVersionImage } from '@/config/version'
-import type { ScannedVersion } from '@/types/api'
+import type { ScannedVersion } from '@/types/instances'
 
 const props = withDefaults(
   defineProps<{

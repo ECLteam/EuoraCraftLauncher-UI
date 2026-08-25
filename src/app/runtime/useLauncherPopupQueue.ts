@@ -1,5 +1,5 @@
 import { computed, ref } from 'vue'
-import type { LauncherPopupEvent, LauncherPopupLevel } from '@/types/api'
+import type { LauncherPopupEvent, LauncherPopupLevel } from '@/types/system'
 
 const LEGACY_DISMISSED_POPUPS_STORAGE_KEY = 'euoracraft-dismissed-popups'
 export const DISMISSED_POPUPS_STORAGE_KEY = 'euoracraft-dismissed-popups-v2'

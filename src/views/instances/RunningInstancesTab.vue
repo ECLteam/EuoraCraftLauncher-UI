@@ -114,7 +114,7 @@ import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { getLoaderImage } from '@/config/version'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
-import type { GameInstance } from '@/types/api'
+import type { GameInstance } from '@/types/instances'
 
 const emit = defineEmits<{ (e: 'openTerminal'): void }>()
 const { t } = useI18n()

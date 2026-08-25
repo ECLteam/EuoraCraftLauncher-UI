@@ -1,5 +1,6 @@
 import { computed, ref } from 'vue'
-import type { ApiResponse, LauncherErrorEvent } from '@/types/api'
+import type { ApiResponse } from '@/types/api'
+import type { LauncherErrorEvent } from '@/types/system'
 
 const MAX_SEEN_ERRORS = 100
 const MESSAGE_SUPPRESSION_MS = 5000

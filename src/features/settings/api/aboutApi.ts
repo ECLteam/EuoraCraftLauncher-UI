@@ -1,5 +1,5 @@
 import backend from '@/api/client'
-import type { LauncherInfo } from '@/types/api'
+import type { LauncherInfo } from '@/types/system'
 
 export const aboutApi = {
   async getLauncherInfo(): Promise<LauncherInfo | null> {

@@ -47,7 +47,7 @@ import {
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
-import type { SkinModel } from '@/types/api'
+import type { SkinModel } from '@/types/accounts'
 
 const props = withDefaults(
   defineProps<{

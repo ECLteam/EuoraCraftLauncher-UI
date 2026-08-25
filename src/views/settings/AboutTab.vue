@@ -121,7 +121,7 @@ import { URLS } from '@/config/urls'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { specialThanksEntries, teamMembers, technologyCategories } from '@/features/settings/about/aboutContent'
 import { aboutApi } from '@/features/settings/api/aboutApi'
-import type { LauncherInfo } from '@/types/api'
+import type { LauncherInfo } from '@/types/system'
 import { openExternalUrl } from '@/utils/openExternal'
 
 const { t } = useI18n()

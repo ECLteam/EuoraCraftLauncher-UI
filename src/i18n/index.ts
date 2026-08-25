@@ -1,6 +1,6 @@
 import { createI18n } from 'vue-i18n'
 import backend from '@/api/client'
-import type { UiConfig } from '@/types/api'
+import type { UiConfig } from '@/types/config'
 import enUS from './locales/en-US.json'
 import zhCN from './locales/zh-CN.json'
 

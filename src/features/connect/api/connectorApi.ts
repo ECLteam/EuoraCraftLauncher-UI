@@ -1,13 +1,8 @@
 import backend from '@/api/client'
 import { unwrapResponse } from '@/app/runtime/errorPresentation'
-import {
-  COMMAND_NAMES,
-  type ConnectorMatchResult,
-  type ConnectorStatus,
-  type EasyTierStatus,
-  type InstanceTargetPayload,
-  type NatTypeResult,
-} from '@/types/api'
+import { COMMAND_NAMES } from '@/types/api'
+import type { ConnectorMatchResult, ConnectorStatus, EasyTierStatus, NatTypeResult } from '@/types/connect'
+import type { InstanceTargetPayload } from '@/types/instances'
 
 export const connectorApi = {
   status(): Promise<ConnectorStatus> {

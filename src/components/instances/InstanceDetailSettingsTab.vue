@@ -102,7 +102,7 @@ import { instanceSettingsApi } from '@/features/instances/api/instanceSettingsAp
 import { createDefaultVersionSettings, type VersionSettingsTarget } from '@/features/instances/model/instanceSettings'
 import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
-import type { ScannedVersion } from '@/types/api'
+import type { ScannedVersion } from '@/types/instances'
 
 defineOptions({ name: 'InstanceDetailSettingsTab' })
 

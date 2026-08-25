@@ -1,6 +1,6 @@
 import backend from '@/api/client'
 import { unwrapResponse as assertSuccess } from '@/app/runtime/errorPresentation'
-import type { EclPathConfig } from '@/types/api'
+import type { EclPathConfig } from '@/types/config'
 
 /**
  * 读取指定游戏路径下的 ecl.json。

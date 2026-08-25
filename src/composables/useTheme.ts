@@ -24,13 +24,7 @@ import {
   type BackgroundMode,
 } from '@/features/settings/model/backgroundMode'
 import { resolveNavigationMode } from '@/features/settings/model/navigation'
-import type {
-  BackgroundConfig,
-  NavigationMode,
-  ThemeAppearanceConfig,
-  ThemeConfig,
-  ThemeScheduleConfig,
-} from '@/types/api'
+import type { BackgroundConfig, NavigationMode, ThemeAppearanceConfig, ThemeConfig, ThemeScheduleConfig } from '@/types/config'
 
 interface ThemeInitPayload {
   theme?: Partial<ThemeConfig>

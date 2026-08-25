@@ -5,7 +5,8 @@ import { ref } from 'vue'
 import UiSelect from '@/components/ui/Select.vue'
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
 import { i18n } from '@/i18n'
-import type { ConnectorStatus, EasyTierStatus, GameInstance, NatTypeResult, ScannedVersion } from '@/types/api'
+import type { ConnectorStatus, EasyTierStatus, NatTypeResult } from '@/types/connect'
+import type { GameInstance, ScannedVersion } from '@/types/instances'
 import Connect from './Connect.vue'
 
 const mocks = vi.hoisted(() => ({

@@ -104,7 +104,7 @@ import { useI18n } from 'vue-i18n'
 import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import MarkdownContent from '@/components/ui/MarkdownContent.vue'
-import type { InfoCardData, InfoCardAnnouncement } from '@/types/api'
+import type { InfoCardData, InfoCardAnnouncement } from '@/types/system'
 import { createMarkdownExcerpt } from '@/utils/markdown'
 
 defineProps<{

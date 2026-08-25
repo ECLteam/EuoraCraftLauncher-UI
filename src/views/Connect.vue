@@ -387,7 +387,7 @@ import { useConnectFlowDebug } from '@/features/connect/composables/useConnectFl
 import { useConnector } from '@/features/connect/composables/useConnector'
 import { validateRoomCode } from '@/features/connect/roomCode'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
-import type { GameInstance } from '@/types/api'
+import type { GameInstance } from '@/types/instances'
 
 const { t } = useI18n()
 const message = useLauncherMessage()

@@ -107,7 +107,7 @@ import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
-import type { GameResource, GameResourceType, ScannedVersion } from '@/types/api'
+import type { GameResource, GameResourceType, ScannedVersion } from '@/types/instances'
 
 const props = defineProps<{
   version: ScannedVersion

@@ -1,23 +1,6 @@
 import backend from '@/api/client'
 import { unwrapResponse as assertSuccess } from '@/app/runtime/errorPresentation'
-import type {
-  AccountListData,
-  AuthProvider,
-  AuthlibLoginConfigData,
-  AuthlibServer,
-  MinecraftAccount,
-  MicrosoftCompleteData,
-  MicrosoftLoginConfigData,
-  MicrosoftLoginData,
-  MicrosoftLoginStatusEvent,
-  MicrosoftPollData,
-  AccountTextures,
-  SkinModel,
-  DefaultSkin,
-  WardrobeImportResult,
-  WardrobeItem,
-  WardrobeKind,
-} from '@/types/api'
+import type { AccountListData, AccountTextures, AuthProvider, AuthlibLoginConfigData, AuthlibServer, DefaultSkin, MicrosoftCompleteData, MicrosoftLoginConfigData, MicrosoftLoginData, MicrosoftLoginStatusEvent, MicrosoftPollData, MinecraftAccount, SkinModel, WardrobeImportResult, WardrobeItem, WardrobeKind } from '@/types/accounts'
 
 export const accountsApi = {
   async list(): Promise<AccountListData> {

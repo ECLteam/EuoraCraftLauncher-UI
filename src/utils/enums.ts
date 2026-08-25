@@ -4,7 +4,7 @@
 // 避免各文件各自实现 if-else 映射表。
 // ============================================================
 
-import type { AccountType } from '@/types/api'
+import type { AccountType } from '@/types/accounts'
 
 // ---- 账户类型 ----
 

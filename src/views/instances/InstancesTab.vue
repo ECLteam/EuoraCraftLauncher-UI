@@ -153,13 +153,9 @@ import { instanceInstallApi, type InstallableLoader } from '@/features/instances
 import { useInstanceInstallStore } from '@/features/instances/stores/instanceInstallStore'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
-import type {
-  CommandPayloadMap,
-  MinecraftPathEntry,
-  MinecraftVersionCatalog,
-  MinecraftVersionItem,
-  MinecraftVersionType,
-} from '@/types/api'
+import type { CommandPayloadMap } from '@/types/api'
+import type { MinecraftPathEntry } from '@/types/config'
+import type { MinecraftVersionCatalog, MinecraftVersionItem, MinecraftVersionType } from '@/types/instances'
 import { formatDate } from '@/utils/format'
 
 const { t } = useI18n()

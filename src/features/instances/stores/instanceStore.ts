@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
 import { instancePathConfigApi } from '@/features/instances/api/instancePathConfigApi'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
-import type { ScannedVersion } from '@/types/api'
+import type { ScannedVersion } from '@/types/instances'
 import { normalizeGamePath } from '@/utils/path'
 
 export interface VersionItem {

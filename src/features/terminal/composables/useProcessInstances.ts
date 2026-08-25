@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import backend from '@/api/client'
-import type { ProcessInstance, ProcessLogEntry } from '@/types/api'
+import type { ProcessInstance, ProcessLogEntry } from '@/types/system'
 import { terminalApi } from '../api/terminalApi'
 
 /** 单实例输出环形缓冲上限，与全局日志 MAX_LINES 保持一致 */

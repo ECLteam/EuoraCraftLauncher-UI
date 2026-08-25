@@ -20,7 +20,7 @@ import UiIcon from '@/components/ui/Icon.vue'
 import { instanceKey, type useResourceInstallTarget } from '@/composables/useResourceInstallTarget'
 import { instanceDisplayName } from '@/features/instances/model/instancePresentation'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
-import type { ScannedVersion } from '@/types/api'
+import type { ScannedVersion } from '@/types/instances'
 import { normalizeGamePath } from '@/utils/path'
 
 const props = withDefaults(

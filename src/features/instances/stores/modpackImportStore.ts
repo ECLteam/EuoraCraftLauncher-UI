@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import backend from '@/api/client'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
-import type { MinecraftPathEntry } from '@/types/api'
+import type { MinecraftPathEntry } from '@/types/config'
 
 function derivePackName(path: string): string {
   if (!path) return ''

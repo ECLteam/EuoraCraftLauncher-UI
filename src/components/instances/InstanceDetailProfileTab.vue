@@ -58,7 +58,7 @@ import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceProfileApi, targetFromVersion } from '@/features/instances/api/instanceProfileApi'
-import type { InstanceCategory, InstanceExternalSource, ScannedVersion } from '@/types/api'
+import type { InstanceCategory, InstanceExternalSource, ScannedVersion } from '@/types/instances'
 
 defineOptions({ name: 'InstanceDetailProfileTab' })
 

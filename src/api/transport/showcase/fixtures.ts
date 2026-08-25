@@ -1,14 +1,9 @@
 import type { TaskItem } from '@/composables/useTaskQueue'
-import type {
-  AccountListData,
-  AuthlibServer,
-  InfoCardData,
-  MinecraftAccount,
-  MinecraftVersionCatalog,
-  ModSearchItem,
-  PluginInfo,
-  ScannedVersion,
-} from '@/types/api'
+import type { AccountListData, AuthlibServer, MinecraftAccount } from '@/types/accounts'
+import type { MinecraftVersionCatalog, ScannedVersion } from '@/types/instances'
+import type { ModSearchItem } from '@/types/mods'
+import type { PluginInfo } from '@/types/plugins'
+import type { InfoCardData } from '@/types/system'
 
 export const showcaseConfig: Record<string, unknown> = {
   launcher: {

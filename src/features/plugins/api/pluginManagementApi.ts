@@ -1,6 +1,6 @@
 import backend from '@/api/client'
 import { unwrapResponse as assertSuccess } from '@/app/runtime/errorPresentation'
-import type { PluginInfo, PluginSettingsData } from '@/types/api'
+import type { PluginInfo, PluginSettingsData } from '@/types/plugins'
 
 export const pluginManagementApi = {
   async list(): Promise<PluginInfo[]> {

@@ -2,7 +2,8 @@
 
 import { ref, readonly, watch, type DeepReadonly, type Ref } from 'vue'
 import backend from '@/api/client'
-import type { AccountListData, LauncherConfig } from '@/types/api'
+import type { AccountListData } from '@/types/accounts'
+import type { LauncherConfig } from '@/types/config'
 import type { AccountState, LauncherState, SidebarState, ThemeState } from './types'
 
 // ---- 工厂：统一 ref + readonly + watch + refresh 模板 ----

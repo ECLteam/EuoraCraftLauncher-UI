@@ -1,15 +1,7 @@
 import { storeToRefs } from 'pinia'
 import { reactive, ref, computed } from 'vue'
 import { useAccountStore } from '@/features/accounts/stores/accountStore'
-import type {
-  AuthProvider,
-  AuthlibProfile,
-  DefaultSkin,
-  MinecraftAccount,
-  MicrosoftLoginData,
-  MicrosoftLoginStage,
-  MicrosoftLoginStatusEvent,
-} from '@/types/api'
+import type { AuthProvider, AuthlibProfile, DefaultSkin, MicrosoftLoginData, MicrosoftLoginStage, MicrosoftLoginStatusEvent, MinecraftAccount } from '@/types/accounts'
 import { getAccountTypeLabelKey } from '@/utils/enums'
 import { openExternalUrl } from '@/utils/openExternal'
 import { useClipboard } from './useClipboard'

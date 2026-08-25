@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { ModVersion } from '@/types/api'
+import type { ModVersion } from '@/types/mods'
 import {
   aprilFoolsAnchor,
   groupModVersions,

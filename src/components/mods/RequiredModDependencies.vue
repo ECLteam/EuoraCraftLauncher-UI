@@ -47,7 +47,7 @@
 import { NSpin, NTag } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
-import type { ModInfo } from '@/types/api'
+import type { ModInfo } from '@/types/mods'
 
 withDefaults(
   defineProps<{

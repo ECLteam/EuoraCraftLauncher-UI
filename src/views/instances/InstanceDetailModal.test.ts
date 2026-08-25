@@ -2,7 +2,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { i18n } from '@/i18n'
 import type { BackendMockState } from '@/test/mockBackend'
-import type { ScannedVersion } from '@/types/api'
+import type { ScannedVersion } from '@/types/instances'
 import InstanceDetailModal from './InstanceDetailModal.vue'
 import type * as NaiveUi from 'naive-ui'
 

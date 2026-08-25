@@ -143,7 +143,8 @@ import { settingsApi } from '@/features/settings/api/settingsApi'
 import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
-import type { JavaInstallation, SystemMemoryInfo } from '@/types/api'
+import type { SystemMemoryInfo } from '@/types/config'
+import type { JavaInstallation } from '@/types/instances'
 
 type JavaInfo = JavaInstallation
 

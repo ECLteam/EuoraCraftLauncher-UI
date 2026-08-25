@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import type { TerminalLogEntry } from '@/types/api'
+import type { TerminalLogEntry } from '@/types/system'
 import {
   LAUNCHER_LOG_LEVELS,
   launcherAutoScroll,

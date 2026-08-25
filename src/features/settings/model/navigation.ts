@@ -1,4 +1,4 @@
-import type { NavigationMode, ThemeConfig } from '@/types/api'
+import type { NavigationMode, ThemeConfig } from '@/types/config'
 
 /**
  * 读取新版导航模式，同时兼容旧配置中的 titlebar_hidden。

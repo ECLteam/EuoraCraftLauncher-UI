@@ -1,5 +1,5 @@
 import backend from '@/api/client'
-import type { WindowBounds } from '@/types/api'
+import type { WindowBounds } from '@/types/config'
 
 export const windowApi = {
   async open(descriptorId: string, sessionId?: string, instanceKey?: string) {

@@ -153,7 +153,7 @@ import { instanceProfileApi, targetFromVersion } from '@/features/instances/api/
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
 import { hasModLoader } from '@/features/instances/model/instanceCapabilities'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
-import type { ScannedVersion, VersionRunStats, WorldEntry } from '@/types/api'
+import type { ScannedVersion, VersionRunStats, WorldEntry } from '@/types/instances'
 
 interface Props {
   visible: boolean

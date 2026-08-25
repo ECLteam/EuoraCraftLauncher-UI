@@ -3,7 +3,7 @@
 // 启动阶段、进度映射、默认值等
 // ============================================================
 
-import type { LaunchPhase } from '@/types/api'
+import type { LaunchPhase } from '@/types/instances'
 
 // ---- 启动阶段文案 ----
 

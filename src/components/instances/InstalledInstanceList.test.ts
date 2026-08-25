@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { describe, expect, it, vi } from 'vitest'
 import { i18n } from '@/i18n'
-import type { ScannedVersion } from '@/types/api'
+import type { ScannedVersion } from '@/types/instances'
 import InstalledInstanceList from './InstalledInstanceList.vue'
 
 vi.mock('@/features/instances/api/instanceProfileApi', () => ({

@@ -46,7 +46,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AvatarRenderer from '@/components/game/AvatarRenderer.vue'
 import UiIcon from '@/components/ui/Icon.vue'
-import type { MinecraftAccount } from '@/types/api'
+import type { MinecraftAccount } from '@/types/accounts'
 import { getAccountTypeLabelKey } from '@/utils/enums'
 
 const props = defineProps<{

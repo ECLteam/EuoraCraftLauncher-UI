@@ -319,7 +319,7 @@ import { accountsApi } from '@/features/accounts/api/accountsApi'
 import SkinViewer3D from '@/features/accounts/components/SkinViewer3D.vue'
 import { detectSkinModel } from '@/features/accounts/composables/useSkinModelDetector'
 import { useAccountStore } from '@/features/accounts/stores/accountStore'
-import type { MinecraftAccount, MicrosoftCape, SkinModel, WardrobeItem } from '@/types/api'
+import type { MicrosoftCape, MinecraftAccount, SkinModel, WardrobeItem } from '@/types/accounts'
 
 const props = defineProps<{
   visible: boolean

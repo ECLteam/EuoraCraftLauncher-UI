@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
-import type { ModInfo } from '@/types/api'
+import type { ModInfo } from '@/types/mods'
 import RequiredModDependencies from './RequiredModDependencies.vue'
 
 vi.mock('vue-i18n', () => ({

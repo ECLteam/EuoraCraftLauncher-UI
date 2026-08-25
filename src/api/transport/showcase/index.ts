@@ -1,16 +1,8 @@
-import type {
-  ApiResponse,
-  BackendEvents,
-  ConnectorMatchResult,
-  ConnectorStatus,
-  CrashAnalysisResult,
-  EasyTierStatus,
-  GameInstance,
-  MinecraftAccount,
-  PluginInfo,
-  VersionRunStats,
-  WardrobeItem,
-} from '@/types/api'
+import type { MinecraftAccount, WardrobeItem } from '@/types/accounts'
+import type { ApiResponse, BackendEvents } from '@/types/api'
+import type { ConnectorMatchResult, ConnectorStatus, EasyTierStatus } from '@/types/connect'
+import type { CrashAnalysisResult, GameInstance, VersionRunStats } from '@/types/instances'
+import type { PluginInfo } from '@/types/plugins'
 import { loadShowcaseConfig, persistShowcaseConfig } from './configPersistence'
 import {
   createShowcaseAccount,

@@ -53,7 +53,7 @@ import backend from '@/api/client'
 import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
-import type { CrashCandidateFile, ScannedVersion } from '@/types/api'
+import type { CrashCandidateFile, ScannedVersion } from '@/types/instances'
 import { formatFileSize, formatTimestamp } from '@/utils/format'
 
 const props = defineProps<{

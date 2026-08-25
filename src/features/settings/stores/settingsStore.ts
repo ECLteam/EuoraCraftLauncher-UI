@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAsyncState } from '@/composables/useAsyncState'
 import { resolveLocalImageUrl, settingsApi } from '@/features/settings/api/settingsApi'
-import type { DownloadConfig, GameConfig, LauncherConfig, UiConfig } from '@/types/api'
+import type { DownloadConfig, GameConfig, LauncherConfig, UiConfig } from '@/types/config'
 
 const DEFAULT_GAME_CONFIG: GameConfig = {
   minecraft_paths: [],

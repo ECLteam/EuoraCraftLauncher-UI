@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { ScannedVersion } from '@/types/api'
+import type { ScannedVersion } from '@/types/instances'
 import { filterAndSortInstances } from './instancePresentation'
 
 function version(id: string, patch: Partial<ScannedVersion> = {}): ScannedVersion {

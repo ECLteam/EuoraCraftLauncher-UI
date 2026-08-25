@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { i18n } from '@/i18n'
-import type { InfoCardData } from '@/types/api'
+import type { InfoCardData } from '@/types/system'
 import GameInfoCard from './GameInfoCard.vue'
 
 const data: InfoCardData = {

@@ -1,6 +1,6 @@
 import backend from '@/api/client'
 import { unwrapResponse } from '@/app/runtime/errorPresentation'
-import type { InstanceCategory, InstanceProfile, ScannedVersion } from '@/types/api'
+import type { InstanceCategory, InstanceProfile, ScannedVersion } from '@/types/instances'
 
 export interface InstanceTarget {
   gamePath: string

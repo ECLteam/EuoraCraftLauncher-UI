@@ -1,4 +1,4 @@
-import type { InstanceSortKey, ScannedVersion } from '@/types/api'
+import type { InstanceSortKey, ScannedVersion } from '@/types/instances'
 
 export interface InstanceFilterOptions {
   query: string

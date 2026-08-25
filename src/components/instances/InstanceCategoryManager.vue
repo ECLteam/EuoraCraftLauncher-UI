@@ -31,7 +31,7 @@ import Modal from '@/components/modals/Modal.vue'
 import UiButton from '@/components/ui/Button.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { instanceProfileApi } from '@/features/instances/api/instanceProfileApi'
-import type { InstanceCategory } from '@/types/api'
+import type { InstanceCategory } from '@/types/instances'
 
 const props = defineProps<{ visible: boolean }>()
 const emit = defineEmits<{ 'update:visible': [value: boolean]; changed: [] }>()

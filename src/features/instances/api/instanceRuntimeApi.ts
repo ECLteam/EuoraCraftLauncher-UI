@@ -1,12 +1,6 @@
 import backend from '@/api/client'
 import { unwrapResponse as assertSuccess } from '@/app/runtime/errorPresentation'
-import type {
-  CrashAnalysisResult,
-  CrashCandidateFile,
-  GameInstance,
-  GameInstancesChangedEvent,
-  VersionRunStats,
-} from '@/types/api'
+import type { CrashAnalysisResult, CrashCandidateFile, GameInstance, GameInstancesChangedEvent, VersionRunStats } from '@/types/instances'
 
 export const instanceRuntimeApi = {
   async list(): Promise<GameInstance[]> {

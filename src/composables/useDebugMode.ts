@@ -1,6 +1,6 @@
 import { computed, onMounted } from 'vue'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
-import type { LauncherConfig } from '@/types/api'
+import type { LauncherConfig } from '@/types/config'
 
 type LogLevel = NonNullable<LauncherConfig['debug_log_level']>
 

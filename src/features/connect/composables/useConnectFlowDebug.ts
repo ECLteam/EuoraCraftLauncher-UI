@@ -1,7 +1,7 @@
 import { computed, ref, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useFlowDebug } from '@/composables/useFlowDebug'
-import type { ConnectorStatus } from '@/types/api'
+import type { ConnectorStatus } from '@/types/connect'
 
 type DebugStageKey = 'idle' | 'create-port' | 'starting' | 'host' | 'guest'
 

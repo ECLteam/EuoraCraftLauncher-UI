@@ -1,12 +1,6 @@
 import backend from '@/api/client'
-import type {
-  BackendEventName,
-  BackendEvents,
-  PluginRoute,
-  PluginSlotItem,
-  VueComponentDef,
-  VueSlotItem,
-} from '@/types/api'
+import type { BackendEventName, BackendEvents } from '@/types/api'
+import type { PluginRoute, PluginSlotItem, VueComponentDef, VueSlotItem } from '@/types/plugins'
 
 export const pluginHostApi = {
   async getRoutes(pluginId?: string): Promise<PluginRoute[]> {

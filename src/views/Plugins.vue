@@ -147,7 +147,7 @@ import { useUiSkin } from '@/composables/useUiSkin'
 import PluginSettingsModal from '@/features/plugins/components/PluginSettingsModal.vue'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { usePluginStore } from '@/features/plugins/stores/pluginStore'
-import type { PluginInfo } from '@/types/api'
+import type { PluginInfo } from '@/types/plugins'
 
 const { t } = useI18n()
 const { isFolia } = useUiSkin()

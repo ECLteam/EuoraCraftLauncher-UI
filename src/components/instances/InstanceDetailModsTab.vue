@@ -148,7 +148,8 @@ import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { getLoaderName } from '@/config/version'
 import { localModsApi } from '@/features/instances/api/localModsApi'
 import { modApi } from '@/features/mods/api/modApi'
-import type { ModItem, ScannedVersion } from '@/types/api'
+import type { ScannedVersion } from '@/types/instances'
+import type { ModItem } from '@/types/mods'
 
 defineOptions({ name: 'InstanceDetailModsTab' })
 

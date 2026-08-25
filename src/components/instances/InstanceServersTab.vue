@@ -89,7 +89,7 @@ import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
-import type { ScannedVersion, ServerEntry, ServerStatus } from '@/types/api'
+import type { ScannedVersion, ServerEntry, ServerStatus } from '@/types/instances'
 const props = defineProps<{ version: ScannedVersion }>()
 const message = useLauncherMessage()
 const servers = ref<ServerEntry[]>([])

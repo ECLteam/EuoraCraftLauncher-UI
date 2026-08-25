@@ -267,7 +267,7 @@ import { instanceProfileApi, targetFromVersion } from '@/features/instances/api/
 import { hasModLoader } from '@/features/instances/model/instanceCapabilities'
 import { filterAndSortInstances, instanceDisplayName } from '@/features/instances/model/instancePresentation'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
-import type { InstanceCategory, InstanceSortKey, ScannedVersion } from '@/types/api'
+import type { InstanceCategory, InstanceSortKey, ScannedVersion } from '@/types/instances'
 import { formatDate as formatDateUtil } from '@/utils/format'
 
 const props = defineProps<{

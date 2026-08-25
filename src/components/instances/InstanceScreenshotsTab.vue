@@ -60,7 +60,7 @@ import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
-import type { ScannedVersion, ScreenshotEntry } from '@/types/api'
+import type { ScannedVersion, ScreenshotEntry } from '@/types/instances'
 const props = defineProps<{ version: ScannedVersion }>()
 const emit = defineEmits<{ updated: [] }>()
 const message = useLauncherMessage()

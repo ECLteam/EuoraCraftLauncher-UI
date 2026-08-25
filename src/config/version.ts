@@ -4,7 +4,7 @@
 // 修改此文件即可全局生效
 // ============================================================
 
-import type { MinecraftVersionType } from '@/types/api'
+import type { MinecraftVersionType } from '@/types/instances'
 
 // ---- 版本类型 ----
 

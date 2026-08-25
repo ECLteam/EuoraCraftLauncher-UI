@@ -1,4 +1,4 @@
-import type { ModVersion } from '@/types/api'
+import type { ModVersion } from '@/types/mods'
 
 export type VersionGroupType = 'release' | 'test' | 'april'
 

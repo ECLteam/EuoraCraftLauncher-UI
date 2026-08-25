@@ -1,35 +1,20 @@
+import backend from '@/api/client'
+import { accountsApi } from '@/features/accounts/api/accountsApi'
+import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
+import { pluginHostApi } from '@/features/plugins/api/pluginHostApi'
+import { pluginManagementApi } from '@/features/plugins/api/pluginManagementApi'
+import type { AccountListData, ImageDataUrl, ImageSelection, MinecraftAccount, SelectResult } from '@/types/accounts'
+import type { ApiResponse, JsonDict } from '@/types/api'
+import type { ConfigSection } from '@/types/config'
+import type { InstallVersionResult, JavaInstallation, MinecraftVersion, ScannedVersion } from '@/types/instances'
+import type { PluginInfo, PluginRoute, PluginSettingsData } from '@/types/plugins'
+import type { FileContent, FsEntry, PathInfo } from '@/types/system'
 // plugin-sdk API 封装
 //
 // 与主 API 重复的命令调用统一委托给 feature API 模块（accountsApi /
 // instanceInstallApi / pluginHostApi / pluginManagementApi），这些模块最终都
 // 走 src/api/client.ts 的 backend 统一入口，避免命令名与参数结构多处重复声明。
 // 委托结果统一包装回 ApiResponse 形状，保持插件侧调用契约不变。
-
-import backend from '@/api/client'
-import { accountsApi } from '@/features/accounts/api/accountsApi'
-import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
-import { pluginHostApi } from '@/features/plugins/api/pluginHostApi'
-import { pluginManagementApi } from '@/features/plugins/api/pluginManagementApi'
-import type {
-  AccountListData,
-  ApiResponse,
-  ConfigSection,
-  FileContent,
-  FsEntry,
-  ImageDataUrl,
-  ImageSelection,
-  InstallVersionResult,
-  JavaInstallation,
-  JsonDict,
-  MinecraftAccount,
-  MinecraftVersion,
-  PathInfo,
-  PluginInfo,
-  PluginRoute,
-  PluginSettingsData,
-  ScannedVersion,
-  SelectResult,
-} from '@/types/api'
 import { getErrorMessage } from '@/utils/error'
 
 /** 将 feature API 的已解包结果包装回 ApiResponse，保持插件侧返回契约。 */

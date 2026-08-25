@@ -103,7 +103,7 @@ import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
-import type { ScannedVersion, WorldEntry } from '@/types/api'
+import type { ScannedVersion, WorldEntry } from '@/types/instances'
 
 const props = defineProps<{ version: ScannedVersion }>()
 const emit = defineEmits<{ changed: [worlds: WorldEntry[]] }>()

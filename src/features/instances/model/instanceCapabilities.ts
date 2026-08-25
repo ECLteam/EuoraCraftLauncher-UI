@@ -1,4 +1,4 @@
-import type { ScannedVersion } from '@/types/api'
+import type { ScannedVersion } from '@/types/instances'
 
 const MOD_LOADERS = new Set(['forge', 'neoforge', 'fabric', 'quilt'])
 

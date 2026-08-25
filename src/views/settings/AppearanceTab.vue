@@ -250,7 +250,7 @@ import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
 import type { BackgroundMode } from '@/features/settings/model/backgroundMode'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
-import type { ThemeAppearanceConfig } from '@/types/api'
+import type { ThemeAppearanceConfig } from '@/types/config'
 
 function debounce<A extends unknown[]>(fn: (...args: A) => void, delay: number) {
   let timer: ReturnType<typeof setTimeout> | null = null

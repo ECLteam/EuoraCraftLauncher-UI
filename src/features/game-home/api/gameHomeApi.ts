@@ -1,5 +1,5 @@
 import backend from '@/api/client'
-import type { InfoCardData } from '@/types/api'
+import type { InfoCardData } from '@/types/system'
 
 export const gameHomeApi = {
   async getInfoCard(): Promise<InfoCardData> {

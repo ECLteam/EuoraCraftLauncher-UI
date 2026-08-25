@@ -80,7 +80,7 @@ import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
 import { getLoaderName } from '@/config/version'
 import { formatRunDuration } from '@/features/instances/model/versionStats'
-import type { ScannedVersion, VersionRunStats } from '@/types/api'
+import type { ScannedVersion, VersionRunStats } from '@/types/instances'
 
 defineOptions({ name: 'InstanceDetailOverviewTab' })
 
