@@ -296,15 +296,13 @@ export function createShowcaseTransport(): BackendTransport {
         return success({
           action: 'reset_launcher_data',
           restart_required: true,
-          targets: ['setting.json', 'accounts', 'info_card.json'],
-          backup_root: 'Showcase/ECL_data/backups',
+          targets: ['setting.json', 'info_card.json', 'notice.json'],
         })
       case 'debug_clear_plugins':
         return success({
           action: 'clear_plugins',
           restart_required: true,
           targets: ['plugins', 'plugin_config'],
-          backup_root: 'Showcase/ECL_data/backups',
         })
       case 'settings_get': {
         if (typeof payload.section === 'string') return success(structuredClone(config[payload.section]))

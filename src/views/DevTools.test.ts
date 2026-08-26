@@ -52,7 +52,6 @@ describe('DevTools danger actions', () => {
       action: 'reset_launcher_data',
       restart_required: true,
       targets: ['setting.json', 'accounts', 'info_card.json'],
-      backup_root: 'ECL_data/backups',
     })
     const wrapper = mountDevTools()
     const resetButton = wrapper.findAll('.danger-action-card button')[0]

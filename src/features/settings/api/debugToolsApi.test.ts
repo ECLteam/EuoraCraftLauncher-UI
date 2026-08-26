@@ -24,7 +24,6 @@ describe('debugToolsApi', () => {
         action: 'reset_launcher_data',
         restart_required: true,
         targets: ['setting.json'],
-        backup_root: 'ECL_data/backups',
       },
     })
 

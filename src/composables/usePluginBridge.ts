@@ -1,4 +1,5 @@
 /* eslint-disable vue/one-component-per-file -- 动态工厂按需 createApp 生成组件，单文件多组件属必要设计 */
+import DOMPurify from 'dompurify'
 import { compile, createApp, defineComponent, h, ref } from 'vue'
 import { pluginHostApi } from '@/features/plugins/api/pluginHostApi'
 import * as api from '@/plugin-sdk/api'
@@ -172,15 +173,10 @@ interface DynamicSlot {
 const dynamicSlots = new Map<string, DynamicSlot>()
 
 function sanitizeHtml(html: string): string {
-  let result = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-  result = result.replace(/\s+on\w+\s*=\s*["'][^"']*["']/gi, '')
-  result = result.replace(/\s+on\w+\s*=\s*[^\s>]+/gi, '')
-  result = result.replace(/href\s*=\s*["']javascript:[^"']*["']/gi, 'href="#"')
-  result = result.replace(/src\s*=\s*["']javascript:[^"']*["']/gi, 'src="#"')
-  result = result.replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe>/gi, '')
-  result = result.replace(/<object\b[^>]*>[\s\S]*?<\/object>/gi, '')
-  result = result.replace(/<embed\b[^>]*\/?>/gi, '')
-  return result
+  // 使用 DOMPurify 替代手写正则：正则无法覆盖属性分隔符变体（如 <img/src=x/onerror=…>）、
+  // HTML 实体编码的 javascript: URL、formaction/meta 等注入手法。
+  // 保留 <style> 标签，兼容插件在插槽内注入样式的既有能力。
+  return DOMPurify.sanitize(html, { ADD_TAGS: ['style'] })
 }
 
 function renderSlot(slot: string) {

@@ -1329,11 +1329,11 @@
     "clearPluginsDesc": "Remove every user plugin and its settings.",
     "clearPluginsScope": "Keeps bundled system plugins, logs, and other launcher data.",
     "resetDataConfirmTitle": "Reset launcher data?",
-    "resetDataConfirmContent": "On next launch, settings, accounts, and home information will be moved to a backup and reset; popup read history will be cleared immediately. Continue?",
+    "resetDataConfirmContent": "On next launch, settings, accounts, and home information will be deleted and reset; popup read history will be cleared immediately. Continue?",
     "clearPluginsConfirmTitle": "Clear user plugins?",
-    "clearPluginsConfirmContent": "On next launch, all user plugins and plugin settings will be moved to a backup. Continue?",
+    "clearPluginsConfirmContent": "On next launch, all user plugins and plugin settings will be deleted. Continue?",
     "confirmDangerAction": "Confirm and schedule",
-    "maintenanceScheduled": "Action scheduled. Restart the launcher to apply it. Backup location: {path}",
+    "maintenanceScheduled": "Action scheduled. Restart the launcher to apply it. The original data will be deleted.",
     "maintenanceFailed": "Could not schedule the action: {detail}"
   },
   "loader": {

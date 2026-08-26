@@ -1239,11 +1239,11 @@
     "clearPluginsDesc": "移除所有用户插件及其配置。",
     "clearPluginsScope": "保留内置系统插件、日志和其他启动器数据。",
     "resetDataConfirmTitle": "确认还原启动器数据",
-    "resetDataConfirmContent": "下次启动时，设置、账号和首页信息会被移入备份目录并恢复默认值；弹窗阅读记录会立即清除。是否继续？",
+    "resetDataConfirmContent": "下次启动时，设置、账号和首页信息将被删除并恢复默认值；弹窗阅读记录会立即清除。是否继续？",
     "clearPluginsConfirmTitle": "确认清理用户插件",
-    "clearPluginsConfirmContent": "下次启动时，所有用户插件和插件配置会被移入备份目录。是否继续？",
+    "clearPluginsConfirmContent": "下次启动时，所有用户插件和插件配置将被删除。是否继续？",
     "confirmDangerAction": "确认并安排",
-    "maintenanceScheduled": "操作已安排，请重启启动器。原数据将备份至：{path}",
+    "maintenanceScheduled": "操作已安排，请重启启动器后生效。原数据将被直接删除。",
     "maintenanceFailed": "安排操作失败：{detail}"
   },
   "loader": {

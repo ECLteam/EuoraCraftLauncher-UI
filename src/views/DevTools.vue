@@ -627,10 +627,11 @@ async function confirmDangerAction(): Promise<void> {
   processingAction.value = action
 
   try {
-    const result = action === 'reset' ? await debugToolsApi.resetLauncherData() : await debugToolsApi.clearPlugins()
+    if (action === 'reset') await debugToolsApi.resetLauncherData()
+    else await debugToolsApi.clearPlugins()
     showDangerConfirm.value = false
     pendingAction.value = null
-    message.success(t('dev.maintenanceScheduled', { path: result.backup_root }), 10000)
+    message.success(t('dev.maintenanceScheduled'), 10000)
   } catch (error) {
     const detail = error instanceof Error ? error.message : t('common.error')
     message.error(t('dev.maintenanceFailed', { detail }), 10000)

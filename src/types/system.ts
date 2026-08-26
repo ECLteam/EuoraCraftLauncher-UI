@@ -23,7 +23,6 @@ export interface DebugMaintenanceResult {
   action: 'reset_launcher_data' | 'clear_plugins'
   restart_required: boolean
   targets: string[]
-  backup_root: string
 }
 
 // ═══════════════════════════════════════════════════════════════════
