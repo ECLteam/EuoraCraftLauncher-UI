@@ -1,174 +1,19 @@
 /* ============================================================
-   animations.css — 统一动画系统
-   
-   设计理念：
-   1. 不对称时间感：入场慢（一瞥即知）、出场快（不拖沓）
-   2. 统一缓动令牌：所有过渡引用设计系统 CSS 变量
-   3. 无布局抖动：避免在过渡中使用 position:absolute
-   4. 单点定义：所有 @keyframes 只在此处定义
-   5. 层次清晰：微交互 → 元素过渡 → 页面模态 → 工具类
+   animations.css — 极简动画系统（重建版）
+
+   设计原则：
+   1. 只保留功能性动效：加载指示（旋转 / 进度条 / 骨架屏）与
+      必要的淡入淡出（页面 / 弹窗 / 下拉），一律使用标准缓动
+   2. 移除全部装饰性动效：弹跳、弹性、故障、砸入、浮空、心跳、
+      涟漪、闪烁等效果不再使用
+   3. 单点定义：所有 @keyframes 与 Vue <Transition> 类只在此处定义
    ============================================================ */
 
 /* ─────────────────────────────────────────
-   1. @keyframes 定义（单点真理）
+   1. @keyframes（仅功能性）
    ───────────────────────────────────────── */
 
-/* --- 透明度 --- */
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-@keyframes fade-out {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-/* --- 缩放 --- */
-@keyframes scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.93);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-@keyframes scale-in-spring {
-  0% {
-    opacity: 0;
-    transform: scale(0.75);
-  }
-  50% {
-    transform: scale(1.07);
-  }
-  75% {
-    transform: scale(0.97);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-@keyframes scale-in-bounce {
-  0% {
-    opacity: 0;
-    transform: scale(0.85);
-  }
-  60% {
-    transform: scale(1.05);
-  }
-  80% {
-    transform: scale(0.96);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* --- 滑动 --- */
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-@keyframes slide-down {
-  from {
-    opacity: 0;
-    transform: translateY(-14px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-@keyframes slide-left {
-  from {
-    opacity: 0;
-    transform: translateX(14px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-@keyframes slide-right {
-  from {
-    opacity: 0;
-    transform: translateX(-14px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-@keyframes slide-up-spring {
-  0% {
-    opacity: 0;
-    transform: translateY(29px) scale(0.96);
-  }
-  50% {
-    transform: translateY(-4px) scale(1.01);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-@keyframes slide-up-bounce {
-  0% {
-    opacity: 0;
-    transform: translateY(22px);
-  }
-  60% {
-    transform: translateY(-3px);
-  }
-  80% {
-    transform: translateY(2px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* --- 展开/折叠（高度动画） --- */
-@keyframes expand-in {
-  from {
-    opacity: 0;
-    max-height: 0;
-  }
-  to {
-    opacity: 1;
-    max-height: 500px;
-  }
-}
-@keyframes collapse-out {
-  from {
-    opacity: 1;
-    max-height: 500px;
-  }
-  to {
-    opacity: 0;
-    max-height: 0;
-  }
-}
-
-/* --- 旋转（单点定义，复用全局） --- */
+/* 加载旋转 */
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -186,82 +31,17 @@
   }
 }
 
-/* --- 呼吸/脉冲 --- */
-@keyframes pulse-opacity {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-@keyframes breathe {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
-@keyframes pulse-glow {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.3);
-  }
-  50% {
-    box-shadow: 0 0 0 6px rgba(var(--primary-rgb), 0);
-  }
-}
-
-/* --- 反馈类 --- */
-@keyframes shake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  20% {
-    transform: translateX(-5px);
-  }
-  40% {
-    transform: translateX(5px);
-  }
-  60% {
-    transform: translateX(-4px);
-  }
-  80% {
-    transform: translateX(4px);
-  }
-}
-@keyframes ripple-effect {
+/* 不确定进度条 */
+@keyframes indeterminate-bar {
   0% {
-    transform: scale(0);
-    opacity: 0.45;
-  }
-  100% {
-    transform: scale(4);
-    opacity: 0;
-  }
-}
-@keyframes shimmer {
-  from {
     transform: translateX(-100%);
   }
-  to {
-    transform: translateX(100%);
-  }
-}
-@keyframes glow-in {
-  from {
-    box-shadow: 0 0 0 0 var(--primary-alpha);
-  }
-  to {
-    box-shadow: 0 0 14px 4px var(--primary-alpha);
+  100% {
+    transform: translateX(400%);
   }
 }
 
-/* --- 进度/骨架屏 --- */
+/* 骨架屏呼吸 */
 @keyframes skeleton-pulse {
   0%,
   100% {
@@ -271,497 +51,146 @@
     opacity: 0.55;
   }
 }
-@keyframes indeterminate-bar {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(400%);
-  }
-}
-@keyframes progress-ring-fill {
-  from {
-    stroke-dashoffset: 283;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-@keyframes progress-bar-stripes {
-  from {
-    background-position: 0 0;
-  }
-  to {
-    background-position: 18px 0;
-  }
-}
 
-/* --- 非线性入场：弹跳/故障/砸入/预判/浮空 --- */
-@keyframes pop-in {
-  0% {
-    opacity: 0;
-    transform: scale(0.3);
-  }
-  60% {
-    transform: scale(1.08);
-  }
-  80% {
-    transform: scale(0.94);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-@keyframes glitch-in {
-  0% {
-    opacity: 0;
-    transform: translateX(-8px);
-  }
-  20% {
-    opacity: 0.3;
-    transform: translateX(6px);
-  }
-  40% {
-    transform: translateX(-4px);
-  }
-  60% {
-    transform: translateX(3px);
-  }
-  80% {
-    transform: translateX(-1px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-@keyframes slam-in {
-  0% {
-    opacity: 0;
-    transform: translateY(-40px) scale(0.8);
-  }
-  60% {
-    transform: translateY(4px) scale(1.02);
-  }
-  80% {
-    transform: translateY(-2px) scale(0.98);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-@keyframes anticipate-in {
-  0% {
-    opacity: 0;
-    transform: translateY(-8px) scale(0.85);
-  }
-  30% {
-    transform: translateY(4px) scale(1.05);
-  }
-  60% {
-    transform: translateY(-2px) scale(0.97);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-@keyframes float-loop {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  25% {
-    transform: translateY(-4px);
-  }
-  50% {
-    transform: translateY(-1px);
-  }
-  75% {
-    transform: translateY(-5px);
-  }
-}
-@keyframes heartbeat {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  10% {
-    transform: scale(1.12);
-  }
-  20% {
-    transform: scale(0.95);
-  }
-  30% {
-    transform: scale(1.08);
-  }
-  40% {
-    transform: scale(0.97);
-  }
-  50% {
-    transform: scale(1.04);
-  }
-}
-
-/* --- 用户协议专用（scope 在 app.css） --- */
-@keyframes agreement-fade-in {
+/* 简单淡入淡出 */
+@keyframes fade-in {
   from {
     opacity: 0;
-    transform: translateY(20px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
-@keyframes agreement-icon-scale {
-  0% {
-    opacity: 0;
-    transform: scale(0.7);
-  }
-  60% {
-    transform: scale(1.08);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-@keyframes agreement-slide-up {
+@keyframes fade-out {
   from {
-    opacity: 0;
-    transform: translateY(14px);
+    opacity: 1;
   }
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 0;
   }
 }
 
 /* ─────────────────────────────────────────
-   2. Vue <Transition> 命名过渡
+   2. Vue <Transition> 命名过渡（标准缓动，无弹跳）
    ───────────────────────────────────────── */
 
-/* ── 页面路由过渡（非线性） ─────── */
-/* 入场：弹跳上滑。出场：快速淡出下滑 */
-.page-enter-active {
-  transition:
-    opacity var(--duration-slow) var(--ease-enter),
-    transform var(--duration-slow) var(--ease-spring);
-}
+/* ── 页面路由过渡：淡入 + 轻微上移 ─── */
+.page-enter-active,
 .page-leave-active {
   transition:
-    opacity var(--duration-fast) var(--ease-exit-sharp),
-    transform var(--duration-fast) var(--ease-exit-sharp);
+    opacity var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
 }
 .page-enter-from {
   opacity: 0;
-  transform: translateY(14px) scale(0.97);
+  transform: translateY(12px);
 }
 .page-leave-to {
   opacity: 0;
-  transform: translateY(-7px) scale(0.97);
+  transform: translateY(-6px);
 }
 
-/* ── 标签页切换（InfoCard 内部） ─────── */
-.tab-enter-active {
-  transition:
-    opacity var(--duration-normal) var(--ease-enter),
-    transform var(--duration-normal) var(--ease-enter);
-}
-.tab-leave-active {
-  transition:
-    opacity var(--duration-fast) var(--ease-exit),
-    transform var(--duration-fast) var(--ease-exit-sharp);
-  position: absolute;
-  width: 100%;
-}
-.tab-enter-from {
-  opacity: 0;
-  transform: translateY(7px);
-}
-.tab-leave-to {
-  opacity: 0;
-  transform: translateY(-7px);
-}
-
-/* ── 弹出/模态框 ─────────────────────── */
+/* ── 弹窗 ─────────────────────────── */
 .modal-enter-active,
 .modal-leave-active {
   transition: opacity var(--duration-normal) var(--ease-standard);
+}
+.modal-enter-active .modal-container {
+  transition: transform var(--duration-normal) var(--ease-standard);
+}
+.modal-leave-active .modal-container {
+  transition: transform var(--duration-fast) var(--ease-standard);
 }
 .modal-enter-from,
 .modal-leave-to {
   opacity: 0;
 }
-.modal-enter-active .modal-container {
-  transition: transform var(--duration-slow) var(--ease-enter);
-}
-.modal-leave-active .modal-container {
-  transition: transform var(--duration-fast) var(--ease-exit-sharp);
-}
 .modal-enter-from .modal-container {
-  transform: scale(0.93);
-  opacity: 0;
+  transform: scale(0.97);
 }
 .modal-leave-to .modal-container {
-  transform: scale(0.97);
-  opacity: 0;
+  transform: scale(0.98);
 }
 
-/* ── 全屏模态（版本详情等） ──────────── */
+/* ── 全屏模态 ─────────────────────── */
 .fullscreen-modal-enter-active,
 .fullscreen-modal-leave-active {
-  transition: opacity var(--duration-slow) var(--ease-exit);
+  transition: opacity var(--duration-normal) var(--ease-standard);
+}
+.fullscreen-modal-enter-active .fullscreen-modal-wrapper {
+  transition: transform var(--duration-normal) var(--ease-standard);
+}
+.fullscreen-modal-leave-active .fullscreen-modal-wrapper {
+  transition: transform var(--duration-fast) var(--ease-standard);
 }
 .fullscreen-modal-enter-from,
 .fullscreen-modal-leave-to {
   opacity: 0;
 }
-.fullscreen-modal-enter-active .fullscreen-modal-wrapper {
-  transition: transform var(--duration-slower) var(--ease-spring);
-}
-.fullscreen-modal-leave-active .fullscreen-modal-wrapper {
-  transition: transform var(--duration-normal) var(--ease-exit-sharp);
-}
 .fullscreen-modal-enter-from .fullscreen-modal-wrapper {
-  transform: translateX(100%);
+  transform: translateX(24px);
 }
 .fullscreen-modal-leave-to .fullscreen-modal-wrapper {
-  transform: translateX(100%);
+  transform: translateX(24px);
 }
 
-/* ── 消息通知 ─────────────────────────── */
-.message-enter-active {
-  transition:
-    opacity var(--duration-slow) var(--ease-exit),
-    transform var(--duration-slow) var(--ease-spring);
-}
-.message-leave-active {
-  transition:
-    opacity var(--duration-fast) var(--ease-exit-sharp),
-    transform var(--duration-fast) var(--ease-exit);
-}
-.message-enter-from {
-  opacity: 0;
-  transform: translateX(-29px) scale(0.93);
-}
-.message-leave-to {
-  opacity: 0;
-  transform: translateX(29px) scale(0.93);
-}
-.message-move {
-  transition: transform var(--duration-normal) var(--ease-smooth);
-}
-
-/* ── 列表项动效 ─────────────────────── */
-.list-enter-active {
-  transition:
-    opacity var(--duration-normal) var(--ease-enter),
-    transform var(--duration-normal) var(--ease-spring);
-}
-.list-leave-active {
-  transition:
-    opacity var(--duration-fast) var(--ease-exit-sharp),
-    transform var(--duration-fast) var(--ease-exit);
-}
-.list-enter-from {
-  opacity: 0;
-  transform: translateX(-14px) scale(0.96);
-}
-.list-leave-to {
-  opacity: 0;
-  transform: translateX(14px) scale(0.96);
-}
-.list-move {
-  transition: transform var(--duration-normal) var(--ease-smooth);
-}
-
-/* ── 下拉选择框 ─────────────────────── */
-.select-dropdown-enter-active {
-  transition:
-    opacity var(--duration-fast) var(--ease-enter),
-    transform var(--duration-fast) var(--ease-enter);
-}
+/* ── 下拉选择框 ───────────────────── */
+.select-dropdown-enter-active,
 .select-dropdown-leave-active {
   transition:
-    opacity var(--duration-fast) var(--ease-exit),
-    transform var(--duration-fast) var(--ease-exit);
+    opacity var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
 }
-.select-dropdown-enter-from {
-  opacity: 0;
-  transform: translateY(-6px) scaleY(0.95);
-}
+.select-dropdown-enter-from,
 .select-dropdown-leave-to {
   opacity: 0;
-  transform: translateY(-4px) scaleY(0.97);
+  transform: translateY(-4px);
 }
 
-/* ── 信息卡片淡入（InfoCard 内容） ─── */
-.info-fade-enter-active {
-  transition:
-    opacity var(--duration-normal) var(--ease-enter),
-    transform var(--duration-normal) var(--ease-enter);
-}
+/* ── 信息卡片切换 ─────────────────── */
+.info-fade-enter-active,
 .info-fade-leave-active {
   transition:
-    opacity var(--duration-fast) var(--ease-exit),
-    transform var(--duration-fast) var(--ease-exit);
-  position: absolute;
-  width: 100%;
+    opacity var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
 }
-.info-fade-enter-from {
-  opacity: 0;
-  transform: translateY(7px);
-}
+.info-fade-enter-from,
 .info-fade-leave-to {
   opacity: 0;
-  transform: translateY(-7px);
+  transform: translateY(4px);
 }
 
-/* ── 手风琴/展开折叠 ───────────────── */
-.accordion-enter-active {
-  transition:
-    max-height var(--duration-slow) var(--ease-enter),
-    opacity var(--duration-normal) var(--ease-enter);
-  overflow: hidden;
-}
-.accordion-leave-active {
-  transition:
-    max-height var(--duration-fast) var(--ease-exit),
-    opacity var(--duration-fast) var(--ease-exit);
-  overflow: hidden;
-}
-.accordion-enter-from {
-  max-height: 0;
-  opacity: 0;
-}
-.accordion-leave-to {
-  max-height: 0;
-  opacity: 0;
-}
-
-/* ── 滑出面板（任务队列等） ────────── */
-.slide-out-enter-active {
-  transition:
-    opacity var(--duration-slow) var(--ease-enter),
-    transform var(--duration-slow) var(--ease-overshoot);
-}
+/* ── 滑出面板（游戏视图切换） ─────── */
+.slide-out-enter-active,
 .slide-out-leave-active {
   transition:
-    opacity var(--duration-fast) var(--ease-exit-sharp),
-    transform var(--duration-fast) var(--ease-exit-sharp);
+    opacity var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
 }
-.slide-out-enter-from {
-  opacity: 0;
-  transform: translateY(14px) scale(0.96);
-}
+.slide-out-enter-from,
 .slide-out-leave-to {
   opacity: 0;
-  transform: translateY(-11px) scale(0.96);
-}
-
-/* ── 任务队列展开/收起 ─────────────── */
-.tq-expand-enter-active,
-.tq-expand-leave-active {
-  transition:
-    max-height var(--duration-normal) var(--ease-enter),
-    opacity var(--duration-normal) var(--ease-enter);
-  overflow: hidden;
-}
-.tq-expand-enter-from,
-.tq-expand-leave-to {
-  opacity: 0;
-  max-height: 0;
-}
-.tq-expand-enter-to,
-.tq-expand-leave-from {
-  opacity: 1;
-  max-height: 320px;
-}
-
-/* ── 背景图片切换 ───────────────────── */
-.bg-image-enter-active {
-  transition: opacity var(--duration-slow) var(--ease-enter);
-}
-.bg-image-leave-active {
-  transition: opacity var(--duration-normal) var(--ease-exit);
-  position: absolute;
-}
-.bg-image-enter-from,
-.bg-image-leave-to {
-  opacity: 0;
+  transform: translateY(8px);
 }
 
 /* ─────────────────────────────────────────
-   3. CSS 工具类动画（可直接 class 复用）
+   3. 工具类
    ───────────────────────────────────────── */
 
 .fade-in {
-  animation: fade-in var(--duration-normal) var(--ease-smooth) forwards;
+  animation: fade-in var(--duration-normal) var(--ease-standard) forwards;
 }
 .fade-out {
-  animation: fade-out var(--duration-fast) var(--ease-exit) forwards;
-}
-.scale-in {
-  animation: scale-in var(--duration-normal) var(--ease-enter) forwards;
-}
-.scale-in-bounce {
-  animation: scale-in-bounce var(--duration-slow) var(--ease-bounce) forwards;
-}
-.scale-in-spring {
-  animation: scale-in-spring var(--duration-slower) var(--ease-spring) forwards;
-}
-.slide-up {
-  animation: slide-up var(--duration-normal) var(--ease-enter) forwards;
-}
-.slide-up-bounce {
-  animation: slide-up-bounce var(--duration-slow) var(--ease-bounce) forwards;
-}
-.slide-up-spring {
-  animation: slide-up-spring var(--duration-slower) var(--ease-spring) forwards;
-}
-.slide-left {
-  animation: slide-left var(--duration-normal) var(--ease-enter) forwards;
-}
-.slide-right {
-  animation: slide-right var(--duration-normal) var(--ease-enter) forwards;
+  animation: fade-out var(--duration-fast) var(--ease-standard) forwards;
 }
 .spin {
-  animation: spin 1s var(--ease-smooth) infinite;
+  animation: spin 1s linear infinite;
 }
 .spin-reverse {
-  animation: spin-reverse 1s var(--ease-smooth) infinite;
-}
-.shake {
-  animation: shake 0.4s var(--ease-exit);
-}
-.breathe {
-  animation: breathe 3s var(--ease-smooth) infinite;
+  animation: spin-reverse 1s linear infinite;
 }
 .skeleton-pulse {
-  animation: skeleton-pulse 1.8s var(--ease-smooth) infinite;
-}
-
-.pop-in {
-  animation: pop-in var(--duration-slower) var(--ease-overshoot) forwards;
-}
-.glitch-in {
-  animation: glitch-in var(--duration-normal) var(--ease-glitch) forwards;
-}
-.slam-in {
-  animation: slam-in var(--duration-slower) var(--ease-slam) forwards;
-}
-.anticipate-in {
-  animation: anticipate-in var(--duration-slower) var(--ease-anticipate) forwards;
-}
-.float-loop {
-  animation: float-loop 2.5s linear infinite;
-}
-.heartbeat {
-  animation: heartbeat 1.2s var(--ease-smooth);
+  animation: skeleton-pulse 1.8s ease-in-out infinite;
 }
 
 /* ─────────────────────────────────────────

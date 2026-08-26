@@ -97,7 +97,7 @@
     0 0 0 1px var(--border),
     var(--shadow-xs);
   transition:
-    transform var(--duration-fast) var(--ease-spring),
+    transform var(--duration-fast) var(--ease-standard),
     box-shadow var(--duration-fast) ease-out;
 }
 
@@ -219,20 +219,6 @@
 
 .legend-item i.remaining {
   background: color-mix(in srgb, var(--primary) 18%, white);
-}
-
-.memory-panel-enter-active,
-.memory-panel-leave-active {
-  transition:
-    opacity var(--duration-normal) var(--ease-smooth),
-    transform var(--duration-normal) var(--ease-smooth);
-  transform-origin: top center;
-}
-
-.memory-panel-enter-from,
-.memory-panel-leave-to {
-  opacity: 0;
-  transform: translateY(-5px) scale(0.99);
 }
 
 /* ---- 自动模式 ---- */

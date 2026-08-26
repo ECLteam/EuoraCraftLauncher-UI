@@ -12,7 +12,6 @@
   min-height: 29px;
   padding: 5px 13px;
   transition:
-    transform var(--duration-fast) var(--ease-standard),
     background-color var(--duration-fast) var(--ease-standard),
     border-color var(--duration-fast) var(--ease-standard),
     color var(--duration-fast) var(--ease-standard);
@@ -23,19 +22,6 @@
   color: var(--text-secondary);
   user-select: none;
   -webkit-user-select: none;
-}
-
-.ripple {
-  position: absolute;
-  width: 90px;
-  height: 90px;
-  margin-left: -45px;
-  margin-top: -45px;
-  border-radius: 50%;
-  background: var(--primary-alpha);
-  transform: scale(0);
-  animation: ripple-effect var(--duration-slow) var(--ease-standard);
-  pointer-events: none;
 }
 
 .btn-icon {
@@ -56,7 +42,6 @@
 .btn-primary:hover:not(:disabled) {
   background: var(--primary-hover);
   border-color: var(--primary-hover);
-  transform: translateY(-1px);
   box-shadow: var(--control-glow);
 }
 
@@ -76,7 +61,6 @@
 .btn-secondary:hover:not(:disabled) {
   background: var(--control-bg-hover);
   border-color: var(--control-border-hover);
-  transform: translateY(-1px);
   box-shadow: var(--control-glow);
 }
 
@@ -96,7 +80,6 @@
   background: var(--primary-alpha);
   border-color: var(--primary-hover);
   color: var(--primary-hover);
-  transform: translateY(-1px);
   box-shadow: var(--control-glow);
 }
 
@@ -117,7 +100,6 @@
 .btn-text:hover:not(:disabled) {
   background: var(--control-bg-hover);
   color: var(--text-primary);
-  transform: translateY(-1px);
 }
 
 .btn-text:active:not(:disabled) {
@@ -137,7 +119,6 @@
   background: var(--control-bg-hover);
   color: var(--text-primary);
   border-color: var(--control-border-hover);
-  transform: translateY(-1px);
   box-shadow: var(--control-glow);
 }
 
@@ -156,7 +137,6 @@
 .btn-danger:hover:not(:disabled) {
   background: var(--error);
   border-color: var(--error);
-  transform: translateY(-1px);
   filter: brightness(1.08);
 }
 

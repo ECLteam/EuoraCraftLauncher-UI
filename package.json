@@ -58,7 +58,6 @@
     "@tanstack/vue-query": "^5.102.3",
     "@vueuse/core": "^13.0.0",
     "dompurify": "^3.4.12",
-    "gsap": "^3.12.7",
     "marked": "^18.0.7",
     "naive-ui": "^2.41.0",
     "pinia": "^4.0.2",

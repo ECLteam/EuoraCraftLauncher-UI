@@ -765,7 +765,6 @@
         "vueRouter": "Vue 官方路由，实现了页面间的导航",
         "vueI18n": "国际化插件，让启动器支持多语言",
         "vueUse": "组合式 API 工具集，提供了大量实用函数",
-        "gsap": "专业动画库，为界面带来流畅的动效",
         "valibot": "轻量级数据校验库，用于表单与配置校验",
         "typescript": "JavaScript 的类型超集，提升了代码的可维护性",
         "skinview3d": "3D 皮肤预览库，用于展示 Minecraft 皮肤",

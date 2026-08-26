@@ -64,7 +64,6 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks: {
             'naive-ui': ['naive-ui'],
-            gsap: ['gsap'],
             'vue-vendor': ['vue', 'vue-router'],
             i18n: ['vue-i18n'],
             'tabler-icons': ['@iconify-json/tabler', '@iconify/vue'],

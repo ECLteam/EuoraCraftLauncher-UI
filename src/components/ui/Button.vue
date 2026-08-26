@@ -12,13 +12,6 @@
     :aria-busy="loading"
     @click="handleClick"
   >
-    <!-- 涟漪效果 -->
-    <span
-      v-for="ripple in ripples"
-      :key="ripple.id"
-      class="ripple"
-      :style="{ left: ripple.x + 'px', top: ripple.y + 'px' }"
-    />
     <span v-if="loading" class="loading-spinner">
       <UiIcon name="spinner" :size="16" class="spin" />
     </span>
@@ -32,8 +25,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useButtonFeedback } from '@/composables/useAnimation'
 
 defineOptions({ name: 'UiButton' })
 
@@ -62,29 +53,8 @@ const emit = defineEmits<{
   (e: 'click', event: MouseEvent): void
 }>()
 
-const { onClick } = useButtonFeedback()
-const ripples = ref<{ x: number; y: number; id: number }[]>([])
-
-// isIconOnly 通过模板中的 $slots.default 判断
-
 const handleClick = (event: MouseEvent) => {
   if (props.disabled || props.loading) return
-
-  // 创建涟漪效果
-  const button = event.currentTarget as HTMLElement
-  const rect = button.getBoundingClientRect()
-  const x = event.clientX - rect.left
-  const y = event.clientY - rect.top
-  const id = Date.now()
-
-  ripples.value.push({ x, y, id })
-
-  // 动画结束后移除涟漪
-  setTimeout(() => {
-    ripples.value = ripples.value.filter((r) => r.id !== id)
-  }, 600)
-
-  onClick(event)
   emit('click', event)
 }
 </script>

@@ -765,7 +765,6 @@
         "vueRouter": "Official Vue router for page navigation",
         "vueI18n": "Internationalization plugin enabling multilingual support",
         "vueUse": "Composable API toolkit providing many utility functions",
-        "gsap": "Professional animation library bringing smooth motion to the UI",
         "valibot": "Lightweight validation library for forms and config",
         "typescript": "Typed superset of JavaScript improving maintainability",
         "skinview3d": "3D skin preview library for displaying Minecraft skins",

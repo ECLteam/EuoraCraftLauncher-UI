@@ -1,9 +1,9 @@
 .page-container {
-  transition: opacity var(--duration-fast) ease-out;
+  /* 全屏弹窗开关时页面平滑淡入淡出，避免瞬间弹出/消失 */
+  transition: opacity var(--duration-normal) var(--ease-standard);
 }
 
 .modal-page-slide-out {
-  transform: translateX(25%) scale(0.96);
   opacity: 0;
   pointer-events: none;
 }

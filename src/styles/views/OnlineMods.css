@@ -242,9 +242,7 @@
   border-bottom: 1px solid color-mix(in srgb, var(--ecl-border) 60%, transparent);
   border-radius: var(--ecl-radius-card);
   cursor: pointer;
-  transition:
-    background var(--duration-fast) var(--ease-smooth),
-    transform var(--duration-fast) var(--ease-smooth);
+  transition: background var(--duration-fast) var(--ease-smooth);
 }
 
 .mod-row:last-child {

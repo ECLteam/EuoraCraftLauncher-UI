@@ -64,10 +64,6 @@ export const URLS = {
     repo: 'https://github.com/vueuse/vueuse',
     license: 'https://github.com/vueuse/vueuse/blob/main/LICENSE',
   },
-  gsap: {
-    repo: 'https://github.com/greensock/GSAP',
-    license: 'https://github.com/greensock/GSAP/blob/master/LICENSE',
-  },
   tailwind: {
     repo: 'https://github.com/tailwindlabs/tailwindcss',
     license: 'https://github.com/tailwindlabs/tailwindcss/blob/master/LICENSE',

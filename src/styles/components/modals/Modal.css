@@ -121,37 +121,18 @@
   border-top: 1px solid var(--divider);
 }
 
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
-
-.modal-enter-from .modal-container {
-  transform: translateY(-11px);
-}
-
-.modal-leave-to .modal-container {
-  transform: translateY(-11px);
-}
-
-/* 后端主动推送弹窗：上浮进入、下沉退出 */
+/* 后端主动推送弹窗：淡入淡出 + 轻微上浮 */
 .launcher-popup-enter-active,
 .launcher-popup-leave-active {
   transition: opacity var(--duration-normal) var(--ease-standard);
 }
 
 .launcher-popup-enter-active .launcher-popup-modal {
-  will-change: opacity, transform;
-  transition:
-    opacity var(--duration-slow) var(--ease-enter),
-    transform var(--duration-slow) var(--ease-spring);
+  transition: transform var(--duration-normal) var(--ease-standard);
 }
 
 .launcher-popup-leave-active .launcher-popup-modal {
-  will-change: opacity, transform;
-  transition:
-    opacity var(--duration-fast) var(--ease-exit-sharp),
-    transform var(--duration-fast) var(--ease-exit-sharp);
+  transition: transform var(--duration-fast) var(--ease-standard);
 }
 
 .launcher-popup-enter-from,
@@ -160,11 +141,9 @@
 }
 
 .launcher-popup-enter-from .launcher-popup-modal {
-  opacity: 0;
-  transform: translateY(22px) scale(0.96);
+  transform: translateY(14px);
 }
 
 .launcher-popup-leave-to .launcher-popup-modal {
-  opacity: 0;
-  transform: translateY(14px) scale(0.98);
+  transform: translateY(10px);
 }

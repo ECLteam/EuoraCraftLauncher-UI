@@ -437,15 +437,13 @@
   transition:
     border-color var(--duration-fast) var(--ease-smooth),
     background var(--duration-fast) var(--ease-smooth),
-    box-shadow var(--duration-normal) var(--ease-smooth),
-    transform var(--duration-normal) var(--ease-spring-gentle);
+    box-shadow var(--duration-normal) var(--ease-smooth);
 }
 
 .connect-entry-option:hover {
   border-color: color-mix(in srgb, var(--ecl-primary) 40%, var(--ecl-border));
   background: var(--ecl-surface);
   box-shadow: 0 8px 22px color-mix(in srgb, var(--ecl-primary) 8%, transparent);
-  transform: translateY(-2px);
 }
 
 .connect-entry-option:active {
@@ -470,13 +468,11 @@
   color: var(--ecl-primary);
   transition:
     background var(--duration-fast) var(--ease-smooth),
-    color var(--duration-fast) var(--ease-smooth),
-    transform var(--duration-fast) var(--ease-spring-gentle);
+    color var(--duration-fast) var(--ease-smooth);
 }
 
 .connect-entry-option:hover .connect-entry-option__icon {
   background: var(--ecl-primary-alpha-strong);
-  transform: scale(1.05);
 }
 
 .connect-entry-option.is-join .connect-entry-option__icon {
@@ -526,14 +522,12 @@
   color: var(--ecl-text-tertiary);
   transition:
     background var(--duration-fast) var(--ease-smooth),
-    color var(--duration-fast) var(--ease-smooth),
-    transform var(--duration-normal) var(--ease-spring-gentle);
+    color var(--duration-fast) var(--ease-smooth);
 }
 
 .connect-entry-option:hover .connect-entry-option__arrow {
   background: var(--ecl-primary-alpha);
   color: var(--ecl-primary);
-  transform: translateX(3px);
 }
 
 .connect-entry-option.is-join:hover .connect-entry-option__arrow {

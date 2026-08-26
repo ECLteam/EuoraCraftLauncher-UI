@@ -343,6 +343,3 @@
   cursor: not-allowed;
 }
 
-.spin {
-  animation: spin 1s var(--ease-smooth) infinite;
-}
