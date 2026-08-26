@@ -478,7 +478,7 @@
       "javaSelectFailed": "选择 Java 失败",
       "javaPathPlaceholder": "选择 Java 可执行文件...",
       "jvmArgsPlaceholder": "例如：-XX:+UseG1GC -XX:+ParallelRefProcEnabled",
-      "gameArgsPlaceholder": "例如：--server 127.0.0.1 --port 25565",
+      "gameArgsPlaceholder": "例如：--server play.example.com",
       "placeholder": "功能即将推出"
     },
     "mods": {
@@ -774,6 +774,7 @@
         "mcmod": "中文 Minecraft 模组百科，提供模组资料与检索",
         "hmcl": "开源 Minecraft 启动器，本项目学习了其 Java 扫描等实现",
         "scaffolding": "联机协议参考实现，为联机功能提供了协议基础",
+        "pclCe": "开源 Minecraft 启动器，本项目参考了其版本读取与部分逻辑实现",
         "backendDependency": "启动器后端与桌面运行依赖",
         "frontendDependency": "启动器前端运行与构建依赖",
         "engineeringDependency": "用于代码质量、测试与应用打包",

@@ -262,7 +262,7 @@ const licenseEntries: LicenseEntry[] = [
   },
   {
     name: 'EasyTier',
-    text: 'Copyright EasyTier Contributors. Licensed under Apache 2.0.',
+    text: 'Copyright EasyTier Contributors. Licensed under LGPL-3.0.',
     repo: URLS.easyTier.repo,
     license: URLS.easyTier.license,
   },

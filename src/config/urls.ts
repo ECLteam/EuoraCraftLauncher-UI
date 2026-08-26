@@ -96,6 +96,10 @@ export const URLS = {
     repo: 'https://github.com/HMCL-dev/HMCL',
     license: 'https://github.com/HMCL-dev/HMCL/blob/main/LICENSE',
   },
+  pcl: {
+    repo: 'https://github.com/PCL-Community/PCL-CE',
+    license: 'https://github.com/PCL-Community/PCL-CE/blob/dev/LICENSE',
+  },
   modrinth: 'https://modrinth.com',
   curseforge: 'https://www.curseforge.com/minecraft',
   mcmod: 'https://www.mcmod.cn',

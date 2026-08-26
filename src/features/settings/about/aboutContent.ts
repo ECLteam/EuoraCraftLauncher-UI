@@ -111,6 +111,7 @@ export const specialThanksEntries: AboutEntry[] = [
     URLS.scaffoldingMC.repo,
     'Scaffolding-MC.png'
   ),
+  createGithubEntry('pcl-ce', 'PCL-CE', 'PC', 'pclCe', URLS.pcl.repo, 'pclce.ico'),
 ]
 
 const technologies = {
