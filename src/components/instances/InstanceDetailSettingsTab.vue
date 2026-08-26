@@ -35,18 +35,83 @@
         <SettingRow :label="t('versions.detail.customMemory')" :description="t('versions.detail.customMemoryDesc')">
           <NSwitch v-model:value="versionSettings.customMemory" />
         </SettingRow>
-        <SettingRow v-if="versionSettings.customMemory" :label="t('versions.detail.memorySize')">
-          <NInputNumber
-            v-model:value="versionSettings.memory"
-            class="memory-number-input"
-            :min="512"
-            :max="65536"
-            :step="256"
-            :showButton="false"
-          >
-            <template #suffix>MB</template>
-          </NInputNumber>
-        </SettingRow>
+
+        <div
+          v-if="versionSettings.customMemory"
+          class="memory-manual-section"
+          :style="{ '--memory-slider-progress': sliderValuePosition + '%' }"
+        >
+          <div class="memory-header">
+            <div class="memory-header-copy">
+              <div class="memory-header-label">{{ t('versions.detail.memorySize') }}</div>
+              <div class="memory-header-desc">{{ t('settings.memorySizeDesc') }}</div>
+            </div>
+            <output class="memory-current-value" :class="{ 'is-over-recommended': isOverRecommended }">
+              {{ formatMemory(safeMemorySize) }}
+            </output>
+          </div>
+
+          <div class="memory-slider-block">
+            <input
+              v-model.number="safeMemorySize"
+              type="range"
+              min="1024"
+              :max="maxMemory"
+              step="256"
+              class="memory-slider-input"
+              :aria-label="t('versions.detail.memorySize')"
+              :aria-valuetext="formatMemory(safeMemorySize)"
+            />
+            <div class="memory-slider-scale">
+              <span>1 GB</span>
+              <span>
+                {{ formatMemory(maxMemory) }}
+                <span class="memory-total-hint">({{ t('settings.systemMemory') }})</span>
+              </span>
+            </div>
+            <div class="memory-recommended-hint">
+              {{ t('settings.memoryRecommendedMax') }}: {{ formatMemory(recommendedMaxMemory) }}
+              <span v-if="isOverRecommended" class="memory-over-recommended-text">
+                — {{ t('settings.memoryOverRecommended') }}
+              </span>
+            </div>
+          </div>
+
+          <div class="memory-bar-wrapper">
+            <div class="memory-bar-track">
+              <div
+                class="memory-bar-segment system-used"
+                :style="{ width: memoryBarSegments.systemUsedPct + '%' }"
+                :title="t('settings.memoryUsed') + ': ' + formatMemory(systemMemory.usedMb)"
+              />
+              <div
+                class="memory-bar-segment game-allocated"
+                :style="{ width: memoryBarSegments.gameAllocatedPct + '%' }"
+                :title="t('settings.memoryAllocated') + ': ' + formatMemory(safeMemorySize)"
+              />
+              <div
+                class="memory-bar-segment remaining"
+                :style="{ width: memoryBarSegments.remainingPct + '%' }"
+                :title="t('settings.memoryRemaining') + ': ' + formatMemory(remainingMemory)"
+              />
+            </div>
+            <div class="memory-bar-legend">
+              <span class="legend-item">
+                <i class="system-used" />
+                {{ t('settings.memoryUsed') }} {{ formatMemory(systemMemory.usedMb) }}
+              </span>
+              <span class="legend-item">
+                <i class="game-allocated" />
+                {{ t('settings.memoryAllocated') }} {{ formatMemory(safeMemorySize) }}
+              </span>
+              <span class="legend-item">
+                <i class="remaining" />
+                {{ t('settings.memoryRemaining') }} {{ formatMemory(remainingMemory) }}
+              </span>
+            </div>
+          </div>
+          <div v-if="systemMemoryError" class="memory-error-hint">无法读取真实内存信息，当前为默认占位值。</div>
+        </div>
       </div>
 
       <div class="settings-subgroup">
@@ -55,12 +120,20 @@
           <NSwitch v-model:value="versionSettings.customJava" />
         </SettingRow>
         <SettingRow v-if="versionSettings.customJava" :label="t('versions.detail.javaPath')">
-          <NInputGroup class="java-path-control">
-            <NInput v-model:value="versionSettings.javaPath" :placeholder="t('versions.detail.javaPathPlaceholder')" />
-            <NButton :loading="javaSelecting" @click="selectJava">
+          <div class="java-selector">
+            <NSelect
+              class="java-path-select"
+              :value="versionSettings.javaPath || null"
+              :options="javaOptions"
+              :placeholder="t('versions.detail.javaPathPlaceholder')"
+              filterable
+              :loading="javaScanning"
+              @update:value="handleJavaPathChange"
+            />
+            <NButton size="small" :loading="javaSelecting" @click="selectJava">
               {{ t('common.browse') }}
             </NButton>
-          </NInputGroup>
+          </div>
         </SettingRow>
       </div>
 
@@ -94,15 +167,17 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NInput, NInputGroup, NInputNumber, NSpin, NSwitch } from 'naive-ui'
+import { NButton, NInput, NSelect, NSpin, NSwitch } from 'naive-ui'
 import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceSettingsApi } from '@/features/instances/api/instanceSettingsApi'
 import { createDefaultVersionSettings, type VersionSettingsTarget } from '@/features/instances/model/instanceSettings'
+import { settingsApi } from '@/features/settings/api/settingsApi'
 import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
-import type { ScannedVersion } from '@/types/instances'
+import type { SystemMemoryInfo } from '@/types/config'
+import type { JavaInstallation, ScannedVersion } from '@/types/instances'
 
 defineOptions({ name: 'InstanceDetailSettingsTab' })
 
@@ -118,6 +193,65 @@ const versionSettings = reactive(createDefaultVersionSettings())
 const settingsLoading = ref(false)
 const settingsSaving = ref(false)
 const javaSelecting = ref(false)
+const javaScanning = ref(false)
+const javaList = ref<JavaInstallation[]>([])
+const systemMemory = ref<SystemMemoryInfo>({ totalMb: 16384, usedMb: 4096, freeMb: 12288, percentUsed: 25 })
+const systemMemoryError = ref(false)
+
+const MEMORY_MIN = 1024
+const maxMemory = computed(() => Math.max(systemMemory.value.totalMb, 2048))
+const recommendedMaxMemory = computed(() => Math.max(Math.floor(systemMemory.value.totalMb * 0.8), 2048))
+const clampVersionMemory = (value: number) => Math.min(Math.max(value, MEMORY_MIN), maxMemory.value)
+const safeMemorySize = computed({
+  get: () => clampVersionMemory(versionSettings.memory),
+  set: (value: number) => {
+    versionSettings.memory = clampVersionMemory(value)
+  },
+})
+const isOverRecommended = computed(() => versionSettings.memory > recommendedMaxMemory.value)
+const sliderValuePosition = computed(() => {
+  const range = maxMemory.value - MEMORY_MIN
+  if (range <= 0) return 0
+  return Math.min(Math.max(((versionSettings.memory - MEMORY_MIN) / range) * 100, 0), 100)
+})
+const remainingMemory = computed(() =>
+  Math.max(0, systemMemory.value.totalMb - systemMemory.value.usedMb - safeMemorySize.value)
+)
+const memoryBarSegments = computed(() => {
+  const total = systemMemory.value.totalMb || 1
+  const usedPct = (systemMemory.value.usedMb / total) * 100
+  const allocatedPct = (safeMemorySize.value / total) * 100
+  const remainingPct = Math.max(0, 100 - usedPct - allocatedPct)
+  if (usedPct + allocatedPct <= 100) {
+    return {
+      systemUsedPct: Math.round(usedPct),
+      gameAllocatedPct: Math.round(allocatedPct),
+      remainingPct: Math.round(remainingPct),
+    }
+  }
+  const scale = 100 / (usedPct + allocatedPct)
+  return {
+    systemUsedPct: Math.round(usedPct * scale),
+    gameAllocatedPct: Math.round(allocatedPct * scale),
+    remainingPct: 0,
+  }
+})
+const javaOptions = computed(() => {
+  const options = javaList.value.map((java) => ({
+    value: java.path,
+    label: `Java ${java.major_version} (${java.java_type}) · ${java.version} · ${java.arch}`,
+  }))
+  const selectedPath = versionSettings.javaPath
+  if (selectedPath && !options.some((option) => option.value === selectedPath)) {
+    options.unshift({ value: selectedPath, label: selectedPath })
+  }
+  return options
+})
+const formatMemory = (mb: number): string => {
+  if (mb >= 1024) return (mb / 1024).toFixed(1) + ' GB'
+  return mb + ' MB'
+}
+
 const savedSettingsSnapshot = ref(JSON.stringify(createDefaultVersionSettings()))
 const settingsDirty = computed(() => JSON.stringify(versionSettings) !== savedSettingsSnapshot.value)
 const isCustomized = computed(() => JSON.stringify(versionSettings) !== JSON.stringify(createDefaultVersionSettings()))
@@ -217,8 +351,10 @@ function flushSettingsSave() {
 watch(
   () => props.visible,
   (val) => {
-    if (val) void loadSettings()
-    else flushSettingsSave()
+    if (val) {
+      void loadSettings()
+      void loadRuntimeInfo()
+    } else flushSettingsSave()
   },
   { immediate: true }
 )
@@ -262,6 +398,25 @@ async function selectJava() {
     message.error(error instanceof Error ? error.message : t('versions.detail.javaSelectFailed'))
   } finally {
     javaSelecting.value = false
+  }
+}
+
+function handleJavaPathChange(value: string | number | null) {
+  versionSettings.javaPath = typeof value === 'string' ? value : ''
+}
+
+async function loadRuntimeInfo() {
+  try {
+    const java = await settingsApi.listJava()
+    if (Array.isArray(java) && java.length) javaList.value = java
+  } catch {
+    // 扫描失败时仍可通过浏览按钮手动选择
+  }
+  try {
+    const mem = await settingsApi.getSystemMemory()
+    if (mem && typeof mem.totalMb === 'number') systemMemory.value = mem
+  } catch {
+    systemMemoryError.value = true
   }
 }
 

@@ -862,12 +862,14 @@
   text-transform: uppercase;
 }
 
-.memory-number-input {
-  width: 150px;
+.java-selector {
+  display: flex;
+  align-items: center;
+  gap: var(--s-sm);
 }
 
-.java-path-control {
-  width: min(430px, 48vw);
+.java-path-select {
+  width: 320px;
 }
 
 .argument-input {
@@ -877,6 +879,248 @@
 .argument-input :deep(textarea) {
   font-family: var(--font-mono);
   font-size: 11px;
+}
+
+/* =============================================
+   内存滑块与可视化条 — 与全局设置页一致
+   ============================================= */
+.memory-manual-section {
+  padding: 14px 16px 16px;
+}
+
+.memory-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-lg);
+  margin-bottom: 16px;
+}
+
+.memory-header-copy {
+  min-width: 0;
+}
+
+.memory-header-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.memory-header-desc {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  line-height: 1.5;
+}
+
+.memory-current-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 76px;
+  height: 29px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--bg-elevated);
+  color: var(--primary);
+  font-family: 'HarmonyOS Sans SC', var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.memory-current-value.is-over-recommended {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.memory-slider-block {
+  padding: 0 2px;
+}
+
+.memory-slider-input {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 4px;
+  margin: 0;
+  border-radius: var(--r-full);
+  background: linear-gradient(
+    to right,
+    var(--primary) 0,
+    var(--primary) var(--memory-slider-progress),
+    var(--slider-track) var(--memory-slider-progress),
+    var(--slider-track) 100%
+  );
+  outline: none;
+  cursor: pointer;
+}
+
+.memory-slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 4px solid var(--bg-elevated);
+  background: var(--primary);
+  box-shadow:
+    0 0 0 1px var(--border),
+    var(--shadow-xs);
+  transition:
+    transform var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) ease-out;
+}
+
+.memory-slider-input::-webkit-slider-thumb:hover {
+  transform: scale(1.08);
+  box-shadow:
+    0 0 0 3px var(--primary-alpha),
+    var(--shadow-xs);
+}
+
+.memory-slider-input:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    var(--glow-focus),
+    0 0 0 1px var(--primary);
+}
+
+.memory-slider-input::-moz-range-thumb {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 4px solid var(--bg-elevated);
+  background: var(--primary);
+  box-shadow:
+    0 0 0 1px var(--border),
+    var(--shadow-xs);
+}
+
+.memory-slider-input::-moz-range-progress {
+  height: 4px;
+  border-radius: var(--r-full);
+  background: var(--primary);
+}
+
+.memory-slider-input::-moz-range-track {
+  height: 4px;
+  border-radius: var(--r-full);
+  background: var(--slider-track);
+}
+
+.memory-slider-scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  color: var(--text-tertiary);
+  font-family: 'HarmonyOS Sans SC', var(--font-mono);
+  font-size: 9px;
+  line-height: 1;
+}
+
+.memory-total-hint {
+  margin-left: 2px;
+  color: var(--text-tertiary);
+  font-size: 9px;
+}
+
+.memory-recommended-hint {
+  margin-top: 8px;
+  color: var(--text-tertiary);
+  font-size: 10px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.memory-over-recommended-text {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.memory-bar-wrapper {
+  margin-top: 14px;
+}
+
+.memory-bar-track {
+  display: flex;
+  height: 8px;
+  border-radius: var(--r-full);
+  overflow: hidden;
+  background: var(--slider-track);
+}
+
+.memory-bar-segment {
+  height: 100%;
+  transition: width var(--duration-normal) var(--ease-smooth);
+  min-width: 0;
+}
+
+.memory-bar-segment + .memory-bar-segment {
+  box-shadow: inset 2px 0 0 rgba(0, 0, 0, 0.22);
+}
+
+.memory-bar-segment.system-used {
+  background: color-mix(in srgb, var(--primary) 40%, white);
+}
+
+.memory-bar-segment.game-allocated {
+  background: var(--primary);
+}
+
+.memory-bar-segment.remaining {
+  background: color-mix(in srgb, var(--primary) 18%, white);
+}
+
+.memory-bar-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-tertiary);
+  font-size: 10px;
+  font-family: 'HarmonyOS Sans SC', var(--font-mono);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.legend-item i {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.legend-item i.system-used {
+  background: color-mix(in srgb, var(--primary) 40%, white);
+}
+
+.legend-item i.game-allocated {
+  background: var(--primary);
+}
+
+.legend-item i.remaining {
+  background: color-mix(in srgb, var(--primary) 18%, white);
+}
+
+.memory-error-hint {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
 }
 
 /* =============================================
