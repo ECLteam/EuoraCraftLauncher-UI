@@ -56,7 +56,7 @@
               v-model.number="safeMemorySize"
               type="range"
               min="1024"
-              :max="availableMemory"
+              :max="maxMemory"
               step="256"
               class="memory-slider-input"
               :aria-label="t('versions.detail.memorySize')"
@@ -65,8 +65,8 @@
             <div class="memory-slider-scale">
               <span>1 GB</span>
               <span>
-                {{ formatMemory(availableMemory) }}
-                <span class="memory-total-hint">({{ t('settings.availableMemory') }})</span>
+                {{ formatMemory(maxMemory) }}
+                <span class="memory-total-hint">({{ t('settings.systemMemory') }})</span>
               </span>
             </div>
             <div class="memory-recommended-hint">
@@ -199,11 +199,9 @@ const systemMemory = ref<SystemMemoryInfo>({ totalMb: 16384, usedMb: 4096, freeM
 const systemMemoryError = ref(false)
 
 const MEMORY_MIN = 1024
-const availableMemory = computed(() => Math.max(systemMemory.value.freeMb, MEMORY_MIN))
-const recommendedMaxMemory = computed(
-  () => Math.min(Math.max(Math.floor(systemMemory.value.totalMb * 0.8), MEMORY_MIN), availableMemory.value)
-)
-const clampVersionMemory = (value: number) => Math.min(Math.max(value, MEMORY_MIN), availableMemory.value)
+const maxMemory = computed(() => Math.max(systemMemory.value.totalMb, 2048))
+const recommendedMaxMemory = computed(() => Math.max(Math.floor(systemMemory.value.totalMb * 0.8), 2048))
+const clampVersionMemory = (value: number) => Math.min(Math.max(value, MEMORY_MIN), maxMemory.value)
 const safeMemorySize = computed({
   get: () => clampVersionMemory(versionSettings.memory),
   set: (value: number) => {
@@ -212,7 +210,7 @@ const safeMemorySize = computed({
 })
 const isOverRecommended = computed(() => versionSettings.memory > recommendedMaxMemory.value)
 const sliderValuePosition = computed(() => {
-  const range = availableMemory.value - MEMORY_MIN
+  const range = maxMemory.value - MEMORY_MIN
   if (range <= 0) return 0
   return Math.min(Math.max(((versionSettings.memory - MEMORY_MIN) / range) * 100, 0), 100)
 })

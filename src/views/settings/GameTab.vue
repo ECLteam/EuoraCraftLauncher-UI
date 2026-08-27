@@ -60,7 +60,7 @@
             type="range"
             :disabled="localSettings.memory_auto"
             min="1024"
-            :max="availableMemory"
+            :max="maxMemory"
             step="256"
             class="memory-slider-input"
             :aria-label="t('settings.memorySize')"
@@ -70,8 +70,8 @@
           <div class="memory-slider-scale">
             <span>1 GB</span>
             <span>
-              {{ formatMemory(availableMemory) }}
-              <span class="memory-total-hint">({{ t('settings.availableMemory') }})</span>
+              {{ formatMemory(maxMemory) }}
+              <span class="memory-total-hint">({{ t('settings.systemMemory') }})</span>
             </span>
           </div>
           <div v-if="!localSettings.memory_auto" class="memory-recommended-hint">
@@ -174,13 +174,13 @@ const memoryAutoDesc = computed(() => {
     : t('settings.memoryAllocationManualDesc')
 })
 
-const availableMemory = computed(() => {
-  return Math.max(systemMemory.value.freeMb, 1024)
+const maxMemory = computed(() => {
+  return Math.max(systemMemory.value.totalMb, 2048)
 })
 
 const recommendedMaxMemory = computed(() => {
   const maxAlloc = Math.floor(systemMemory.value.totalMb * 0.8)
-  return Math.min(Math.max(maxAlloc, 1024), availableMemory.value)
+  return Math.max(maxAlloc, 2048)
 })
 
 const isOverRecommended = computed(() => {
@@ -195,13 +195,13 @@ const autoMemorySize = computed(() => {
 
 const clampMemorySize = (value: number): number => {
   const min = 1024
-  const max = availableMemory.value
+  const max = maxMemory.value
   return Math.min(Math.max(value, min), max)
 }
 
 const sliderValuePosition = computed(() => {
   const min = 1024
-  const max = availableMemory.value
+  const max = maxMemory.value
   const range = max - min
   if (range <= 0) return 0
   const percent = ((safeMemorySize.value - min) / range) * 100
@@ -278,8 +278,8 @@ const loadSystemMemory = async () => {
   if (localSettings.value.memory_auto) {
     localSettings.value.memory_size = autoMemorySize.value
     saveConfig()
-  } else if ((localSettings.value.memory_size ?? 1024) > availableMemory.value) {
-    localSettings.value.memory_size = availableMemory.value
+  } else if ((localSettings.value.memory_size ?? 1024) > maxMemory.value) {
+    localSettings.value.memory_size = maxMemory.value
     saveConfig()
   }
 }
