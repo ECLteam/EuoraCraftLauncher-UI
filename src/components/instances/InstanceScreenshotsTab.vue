@@ -120,7 +120,7 @@ async function background(shot: ScreenshotEntry) {
 }
 function remove(shot: ScreenshotEntry) {
   openConfirm(
-    '移入回收站',
+    '删除截图',
     `删除截图 ${shot.name}？`,
     async () => {
       await instanceWorkspaceApi.deleteScreenshot(target.value, shot.id)

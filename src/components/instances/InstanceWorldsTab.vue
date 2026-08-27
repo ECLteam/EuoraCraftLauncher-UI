@@ -241,8 +241,8 @@ async function exportWorld(world: WorldEntry) {
 }
 function remove(world: WorldEntry) {
   openConfirm(
-    '移入回收站',
-    `删除存档“${world.name}”？可从系统回收站恢复。`,
+    '删除存档',
+    `删除存档“${world.name}”？该操作不可恢复。`,
     async () => {
       await instanceWorkspaceApi.deleteWorld(target.value, world.id)
       await load()

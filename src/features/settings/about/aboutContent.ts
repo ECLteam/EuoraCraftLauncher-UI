@@ -161,7 +161,6 @@ const backendRuntimeEntries: AboutEntry[] = [
   createGithubEntry('httpx', 'HTTPX', 'H', 'httpxDesc', 'https://github.com/encode/httpx'),
   createGithubEntry('mcstatus', 'mcstatus', 'MS', 'mcstatusDesc', 'https://github.com/py-mine/mcstatus'),
   createGithubEntry('psutil', 'psutil', 'PS', 'psutilDesc', 'https://github.com/giampaolo/psutil'),
-  createGithubEntry('send2trash', 'Send2Trash', 'ST', 'send2trashDesc', 'https://github.com/arsenetar/send2trash'),
   createGithubEntry('packaging', 'packaging', 'PG', 'packagingDesc', 'https://github.com/pypa/packaging'),
   createGithubEntry('easy-tier-pyo3', 'EasyTier-PyO3', 'EP', 'easyTierPyo3Desc', URLS.easyTierPyo3.repo),
 ]
