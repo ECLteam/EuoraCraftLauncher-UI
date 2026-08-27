@@ -71,7 +71,7 @@
             <span>1 GB</span>
             <span>
               {{ formatMemory(maxMemory) }}
-              <span class="memory-total-hint">({{ t('settings.systemMemory') }})</span>
+              <span class="memory-total-hint">({{ t('settings.memoryCeiling') }})</span>
             </span>
           </div>
           <div v-if="!localSettings.memory_auto" class="memory-recommended-hint">
@@ -175,7 +175,7 @@ const memoryAutoDesc = computed(() => {
 })
 
 const maxMemory = computed(() => {
-  return Math.max(systemMemory.value.totalMb, 2048)
+  return Math.max(systemMemory.value.totalMb, 65536)
 })
 
 const recommendedMaxMemory = computed(() => {
@@ -195,8 +195,7 @@ const autoMemorySize = computed(() => {
 
 const clampMemorySize = (value: number): number => {
   const min = 1024
-  const max = maxMemory.value
-  return Math.min(Math.max(value, min), max)
+  return Math.min(Math.max(value, min), maxMemory.value)
 }
 
 const sliderValuePosition = computed(() => {
@@ -209,7 +208,8 @@ const sliderValuePosition = computed(() => {
 })
 
 const safeMemorySize = computed({
-  get: () => clampMemorySize(localSettings.value.memory_size ?? 1024),
+  // get 只保下限、不缩上限，避免存量分配值超过滑块范围时被锁死而无法调整
+  get: () => Math.max(localSettings.value.memory_size ?? 1024, 1024),
   set: (value: number) => {
     localSettings.value.memory_size = clampMemorySize(value)
   },

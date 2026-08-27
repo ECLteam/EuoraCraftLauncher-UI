@@ -850,6 +850,7 @@
     "memorySize": "内存大小",
     "memorySizeDesc": "分配给的最大内存",
     "systemMemory": "系统内存",
+    "memoryCeiling": "可调上限",
     "memoryUsed": "已使用",
     "memoryAllocated": "预计分配给",
     "memoryRemaining": "分配后剩余",
