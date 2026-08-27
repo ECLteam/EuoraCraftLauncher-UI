@@ -66,7 +66,7 @@
               <span>1 GB</span>
               <span>
                 {{ formatMemory(maxMemory) }}
-                <span class="memory-total-hint">({{ t('settings.memoryCeiling') }})</span>
+                <span class="memory-total-hint">({{ t('settings.systemMemory') }})</span>
               </span>
             </div>
             <div class="memory-recommended-hint">
@@ -199,7 +199,7 @@ const systemMemory = ref<SystemMemoryInfo>({ totalMb: 16384, usedMb: 4096, freeM
 const systemMemoryError = ref(false)
 
 const MEMORY_MIN = 1024
-const maxMemory = computed(() => Math.max(systemMemory.value.totalMb, 65536))
+const maxMemory = computed(() => Math.max(systemMemory.value.totalMb, 2048))
 const recommendedMaxMemory = computed(() => Math.max(Math.floor(systemMemory.value.totalMb * 0.8), 2048))
 const clampVersionMemory = (value: number) => Math.min(Math.max(value, MEMORY_MIN), maxMemory.value)
 const safeMemorySize = computed({

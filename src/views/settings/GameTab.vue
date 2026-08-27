@@ -71,7 +71,7 @@
             <span>1 GB</span>
             <span>
               {{ formatMemory(maxMemory) }}
-              <span class="memory-total-hint">({{ t('settings.memoryCeiling') }})</span>
+              <span class="memory-total-hint">({{ t('settings.systemMemory') }})</span>
             </span>
           </div>
           <div v-if="!localSettings.memory_auto" class="memory-recommended-hint">
@@ -175,7 +175,7 @@ const memoryAutoDesc = computed(() => {
 })
 
 const maxMemory = computed(() => {
-  return Math.max(systemMemory.value.totalMb, 65536)
+  return Math.max(systemMemory.value.totalMb, 2048)
 })
 
 const recommendedMaxMemory = computed(() => {
