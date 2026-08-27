@@ -147,23 +147,23 @@ const technologies = {
 } satisfies Record<string, AboutEntry>
 
 const backendRuntimeEntries: AboutEntry[] = [
-  createGithubEntry('python', 'Python 3.11+', 'PY', 'backendDependency', 'https://github.com/python/cpython'),
-  createGithubEntry('aiofiles', 'aiofiles', 'AF', 'backendDependency', 'https://github.com/Tinche/aiofiles'),
-  createGithubEntry('anyio', 'AnyIO', 'A', 'backendDependency', 'https://github.com/agronholm/anyio'),
+  createGithubEntry('python', 'Python 3.11+', 'PY', 'pythonDesc', 'https://github.com/python/cpython'),
+  createGithubEntry('aiofiles', 'aiofiles', 'AF', 'aiofilesDesc', 'https://github.com/Tinche/aiofiles'),
+  createGithubEntry('anyio', 'AnyIO', 'A', 'anyioDesc', 'https://github.com/agronholm/anyio'),
   createGithubEntry(
     'python-dotenv',
     'python-dotenv',
     'DE',
-    'backendDependency',
+    'pythonDotenvDesc',
     'https://github.com/theskumar/python-dotenv'
   ),
-  createGithubEntry('pydantic', 'Pydantic 2', 'P', 'backendDependency', 'https://github.com/pydantic/pydantic'),
-  createGithubEntry('httpx', 'HTTPX', 'H', 'backendDependency', 'https://github.com/encode/httpx'),
-  createGithubEntry('mcstatus', 'mcstatus', 'MS', 'backendDependency', 'https://github.com/py-mine/mcstatus'),
-  createGithubEntry('psutil', 'psutil', 'PS', 'backendDependency', 'https://github.com/giampaolo/psutil'),
-  createGithubEntry('send2trash', 'Send2Trash', 'ST', 'backendDependency', 'https://github.com/arsenetar/send2trash'),
-  createGithubEntry('packaging', 'packaging', 'PG', 'backendDependency', 'https://github.com/pypa/packaging'),
-  createGithubEntry('easy-tier-pyo3', 'EasyTier-PyO3', 'EP', 'backendDependency', URLS.easyTierPyo3.repo),
+  createGithubEntry('pydantic', 'Pydantic 2', 'P', 'pydanticDesc', 'https://github.com/pydantic/pydantic'),
+  createGithubEntry('httpx', 'HTTPX', 'H', 'httpxDesc', 'https://github.com/encode/httpx'),
+  createGithubEntry('mcstatus', 'mcstatus', 'MS', 'mcstatusDesc', 'https://github.com/py-mine/mcstatus'),
+  createGithubEntry('psutil', 'psutil', 'PS', 'psutilDesc', 'https://github.com/giampaolo/psutil'),
+  createGithubEntry('send2trash', 'Send2Trash', 'ST', 'send2trashDesc', 'https://github.com/arsenetar/send2trash'),
+  createGithubEntry('packaging', 'packaging', 'PG', 'packagingDesc', 'https://github.com/pypa/packaging'),
+  createGithubEntry('easy-tier-pyo3', 'EasyTier-PyO3', 'EP', 'easyTierPyo3Desc', URLS.easyTierPyo3.repo),
 ]
 
 const frontendUtilityEntries: AboutEntry[] = [
