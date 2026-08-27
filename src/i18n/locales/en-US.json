@@ -850,6 +850,7 @@
     "memorySize": "Memory Size",
     "memorySizeDesc": "Maximum memory allocated to the game",
     "systemMemory": "System Memory",
+        "availableMemory": "Available",
     "memoryUsed": "Used",
     "memoryAllocated": "Allocated to Game",
     "memoryRemaining": "Remaining after allocation",
