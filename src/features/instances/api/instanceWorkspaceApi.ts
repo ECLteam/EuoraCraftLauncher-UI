@@ -20,7 +20,7 @@ export const instanceWorkspaceApi = {
   copyWorld: (target: InstanceTargetPayload, worldId: string, newWorldId: string) =>
     call<GameOperation>('game_world_copy', { ...target, world_id: worldId, new_world_id: newWorldId }, '复制存档'),
   deleteWorld: (target: InstanceTargetPayload, worldId: string) =>
-    call<void>('game_world_delete_to_trash', { ...target, world_id: worldId }, '删除存档'),
+    call<void>('game_world_delete', { ...target, world_id: worldId }, '删除存档'),
   backupWorld: (target: InstanceTargetPayload, worldId: string) =>
     call<GameOperation>('game_world_backup_create', { ...target, world_id: worldId }, '备份存档'),
   worldBackups: (target: InstanceTargetPayload, worldId: string) =>
@@ -39,7 +39,7 @@ export const instanceWorkspaceApi = {
     call('game_world_backup_lock', { ...target, world_id: worldId, backup_id: backupId, locked }, '锁定存档备份'),
   deleteWorldBackup: (target: InstanceTargetPayload, worldId: string, backupId: string) =>
     call<void>(
-      'game_world_backup_delete_to_trash',
+      'game_world_backup_delete',
       { ...target, world_id: worldId, backup_id: backupId },
       '删除存档备份'
     ),
@@ -67,7 +67,7 @@ export const instanceWorkspaceApi = {
       '另存截图'
     ),
   deleteScreenshot: (target: InstanceTargetPayload, screenshotId: string) =>
-    call<void>('game_screenshot_delete_to_trash', { ...target, screenshot_id: screenshotId }, '删除截图'),
+    call<void>('game_screenshot_delete', { ...target, screenshot_id: screenshotId }, '删除截图'),
   setCover: (target: InstanceTargetPayload, screenshotId: string) =>
     call('game_screenshot_set_cover', { ...target, screenshot_id: screenshotId }, '设置实例封面'),
   setBackground: (target: InstanceTargetPayload, screenshotId: string) =>
@@ -145,7 +145,7 @@ export const instanceWorkspaceApi = {
     worldId?: string
   ) =>
     call<void>(
-      'game_resource_delete_to_trash',
+      'game_resource_delete',
       { ...target, resource_type: resourceType, resource_ids: resourceIds, world_id: worldId },
       '删除资源'
     ),
@@ -172,5 +172,5 @@ export const instanceWorkspaceApi = {
   checkFiles: (target: InstanceTargetPayload) => call('game_instance_files_check', target, '校验实例文件'),
   repairFiles: (target: InstanceTargetPayload) =>
     call<GameOperation>('game_instance_files_repair', target, '补全实例文件'),
-  deleteInstance: (target: InstanceTargetPayload) => call<void>('game_instance_delete_to_trash', target, '删除实例'),
+  deleteInstance: (target: InstanceTargetPayload) => call<void>('game_instance_delete', target, '删除实例'),
 }

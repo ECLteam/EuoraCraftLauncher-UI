@@ -281,7 +281,7 @@ export interface CommandPayloadMap {
   }
   game_instance_files_check: InstanceTargetPayload
   game_instance_files_repair: InstanceTargetPayload
-  game_instance_delete_to_trash: InstanceTargetPayload
+  game_instance_delete: InstanceTargetPayload
   game_operation_get: { operation_id: string }
   game_operation_cancel: { operation_id: string }
   game_world_list: InstanceTargetPayload
@@ -294,17 +294,17 @@ export interface CommandPayloadMap {
   game_world_import: InstanceTargetPayload & { source_path: string }
   game_world_export: InstanceTargetPayload & { world_id: string; output_path: string }
   game_world_icon_set: InstanceTargetPayload & { world_id: string; source_path: string }
-  game_world_delete_to_trash: InstanceTargetPayload & { world_id: string }
+  game_world_delete: InstanceTargetPayload & { world_id: string }
   game_world_backup_list: InstanceTargetPayload & { world_id: string }
   game_world_backup_create: InstanceTargetPayload & { world_id: string }
   game_world_backup_restore: InstanceTargetPayload & { world_id: string; backup_id: string }
   game_world_backup_lock: InstanceTargetPayload & { world_id: string; backup_id: string; locked: boolean }
-  game_world_backup_delete_to_trash: InstanceTargetPayload & { world_id: string; backup_id: string }
+  game_world_backup_delete: InstanceTargetPayload & { world_id: string; backup_id: string }
   game_screenshot_list: InstanceTargetPayload
   game_screenshot_thumbnail: InstanceTargetPayload & { screenshot_id: string; size?: number }
   game_screenshot_copy: InstanceTargetPayload & { screenshot_id: string }
   game_screenshot_save_as: InstanceTargetPayload & { screenshot_id: string; output_path: string }
-  game_screenshot_delete_to_trash: InstanceTargetPayload & { screenshot_id: string }
+  game_screenshot_delete: InstanceTargetPayload & { screenshot_id: string }
   game_screenshot_set_cover: InstanceTargetPayload & { screenshot_id: string }
   game_screenshot_set_background: InstanceTargetPayload & { screenshot_id: string }
   game_server_list: InstanceTargetPayload
@@ -324,7 +324,7 @@ export interface CommandPayloadMap {
     enabled: boolean
     world_id?: string
   }
-  game_resource_delete_to_trash: InstanceTargetPayload & {
+  game_resource_delete: InstanceTargetPayload & {
     resource_type: GameResourceType
     resource_ids: string[]
     world_id?: string
@@ -609,7 +609,7 @@ export const COMMAND_NAMES = {
   game_instance_export: 'game_instance_export',
   game_instance_files_check: 'game_instance_files_check',
   game_instance_files_repair: 'game_instance_files_repair',
-  game_instance_delete_to_trash: 'game_instance_delete_to_trash',
+  game_instance_delete: 'game_instance_delete',
   game_operation_get: 'game_operation_get',
   game_operation_cancel: 'game_operation_cancel',
   game_world_list: 'game_world_list',
@@ -619,17 +619,17 @@ export const COMMAND_NAMES = {
   game_world_import: 'game_world_import',
   game_world_export: 'game_world_export',
   game_world_icon_set: 'game_world_icon_set',
-  game_world_delete_to_trash: 'game_world_delete_to_trash',
+  game_world_delete: 'game_world_delete',
   game_world_backup_list: 'game_world_backup_list',
   game_world_backup_create: 'game_world_backup_create',
   game_world_backup_restore: 'game_world_backup_restore',
   game_world_backup_lock: 'game_world_backup_lock',
-  game_world_backup_delete_to_trash: 'game_world_backup_delete_to_trash',
+  game_world_backup_delete: 'game_world_backup_delete',
   game_screenshot_list: 'game_screenshot_list',
   game_screenshot_thumbnail: 'game_screenshot_thumbnail',
   game_screenshot_copy: 'game_screenshot_copy',
   game_screenshot_save_as: 'game_screenshot_save_as',
-  game_screenshot_delete_to_trash: 'game_screenshot_delete_to_trash',
+  game_screenshot_delete: 'game_screenshot_delete',
   game_screenshot_set_cover: 'game_screenshot_set_cover',
   game_screenshot_set_background: 'game_screenshot_set_background',
   game_server_list: 'game_server_list',
@@ -640,7 +640,7 @@ export const COMMAND_NAMES = {
   game_resource_list: 'game_resource_list',
   game_resource_install: 'game_resource_install',
   game_resource_toggle: 'game_resource_toggle',
-  game_resource_delete_to_trash: 'game_resource_delete_to_trash',
+  game_resource_delete: 'game_resource_delete',
   game_resource_manifest_export: 'game_resource_manifest_export',
   game_resource_search: 'game_resource_search',
   game_resource_identify: 'game_resource_identify',
@@ -845,7 +845,7 @@ export interface CommandResponseMap {
     canRepair: boolean
   }
   game_instance_files_repair: GameOperation
-  game_instance_delete_to_trash: void
+  game_instance_delete: void
   game_operation_get: GameOperation
   game_operation_cancel: boolean
   game_world_list: WorldEntry[]
@@ -855,17 +855,17 @@ export interface CommandResponseMap {
   game_world_import: GameOperation
   game_world_export: GameOperation
   game_world_icon_set: { path: string }
-  game_world_delete_to_trash: void
+  game_world_delete: void
   game_world_backup_list: Array<{ id: string; createdAt?: string; locked: boolean; automatic: boolean; size: number }>
   game_world_backup_create: GameOperation
   game_world_backup_restore: GameOperation
   game_world_backup_lock: { id: string; locked: boolean }
-  game_world_backup_delete_to_trash: void
+  game_world_backup_delete: void
   game_screenshot_list: ScreenshotEntry[]
   game_screenshot_thumbnail: { path: string; sourcePath: string }
   game_screenshot_copy: void
   game_screenshot_save_as: { path: string }
-  game_screenshot_delete_to_trash: void
+  game_screenshot_delete: void
   game_screenshot_set_cover: InstanceProfile
   game_screenshot_set_background: { path: string }
   game_server_list: ServerEntry[]
@@ -876,7 +876,7 @@ export interface CommandResponseMap {
   game_resource_list: GameResource[]
   game_resource_install: GameOperation
   game_resource_toggle: { id: string; enabled: boolean }
-  game_resource_delete_to_trash: void
+  game_resource_delete: void
   game_resource_manifest_export: { path: string }
   game_resource_search: { source: string; items: unknown[] }
   game_resource_identify: {
