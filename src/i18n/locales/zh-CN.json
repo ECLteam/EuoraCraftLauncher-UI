@@ -709,6 +709,7 @@
     "about": "关于",
     "aboutTab": {
       "actions": {
+        "issue": "提交问题",
         "github": "GitHub",
         "website": "网站",
         "mirror": "镜像站",

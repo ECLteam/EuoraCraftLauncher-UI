@@ -20,6 +20,10 @@
             </div>
           </div>
           <div class="launcher-summary__action">
+            <a class="about-btn" href="#" @click.prevent="openExternalUrl(URLS.issues)">
+              <UiIcon name="bug" :size="14" />
+              <span>{{ t('settings.aboutTab.actions.issue') }}</span>
+            </a>
             <a class="about-btn" href="#" @click.prevent="openExternalUrl(URLS.githubOrg)">
               <UiIcon name="github" :size="14" />
               <span>{{ t('settings.aboutTab.actions.github') }}</span>

@@ -136,6 +136,14 @@ const technologies = {
   tailwind: createGithubEntry('tailwind', 'Tailwind CSS', 'T', 'tailwind', URLS.tailwind.repo),
   vueUse: createGithubEntry('vue-use', 'VueUse', 'VU', 'vueUse', URLS.vueUse.repo),
   skinview3d: createGithubEntry('skinview3d', 'skinview3d', 'S', 'skinview3d', URLS.skinview3d.repo),
+  materialColors: createGithubEntry(
+    'material-colors',
+    'Material Color Utilities',
+    'MC',
+    'frontendDependency',
+    'https://github.com/material-foundation/material-color-utilities'
+  ),
+  sass: createGithubEntry('sass', 'Sass', 'S', 'frontendDependency', 'https://github.com/sass/sass'),
 } satisfies Record<string, AboutEntry>
 
 const backendRuntimeEntries: AboutEntry[] = [
@@ -154,6 +162,7 @@ const backendRuntimeEntries: AboutEntry[] = [
   createGithubEntry('mcstatus', 'mcstatus', 'MS', 'backendDependency', 'https://github.com/py-mine/mcstatus'),
   createGithubEntry('psutil', 'psutil', 'PS', 'backendDependency', 'https://github.com/giampaolo/psutil'),
   createGithubEntry('send2trash', 'Send2Trash', 'ST', 'backendDependency', 'https://github.com/arsenetar/send2trash'),
+  createGithubEntry('packaging', 'packaging', 'PG', 'backendDependency', 'https://github.com/pypa/packaging'),
   createGithubEntry('easy-tier-pyo3', 'EasyTier-PyO3', 'EP', 'backendDependency', URLS.easyTierPyo3.repo),
 ]
 
@@ -162,6 +171,13 @@ const frontendUtilityEntries: AboutEntry[] = [
   createGithubEntry('dompurify', 'DOMPurify', 'DP', 'frontendDependency', 'https://github.com/cure53/DOMPurify'),
   createGithubEntry('marked', 'Marked', 'M', 'frontendDependency', 'https://github.com/markedjs/marked'),
   createGithubEntry('sucrase', 'Sucrase', 'S', 'frontendDependency', 'https://github.com/alangpierce/sucrase'),
+  createGithubEntry(
+    'tanstack-query',
+    '@tanstack/vue-query',
+    'TQ',
+    'frontendDependency',
+    'https://github.com/TanStack/query'
+  ),
 ]
 
 const engineeringEntries: AboutEntry[] = [
@@ -221,7 +237,7 @@ export const technologyCategories: TechnologyCategory[] = [
       technologies.typescript,
     ],
   },
-  { id: 'ui-styling', titleKey: 'uiStyling', entries: [technologies.naiveUi, technologies.tailwind] },
+  { id: 'ui-styling', titleKey: 'uiStyling', entries: [technologies.naiveUi, technologies.tailwind, technologies.materialColors, technologies.sass] },
   {
     id: 'frontend-utilities',
     titleKey: 'frontendUtilities',

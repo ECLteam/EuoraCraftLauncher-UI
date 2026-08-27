@@ -709,6 +709,7 @@
     "about": "About",
     "aboutTab": {
       "actions": {
+        "issue": "Report Issue",
         "github": "GitHub",
         "website": "Website",
         "mirror": "Mirror",

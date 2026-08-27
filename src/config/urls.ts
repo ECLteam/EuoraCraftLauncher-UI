@@ -13,6 +13,9 @@ export const URLS = {
   /** GitHub 组织 */
   githubOrg: 'https://github.com/ECLteam',
 
+  /** 提交问题（Issue） */
+  issues: 'https://github.com/ECLteam/EuoraCraft-Launcher/issues',
+
   /** Qomicex-Public GitHub 组织 */
   qomicexPublic: 'https://github.com/Qomicex-Public',
 

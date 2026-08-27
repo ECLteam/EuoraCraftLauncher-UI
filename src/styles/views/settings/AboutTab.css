@@ -26,7 +26,7 @@
 
 .launcher-summary {
   display: grid;
-  grid-template-columns: 36px 1fr 135px;
+  grid-template-columns: 36px 1fr auto;
   align-items: center;
   min-height: 40px;
 }
@@ -172,6 +172,7 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  gap: 7px;
 }
 
 .about-btn {
