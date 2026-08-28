@@ -36,8 +36,8 @@
               :class="{ active: item.versionId === selectedVersion && item.gamePath === currentGamePath }"
               @click="handleSelectRecent(item)"
             >
-              <span class="recent-instance-name">{{ item.versionName }}</span>
-              <span class="recent-instance-path">{{ getPathDisplayName(item.gamePath) }}</span>
+              <span class="recent-instance-name">{{ instanceNameOf(item) }}</span>
+              <span v-if="instancePathNameOf(item)" class="recent-instance-path">{{ instancePathNameOf(item) }}</span>
               <UiIcon
                 v-if="item.versionId === selectedVersion && item.gamePath === currentGamePath"
                 name="check"
@@ -91,8 +91,12 @@
 import { NButton, NPopover } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
-import { getPathDisplayName, type RecentInstance } from '@/composables/useRecentInstances'
+import type { RecentInstance } from '@/composables/useRecentInstances'
+import { instanceDisplayName } from '@/features/instances/model/instancePresentation'
+import { useInstanceStore } from '@/features/instances/stores/instanceStore'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
+import { useSettingsStore } from '@/features/settings/stores/settingsStore'
+import { normalizeGamePath } from '@/utils/path'
 
 defineProps<{
   versionsCount: number
@@ -109,6 +113,31 @@ const emit = defineEmits<{
   versionSettings: []
   selectVersion: [versionId: string, gamePath?: string]
 }>()
+
+const instanceStore = useInstanceStore()
+const settingsStore = useSettingsStore()
+
+const getPathDisplayName = (gamePath: string): string => {
+  const parts = gamePath.replace(/[\\/]+$/, '').split(/[\\/]/)
+  return parts[parts.length - 1] || gamePath
+}
+
+function matchedInstance(item: RecentInstance) {
+  return instanceStore.scannedVersions.find(
+    (v) => v.versionId === item.versionId && normalizeGamePath(v.path) === normalizeGamePath(item.gamePath)
+  )
+}
+
+function instanceNameOf(item: RecentInstance): string {
+  const matched = matchedInstance(item)
+  return matched ? instanceDisplayName(matched) : item.versionName
+}
+
+function instancePathNameOf(item: RecentInstance): string {
+  const entry = settingsStore.game.minecraft_paths.find((p) => normalizeGamePath(typeof p === 'string' ? p : p.path) === normalizeGamePath(item.gamePath))
+  if (!entry) return getPathDisplayName(item.gamePath)
+  return typeof entry === 'string' ? getPathDisplayName(entry) : entry.name || getPathDisplayName(entry.path)
+}
 
 function handleSelectRecent(item: RecentInstance) {
   emit('selectVersion', item.versionId, item.gamePath)
