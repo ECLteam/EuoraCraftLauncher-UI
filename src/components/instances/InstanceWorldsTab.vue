@@ -341,10 +341,12 @@ onMounted(load)
 }
 
 .world-cover {
-  display: block;
+  display: grid;
+  place-items: center;
   width: 100%;
   aspect-ratio: 16 / 9;
-  object-fit: cover;
+  object-fit: contain;
+  image-rendering: pixelated;
   background: var(--ecl-hover);
 }
 

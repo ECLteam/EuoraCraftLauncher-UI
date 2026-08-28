@@ -45,7 +45,7 @@
     <div class="about-card">
       <div class="card-title">{{ t('settings.aboutTab.sections.specialThanks') }}</div>
       <div class="card-body">
-        <AboutEntryRow v-for="entry in specialThanksEntries" :key="entry.id" :entry="entry" />
+        <AboutEntryRow v-for="entry in specialThanksEntries" :key="entry.id" :entry="entry" :licenseText="licenseById[entry.id]?.text" :licenseUrl="licenseById[entry.id]?.license" />
       </div>
     </div>
 
@@ -65,30 +65,9 @@
           </button>
           <Transition name="technology-expand">
             <div v-if="isTechnologyCategoryExpanded(category.id)" class="technology-category__entries">
-              <AboutEntryRow v-for="entry in category.entries" :key="entry.id" :entry="entry" />
+              <AboutEntryRow v-for="entry in category.entries" :key="entry.id" :entry="entry" :licenseText="licenseById[entry.id]?.text" :licenseUrl="licenseById[entry.id]?.license" />
             </div>
           </Transition>
-        </div>
-      </div>
-    </div>
-
-    <!-- 许可与版权 -->
-    <div class="about-card">
-      <div class="card-title">{{ t('settings.aboutTab.sections.licenses') }}</div>
-      <div class="card-body">
-        <div v-for="licenseEntry in licenseEntries" :key="licenseEntry.name" class="license-item">
-          <div class="license-name">{{ licenseEntry.name }}</div>
-          <div class="license-text">{{ licenseEntry.text }}</div>
-          <div class="license-btns">
-            <a class="about-btn" href="#" @click.prevent="openExternalUrl(licenseEntry.repo)">
-              <UiIcon name="github" :size="14" />
-              <span>{{ t('settings.aboutTab.actions.source') }}</span>
-            </a>
-            <a class="about-btn" href="#" @click.prevent="openExternalUrl(licenseEntry.license)">
-              <UiIcon name="file-source" :size="14" />
-              <span>{{ t('settings.aboutTab.actions.license') }}</span>
-            </a>
-          </div>
         </div>
       </div>
     </div>
@@ -98,7 +77,7 @@
       <div class="card-title">{{ t('settings.aboutTab.sections.legal') }}</div>
       <div class="card-body">
         <p class="legal-text">
-          Copyright &copy; 2026 EuoraCraft Team. All Rights Reserved.<br />
+          Copyright &copy; 2026 ECLTeam. All Rights Reserved.<br />
           {{ t('settings.aboutTab.legal.disclaimer') }}<br />
           {{ t('settings.aboutTab.legal.trademark') }}
         </p>
@@ -182,7 +161,7 @@ interface LicenseEntry {
 const licenseEntries: LicenseEntry[] = [
   {
     name: 'PyTauri',
-    text: 'Copyright WSH032. Licensed under MIT.',
+    text: 'Copyright WSH032. Licensed under Apache 2.0.',
     repo: URLS.pytauri.repo,
     license: URLS.pytauri.license,
   },
@@ -277,6 +256,225 @@ const licenseEntries: LicenseEntry[] = [
     license: URLS.hmcl.license,
   },
 ]
+
+licenseEntries.push(
+  {
+    name: 'pytauri-wheel',
+    text: 'Copyright WSH032. Licensed under Apache 2.0.',
+    repo: URLS.pytauri.repo,
+    license: 'https://pypi.org/project/pytauri-wheel/',
+  },
+  {
+    name: 'EasyTier-PyO3',
+    text: 'Copyright EasyTier-PyO3 contributors. Licensed under LGPL-3.0.',
+    repo: URLS.easyTierPyo3.repo,
+    license: URLS.easyTierPyo3.license,
+  },
+  {
+    name: 'sass-embedded',
+    text: 'Licensed under MIT.',
+    repo: 'https://github.com/sass/embedded-host-node',
+    license: 'https://www.npmjs.com/package/sass-embedded',
+  },
+  {
+    name: 'Material Color Utilities',
+    text: 'Licensed under Apache 2.0.',
+    repo: 'https://github.com/material-foundation/material-color-utilities',
+    license: 'https://www.npmjs.com/package/@material/material-color-utilities',
+  },
+  {
+    name: 'Iconify',
+    text: 'Licensed under MIT.',
+    repo: 'https://github.com/iconify/iconify',
+    license: 'https://www.npmjs.com/package/@iconify/vue',
+  },
+  {
+    name: 'DOMPurify',
+    text: 'Licensed under MPL-2.0 or Apache-2.0.',
+    repo: 'https://github.com/cure53/DOMPurify',
+    license: 'https://www.npmjs.com/package/dompurify',
+  },
+  {
+    name: 'Marked',
+    text: 'Licensed under MIT.',
+    repo: 'https://github.com/markedjs/marked',
+    license: 'https://www.npmjs.com/package/marked',
+  },
+  {
+    name: 'Sucrase',
+    text: 'Licensed under MIT.',
+    repo: 'https://github.com/alangpierce/sucrase',
+    license: 'https://www.npmjs.com/package/sucrase',
+  },
+  {
+    name: '@tanstack/vue-query',
+    text: 'Licensed under MIT.',
+    repo: 'https://github.com/TanStack/query',
+    license: 'https://www.npmjs.com/package/@tanstack/vue-query',
+  },
+)
+
+licenseEntries.push(
+  {
+    name: '@vitejs/plugin-vue',
+    text: 'Licensed under MIT.',
+    repo: 'https://github.com/vitejs/vite-plugin-vue',
+    license: 'https://www.npmjs.com/package/@vitejs/plugin-vue',
+  },
+  {
+    name: 'Vitest',
+    text: 'Licensed under MIT.',
+    repo: 'https://github.com/vitest-dev/vitest',
+    license: 'https://www.npmjs.com/package/vitest',
+  },
+  {
+    name: '@vue/test-utils',
+    text: 'Licensed under MIT.',
+    repo: 'https://github.com/vuejs/test-utils',
+    license: 'https://www.npmjs.com/package/@vue/test-utils',
+  },
+  {
+    name: 'vue-tsc',
+    text: 'Licensed under MIT.',
+    repo: 'https://github.com/vuejs/language-tools',
+    license: 'https://www.npmjs.com/package/vue-tsc',
+  },
+  {
+    name: 'ESLint',
+    text: 'Licensed under MIT.',
+    repo: 'https://github.com/eslint/eslint',
+    license: 'https://www.npmjs.com/package/eslint',
+  },
+  {
+    name: 'Prettier',
+    text: 'Licensed under MIT.',
+    repo: 'https://github.com/prettier/prettier',
+    license: 'https://www.npmjs.com/package/prettier',
+  },
+  {
+    name: 'PostCSS',
+    text: 'Licensed under MIT.',
+    repo: 'https://github.com/postcss/postcss',
+    license: 'https://www.npmjs.com/package/postcss',
+  },
+  {
+    name: 'Autoprefixer',
+    text: 'Licensed under MIT.',
+    repo: 'https://github.com/postcss/autoprefixer',
+    license: 'https://www.npmjs.com/package/autoprefixer',
+  },
+  {
+    name: 'Ruff',
+    text: 'Copyright Ruff contributors. Licensed under MIT.',
+    repo: 'https://github.com/astral-sh/ruff',
+    license: 'https://pypi.org/project/ruff/',
+  },
+  {
+    name: 'PyInstaller',
+    text: 'Licensed under GPL-2.0-or-later with a special exception.',
+    repo: 'https://github.com/pyinstaller/pyinstaller',
+    license: 'https://pypi.org/project/pyinstaller/',
+  },
+)
+
+licenseEntries.push(
+  {
+    name: 'pytest',
+    text: 'Copyright pytest contributors. Licensed under MIT.',
+    repo: 'https://github.com/pytest-dev/pytest',
+    license: 'https://pypi.org/project/pytest/',
+  },
+  {
+    name: 'pytest-asyncio',
+    text: 'Licensed under Apache 2.0.',
+    repo: 'https://github.com/pytest-dev/pytest-asyncio',
+    license: 'https://pypi.org/project/pytest-asyncio/',
+  },
+  {
+    name: 'python-semantic-release',
+    text: 'Licensed under MIT.',
+    repo: 'https://github.com/python-semantic-release/python-semantic-release',
+    license: 'https://pypi.org/project/python-semantic-release/',
+  },
+  {
+    name: 'tomlkit',
+    text: 'Licensed under MIT.',
+    repo: 'https://github.com/sdispater/tomlkit',
+    license: 'https://pypi.org/project/tomlkit/',
+  },
+  {
+    name: 'debugpy',
+    text: 'Copyright Microsoft Corporation. Licensed under MIT.',
+    repo: 'https://github.com/microsoft/debugpy',
+    license: 'https://pypi.org/project/debugpy/',
+  },
+  {
+    name: 'IPython',
+    text: 'Copyright IPython Development Team. Licensed under BSD-3-Clause.',
+    repo: 'https://github.com/ipython/ipython',
+    license: 'https://pypi.org/project/ipython/',
+  },
+  {
+    name: 'pip-tools',
+    text: 'Licensed under BSD-3-Clause.',
+    repo: 'https://github.com/jazzband/pip-tools',
+    license: 'https://pypi.org/project/pip-tools/',
+  },
+  {
+    name: 'Nuitka',
+    text: 'Copyright Nuitka contributors. Licensed under AGPL-3.0.',
+    repo: 'https://github.com/Nuitka/Nuitka',
+    license: 'https://pypi.org/project/Nuitka/',
+  },
+)
+
+const licenseByName = new Map(licenseEntries.map((entry) => [entry.name, entry]))
+
+const licenseById: Record<string, LicenseEntry> = {
+  pytauri: licenseByName.get('PyTauri')!,
+  tauri: licenseByName.get('Tauri')!,
+  'easy-tier': licenseByName.get('EasyTier')!,
+  authlibInjector: licenseByName.get('Authlib-Injector')!,
+  vue: licenseByName.get('Vue 3')!,
+  vite: licenseByName.get('Vite')!,
+  pinia: licenseByName.get('Pinia')!,
+  vueRouter: licenseByName.get('Vue Router')!,
+  vueI18n: licenseByName.get('Vue I18n')!,
+  valibot: licenseByName.get('Valibot')!,
+  typescript: licenseByName.get('TypeScript')!,
+  naiveUi: licenseByName.get('Naive UI')!,
+  tailwind: licenseByName.get('Tailwind CSS')!,
+  vueUse: licenseByName.get('VueUse')!,
+  skinview3d: licenseByName.get('skinview3d')!,
+  hmcl: licenseByName.get('HMCL')!,
+  pytauriWheel: licenseByName.get('pytauri-wheel')!,
+  easyTierPyo3: licenseByName.get('EasyTier-PyO3')!,
+  'sass-embedded': licenseByName.get('sass-embedded')!,
+  'material-colors': licenseByName.get('Material Color Utilities')!,
+  iconify: licenseByName.get('Iconify')!,
+  dompurify: licenseByName.get('DOMPurify')!,
+  marked: licenseByName.get('Marked')!,
+  sucrase: licenseByName.get('Sucrase')!,
+  'tanstack-query': licenseByName.get('@tanstack/vue-query')!,
+  'vite-plugin-vue': licenseByName.get('@vitejs/plugin-vue')!,
+  vitest: licenseByName.get('Vitest')!,
+  'vue-test-utils': licenseByName.get('@vue/test-utils')!,
+  'vue-tsc': licenseByName.get('vue-tsc')!,
+  eslint: licenseByName.get('ESLint')!,
+  prettier: licenseByName.get('Prettier')!,
+  postcss: licenseByName.get('PostCSS')!,
+  autoprefixer: licenseByName.get('Autoprefixer')!,
+  ruff: licenseByName.get('Ruff')!,
+  pyinstaller: licenseByName.get('PyInstaller')!,
+  pytest: licenseByName.get('pytest')!,
+  pytestAsyncio: licenseByName.get('pytest-asyncio')!,
+  pythonSemanticRelease: licenseByName.get('python-semantic-release')!,
+  tomlkit: licenseByName.get('tomlkit')!,
+  debugpy: licenseByName.get('debugpy')!,
+  ipython: licenseByName.get('IPython')!,
+  pipTools: licenseByName.get('pip-tools')!,
+  nuitka: licenseByName.get('Nuitka')!,
+}
 </script>
 
 <style scoped src="@/styles/views/settings/AboutTab.css"></style>

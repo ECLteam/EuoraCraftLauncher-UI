@@ -161,6 +161,37 @@
   gap: var(--ecl-page-gap);
 }
 
+/* workspace 类页面：内容卡延伸到底部，与左侧菜单卡底部持平 */
+.vdm-page.workspace-page {
+  height: 100%;
+  min-height: 0;
+}
+.vdm-page.workspace-page > .workspace-panel,
+.vdm-page.workspace-page > .worlds-panel,
+.vdm-page.workspace-page > .screens-panel,
+.vdm-page.workspace-page > .servers-panel {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden auto;
+}
+/* 空态时让图标与文字在卡内水平垂直居中 */
+.vdm-page.workspace-page :deep(.n-spin-container) {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+.vdm-page.workspace-page :deep(.n-spin-content:has(.n-empty)) {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 /* =============================================
    Overview 页面 — 信息卡片 + 快捷操作
    ============================================= */

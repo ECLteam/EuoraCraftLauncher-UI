@@ -140,10 +140,16 @@ const technologies = {
     'material-colors',
     'Material Color Utilities',
     'MC',
-    'frontendDependency',
+    'materialColors',
     'https://github.com/material-foundation/material-color-utilities'
   ),
-  sass: createGithubEntry('sass', 'Sass', 'S', 'frontendDependency', 'https://github.com/sass/sass'),
+  sass: createGithubEntry(
+    'sass-embedded',
+    'sass-embedded',
+    'SE',
+    'sass',
+    'https://github.com/sass/embedded-host-node'
+  ),
 } satisfies Record<string, AboutEntry>
 
 const backendRuntimeEntries: AboutEntry[] = [
@@ -162,43 +168,49 @@ const backendRuntimeEntries: AboutEntry[] = [
   createGithubEntry('mcstatus', 'mcstatus', 'MS', 'mcstatusDesc', 'https://github.com/py-mine/mcstatus'),
   createGithubEntry('psutil', 'psutil', 'PS', 'psutilDesc', 'https://github.com/giampaolo/psutil'),
   createGithubEntry('packaging', 'packaging', 'PG', 'packagingDesc', 'https://github.com/pypa/packaging'),
+  createGithubEntry('pytauri-wheel', 'pytauri-wheel', 'PW', 'pytauriWheel', URLS.pytauri.repo),
   createGithubEntry('easy-tier-pyo3', 'EasyTier-PyO3', 'EP', 'easyTierPyo3Desc', URLS.easyTierPyo3.repo),
 ]
 
 const frontendUtilityEntries: AboutEntry[] = [
-  createGithubEntry('iconify', 'Iconify', 'I', 'frontendDependency', 'https://github.com/iconify/iconify'),
-  createGithubEntry('dompurify', 'DOMPurify', 'DP', 'frontendDependency', 'https://github.com/cure53/DOMPurify'),
-  createGithubEntry('marked', 'Marked', 'M', 'frontendDependency', 'https://github.com/markedjs/marked'),
-  createGithubEntry('sucrase', 'Sucrase', 'S', 'frontendDependency', 'https://github.com/alangpierce/sucrase'),
+  createGithubEntry('iconify', 'Iconify', 'I', 'iconify', 'https://github.com/iconify/iconify'),
+  createGithubEntry('dompurify', 'DOMPurify', 'DP', 'dompurify', 'https://github.com/cure53/DOMPurify'),
+  createGithubEntry('marked', 'Marked', 'M', 'marked', 'https://github.com/markedjs/marked'),
+  createGithubEntry('sucrase', 'Sucrase', 'S', 'sucrase', 'https://github.com/alangpierce/sucrase'),
   createGithubEntry(
     'tanstack-query',
     '@tanstack/vue-query',
     'TQ',
-    'frontendDependency',
+    'tanstackQuery',
     'https://github.com/TanStack/query'
   ),
 ]
 
 const engineeringEntries: AboutEntry[] = [
-  createGithubEntry('vitest', 'Vitest', 'VT', 'engineeringDependency', 'https://github.com/vitest-dev/vitest'),
-  createGithubEntry('eslint', 'ESLint', 'ES', 'engineeringDependency', 'https://github.com/eslint/eslint'),
-  createGithubEntry('prettier', 'Prettier', 'PR', 'engineeringDependency', 'https://github.com/prettier/prettier'),
-  createGithubEntry('postcss', 'PostCSS', 'PC', 'engineeringDependency', 'https://github.com/postcss/postcss'),
+  createGithubEntry('vite-plugin-vue', '@vitejs/plugin-vue', 'VP', 'vitePluginVue', 'https://github.com/vitejs/vite-plugin-vue'),
+  createGithubEntry('vitest', 'Vitest', 'VT', 'vitest', 'https://github.com/vitest-dev/vitest'),
+  createGithubEntry('vue-test-utils', '@vue/test-utils', 'VU', 'vueTestUtils', 'https://github.com/vuejs/test-utils'),
+  createGithubEntry('vue-tsc', 'vue-tsc', 'VS', 'vueTsc', 'https://github.com/vuejs/language-tools'),
+  createGithubEntry('eslint', 'ESLint', 'ES', 'eslint', 'https://github.com/eslint/eslint'),
+  createGithubEntry('prettier', 'Prettier', 'PR', 'prettier', 'https://github.com/prettier/prettier'),
+  createGithubEntry('postcss', 'PostCSS', 'PC', 'postcss', 'https://github.com/postcss/postcss'),
+  createGithubEntry('autoprefixer', 'Autoprefixer', 'AP', 'autoprefixer', 'https://github.com/postcss/autoprefixer'),
+  createGithubEntry('ruff', 'Ruff', 'R', 'ruff', 'https://github.com/astral-sh/ruff'),
+  createGithubEntry('pyinstaller', 'PyInstaller', 'PI', 'pyinstaller', 'https://github.com/pyinstaller/pyinstaller'),
+  createGithubEntry('nuitka', 'Nuitka', 'N', 'nuitka', 'https://github.com/Nuitka/Nuitka'),
+  createGithubEntry('pytest', 'pytest', 'PY', 'pytest', 'https://github.com/pytest-dev/pytest'),
+  createGithubEntry('pytest-asyncio', 'pytest-asyncio', 'PA', 'pytestAsyncio', 'https://github.com/pytest-dev/pytest-asyncio'),
   createGithubEntry(
-    'autoprefixer',
-    'Autoprefixer',
-    'AP',
-    'engineeringDependency',
-    'https://github.com/postcss/autoprefixer'
+    'python-semantic-release',
+    'python-semantic-release',
+    'PSR',
+    'pythonSemanticRelease',
+    'https://github.com/python-semantic-release/python-semantic-release'
   ),
-  createGithubEntry('ruff', 'Ruff', 'R', 'engineeringDependency', 'https://github.com/astral-sh/ruff'),
-  createGithubEntry(
-    'pyinstaller',
-    'PyInstaller',
-    'PI',
-    'engineeringDependency',
-    'https://github.com/pyinstaller/pyinstaller'
-  ),
+  createGithubEntry('tomlkit', 'tomlkit', 'TK', 'tomlkit', 'https://github.com/sdispater/tomlkit'),
+  createGithubEntry('debugpy', 'debugpy', 'DB', 'debugpy', 'https://github.com/microsoft/debugpy'),
+  createGithubEntry('ipython', 'IPython', 'IP', 'ipython', 'https://github.com/ipython/ipython'),
+  createGithubEntry('pip-tools', 'pip-tools', 'PT', 'pipTools', 'https://github.com/jazzband/pip-tools'),
 ]
 
 const fontAndIconEntries: AboutEntry[] = [

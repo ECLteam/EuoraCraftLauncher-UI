@@ -206,36 +206,6 @@
   color: var(--text-on-primary);
 }
 
-.license-item {
-  display: grid;
-  grid-template-columns: 144px 1fr auto;
-  align-items: center;
-  gap: 13px;
-  padding: 9px 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.license-item:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.license-name {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.license-text {
-  font-size: 10px;
-  color: var(--text-tertiary);
-  line-height: 1.5;
-}
-
-.license-btns {
-  display: flex;
-  gap: 7px;
-}
 
 .legal-text {
   font-size: 11px;

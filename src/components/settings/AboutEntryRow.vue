@@ -12,11 +12,16 @@
     <div class="about-entry__content">
       <div class="about-entry__name">{{ entry.name }}</div>
       <div class="about-entry__description">{{ t(`settings.aboutTab.descriptions.${entry.descriptionKey}`) }}</div>
+      <div v-if="licenseText" class="about-entry__license">{{ licenseText }}</div>
     </div>
     <div class="about-entry__action-cell">
       <a class="about-entry__action" href="#" @click.prevent="openExternalUrl(entry.url)">
         <UiIcon :name="entry.iconName || 'github'" :size="14" />
         <span>{{ t(`settings.aboutTab.actions.${entry.actionLabelKey}`) }}</span>
+      </a>
+      <a v-if="licenseUrl" class="about-entry__action" href="#" @click.prevent="openExternalUrl(licenseUrl)">
+        <UiIcon name="file-source" :size="14" />
+        <span>{{ t('settings.aboutTab.actions.license') }}</span>
       </a>
     </div>
   </div>
@@ -28,7 +33,7 @@ import UiIcon from '@/components/ui/Icon.vue'
 import type { AboutEntry } from '@/features/settings/about/aboutContent'
 import { openExternalUrl } from '@/utils/openExternal'
 
-defineProps<{ entry: AboutEntry }>()
+defineProps<{ entry: AboutEntry; licenseText?: string; licenseUrl?: string }>()
 
 const { t } = useI18n()
 </script>
@@ -36,7 +41,7 @@ const { t } = useI18n()
 <style scoped>
 .about-entry {
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) 135px;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
   align-items: center;
   min-height: 40px;
 }
@@ -82,6 +87,13 @@ const { t } = useI18n()
   font-weight: 600;
 }
 
+.about-entry__license {
+  margin-top: 1px;
+  color: var(--text-tertiary);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
 .about-entry__description {
   margin-top: 1px;
   color: var(--text-tertiary);
@@ -93,6 +105,7 @@ const { t } = useI18n()
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  gap: 7px;
 }
 
 .about-entry__action {
