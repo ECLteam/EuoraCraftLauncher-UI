@@ -98,6 +98,15 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
     const taskId = payload.task_id
     if (!taskId) return
 
+    // 任务尚未创建（如启动期由后端上报的内置下载）且带显示名时，自动建队列条目。
+    if (!globalTaskQueue.tasks.value.some((t) => t.id === taskId)) {
+      if (!payload.name) return
+      globalTaskQueue.addTask(
+        { type: 'download', name: payload.name, versionId: '', loaderType: '' },
+        taskId
+      )
+    }
+
     const phase = payload.phase || ''
     const message = payload.message || ''
     const done = payload.done ?? 0

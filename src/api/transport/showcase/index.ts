@@ -146,27 +146,48 @@ export function createShowcaseTransport(): BackendTransport {
   }
 
   const emitInstallProgress = (taskId: string) => {
+    // 模拟真实下载指标（字节进度/文件数/速度），便于演示实时下载卡。
+    const totalBytes = 400 * 1024 * 1024
+    const totalFiles = 50
     const steps: BackendEvents['game:install_progress'][] = [
-      { phase: 'install', task_id: taskId, message: '正在准备展示安装任务', done: 0, total: 100 },
+      { phase: 'install', task_id: taskId, message: '正在准备展示安装任务', done: 0, total: 1 },
       {
         phase: 'download',
         task_id: taskId,
-        message: '正在模拟下载游戏文件',
-        done: 42,
-        total: 100,
+        message: '正在下载展示文件 assets/minecraft/textures/block.png',
+        done: 48 * 1024 * 1024,
+        total: totalBytes,
+        progress_type: 'bytes',
+        total_files: totalFiles,
+        downloaded_files: 6,
+        speed: 6 * 1024 * 1024,
         subtask: 'download_assets',
       },
       {
         phase: 'download',
         task_id: taskId,
-        message: '正在校验展示文件',
-        done: 86,
-        total: 100,
-        subtask: 'check_files',
+        message: '正在下载展示文件 libraries/net/minecraft/server.jar',
+        done: 236 * 1024 * 1024,
+        total: totalBytes,
+        progress_type: 'bytes',
+        total_files: totalFiles,
+        downloaded_files: 31,
+        speed: 13 * 1024 * 1024,
+        subtask: 'download_assets',
       },
-      { phase: 'done', task_id: taskId, message: '展示安装完成', done: 100, total: 100 },
+      { phase: 'download', task_id: taskId, message: '正在校验展示文件', done: totalBytes, total: totalBytes, subtask: 'check_files', downloaded_files: totalFiles, total_files: totalFiles },
+      {
+        phase: 'done',
+        task_id: taskId,
+        message: '展示安装完成',
+        done: 1,
+        total: 1,
+        total_files: totalFiles,
+        downloaded_files: totalFiles,
+        speed: 0,
+      },
     ]
-    steps.forEach((step, index) => setTimeout(() => emit('game:install_progress', step), 250 * (index + 1)))
+    steps.forEach((step, index) => setTimeout(() => emit('game:install_progress', { ...step, task_id: taskId } as BackendEvents['game:install_progress']), 480 * (index + 1)))
   }
 
   const emitLaunchProgress = () => {

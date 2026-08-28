@@ -10,7 +10,7 @@
       <PluginSlotHost slotId="plugin-slot-task-queue-top" class="plugin-slot-container" />
       <!-- 空状态 -->
       <div v-if="tasks.length === 0" class="tq-empty">
-        <UiIcon name="cube" :size="48" class="tq-empty-icon" />
+        <UiIcon name="download" :size="64" class="tq-empty-icon" />
         <p class="tq-empty-text">
           {{ t('taskQueue.empty') }}
         </p>
@@ -19,107 +19,181 @@
         </p>
       </div>
 
-      <!-- 任务列表 -->
-      <div v-else class="tq-list">
-        <div class="tq-toolbar">
-          <span class="tq-status-text">
-            {{ activeCount > 0 ? t('taskQueue.runningCount', { count: activeCount }) : t('taskQueue.allDone') }}
-          </span>
-          <button class="tq-clear-btn" :disabled="completedCount === 0" @click="clearCompleted">
-            {{ t('taskQueue.clearCompleted', { count: completedCount }) }}
-          </button>
-        </div>
-        <div v-for="task in tasks" :key="task.id" :class="['tq-task', `tq-task--${task.status}`]">
-          <div class="tq-task-header" @click="toggleExpand(task.id)">
-            <div class="tq-task-main">
-              <div class="tq-task-icon">
-                <UiIcon v-if="task.status === 'running'" name="spinner" :size="18" class="spin" />
-                <UiIcon v-else-if="task.status === 'completed'" name="check" :size="18" class="tq-icon-success" />
-                <UiIcon v-else-if="task.status === 'error'" name="x-mark" :size="18" class="tq-icon-error" />
-                <UiIcon v-else-if="task.status === 'canceled'" name="x-mark" :size="18" class="tq-icon-muted" />
-                <UiIcon v-else name="package" :size="18" class="tq-icon-muted" />
-              </div>
-              <div class="tq-task-info">
-                <div class="tq-task-name">
-                  {{ task.name }}
+      <div v-else class="tq-body">
+        <!-- 任务列表：全大卡片 -->
+        <div class="tq-list">
+          <div class="tq-toolbar">
+            <span class="tq-status-text">
+              {{ activeCount > 0 ? t('taskQueue.runningCount', { count: activeCount }) : t('taskQueue.allDone') }}
+            </span>
+            <button class="tq-clear-btn" :disabled="completedCount === 0" @click="clearCompleted">
+              {{ t('taskQueue.clearCompleted', { count: completedCount }) }}
+            </button>
+          </div>
+          <div v-for="task in tasks" :key="task.id" :class="['tq-task', `tq-task--${task.status}`]">
+            <div class="tq-task-header" @click="toggleExpand(task.id)">
+              <div class="tq-task-main">
+                <div class="tq-task-icon">
+                  <UiIcon v-if="task.status === 'running'" name="spinner" :size="18" class="spin" />
+                  <UiIcon v-else-if="task.status === 'completed'" name="check" :size="18" class="tq-icon-success" />
+                  <UiIcon v-else-if="task.status === 'error'" name="x-mark" :size="18" class="tq-icon-error" />
+                  <UiIcon v-else-if="task.status === 'canceled'" name="x-mark" :size="18" class="tq-icon-muted" />
+                  <UiIcon v-else name="package" :size="18" class="tq-icon-muted" />
                 </div>
-                <div class="tq-task-meta">
-                  <span class="tq-task-type">{{ getLoaderLabel(task.loaderType) }}</span>
-                  <span class="tq-task-ver">{{ task.versionId }}</span>
+                <div class="tq-task-info">
+                  <div class="tq-task-name">
+                    {{ task.name }}
+                  </div>
+                  <div class="tq-task-meta">
+                    <span class="tq-task-type">{{ getLoaderLabel(task.loaderType) }}</span>
+                    <span class="tq-task-ver">{{ task.versionId }}</span>
+                  </div>
                 </div>
               </div>
+
+              <div class="tq-task-progress">
+                <div class="tq-progress-bar">
+                  <div
+                    class="tq-progress-fill"
+                    :class="{ 'tq-progress--indeterminate': task.status === 'running' && task.progress <= 0 }"
+                    :style="{ width: task.progress > 0 ? task.progress + '%' : undefined }"
+                  />
+                </div>
+                <span class="tq-progress-text">
+                  {{ task.status === 'completed' ? '100%' : task.progress > 0 ? task.progress + '%' : '...' }}
+                </span>
+              </div>
+
+              <button
+                v-if="task.status === 'completed' || task.status === 'error' || task.status === 'canceled'"
+                class="tq-remove-btn"
+                :title="t('common.remove')"
+                @click.stop="removeTask(task.id)"
+              >
+                <UiIcon name="x-mark" :size="12" />
+              </button>
             </div>
 
-            <div class="tq-task-progress">
-              <div class="tq-progress-bar">
-                <div
-                  class="tq-progress-fill"
-                  :class="{ 'tq-progress--indeterminate': task.status === 'running' && task.progress <= 0 }"
-                  :style="{ width: task.progress > 0 ? task.progress + '%' : undefined }"
-                />
-              </div>
-              <span class="tq-progress-text">
-                {{ task.status === 'completed' ? '100%' : task.progress > 0 ? task.progress + '%' : '...' }}
+            <!-- 下载统计：文件数 / 字节进度 / 实时速度 -->
+            <div v-if="showTaskStats(task)" class="tq-task-stats">
+              <span v-if="task.totalFiles != null" class="tq-stat tq-stat-files">
+                <UiIcon name="file-text" :size="12" />
+                {{ task.downloadedFiles ?? 0 }} / {{ task.totalFiles }} {{ t('taskQueue.files') }}
+              </span>
+              <span v-if="task.progressType === 'bytes' && task.total" class="tq-stat tq-stat-bytes">
+                {{ formatBytes(task.done ?? 0) }} / {{ formatBytes(task.total) }}
+              </span>
+              <span v-if="task.status === 'running' && task.speed" class="tq-stat tq-stat-speed">
+                <UiIcon name="download" :size="12" />
+                {{ formatSpeed(task.speed) }}
               </span>
             </div>
 
-            <button
-              v-if="task.status === 'completed' || task.status === 'error' || task.status === 'canceled'"
-              class="tq-remove-btn"
-              :title="t('common.remove')"
-              @click.stop="removeTask(task.id)"
-            >
-              <UiIcon name="x-mark" :size="12" />
-            </button>
-          </div>
+            <Transition name="tq-expand">
+              <div v-if="task.expanded" class="tq-task-detail">
+                <div class="tq-task-message">
+                  <span class="tq-msg-label">{{ t('taskQueue.currentStatus') }}</span>
+                  <span>{{ task.message }}</span>
+                </div>
 
-          <!-- 下载统计：文件数 / 字节进度 / 实时速度 -->
-          <div v-if="showTaskStats(task)" class="tq-task-stats">
-            <span v-if="task.totalFiles != null" class="tq-stat tq-stat-files">
-              <UiIcon name="file-text" :size="12" />
-              {{ task.downloadedFiles ?? 0 }} / {{ task.totalFiles }} {{ t('taskQueue.files') }}
-            </span>
-            <span v-if="task.progressType === 'bytes' && task.total" class="tq-stat tq-stat-bytes">
-              {{ formatBytes(task.done ?? 0) }} / {{ formatBytes(task.total) }}
-            </span>
-            <span v-if="task.status === 'running' && task.speed" class="tq-stat tq-stat-speed">
-              <UiIcon name="download" :size="12" />
-              {{ formatSpeed(task.speed) }}
-            </span>
-          </div>
-
-          <Transition name="tq-expand">
-            <div v-if="task.expanded" class="tq-task-detail">
-              <div class="tq-task-message">
-                <span class="tq-msg-label">{{ t('taskQueue.currentStatus') }}</span>
-                <span>{{ task.message }}</span>
-              </div>
-
-              <div v-if="task.subtasks.length > 0" class="tq-subtasks">
-                <div v-for="sub in task.subtasks" :key="sub.id" :class="['tq-subtask', `tq-subtask--${sub.status}`]">
-                  <UiIcon v-if="sub.status === 'running'" name="spinner" :size="12" class="spin" />
-                  <UiIcon v-else-if="sub.status === 'completed'" name="check" :size="12" class="tq-icon-success" />
-                  <UiIcon v-else-if="sub.status === 'error'" name="x-mark" :size="12" class="tq-icon-error" />
-                  <UiIcon v-else name="circle" :size="8" class="tq-icon-muted" />
-                  <span class="tq-subtask-name">{{ sub.name }}</span>
-                  <span class="tq-subtask-msg">{{ sub.message }}</span>
+                <div v-if="task.subtasks.length > 0" class="tq-subtasks">
+                  <div v-for="sub in task.subtasks" :key="sub.id" :class="['tq-subtask', `tq-subtask--${sub.status}`]">
+                    <UiIcon v-if="sub.status === 'running'" name="spinner" :size="12" class="spin" />
+                    <UiIcon v-else-if="sub.status === 'completed'" name="check" :size="12" class="tq-icon-success" />
+                    <UiIcon v-else-if="sub.status === 'error'" name="x-mark" :size="12" class="tq-icon-error" />
+                    <UiIcon v-else name="circle" :size="8" class="tq-icon-muted" />
+                    <span class="tq-subtask-name">{{ sub.name }}</span>
+                    <span class="tq-subtask-msg">{{ sub.message }}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </Transition>
-          <PluginSlotHost
-            slotId="plugin-slot-task-queue-item-actions"
-            :contextKey="task.id"
-            class="plugin-slot-container"
-          />
+            </Transition>
+            <PluginSlotHost
+              slotId="plugin-slot-task-queue-item-actions"
+              :contextKey="task.id"
+              class="plugin-slot-container"
+            />
+          </div>
         </div>
+
+        <!-- 实时下载详情卡：仅存在下载指标的任务时显示 -->
+        <Transition name="tq-fade">
+          <div v-if="activeDownload" class="tq-live">
+            <div class="tq-live-header">
+              <div class="tq-live-title">
+                <UiIcon name="download" :size="16" class="tq-live-title-icon" />
+                <span>{{ t('taskQueue.liveTitle') }}</span>
+              </div>
+              <span v-if="activeDownload.totalFiles != null" class="tq-live-filecount">
+                {{ t('taskQueue.filesProgress', { done: activeDownload.downloadedFiles ?? 0, total: activeDownload.totalFiles }) }}
+              </span>
+            </div>
+
+            <div class="tq-live-name">{{ activeDownload.name }}</div>
+            <div class="tq-live-msg">{{ activeDownload.message }}</div>
+
+            <!-- 实时网速曲线图 -->
+            <div class="tq-live-chart">
+              <span class="tq-live-chart-badge">
+                {{ activeDownload.speed && activeDownload.speed > 0 ? formatSpeed(activeDownload.speed) : '—' }}
+              </span>
+              <svg
+                class="tq-live-chart-svg"
+                viewBox="0 0 100 36"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <polygon
+                  v-if="chartArea"
+                  :points="chartArea"
+                  class="tq-live-chart-area"
+                />
+                <polyline
+                  v-if="chartLine"
+                  :points="chartLine"
+                  class="tq-live-chart-line"
+                />
+              </svg>
+              <span class="tq-live-chart-window">
+                {{ t('taskQueue.chartWindow', { seconds: speedSamples.length }) }}
+              </span>
+              <span v-if="chartPeak" class="tq-live-chart-peak">
+                {{ t('taskQueue.peakLabel') }} {{ formatSpeed(chartPeak) }}
+              </span>
+            </div>
+
+            <div class="tq-live-metrics">
+              <div class="tq-live-metric">
+                <span class="tq-live-metric-label">{{ t('taskQueue.elapsedLabel') }}</span>
+                <span class="tq-live-metric-value">{{ formatDuration(elapsed) }}</span>
+              </div>
+              <div class="tq-live-metric">
+                <span class="tq-live-metric-label">{{ t('taskQueue.remainingLabel') }}</span>
+                <span class="tq-live-metric-value">{{ remainingText }}</span>
+              </div>
+            </div>
+
+            <div class="tq-live-progress">
+              <div class="tq-progress-bar tq-live-bar">
+                <div
+                  class="tq-progress-fill"
+                  :class="{ 'tq-progress--indeterminate': livePct <= 0 }"
+                  :style="{ width: livePct > 0 ? livePct + '%' : undefined }"
+                />
+              </div>
+              <span class="tq-live-pct">
+                {{ livePct > 0 ? livePct + '%' : '...' }}
+              </span>
+            </div>
+          </div>
+        </Transition>
       </div>
     </div>
   </FullscreenModal>
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
@@ -137,6 +211,16 @@ const completedCount = computed(
   () => tasks.value.filter((t) => t.status === 'completed' || t.status === 'error' || t.status === 'canceled').length
 )
 
+/** 正在下载且携带下载指标（字节/速度优先，其次文件数）的任务，作为实时下载卡的数据源 */
+const activeDownload = computed(() => {
+  const running = tasks.value.filter((t) => t.status === 'running')
+  return (
+    running.find((t) => t.progressType === 'bytes' || (t.speed != null && t.speed > 0)) ??
+    running.find((t) => t.totalFiles != null || t.downloadedFiles != null) ??
+    null
+  )
+})
+
 function formatBytes(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes <= 0) return '0 B'
   const units = ['B', 'KB', 'MB', 'GB']
@@ -148,6 +232,97 @@ function formatBytes(bytes: number): string {
 function formatSpeed(speed: number): string {
   return `${formatBytes(speed)}/s`
 }
+
+function formatDuration(seconds: number): string {
+  const s = Math.max(0, Math.floor(seconds))
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const h = Math.floor(s / 3600)
+  const m = Math.floor((s % 3600) / 60)
+  const sec = s % 60
+  return h > 0 ? `${pad(h)}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`
+}
+
+const livePct = computed(() => {
+  const task = activeDownload.value
+  if (!task) return 0
+  if (task.totalFiles != null && task.totalFiles > 0) {
+    return Math.round(((task.downloadedFiles ?? 0) / task.totalFiles) * 100)
+  }
+  if (task.progressType === 'bytes' && task.total) {
+    return Math.round(((task.done ?? 0) / task.total) * 100)
+  }
+  return task.progress
+})
+
+/** 下载中实时刷新经过时间与网速采样（从任务创建时刻起） */
+const elapsed = ref(0)
+const MAX_SAMPLES = 60
+const speedSamples = ref<number[]>([])
+let liveTimer: ReturnType<typeof setInterval> | null = null
+
+function updateTick(): void {
+  const task = activeDownload.value
+  elapsed.value = task ? Math.floor((Date.now() - task.timestamp) / 1000) : 0
+  const speed = task?.speed != null && task.speed > 0 ? task.speed : 0
+  speedSamples.value.push(speed)
+  if (speedSamples.value.length > MAX_SAMPLES) speedSamples.value.shift()
+}
+
+watch(activeDownload, (task) => {
+  if (liveTimer) {
+    clearInterval(liveTimer)
+    liveTimer = null
+  }
+  speedSamples.value = []
+  if (task) {
+    updateTick()
+    liveTimer = setInterval(updateTick, 1000)
+  } else {
+    elapsed.value = 0
+  }
+})
+
+onBeforeUnmount(() => {
+  if (liveTimer) clearInterval(liveTimer)
+})
+
+/** 网速曲线图几何：以窗口内最大速率归一化绘制折线与填充区域 */
+const CHART_W = 100
+const CHART_H = 36
+const chartPeak = computed(() => {
+  const peak = Math.max(0, ...speedSamples.value)
+  return peak > 0 ? peak : 0
+})
+const chartLine = computed(() => {
+  const n = speedSamples.value.length
+  if (n === 0) return ''
+  const max = chartPeak.value || 1
+  return speedSamples.value
+    .map((s, i) => {
+      const x = n === 1 ? 0 : (i / (n - 1)) * CHART_W
+      const y = CHART_H - Math.min(1, s / max) * (CHART_H - 4) - 2
+      return `${x.toFixed(2)},${y.toFixed(2)}`
+    })
+    .join(' ')
+})
+const chartArea = computed(() => {
+  const n = speedSamples.value.length
+  if (n < 2) return ''
+  const line = chartLine.value
+  if (!line) return ''
+  const lastX = n === 1 ? 0 : CHART_W
+  return `0,${CHART_H} ${line} ${lastX},${CHART_H}`
+})
+
+/** 字节进度依据实时速度估算剩余时间；文件/无量纲进度无剩余时间 */
+const remainingText = computed(() => {
+  const task = activeDownload.value
+  const speed = task?.speed ?? 0
+  if (task?.progressType === 'bytes' && task.total && speed > 0) {
+    return formatDuration((task.total - (task.done ?? 0)) / speed)
+  }
+  return '—'
+})
 
 function showTaskStats(task: TaskItem): boolean {
   return (
@@ -170,28 +345,6 @@ function toggleExpand(taskId: string) {
     task.expanded = !task.expanded
   }
 }
-
-let closeTimer: ReturnType<typeof setTimeout> | null = null
-
-function cancelAutoClose() {
-  if (closeTimer) {
-    clearTimeout(closeTimer)
-    closeTimer = null
-  }
-}
-
-watch(activeCount, (val, oldVal) => {
-  cancelAutoClose()
-  if (val === 0 && oldVal > 0 && panelVisible.value) {
-    closeTimer = setTimeout(() => {
-      panelVisible.value = false
-    }, 2000)
-  }
-})
-
-watch(panelVisible, (val) => {
-  if (!val) cancelAutoClose()
-})
 </script>
 
 <style scoped src="@/styles/components/panels/TaskQueuePanel.css"></style>

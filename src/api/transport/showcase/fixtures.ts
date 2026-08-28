@@ -359,6 +359,13 @@ export interface DemoTaskDef {
   versionId: string
   loaderType: string
   subtasks?: { id: string; name: string; status: 'pending' | 'running' | 'completed' | 'error'; message: string }[]
+  /** 下载指标：进度模式/已完成量/总量/文件数/速度，用于演示实时下载卡 */
+  progressType?: 'bytes' | 'files'
+  done?: number
+  total?: number
+  totalFiles?: number
+  downloadedFiles?: number
+  speed?: number
 }
 
 /** Demo task definitions for showcase mode */
@@ -371,6 +378,12 @@ export const showcaseDemoTasks: DemoTaskDef[] = [
     message: '正在下载 client.jar (12.4 MB / 18.9 MB)',
     versionId: '1.21.5',
     loaderType: 'Vanilla',
+    progressType: 'bytes',
+    done: 13.4 * 1024 * 1024,
+    total: 18.9 * 1024 * 1024,
+    totalFiles: 128,
+    downloadedFiles: 83,
+    speed: 3.2 * 1024 * 1024,
     subtasks: [
       { id: 'sub1', name: '下载 JSON 索引', status: 'completed', message: '已完成' },
       { id: 'sub2', name: '下载 client.jar', status: 'running', message: '65%' },
@@ -437,7 +450,12 @@ export const showcaseDemoTasks: DemoTaskDef[] = [
 /** Load demo tasks into the global task queue (call once in showcase mode) */
 export function loadShowcaseTasks(globalTaskQueue: {
   addTask: (task: { type: 'install' | 'download'; name: string; versionId: string; loaderType: string }) => string
-  updateTask: (id: string, updates: Partial<Pick<TaskItem, 'status' | 'progress' | 'message' | 'subtasks'>>) => void
+  updateTask: (
+    id: string,
+    updates: Partial<
+      Pick<TaskItem, 'status' | 'progress' | 'message' | 'subtasks' | 'progressType' | 'done' | 'total' | 'totalFiles' | 'downloadedFiles' | 'speed'>
+    >
+  ) => void
   addSubtask: (
     id: string,
     subtask: { id: string; name: string; status: 'pending' | 'running' | 'completed' | 'error'; message: string }
@@ -454,6 +472,12 @@ export function loadShowcaseTasks(globalTaskQueue: {
       status: def.status,
       progress: def.progress,
       message: def.message,
+      progressType: def.progressType,
+      done: def.done,
+      total: def.total,
+      totalFiles: def.totalFiles,
+      downloadedFiles: def.downloadedFiles,
+      speed: def.speed,
     })
     if (def.subtasks) {
       for (const sub of def.subtasks) {

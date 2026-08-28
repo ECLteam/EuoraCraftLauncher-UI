@@ -293,6 +293,8 @@ export interface LaunchInstanceResult {
 export interface InstallProgress {
   phase: InstallPhase
   task_id?: string
+  /** 任务显示名（供未预先创建任务时前端自动建条目，如启动期补下载） */
+  name?: string
   done?: number
   total?: number
   /** 进度模式：'bytes' 表示 done/total 为字节数，'files' 表示文件数 */

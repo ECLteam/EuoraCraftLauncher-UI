@@ -51,9 +51,11 @@ export const useTaskQueueStore = defineStore('taskQueue', () => {
   }
 
   function addTask(
-    task: Omit<TaskItem, 'id' | 'timestamp' | 'subtasks' | 'expanded' | 'progress' | 'message' | 'status'>
+    task: Omit<TaskItem, 'id' | 'timestamp' | 'subtasks' | 'expanded' | 'progress' | 'message' | 'status'>,
+    preferredId?: string
   ): string {
-    const id = generateTaskId()
+    // 外部已确定任务 ID（如启动期由后端上报）时沿用，避免进度事件对不上任务。
+    const id = preferredId && !tasks.value.some((t) => t.id === preferredId) ? preferredId : generateTaskId()
     const item: TaskItem = {
       ...task,
       id,

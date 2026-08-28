@@ -372,10 +372,27 @@ onMounted(async () => {
   // 演示模式下加载示例任务数据
   if (appRuntime.isShowcaseMode.value) {
     loadShowcaseTasks(globalTaskQueue)
+    startShowcaseSpeedSimulation()
   }
 })
 
+/** 演示模式：让运行中的下载任务速度随机波动，便于查看实时网速曲线 */
+let showcaseSpeedTimer: ReturnType<typeof setInterval> | null = null
+function startShowcaseSpeedSimulation(): void {
+  const randomSpeed = () => (2 + Math.random() * 9) * 1024 * 1024
+  showcaseSpeedTimer = setInterval(() => {
+    const task = globalTaskQueue.tasks.value.find((t) => t.status === 'running')
+    if (task) {
+      globalTaskQueue.updateTask(task.id, { speed: randomSpeed() })
+    }
+  }, 800)
+}
+
 onUnmounted(() => {
+  if (showcaseSpeedTimer) {
+    clearInterval(showcaseSpeedTimer)
+    showcaseSpeedTimer = null
+  }
   appRuntime.stop()
 })
 </script>

@@ -9,23 +9,24 @@
 }
 
 .tq-content {
-  flex: 1;
-  overflow-y: auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   padding: var(--s-lg);
 }
 
 .tq-empty {
   display: flex;
-  max-width: 720px;
-  margin: 0 auto;
+  flex: 1;
+  min-height: 280px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: var(--s-4xl) var(--s-lg);
   text-align: center;
   border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--bg-elevated);
+  border-radius: var(--ecl-radius-card);
+  background: var(--bg-surface);
 }
 
 .tq-empty-icon {
@@ -47,18 +48,25 @@
   margin: 0;
 }
 
-.tq-list {
-  max-width: 720px;
-  margin: 0 auto;
+.tq-body {
   display: flex;
   flex-direction: column;
-  gap: var(--s-sm);
+  gap: var(--s-lg);
+  flex-shrink: 0;
+}
+
+/* 任务列表：全宽大卡片 */
+.tq-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-md);
 }
 
 .tq-task {
+  width: 100%;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
-  border-radius: var(--r-sm);
+  border-radius: var(--ecl-radius-card);
   overflow: hidden;
   transition:
     border-color var(--duration-fast) var(--ease-standard),
@@ -101,8 +109,8 @@
 
 .tq-task-icon {
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -116,7 +124,7 @@
 }
 
 .tq-task-name {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--text-primary);
   white-space: nowrap;
@@ -128,7 +136,7 @@
   display: flex;
   align-items: center;
   gap: var(--s-xs);
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 .tq-task-type,
@@ -180,7 +188,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: var(--s-md);
-  padding: 0 var(--s-lg) var(--s-sm) 56px;
+  padding: 0 var(--s-lg) var(--s-md) 60px;
   font-size: 11px;
   color: var(--text-secondary);
 }
@@ -234,7 +242,7 @@
 }
 
 .tq-task-detail {
-  padding: 0 var(--s-lg) var(--s-lg) 56px;
+  padding: 0 var(--s-lg) var(--s-lg) 60px;
   border-top: 1px solid var(--divider);
   background: var(--bg-base);
 }
@@ -343,3 +351,183 @@
   cursor: not-allowed;
 }
 
+/* ── 实时下载详情卡 ─────────────────────────────────────────── */
+.tq-live {
+  padding: var(--s-xl);
+  border: 1px solid var(--border);
+  border-radius: var(--ecl-radius-card);
+  background: var(--bg-surface);
+  box-shadow: var(--ecl-shadow-surface);
+}
+
+.tq-live-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-md);
+  margin-bottom: var(--s-md);
+}
+
+.tq-live-title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tq-live-title-icon {
+  color: var(--primary);
+}
+
+.tq-live-filecount {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+.tq-live-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tq-live-msg {
+  margin-top: var(--s-xs);
+  font-size: 12px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tq-live-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--s-md);
+  margin-top: var(--s-md);
+}
+
+.tq-live-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--s-sm) var(--s-md);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--bg-base);
+}
+
+.tq-live-metric-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.tq-live-metric-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* ── 实时网速曲线图 ──────────────────────────────────────── */
+.tq-live-chart {
+  position: relative;
+  margin-top: var(--s-lg);
+  height: 120px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--bg-base);
+  overflow: hidden;
+}
+
+.tq-live-chart-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.tq-live-chart-area {
+  fill: var(--ecl-primary-alpha);
+}
+
+.tq-live-chart-line {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.tq-live-chart-badge {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  z-index: 1;
+  padding: 2px 8px;
+  border-radius: var(--r-xs);
+  background: color-mix(in srgb, var(--ecl-surface) 72%, transparent);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.tq-live-chart-window {
+  position: absolute;
+  right: 10px;
+  bottom: 6px;
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.tq-live-chart-peak {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.tq-live-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--s-md);
+  margin-top: var(--s-lg);
+}
+
+.tq-live-bar {
+  height: 6px;
+}
+
+.tq-live-pct {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  min-width: 36px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.tq-fade-enter-active,
+.tq-fade-leave-active {
+  transition: all var(--duration-normal) var(--ease-standard);
+}
+
+.tq-fade-enter-from,
+.tq-fade-leave-to {
+  opacity: 0;
+  transform: translateY(4px);
+}
