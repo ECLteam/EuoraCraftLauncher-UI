@@ -117,6 +117,9 @@ export interface ProcessInstance {
 
 export type LauncherPopupLevel = 'info' | 'warning' | 'critical'
 
+/** 弹窗来源决定优先级可用区段：插件被限制在低区段，高区段保留给启动器。 */
+export type LauncherPopupSource = 'launcher' | 'plugin'
+
 export interface LauncherPopupEvent {
   id: string
   title: string
@@ -124,6 +127,15 @@ export interface LauncherPopupEvent {
   level?: LauncherPopupLevel
   dismissible?: boolean
   cacheable?: boolean
+  /** 显示优先级，数值越大越先展示；插件来源会被钳制到低区段。 */
+  priority?: number
+  /** 事件来源，插件事件无法占用启动器保留的高优先级区段。 */
+  source?: LauncherPopupSource
+  /** 严重错误事件的扩展字段（由错误弹窗渲染），普通公告无需提供。 */
+  errorId?: string
+  detail?: string
+  kind?: 'game_crash'
+  crash?: CrashAnalysisResult
   /** @deprecated 使用 cacheable；保留用于兼容已有后端事件。 */
   once?: boolean
 }
@@ -154,4 +166,3 @@ export interface ProcessLogEntry {
   type: string
   line: string
 }
-
