@@ -10,7 +10,7 @@
         @click="openRunningInstances"
       >
         <UiIcon name="power" :size="20" />
-        <span>{{ t('versions.runningManagement') }}</span>
+        <span class="trigger-label">{{ t('versions.runningManagement') }}</span>
       </button>
     </div>
 

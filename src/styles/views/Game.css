@@ -20,13 +20,14 @@
 }
 
 .running-instances-trigger {
-  display: inline-flex;
-  width: fit-content;
+  display: flex;
+  width: 44px;
   height: 44px;
   margin-top: auto;
   align-items: center;
-  gap: 8px;
-  padding: 0 16px;
+  justify-content: center;
+  gap: 0;
+  padding: 0;
   border: 1px solid color-mix(in srgb, var(--primary), white 24%);
   border-radius: var(--r-full);
   background: var(--primary);
@@ -38,11 +39,35 @@
   font-weight: 600;
   white-space: nowrap;
   transition:
+    width 0.28s var(--ease-standard),
+    justify-content 0.28s var(--ease-standard),
+    padding 0.28s var(--ease-standard),
     background var(--duration-fast) ease-out,
     box-shadow var(--duration-fast) ease-out;
 }
 
+.running-instances-trigger .trigger-label {
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition:
+    max-width 0.28s var(--ease-standard),
+    opacity 0.2s var(--ease-standard),
+    margin 0.28s var(--ease-standard);
+}
+
+.running-instances-trigger:hover .trigger-label {
+  max-width: 140px;
+  opacity: 1;
+  margin-left: 10px;
+}
+
 .running-instances-trigger:hover {
+  width: 140px;
+  justify-content: flex-start;
+  padding: 0 14px;
   background: var(--primary-hover);
   box-shadow: 0 10px 26px color-mix(in srgb, var(--primary), transparent 56%);
 }
