@@ -1,12 +1,15 @@
 import { mount } from '@vue/test-utils'
+import { createPinia } from 'pinia'
 import { describe, expect, it } from 'vitest'
+import { nextTick } from 'vue'
+import { MAX_PINNED_ITEMS, type RecentInstance } from '@/composables/useRecentInstances'
 import { i18n } from '@/i18n'
 import GameLaunchBar from './GameLaunchBar.vue'
 
 function mountLaunchBar(overrides: Partial<InstanceType<typeof GameLaunchBar>['$props']> = {}) {
   return mount(GameLaunchBar, {
     global: {
-      plugins: [i18n],
+      plugins: [i18n, createPinia()],
     },
     props: {
       versionsCount: 1,
@@ -18,6 +21,22 @@ function mountLaunchBar(overrides: Partial<InstanceType<typeof GameLaunchBar>['$
       ...overrides,
     },
   })
+}
+
+function makeRecent(count: number, pinnedCount = 0): RecentInstance[] {
+  return Array.from({ length: count }, (_, index) => ({
+    versionId: `v${index}`,
+    versionName: `版本${index}`,
+    gamePath: `C:/games/path${index}`,
+    timestamp: index,
+    pinned: index < pinnedCount,
+  }))
+}
+
+async function openRecentPopover(wrapper: ReturnType<typeof mountLaunchBar>) {
+  await wrapper.get('.split-arrow').trigger('click')
+  await nextTick()
+  await nextTick()
 }
 
 describe('GameLaunchBar', () => {
@@ -79,5 +98,62 @@ describe('GameLaunchBar', () => {
     const wrapper = mountLaunchBar({ hasAccount: false })
 
     expect(wrapper.get<HTMLButtonElement>('.split-main').element.disabled).toBe(true)
+  })
+
+  it('最近实例不超过 5 个时单列展示', async () => {
+    const wrapper = mountLaunchBar({ recentInstances: makeRecent(3) })
+    await openRecentPopover(wrapper)
+
+    const list = document.body.querySelector('.recent-instances-list')
+    expect(list).not.toBeNull()
+    expect(list?.classList.contains('two-columns')).toBe(false)
+    expect(document.body.querySelectorAll('.recent-instance-item')).toHaveLength(3)
+  })
+
+  it('最近实例超过 5 个时以两列展示', async () => {
+    const wrapper = mountLaunchBar({ recentInstances: makeRecent(6) })
+    await openRecentPopover(wrapper)
+
+    const list = document.body.querySelector('.recent-instances-list')
+    expect(list?.classList.contains('two-columns')).toBe(true)
+    expect(document.body.querySelectorAll('.recent-instance-item')).toHaveLength(6)
+  })
+
+  it('固定与删除操作发出对应事件且不影响选中', async () => {
+    const wrapper = mountLaunchBar({ recentInstances: makeRecent(2) })
+    await openRecentPopover(wrapper)
+
+    const items = document.body.querySelectorAll('.recent-instance-item')
+    // 第一项：固定（pin）+ 第二项：删除（delete）
+    const firstPin = items[0]?.querySelectorAll('.recent-action-btn')[0] as HTMLElement | undefined
+    const secondDelete = items[1]?.querySelectorAll('.recent-action-btn')[1] as HTMLElement | undefined
+    expect(firstPin).toBeDefined()
+    expect(secondDelete).toBeDefined()
+    firstPin?.click()
+    secondDelete?.click()
+    await nextTick()
+
+    expect(wrapper.emitted('togglePin')).toHaveLength(1)
+    expect(wrapper.emitted('togglePin')?.[0]).toEqual([makeRecent(2)[0]])
+    expect(wrapper.emitted('removeRecent')).toHaveLength(1)
+    expect(wrapper.emitted('removeRecent')?.[0]).toEqual([makeRecent(2)[1]])
+    expect(wrapper.emitted('selectVersion')).toBeUndefined()
+  })
+
+  it('已固定条目展示固定标记，达到上限后未固定条目的固定按钮被禁用', async () => {
+    const wrapper = mountLaunchBar({ recentInstances: makeRecent(MAX_PINNED_ITEMS + 1, MAX_PINNED_ITEMS) })
+    await openRecentPopover(wrapper)
+
+    const items = document.body.querySelectorAll('.recent-instance-item')
+    expect(items[0]?.classList.contains('pinned')).toBe(true)
+    expect(items[0]?.querySelector('.recent-pin-flag')).not.toBeNull()
+
+    const unpinnedItem = items[MAX_PINNED_ITEMS]
+    expect(unpinnedItem).toBeDefined()
+    const unpinnedPinButton = unpinnedItem?.querySelectorAll('.recent-action-btn')[0] as HTMLElement
+    expect(unpinnedPinButton.classList.contains('disabled')).toBe(true)
+    unpinnedPinButton.click()
+    await nextTick()
+    expect(wrapper.emitted('togglePin')).toBeUndefined()
   })
 })

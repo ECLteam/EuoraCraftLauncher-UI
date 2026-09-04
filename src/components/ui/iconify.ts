@@ -52,6 +52,7 @@ export const ICON_MAP: Record<string, string> = {
   star: 'star',
   'star-filled': 'star-filled',
   pin: 'pin',
+  'pin-filled': 'pin-filled',
   tags: 'tags',
   'eye-off': 'eye-off',
   'filter-off': 'filter-off',

@@ -22,28 +22,53 @@
               <UiIcon name="chevron-up" :size="14" />
             </button>
           </template>
-          <div class="recent-instances-popover">
+          <div class="recent-instances-popover" :class="{ wide: recentInstances.length > 5 }">
             <div class="recent-popover-header">
               {{ t('game.recentInstances') }}
             </div>
             <div v-if="recentInstances.length === 0" class="recent-popover-empty">
               {{ t('game.noRecentInstances') }}
             </div>
-            <button
-              v-for="item in recentInstances"
-              :key="`${item.gamePath}\0${item.versionId}`"
-              class="recent-instance-item"
-              :class="{ active: item.versionId === selectedVersion && item.gamePath === currentGamePath }"
-              @click="handleSelectRecent(item)"
-            >
-              <span class="recent-instance-name">{{ instanceNameOf(item) }}</span>
-              <span v-if="instancePathNameOf(item)" class="recent-instance-path">{{ instancePathNameOf(item) }}</span>
-              <UiIcon
-                v-if="item.versionId === selectedVersion && item.gamePath === currentGamePath"
-                name="check"
-                :size="12"
-              />
-            </button>
+            <div v-else class="recent-instances-list" :class="{ 'two-columns': recentInstances.length > 5 }">
+              <button
+                v-for="item in recentInstances"
+                :key="`${item.gamePath}\0${item.versionId}`"
+                class="recent-instance-item"
+                :class="{ active: item.versionId === selectedVersion && item.gamePath === currentGamePath, pinned: item.pinned }"
+                @click="handleSelectRecent(item)"
+              >
+                <UiIcon v-if="item.pinned" name="pin-filled" :size="11" class="recent-pin-flag" />
+                <span class="recent-instance-name">{{ instanceNameOf(item) }}</span>
+                <span v-if="instancePathNameOf(item)" class="recent-instance-path">{{ instancePathNameOf(item) }}</span>
+                <span class="recent-item-actions" @click.stop>
+                  <span
+                    role="button"
+                    tabindex="-1"
+                    class="recent-action-btn"
+                    :class="{ active: item.pinned, disabled: !item.pinned && pinCapReached }"
+                    :aria-disabled="!item.pinned && pinCapReached"
+                    :title="pinTitle(item)"
+                    @click.stop="handleTogglePin(item)"
+                  >
+                    <UiIcon :name="item.pinned ? 'pin-filled' : 'pin'" :size="12" />
+                  </span>
+                  <span
+                    role="button"
+                    tabindex="-1"
+                    class="recent-action-btn danger"
+                    :title="t('app.delete')"
+                    @click.stop="handleRemoveRecent(item)"
+                  >
+                    <UiIcon name="delete" :size="12" />
+                  </span>
+                </span>
+                <UiIcon
+                  v-if="item.versionId === selectedVersion && item.gamePath === currentGamePath"
+                  name="check"
+                  :size="12"
+                />
+              </button>
+            </div>
           </div>
         </NPopover>
       </div>
@@ -89,16 +114,17 @@
 
 <script setup lang="ts">
 import { NButton, NPopover } from 'naive-ui'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
-import type { RecentInstance } from '@/composables/useRecentInstances'
+import { MAX_PINNED_ITEMS, type RecentInstance } from '@/composables/useRecentInstances'
 import { instanceDisplayName } from '@/features/instances/model/instancePresentation'
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import { normalizeGamePath } from '@/utils/path'
 
-defineProps<{
+const props = defineProps<{
   versionsCount: number
   launching: boolean
   selectedVersion: string
@@ -112,10 +138,14 @@ const emit = defineEmits<{
   manageVersions: []
   versionSettings: []
   selectVersion: [versionId: string, gamePath?: string]
+  togglePin: [item: RecentInstance]
+  removeRecent: [item: RecentInstance]
 }>()
 
 const instanceStore = useInstanceStore()
 const settingsStore = useSettingsStore()
+
+const pinCapReached = computed(() => props.recentInstances.filter((item) => item.pinned).length >= MAX_PINNED_ITEMS)
 
 const getPathDisplayName = (gamePath: string): string => {
   const parts = gamePath.replace(/[\\/]+$/, '').split(/[\\/]/)
@@ -139,8 +169,22 @@ function instancePathNameOf(item: RecentInstance): string {
   return typeof entry === 'string' ? getPathDisplayName(entry) : entry.name || getPathDisplayName(entry.path)
 }
 
+function pinTitle(item: RecentInstance): string {
+  if (item.pinned) return t('game.recentUnpin')
+  return pinCapReached.value ? t('game.recentPinLimit') : t('game.recentPin')
+}
+
 function handleSelectRecent(item: RecentInstance) {
   emit('selectVersion', item.versionId, item.gamePath)
+}
+
+function handleTogglePin(item: RecentInstance) {
+  if (!item.pinned && pinCapReached.value) return
+  emit('togglePin', item)
+}
+
+function handleRemoveRecent(item: RecentInstance) {
+  emit('removeRecent', item)
 }
 
 const { t } = useI18n()
@@ -284,6 +328,10 @@ const { t } = useI18n()
   box-shadow: var(--shadow-lg);
 }
 
+.recent-instances-popover.wide {
+  min-width: 340px;
+}
+
 .recent-popover-header {
   padding: 6px 10px 4px;
   font-size: 11px;
@@ -298,6 +346,18 @@ const { t } = useI18n()
   font-size: 12px;
   color: var(--text-tertiary);
   text-align: center;
+}
+
+.recent-instances-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.recent-instances-list.two-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 6px;
 }
 
 .recent-instance-item {
@@ -327,10 +387,6 @@ const { t } = useI18n()
   font-weight: 600;
 }
 
-.recent-instance-item:not(:last-child) {
-  margin-bottom: 1px;
-}
-
 .recent-instance-name {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -348,6 +404,74 @@ const { t } = useI18n()
   font-size: 10px;
   font-weight: 400;
   color: var(--text-tertiary);
+}
+
+/* 两列时单元格更窄，路径允许换行省略并让出宽度 */
+.recent-instances-list.two-columns .recent-instance-path {
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: none;
+}
+
+.recent-pin-flag {
+  flex-shrink: 0;
+  color: var(--primary);
+}
+
+.recent-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
+.recent-instance-item:hover .recent-item-actions,
+.recent-instance-item.pinned .recent-item-actions {
+  opacity: 1;
+}
+
+.recent-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: var(--r-xs);
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+.recent-action-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.recent-action-btn.active {
+  color: var(--primary);
+}
+
+.recent-action-btn.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.recent-action-btn.disabled:hover {
+  background: transparent;
+  color: var(--text-tertiary);
+}
+
+.recent-action-btn.danger:hover {
+  background: var(--error-alpha);
+  color: var(--error);
 }
 
 /* ========== 管理按钮 ========== */

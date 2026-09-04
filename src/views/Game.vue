@@ -65,6 +65,8 @@
         @manageVersions="goToInstallVersion"
         @versionSettings="openVersionSettings"
         @selectVersion="handleSelectVersion"
+        @togglePin="handleTogglePinRecent"
+        @removeRecent="handleRemoveRecentItem"
       />
     </div>
 
@@ -587,7 +589,7 @@ import UiIcon from '@/components/ui/Icon.vue'
 import { useAccountManager } from '@/composables/useAccountManager'
 import { useInstanceManager } from '@/composables/useInstanceManager'
 import { globalLaunchProgress } from '@/composables/useLaunchProgress'
-import { useRecentInstances } from '@/composables/useRecentInstances'
+import { useRecentInstances, type RecentInstance } from '@/composables/useRecentInstances'
 import { useUiSkin } from '@/composables/useUiSkin'
 import { getLoaderIcon, getLoaderImage, getVersionImage } from '@/config/version'
 import { accountsApi } from '@/features/accounts/api/accountsApi'
@@ -609,7 +611,7 @@ const router = useRouter()
 const account = useAccountManager(t)
 const { isFolia } = useUiSkin()
 const version = useInstanceManager(t)
-const { recentList, recordLaunch } = useRecentInstances()
+const { recentList, recordLaunch, togglePin, removeRecent } = useRecentInstances()
 const { progress: launchProgress, smoothPercent } = globalLaunchProgress
 const gameHomeStore = useGameHomeStore()
 const { hasGamePath } = storeToRefs(gameHomeStore)
@@ -815,6 +817,14 @@ function handleLaunch() {
 
 function handleSelectVersion(versionId: string, gamePath?: string) {
   version.selectVersion(versionId, gamePath)
+}
+
+function handleTogglePinRecent(item: RecentInstance) {
+  togglePin(item.versionId, item.gamePath)
+}
+
+function handleRemoveRecentItem(item: RecentInstance) {
+  removeRecent(item.versionId, item.gamePath)
 }
 
 function goToInstallVersion() {
