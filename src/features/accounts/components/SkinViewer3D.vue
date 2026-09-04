@@ -198,7 +198,7 @@ onBeforeUnmount(() => {
   inset: auto var(--s-md) var(--s-md);
   padding: var(--s-sm) var(--s-md);
   border-radius: var(--r-md);
-  color: var(--error-color);
+  color: var(--error);
   background: var(--ecl-surface);
   text-align: center;
 }

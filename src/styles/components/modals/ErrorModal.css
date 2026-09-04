@@ -9,12 +9,12 @@
 }
 
 .error-modal-container .header-title .icon {
-  color: var(--danger);
+  color: var(--error);
   flex-shrink: 0;
 }
 
 .error-modal-container .modal-title {
-  color: var(--danger);
+  color: var(--error);
   font-weight: 700;
 }
 
