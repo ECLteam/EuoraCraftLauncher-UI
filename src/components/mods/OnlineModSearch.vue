@@ -517,7 +517,13 @@ import {
 } from '@/features/mods/model/modVersionGroups'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import type { DownloadConfig } from '@/types/config'
-import type { GameResourceType, MinecraftVersionCatalog, MinecraftVersionItem, MinecraftVersionType, ScannedVersion } from '@/types/instances'
+import type {
+  GameResourceType,
+  MinecraftVersionCatalog,
+  MinecraftVersionItem,
+  MinecraftVersionType,
+  ScannedVersion,
+} from '@/types/instances'
 import type { ModInfo, ModSearchItem, ModSourceReference, ModSourceStatus, ModVersion } from '@/types/mods'
 import { getErrorMessage } from '@/utils/error'
 
@@ -739,6 +745,11 @@ const pageCache = new Map<
   string,
   { results: ModSearchItem[]; total: number; sources: Record<string, ModSourceStatus> }
 >()
+/** pageCache 最大条目数，防止长会话大量搜索/翻页导致内存持续增长 */
+const PAGE_CACHE_MAX_ENTRIES = 60
+// 请求序号守卫：旧请求晚到时不得覆盖新请求的搜索结果与详情数据
+let searchRequestId = 0
+let sourceRequestId = 0
 
 function pageCacheKey(targetPage: number): string {
   const inst = instance.value
@@ -1190,6 +1201,8 @@ async function fetchPage(targetPage: number, force = false) {
   if (!force) {
     const cached = pageCache.get(key)
     if (cached) {
+      // 命中缓存同样要作废在途请求，避免慢响应稍后覆盖缓存结果
+      searchRequestId += 1
       results.value = cached.results
       total.value = cached.total
       sourceStatuses.value = cached.sources
@@ -1197,6 +1210,7 @@ async function fetchPage(targetPage: number, force = false) {
       return
     }
   }
+  const requestId = ++searchRequestId
   const inst = instance.value
   const loader = props.resourceType === 'mod' ? loaderFilter.value || inst?.primaryLoader || '' : ''
   const response = await run(() =>
@@ -1214,7 +1228,7 @@ async function fetchPage(targetPage: number, force = false) {
     message.error(getErrorMessage(error))
     return undefined
   })
-  if (!response) return
+  if (!response || requestId !== searchRequestId) return
   const items = response.items ?? []
   const totalCount = response.total ?? items.length
   const sources = response.sources ?? {}
@@ -1222,6 +1236,10 @@ async function fetchPage(targetPage: number, force = false) {
   total.value = totalCount
   sourceStatuses.value = sources
   page.value = targetPage
+  if (pageCache.size >= PAGE_CACHE_MAX_ENTRIES) {
+    const oldestKey = pageCache.keys().next().value
+    if (oldestKey !== undefined) pageCache.delete(oldestKey)
+  }
   pageCache.set(key, { results: items, total: totalCount, sources })
   saveState()
 }
@@ -1359,6 +1377,7 @@ watch([detailVersionFilter, detailLoaderFilter], () => {
 async function loadSelectedSource() {
   const platform = activeSourceRef.value
   if (!platform) return
+  const requestId = ++sourceRequestId
   detailInfo.value = null
   versions.value = []
   selectedGroupKey.value = ''
@@ -1382,6 +1401,8 @@ async function loadSelectedSource() {
         resource_type: props.resourceType,
       }),
     ])
+    // 请求已被更新的来源/弹窗切换作废，丢弃响应避免旧源数据装到新源上
+    if (requestId !== sourceRequestId) return
     detailInfo.value = info
     versions.value = files
     const preferred = preferredDetailFilter.value
@@ -1413,10 +1434,13 @@ async function loadSelectedSource() {
       if (matchingGroups.length) expandedVersionGroupKeys.value = matchingGroups.map((group) => group.key)
     }
   } catch (error) {
-    message.error(getErrorMessage(error))
+    if (requestId === sourceRequestId) message.error(getErrorMessage(error))
   } finally {
-    preferredDetailFilter.value = null
-    detailLoading.value = false
+    // 被更新的请求作废时不得清理 loading/偏好，交给最新请求处理
+    if (requestId === sourceRequestId) {
+      preferredDetailFilter.value = null
+      detailLoading.value = false
+    }
   }
 }
 
