@@ -65,7 +65,8 @@ onUnmounted(() => globalProcessInstances.dispose())
   align-items: center;
   gap: 8px;
   padding: 0 14px;
-  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  background: transparent;
   color: var(--text-secondary);
 }
 

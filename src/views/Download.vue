@@ -92,7 +92,7 @@ function switchTab(tab: DownloadTab) {
   border-bottom: 1px solid var(--ecl-border);
   color: var(--ecl-text);
   font-size: 13px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .download-nav-title :deep(svg) {

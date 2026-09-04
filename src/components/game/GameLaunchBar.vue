@@ -385,9 +385,9 @@ const { t } = useI18n()
   color: var(--text-primary) !important;
   font-size: 11px;
   font-weight: 600;
-  border: 1px solid var(--border-strong) !important;
-  background: var(--bg-elevated) !important;
-  box-shadow: var(--shadow-xs);
+  border: 1px solid var(--ecl-border) !important;
+  background: var(--ecl-surface) !important;
+  box-shadow: var(--ecl-shadow-surface);
   transition:
     background-color var(--duration-fast) var(--ease-standard),
     border-color var(--duration-fast) var(--ease-standard),
@@ -396,8 +396,8 @@ const { t } = useI18n()
 
 .launch-settings-button:hover:not(:disabled) {
   color: var(--primary) !important;
-  background: var(--bg-hover) !important;
-  border-color: var(--border-hover) !important;
+  background: var(--ecl-surface-muted) !important;
+  border-color: var(--ecl-border-strong) !important;
 }
 
 .launch-settings-button:disabled {
