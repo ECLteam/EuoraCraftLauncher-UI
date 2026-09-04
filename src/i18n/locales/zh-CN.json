@@ -900,6 +900,8 @@
     "fullscreen": "全屏启动",
     "fullscreenDesc": "启动时自动进入全屏模式",
     "runtime": "运行设置",
+    "windowSize": "窗口尺寸",
+    "windowSizeDesc": "游戏窗口的初始大小，全屏启动时不生效",
     "windowWidth": "窗口宽度",
     "windowHeight": "窗口高度",
     "save": "保存设置",

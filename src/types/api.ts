@@ -364,6 +364,7 @@ export interface CommandPayloadMap {
     memory?: number
     width?: number
     height?: number
+    fullscreen?: boolean
     jvm_args?: string[]
     game_args?: string[]
     version_isolation?: boolean

@@ -900,6 +900,8 @@
     "fullscreen": "Launch in Fullscreen",
     "fullscreenDesc": "Automatically enter fullscreen mode when launching",
     "runtime": "Runtime Settings",
+    "windowSize": "Window Size",
+    "windowSizeDesc": "Initial game window size; ignored when launching in fullscreen",
     "windowWidth": "Window Width",
     "windowHeight": "Window Height",
     "save": "Save Settings",

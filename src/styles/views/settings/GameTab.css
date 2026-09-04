@@ -16,6 +16,22 @@
   width: 320px;
 }
 
+.window-size-inputs {
+  display: flex;
+  align-items: center;
+  gap: var(--s-sm);
+}
+
+.window-size-input {
+  width: 130px;
+}
+
+.window-size-separator {
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  user-select: none;
+}
+
 .memory-manual-section {
   padding: 14px 16px 16px;
 }

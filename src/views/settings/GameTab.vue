@@ -125,6 +125,34 @@
       <SettingRow :label="t('settings.fullscreen')" :description="t('settings.fullscreenDesc')">
         <NSwitch :value="localSettings.fullscreen" @update:value="handleFullscreenToggle" />
       </SettingRow>
+
+      <SettingRow
+        v-if="!localSettings.fullscreen"
+        :label="t('settings.windowSize')"
+        :description="t('settings.windowSizeDesc')"
+      >
+        <div class="window-size-inputs">
+          <NInputNumber
+            :value="localSettings.game_width"
+            :min="320"
+            :max="16384"
+            :showButton="false"
+            class="window-size-input"
+            :placeholder="t('settings.windowWidth')"
+            @update:value="handleWidthChange"
+          />
+          <span class="window-size-separator">×</span>
+          <NInputNumber
+            :value="localSettings.game_height"
+            :min="240"
+            :max="16384"
+            :showButton="false"
+            class="window-size-input"
+            :placeholder="t('settings.windowHeight')"
+            @update:value="handleHeightChange"
+          />
+        </div>
+      </SettingRow>
     </SettingSection>
 
     <PluginSlotHost slotId="plugin-slot-settings-game-section-after" class="plugin-slot-container" />
@@ -132,7 +160,7 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NSelect, NSwitch } from 'naive-ui'
+import { NInputNumber, NButton, NSelect, NSwitch } from 'naive-ui'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -290,6 +318,8 @@ const saveConfig = async () => {
     java_path: localSettings.value.java_path,
     memory_auto: localSettings.value.memory_auto,
     memory_size: localSettings.value.memory_size,
+    game_width: localSettings.value.game_width,
+    game_height: localSettings.value.game_height,
     fullscreen: localSettings.value.fullscreen,
   }
   await run(async () => settingsStore.patchGame(config))
@@ -324,6 +354,25 @@ const handleMemoryAutoToggle = (value: boolean) => {
 const handleFullscreenToggle = (value: boolean) => {
   localSettings.value.fullscreen = value
   saveConfig()
+}
+
+// 全屏关闭时窗口尺寸才有意义；与后端归一化边界保持一致。
+const WINDOW_WIDTH_LIMITS = { min: 320, max: 16384, fallback: 854 }
+const WINDOW_HEIGHT_LIMITS = { min: 240, max: 16384, fallback: 480 }
+
+const normalizeWindowSize = (value: number | null, limits: { min: number; max: number; fallback: number }): number => {
+  if (value === null || Number.isNaN(value)) return limits.fallback
+  return Math.min(Math.max(Math.round(value), limits.min), limits.max)
+}
+
+const handleWidthChange = (value: number | null) => {
+  localSettings.value.game_width = normalizeWindowSize(value, WINDOW_WIDTH_LIMITS)
+  debouncedSaveConfig()
+}
+
+const handleHeightChange = (value: number | null) => {
+  localSettings.value.game_height = normalizeWindowSize(value, WINDOW_HEIGHT_LIMITS)
+  debouncedSaveConfig()
 }
 
 const handleJavaPathChange = (path: string) => {
