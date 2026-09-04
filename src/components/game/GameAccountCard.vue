@@ -42,7 +42,7 @@
 
 <script setup lang="ts">
 import { NButton, NCard, NDropdown } from 'naive-ui'
-import { computed } from 'vue'
+import { computed, h } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AvatarRenderer from '@/components/game/AvatarRenderer.vue'
 import UiIcon from '@/components/ui/Icon.vue'
@@ -68,6 +68,15 @@ const accountOptions = computed(() =>
       savedAccount.type
     )}`,
     key: savedAccount.id,
+    icon: () =>
+      h(AvatarRenderer, {
+        uuid: savedAccount.uuid,
+        username: savedAccount.alias,
+        typeName: savedAccount.type,
+        skinUrl: savedAccount.skinUrl,
+        accountId: savedAccount.id,
+        size: 20,
+      }),
   }))
 )
 
