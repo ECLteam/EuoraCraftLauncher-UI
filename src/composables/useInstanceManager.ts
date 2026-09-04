@@ -2,6 +2,7 @@ import { storeToRefs } from 'pinia'
 import { reactive, ref, type Ref, type UnwrapNestedRefs } from 'vue'
 import { useRouter } from 'vue-router'
 import backend from '@/api/client'
+import { notifyLauncherPopup } from '@/app/runtime/useLauncherPopupQueue'
 import {
   LAUNCH_PROGRESS,
   LAUNCH_SUCCESS_HIDE_DELAY,
@@ -199,7 +200,14 @@ export function useInstanceManager(t: (key: string, ...args: unknown[]) => strin
         setLaunchProgress(0, 'error', '已取消')
       } else if (!globalLaunchProgress.progress.value.canceled) {
         setLaunchProgress(0, 'error', launchResult.message || '启动失败')
-        message.error(launchResult.message || '启动失败')
+        // 启动失败直接阻断核心功能，使用高优先级弹窗确保用户知晓。
+        notifyLauncherPopup({
+          id: `game-launch-failed-${selectedVersion.value}`,
+          title: '游戏启动失败',
+          content: launchResult.message || '启动失败，请检查实例配置与日志后重试。',
+          level: 'critical',
+          priority: 80,
+        })
       }
       setTimeout(hideLaunchProgress, 2000)
       return

@@ -1,9 +1,14 @@
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import type { ApiResponse } from '@/types/api'
 import type { LauncherErrorEvent } from '@/types/system'
+import { launcherPopupQueue, type LauncherPopupQueue } from './useLauncherPopupQueue'
 
 const MAX_SEEN_ERRORS = 100
 const MESSAGE_SUPPRESSION_MS = 5000
+
+/** 严重错误弹窗优先级：游戏崩溃最高，其余后端 modal 级失败次之，均高于普通警告公告。 */
+const GAME_CRASH_PRIORITY = 90
+const MODAL_ERROR_PRIORITY = 85
 
 export class BackendCommandError extends Error {
   readonly errorCode?: string
@@ -37,13 +42,24 @@ function normalizeError(payload: LauncherErrorEvent): LauncherErrorEvent | null 
   }
 }
 
-export function createLauncherErrorQueue() {
-  const queue = ref<LauncherErrorEvent[]>([])
+export function createLauncherErrorQueue(popupQueue: LauncherPopupQueue = launcherPopupQueue) {
   const seenIds = new Set<string>()
   const seenOrder: string[] = []
   const suppressedMessages = new Map<string, number>()
 
-  const activeError = computed(() => queue.value[0] ?? null)
+  // 严重错误与公告共用统一弹窗队列；activeError 从队首还原错误事件结构。
+  const activeError = computed<LauncherErrorEvent | null>(() => {
+    const popup = popupQueue.activePopup.value
+    if (!popup?.errorId) return null
+    return {
+      error_id: popup.errorId,
+      title: popup.title,
+      message: popup.content,
+      detail: popup.detail,
+      kind: popup.kind,
+      crash: popup.crash,
+    }
+  })
   const visible = computed(() => activeError.value !== null)
 
   function remember(errorId: string): void {
@@ -64,12 +80,23 @@ export function createLauncherErrorQueue() {
     if (!error || seenIds.has(error.error_id)) return false
     remember(error.error_id)
     suppressMessage(error.message)
-    queue.value.push(error)
+    popupQueue.enqueuePopup({
+      id: error.error_id,
+      title: error.title,
+      content: error.message,
+      level: 'critical',
+      priority: error.kind === 'game_crash' ? GAME_CRASH_PRIORITY : MODAL_ERROR_PRIORITY,
+      source: 'launcher',
+      errorId: error.error_id,
+      detail: error.detail,
+      kind: error.kind,
+      crash: error.crash,
+    })
     return true
   }
 
   function dismissActive(): void {
-    queue.value.shift()
+    popupQueue.dismissActivePopup()
   }
 
   function consumeSuppressedMessage(message: string): boolean {

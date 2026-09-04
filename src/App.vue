@@ -140,6 +140,7 @@ import { loadShowcaseTasks } from '@/api/transport/showcase/fixtures'
 import { desktopWindow } from '@/app/runtime/desktopWindow'
 import { setErrorNotifier } from '@/app/runtime/errorPresentation'
 import { useAppRuntime } from '@/app/runtime/useAppRuntime'
+import { notifyLauncherPopup } from '@/app/runtime/useLauncherPopupQueue'
 import ModpackImportModal from '@/components/instances/ModpackImportModal.vue'
 import SideBar from '@/components/layout/SideBar.vue'
 import TitleBar from '@/components/layout/TitleBar.vue'
@@ -366,7 +367,13 @@ onMounted(async () => {
     await appRuntime.start()
   } catch (error) {
     console.error('[App] 应用运行层初始化失败:', error)
-    message.error(getErrorMessage(error, '应用初始化失败'), 10000)
+    notifyLauncherPopup({
+      id: 'app-init-failed',
+      title: '应用初始化失败',
+      content: getErrorMessage(error, '应用初始化失败，请查看日志排查后重启启动器。'),
+      level: 'critical',
+      priority: 90,
+    })
   }
 
   // 演示模式下加载示例任务数据

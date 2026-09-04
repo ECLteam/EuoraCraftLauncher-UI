@@ -37,6 +37,8 @@ export interface BackendEvents {
     type: 'info' | 'warning' | 'error'
     title: string
     message: string
+    /** 事件来源；插件来源的警告/错误弹窗优先级被钳制在低区段。 */
+    source?: 'launcher' | 'plugin'
   }
   'launcher:agreement_required': Record<string, never>
   'launcher:error': LauncherErrorEvent

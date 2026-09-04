@@ -1,7 +1,16 @@
 import { storeToRefs } from 'pinia'
 import { reactive, ref, computed } from 'vue'
+import { notifyLauncherPopup } from '@/app/runtime/useLauncherPopupQueue'
 import { useAccountStore } from '@/features/accounts/stores/accountStore'
-import type { AuthProvider, AuthlibProfile, DefaultSkin, MicrosoftLoginData, MicrosoftLoginStage, MicrosoftLoginStatusEvent, MinecraftAccount } from '@/types/accounts'
+import type {
+  AuthProvider,
+  AuthlibProfile,
+  DefaultSkin,
+  MicrosoftLoginData,
+  MicrosoftLoginStage,
+  MicrosoftLoginStatusEvent,
+  MinecraftAccount,
+} from '@/types/accounts'
 import { getAccountTypeLabelKey } from '@/utils/enums'
 import { openExternalUrl } from '@/utils/openExternal'
 import { useClipboard } from './useClipboard'
@@ -168,7 +177,13 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     try {
       await accountStore.load()
     } catch {
-      message.error(t('game.status.accountLoadFailed'))
+      notifyLauncherPopup({
+        id: 'account-load-failed',
+        title: t('game.status.accountLoadFailed'),
+        content: `${t('game.status.accountLoadFailed')}，账户列表可能不完整，请稍后重试或检查网络。`,
+        level: 'warning',
+        priority: 75,
+      })
     }
   }
 
@@ -176,7 +191,13 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
     try {
       await accountStore.loadCurrent()
     } catch {
-      message.error(t('game.status.accountLoadFailed'))
+      notifyLauncherPopup({
+        id: 'account-load-failed',
+        title: t('game.status.accountLoadFailed'),
+        content: `${t('game.status.accountLoadFailed')}，当前账户信息可能过期，请重新登录。`,
+        level: 'warning',
+        priority: 75,
+      })
     }
   }
 

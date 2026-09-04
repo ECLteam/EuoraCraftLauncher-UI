@@ -10,7 +10,7 @@ import type { InstallProgress } from '@/types/instances'
 import { getErrorMessage } from '@/utils/error'
 import { launcherErrorQueue } from './errorPresentation'
 import { installDesktopInteractionPolicy } from './interactionPolicy'
-import { useLauncherPopupQueue } from './useLauncherPopupQueue'
+import { launcherPopupQueue, notifyLauncherPopup } from './useLauncherPopupQueue'
 import type { Router } from 'vue-router'
 
 interface MessageService {
@@ -34,7 +34,13 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
   const gameConfig = ref<GameConfig | null>(null)
   const downloadConfig = ref<DownloadConfig | null>(null)
 
-  const popupQueue = useLauncherPopupQueue()
+  const popupQueue = launcherPopupQueue
+  // 公告弹窗视图只消费非错误条目；错误条目由 ErrorModal 渲染，避免两个弹窗同时显示。
+  const activePopup = computed(() => {
+    const popup = popupQueue.activePopup.value
+    return popup && !popup.errorId ? popup : null
+  })
+  const popupVisible = computed(() => activePopup.value !== null)
   const showErrorModal = launcherErrorQueue.visible
   const errorTitle = computed(() => {
     const error = launcherErrorQueue.activeError.value
@@ -57,6 +63,7 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
   const cleanupCallbacks: Array<() => void> = []
   let started = false
   let syncingPendingErrors = false
+  let notifySeq = 0
 
   async function applyConfig(payload: BackendEvents['config:init']): Promise<void> {
     const launcher = payload.launcher
@@ -81,7 +88,12 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
     try {
       await initTheme(ui)
     } catch (error) {
-      options.message.warning(`界面配置加载失败：${getErrorMessage(error)}`, 10000)
+      notifyLauncherPopup({
+        id: 'ui-config-load-failed',
+        title: '界面配置加载失败',
+        content: getErrorMessage(error),
+        level: 'warning',
+      })
     }
   }
 
@@ -101,10 +113,7 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
     // 任务尚未创建（如启动期由后端上报的内置下载）且带显示名时，自动建队列条目。
     if (!globalTaskQueue.tasks.value.some((t) => t.id === taskId)) {
       if (!payload.name) return
-      globalTaskQueue.addTask(
-        { type: 'download', name: payload.name, versionId: '', loaderType: '' },
-        taskId
-      )
+      globalTaskQueue.addTask({ type: 'download', name: payload.name, versionId: '', loaderType: '' }, taskId)
     }
 
     const phase = payload.phase || ''
@@ -167,10 +176,19 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
   function registerBackendEvents(): void {
     cleanupCallbacks.push(
       backend.on('launcher:notify', (payload) => {
-        const messageOptions = { title: payload.title, duration: 8000 }
-        if (payload.type === 'warning') options.message.warning(payload.message, messageOptions)
-        if (payload.type === 'info') options.message.info(payload.message, messageOptions)
-        if (payload.type === 'error') options.message.error(payload.message, messageOptions)
+        const source = payload.source === 'plugin' ? 'plugin' : 'launcher'
+        // 警告与错误影响功能使用，升级为弹窗按优先级排队展示；info 仍是瞬时通知。
+        if (payload.type === 'warning' || payload.type === 'error') {
+          popupQueue.enqueuePopup({
+            id: `notify-${payload.type}-${Date.now()}-${notifySeq++}`,
+            title: payload.title || (payload.type === 'error' ? '启动器错误' : '启动器警告'),
+            content: payload.message,
+            level: payload.type === 'error' ? 'critical' : 'warning',
+            source,
+          })
+          return
+        }
+        options.message.info(payload.message, { title: payload.title, duration: 8000 })
       }),
       backend.on('launcher:agreement_required', () => {
         options.markAgreementNotAccepted()
@@ -238,7 +256,12 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
     if (result.success && result.data) {
       await applyConfig(result.data as unknown as BackendEvents['config:init'])
     } else if (!result.success) {
-      options.message.warning(result.message || '读取启动器配置失败', 10000)
+      notifyLauncherPopup({
+        id: 'launcher-config-load-failed',
+        title: '读取启动器配置失败',
+        content: result.message || '读取启动器配置失败，部分功能可能无法正常使用。',
+        level: 'warning',
+      })
     }
   }
 
@@ -288,8 +311,8 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
     errorKind,
     crashAnalysis,
     dismissActiveError: launcherErrorQueue.dismissActive,
-    activePopup: popupQueue.activePopup,
-    popupVisible: popupQueue.popupVisible,
+    activePopup,
+    popupVisible,
     dismissActivePopup: popupQueue.dismissActivePopup,
     start,
     stop,

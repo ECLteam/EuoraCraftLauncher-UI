@@ -130,6 +130,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import backend from '@/api/client'
+import { notifyLauncherPopup } from '@/app/runtime/useLauncherPopupQueue'
 import InstalledInstanceList from '@/components/instances/InstalledInstanceList.vue'
 import InstancePathSidebar from '@/components/instances/InstancePathSidebar.vue'
 import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
@@ -531,7 +532,13 @@ const handleLaunch = async (version: ScannedVersion) => {
     if (!launchResult.success) {
       if (!globalLaunchProgress.progress.value.canceled) {
         setLaunchProgress(0, 'error', launchResult.message || '启动失败')
-        message.error(launchResult.message || '启动失败')
+        notifyLauncherPopup({
+          id: `manage-launch-failed-${version.versionId}`,
+          title: '游戏启动失败',
+          content: launchResult.message || '启动失败，请检查实例配置与日志后重试。',
+          level: 'critical',
+          priority: 80,
+        })
       }
       setTimeout(hideLaunchProgress, 2000)
       return
@@ -547,7 +554,13 @@ const handleLaunch = async (version: ScannedVersion) => {
     if (!globalLaunchProgress.progress.value.canceled) {
       const reason = getErrorMessage(e, '启动失败')
       setLaunchProgress(0, 'error', reason)
-      message.error(reason)
+      notifyLauncherPopup({
+        id: `manage-launch-failed-${version.versionId}`,
+        title: '游戏启动失败',
+        content: reason,
+        level: 'critical',
+        priority: 80,
+      })
     }
     setTimeout(hideLaunchProgress, 2000)
   } finally {
