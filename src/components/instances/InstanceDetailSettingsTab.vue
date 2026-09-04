@@ -272,9 +272,13 @@ function getSettingsTarget(): VersionSettingsTarget | null {
   }
 }
 
+// 请求序号守卫：快速切换实例时丢弃晚到的旧设置响应，防止把 A 实例的设置写进 B
+let settingsRequestId = 0
+
 async function loadSettings() {
   const target = getSettingsTarget()
   if (!target) return
+  const requestId = ++settingsRequestId
   skipSettingsWatch = true
   const defaults = createDefaultVersionSettings()
   Object.assign(versionSettings, defaults)
@@ -282,14 +286,19 @@ async function loadSettings() {
   settingsLoading.value = true
   try {
     const settings = await instanceSettingsApi.get(target)
+    if (requestId !== settingsRequestId) return
     Object.assign(versionSettings, settings)
     savedSettingsSnapshot.value = JSON.stringify(settings)
   } catch (error) {
-    message.error(error instanceof Error ? error.message : t('versions.detail.loadSettingsFailed'))
+    if (requestId === settingsRequestId) {
+      message.error(error instanceof Error ? error.message : t('versions.detail.loadSettingsFailed'))
+    }
   } finally {
-    settingsLoading.value = false
-    await nextTick()
-    skipSettingsWatch = false
+    if (requestId === settingsRequestId) {
+      settingsLoading.value = false
+      await nextTick()
+      skipSettingsWatch = false
+    }
   }
 }
 

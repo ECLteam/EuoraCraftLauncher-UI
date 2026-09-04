@@ -757,9 +757,12 @@ function accountTypeName(type: string): string {
   return t(getAccountTypeShortLabelKey(type))
 }
 
+// 启动成功的阶段 key 集合（'launched' 是 useInstanceManager 成功路径写入的 stage）。
+const LAUNCH_SUCCESS_STAGES = new Set(['completed', 'launched', 'success'])
+
 const lpState = computed(() => {
   const stage = launchProgress.value.stage
-  const completed = stage.includes('启动成功') || stage.includes('completed') || stage.includes('success')
+  const completed = LAUNCH_SUCCESS_STAGES.has(stage)
   return {
     title: completed ? '已启动' : '正在启动',
     versionName: version.selectedVersion || '',

@@ -24,7 +24,13 @@ import {
   type BackgroundMode,
 } from '@/features/settings/model/backgroundMode'
 import { resolveNavigationMode } from '@/features/settings/model/navigation'
-import type { BackgroundConfig, NavigationMode, ThemeAppearanceConfig, ThemeConfig, ThemeScheduleConfig } from '@/types/config'
+import type {
+  BackgroundConfig,
+  NavigationMode,
+  ThemeAppearanceConfig,
+  ThemeConfig,
+  ThemeScheduleConfig,
+} from '@/types/config'
 
 interface ThemeInitPayload {
   theme?: Partial<ThemeConfig>
@@ -939,31 +945,36 @@ export const useThemeStore = defineStore('theme', () => {
     if (saveTimer) clearTimeout(saveTimer)
     saveTimer = setTimeout(async () => {
       if (!settingsApi.isAvailable) return
-      const ui = await settingsApi.getUi()
-      await settingsApi.saveUi({
-        ...ui,
-        theme: {
-          mode: themeMode.value,
-          theme_id: themeId.value,
-          primary_color: primaryColor.value,
-          blur_amount: blurAmount.value,
-          sidebar_collapsed: sidebarCollapsed.value,
-          navigation_mode: navigationMode.value,
-          titlebar_hidden: titlebarHidden.value,
-          transparent_bg: transparentBg.value,
-          background_opacity: backgroundOpacity.value,
-          appearance: appearance.value,
-          schedule: schedule.value,
-        },
-        background: {
-          ...(ui.background || {}),
-          type: backgroundImage.value ? 'custom' : 'none',
-          path: isCarouselMode(bgMode.value) ? bgFolderPath.value : backgroundImagePath.value,
-          opacity: backgroundOpacity.value,
-          mode: bgMode.value,
-          interval: clampBackgroundInterval(bgInterval.value),
-        },
-      })
+      try {
+        const ui = await settingsApi.getUi()
+        await settingsApi.saveUi({
+          ...ui,
+          theme: {
+            mode: themeMode.value,
+            theme_id: themeId.value,
+            primary_color: primaryColor.value,
+            blur_amount: blurAmount.value,
+            sidebar_collapsed: sidebarCollapsed.value,
+            navigation_mode: navigationMode.value,
+            titlebar_hidden: titlebarHidden.value,
+            transparent_bg: transparentBg.value,
+            background_opacity: backgroundOpacity.value,
+            appearance: appearance.value,
+            schedule: schedule.value,
+          },
+          background: {
+            ...(ui.background || {}),
+            type: backgroundImage.value ? 'custom' : 'none',
+            path: isCarouselMode(bgMode.value) ? bgFolderPath.value : backgroundImagePath.value,
+            opacity: backgroundOpacity.value,
+            mode: bgMode.value,
+            interval: clampBackgroundInterval(bgInterval.value),
+          },
+        })
+      } catch (error) {
+        // 防抖回调里的失败没有调用方接住，静默丢失会造成未处理 rejection 且配置未保存
+        console.warn('[useTheme] 主题配置保存失败:', error)
+      }
     }, 100)
   }
 

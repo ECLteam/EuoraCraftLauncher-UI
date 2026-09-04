@@ -90,6 +90,7 @@ import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
 import type { ScannedVersion, ServerEntry, ServerStatus } from '@/types/instances'
+import { getErrorMessage } from '@/utils/error'
 const props = defineProps<{ version: ScannedVersion }>()
 const message = useLauncherMessage()
 const servers = ref<ServerEntry[]>([])
@@ -214,6 +215,10 @@ async function handleConfirm() {
     await confirmAction()
     confirmVisible.value = false
     confirmAction = null
+  } catch (error) {
+    // 确认动作失败保持弹窗打开并提示，避免静默的未处理 rejection
+    console.error('[InstanceServersTab] 确认操作失败:', error)
+    message.error(getErrorMessage(error, '操作失败'))
   } finally {
     confirmLoading.value = false
   }

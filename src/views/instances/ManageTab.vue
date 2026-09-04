@@ -222,6 +222,10 @@ const handleConfirmAction = async () => {
     await confirmAction.value()
     showConfirmModal.value = false
     confirmAction.value = null
+  } catch (error) {
+    // 确认动作失败保持弹窗打开并提示，避免静默的未处理 rejection
+    console.error('[ManageTab] 确认操作失败:', error)
+    message.error(getErrorMessage(error, '操作失败'))
   } finally {
     confirmLoading.value = false
   }
@@ -447,8 +451,13 @@ const removePath = async (index: number) => {
 
 const { show: showLaunchProgress, hide: hideLaunchProgress, setProgress: setLaunchProgress } = globalLaunchProgress
 
+let launchInFlight = false
+
 const handleLaunch = async (version: ScannedVersion) => {
   if (!currentPath.value) return
+  // 防重入：双击或连点会并发发起两次 game_launch 并叠加多份进度监听
+  if (launchInFlight) return
+  launchInFlight = true
 
   // 先跳转到页面
   router.push({ name: 'game' })
@@ -565,6 +574,7 @@ const handleLaunch = async (version: ScannedVersion) => {
     setTimeout(hideLaunchProgress, 2000)
   } finally {
     unlisten()
+    launchInFlight = false
   }
 }
 

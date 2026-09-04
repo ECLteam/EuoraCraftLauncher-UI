@@ -29,7 +29,10 @@ function decodeEventPayload<T>(payload: T | string): T {
 export function createTauriTransport(): BackendTransport {
   return {
     mode: 'desktop',
-    available: !!getTauri()?.pytauri,
+    // 实时求值：pytauri 全局注入可能晚于前端 bundle 执行，快照会把启动器永久锁在"不可用"状态
+    get available() {
+      return !!getTauri()?.pytauri
+    },
     async invoke(command, payload) {
       const tauri = getTauri()
       if (!tauri?.pytauri) throw new Error('PyTauri 运行环境未就绪')

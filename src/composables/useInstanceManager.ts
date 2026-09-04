@@ -78,6 +78,8 @@ export function useInstanceManager(t: (key: string, ...args: unknown[]) => strin
   }
 
   async function launchGame(currentAccount: { id: string } | null) {
+    // 防重入：启动进行中时忽略重复触发，避免并发 game_launch 与重复事件监听
+    if (launching.value) return
     if (!selectedVersion.value) {
       showStatus(t('game.status.selectVersionFirst'), 'error')
       return

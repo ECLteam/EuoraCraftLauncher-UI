@@ -71,13 +71,23 @@ export function useGameInfoCard() {
     infoCardMode.value = resolveInitialInfoCardView(infoCardData.value.mode, hasTips.value, hasAnnouncements.value)
     if (infoCardData.value.mode !== 'tip_only' && infoCardData.value.mode !== 'announcement_only') resume()
 
-    if (localStorage.getItem(WELCOME_STORAGE_KEY) === 'true') {
+    let welcomeShown = false
+    try {
+      welcomeShown = localStorage.getItem(WELCOME_STORAGE_KEY) === 'true'
+    } catch {
+      // 存储不可用（隐私模式等）时按未看过欢迎页处理
+    }
+    if (welcomeShown) {
       isWelcome.value = false
       return
     }
     welcomeTimer = setTimeout(() => {
       isWelcome.value = false
-      localStorage.setItem(WELCOME_STORAGE_KEY, 'true')
+      try {
+        localStorage.setItem(WELCOME_STORAGE_KEY, 'true')
+      } catch {
+        // 写入失败仅影响下次是否跳过欢迎页
+      }
       welcomeTimer = null
       if (hasTips.value) infoCardMode.value = 'tip'
     }, 5000)

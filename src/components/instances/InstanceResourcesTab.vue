@@ -99,7 +99,7 @@
 
 <script setup lang="ts">
 import { NButton, NCheckbox, NEmpty, NInput, NSelect, NSpin, NSwitch } from 'naive-ui'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import backend from '@/api/client'
 import { unwrapResponse } from '@/app/runtime/errorPresentation'
 import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
@@ -108,6 +108,7 @@ import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
 import type { GameResource, GameResourceType, ScannedVersion } from '@/types/instances'
+import { getErrorMessage } from '@/utils/error'
 
 const props = defineProps<{
   version: ScannedVersion
@@ -167,14 +168,27 @@ async function load() {
     loading.value = false
   }
 }
+// 安装后的延迟刷新定时器：组件卸载时清理，避免卸载后仍触发请求
+let refreshTimer: ReturnType<typeof setTimeout> | null = null
+
 async function install(paths: string[]) {
   if (!paths.length) return
-  await instanceWorkspaceApi.installResources(target.value, resourceType.value, paths, worldId.value || undefined)
+  try {
+    await instanceWorkspaceApi.installResources(target.value, resourceType.value, paths, worldId.value || undefined)
+  } catch (error) {
+    message.error(getErrorMessage(error, '资源安装失败'))
+    return
+  }
   message.success('资源安装任务已创建')
-  window.setTimeout(load, 500)
+  if (refreshTimer) clearTimeout(refreshTimer)
+  refreshTimer = window.setTimeout(load, 500)
 }
 async function chooseAndInstall() {
-  await install(await instanceWorkspaceApi.chooseResourceFiles())
+  try {
+    await install(await instanceWorkspaceApi.chooseResourceFiles())
+  } catch (error) {
+    message.error(getErrorMessage(error, '选择资源文件失败'))
+  }
 }
 async function installDropped(event: DragEvent) {
   const paths = [...(event.dataTransfer?.files || [])]
@@ -184,13 +198,18 @@ async function installDropped(event: DragEvent) {
   await install(paths)
 }
 async function toggle(item: GameResource, enabled: boolean) {
-  await instanceWorkspaceApi.toggleResource(
-    target.value,
-    resourceType.value,
-    item.id,
-    enabled,
-    worldId.value || undefined
-  )
+  try {
+    await instanceWorkspaceApi.toggleResource(
+      target.value,
+      resourceType.value,
+      item.id,
+      enabled,
+      worldId.value || undefined
+    )
+  } catch (error) {
+    message.error(getErrorMessage(error, '资源状态切换失败'))
+    return
+  }
   item.enabled = enabled
 }
 function toggleSelected(id: string) {
@@ -231,6 +250,8 @@ async function searchOnline() {
       '搜索在线资源'
     )
     onlineItems.value = result.items
+  } catch (error) {
+    message.error(getErrorMessage(error, '搜索在线资源失败'))
   } finally {
     onlineLoading.value = false
   }
@@ -282,6 +303,12 @@ async function handleConfirm() {
 }
 
 onMounted(load)
+onBeforeUnmount(() => {
+  if (refreshTimer) {
+    clearTimeout(refreshTimer)
+    refreshTimer = null
+  }
+})
 </script>
 
 <style scoped>
@@ -340,7 +367,6 @@ onMounted(load)
 .world-select {
   width: 180px;
 }
-
 
 .resource-table {
   display: flex;
