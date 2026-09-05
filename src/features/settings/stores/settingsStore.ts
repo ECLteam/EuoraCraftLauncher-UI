@@ -20,18 +20,22 @@ const DEFAULT_DOWNLOAD_CONFIG: DownloadConfig = {
   mirror_source: 'official',
 }
 
+const DEFAULT_LAUNCHER_CONFIG: LauncherConfig = {
+  debug: false,
+  disable_ssl_verify: false,
+  api_proxy_mode: 'none',
+  api_proxy_url: '',
+  proxy_mode: 'none',
+  proxy_url: '',
+  request_timeout: 15,
+  request_retries: 2,
+}
+
 export const useSettingsStore = defineStore('settings', () => {
   const ui = ref<UiConfig>({})
   const game = ref<GameConfig>({ ...DEFAULT_GAME_CONFIG })
   const download = ref<DownloadConfig>({ ...DEFAULT_DOWNLOAD_CONFIG })
-  const launcher = ref<LauncherConfig>({
-    debug: false,
-    disable_ssl_verify: false,
-    proxy_mode: 'none',
-    proxy_url: '',
-    request_timeout: 15,
-    request_retries: 2,
-  })
+  const launcher = ref<LauncherConfig>({ ...DEFAULT_LAUNCHER_CONFIG })
   const { status, isLoading } = useAsyncState()
   const error = ref('')
   let loadPromise: Promise<void> | null = null

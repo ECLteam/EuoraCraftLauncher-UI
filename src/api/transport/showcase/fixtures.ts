@@ -10,6 +10,7 @@ export const showcaseConfig: Record<string, unknown> = {
     version: '0.2.0-showcase',
     version_type: 'dev',
     debug: true,
+    api_proxy_mode: 'none',
     proxy_mode: 'none',
   },
   game: {

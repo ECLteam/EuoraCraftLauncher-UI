@@ -13,9 +13,13 @@ export interface LauncherConfig {
   /** 由 ECL_CONFIG_launcher_showcase 环境变量控制，启用后使用 mock 数据替代真实后端 */
   showcase?: boolean
   disable_ssl_verify?: boolean
-  /** 代理模式：none=不使用代理(直连) / system=使用系统代理 / custom=自定义代理 */
+  /** 启动器通道代理模式（账户登录、元数据等）：none=直连 / system=系统代理 / custom=自定义代理 */
+  api_proxy_mode?: 'none' | 'system' | 'custom'
+  /** 启动器通道自定义代理地址（api_proxy_mode 为 custom 时生效），需含协议前缀 */
+  api_proxy_url?: string
+  /** 下载通道代理模式（游戏文件、Mod 与资源包下载）：none=直连 / system=系统代理 / custom=自定义代理 */
   proxy_mode?: 'none' | 'system' | 'custom'
-  /** 自定义代理地址（proxy_mode 为 custom 时生效），需含协议前缀 */
+  /** 下载通道自定义代理地址（proxy_mode 为 custom 时生效），需含协议前缀 */
   proxy_url?: string
   /** 单次网络请求的总超时秒数 */
   request_timeout?: number

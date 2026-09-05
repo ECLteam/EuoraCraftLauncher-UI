@@ -22,25 +22,25 @@
       </SettingRow>
     </SettingSection>
 
-    <SettingSection :title="t('settings.network')">
-      <SettingRow :label="t('settings.proxyMode')" :description="t('settings.proxyModeDesc')">
+    <SettingSection :title="t('settings.launcherProxy')">
+      <SettingRow :label="t('settings.proxyMode')" :description="t('settings.apiProxyModeDesc')">
         <NSelect
           class="setting-select"
-          :value="proxyMode"
+          :value="apiProxyMode"
           :options="proxyModeOptions"
-          @update:value="handleProxyModeChange"
+          @update:value="handleApiProxyModeChange"
         />
       </SettingRow>
       <SettingRow
-        v-if="proxyMode === 'custom'"
+        v-if="apiProxyMode === 'custom'"
         :label="t('settings.proxyUrl')"
-        :description="t('settings.proxyUrlDesc')"
+        :description="t('settings.apiProxyUrlDesc')"
       >
         <NInput
-          :value="proxyUrl"
+          :value="apiProxyUrl"
           :placeholder="t('settings.proxyUrlPlaceholder')"
           clearable
-          @update:value="handleProxyUrlChange"
+          @update:value="handleApiProxyUrlChange"
         />
       </SettingRow>
       <SettingRow :label="t('settings.requestTimeout')" :description="t('settings.requestTimeoutDesc')">
@@ -65,6 +65,29 @@
       </SettingRow>
       <SettingRow :label="t('settings.disableSslVerify')" :description="t('settings.disableSslVerifyDesc')">
         <NSwitch :value="disableSslVerify" @update:value="handleDisableSslVerifyChange" />
+      </SettingRow>
+    </SettingSection>
+
+    <SettingSection :title="t('settings.downloadProxy')">
+      <SettingRow :label="t('settings.proxyMode')" :description="t('settings.proxyModeDesc')">
+        <NSelect
+          class="setting-select"
+          :value="proxyMode"
+          :options="proxyModeOptions"
+          @update:value="handleProxyModeChange"
+        />
+      </SettingRow>
+      <SettingRow
+        v-if="proxyMode === 'custom'"
+        :label="t('settings.proxyUrl')"
+        :description="t('settings.proxyUrlDesc')"
+      >
+        <NInput
+          :value="proxyUrl"
+          :placeholder="t('settings.proxyUrlPlaceholder')"
+          clearable
+          @update:value="handleProxyUrlChange"
+        />
       </SettingRow>
     </SettingSection>
 
@@ -113,6 +136,12 @@ const { debugMode, setDebugMode, debugLogLevel, setDebugLogLevel } = useDebugMod
 
 const currentLocale = computed(() => locale.value as LocaleCode)
 const disableSslVerify = computed(() => settingsStore.launcher.disable_ssl_verify === true)
+// 启动器通道代理无旧版布尔配置，无效值一律回退直连。
+const apiProxyMode = computed<ProxyMode>(() => {
+  const mode = settingsStore.launcher.api_proxy_mode
+  return mode === 'custom' || mode === 'system' ? mode : 'none'
+})
+const apiProxyUrl = computed(() => settingsStore.launcher.api_proxy_url ?? '')
 const proxyMode = computed<ProxyMode>(() => {
   const mode = settingsStore.launcher.proxy_mode
   if (mode === 'custom' || mode === 'system') return mode
@@ -177,6 +206,14 @@ async function handleDebugLogLevelChange(value: string): Promise<void> {
 
 async function handleDisableSslVerifyChange(value: boolean): Promise<void> {
   await run(() => settingsStore.patchLauncher({ disable_ssl_verify: value }))
+}
+
+async function handleApiProxyModeChange(value: string): Promise<void> {
+  await run(() => settingsStore.patchLauncher({ api_proxy_mode: value as ProxyMode }))
+}
+
+async function handleApiProxyUrlChange(value: string): Promise<void> {
+  await run(() => settingsStore.patchLauncher({ api_proxy_url: value }))
 }
 
 async function handleProxyModeChange(value: string): Promise<void> {
