@@ -3,6 +3,7 @@ import { reactive, ref, type Ref, type UnwrapNestedRefs } from 'vue'
 import { useRouter } from 'vue-router'
 import backend from '@/api/client'
 import { notifyLauncherPopup } from '@/app/runtime/useLauncherPopupQueue'
+import { useRecentInstances } from '@/composables/useRecentInstances'
 import {
   LAUNCH_PROGRESS,
   LAUNCH_SUCCESS_HIDE_DELAY,
@@ -10,9 +11,11 @@ import {
   STATUS_MESSAGE_AUTO_HIDE,
 } from '@/config/game'
 import { instanceSettingsApi } from '@/features/instances/api/instanceSettingsApi'
+import { instanceDisplayName } from '@/features/instances/model/instancePresentation'
 import { createDefaultVersionSettings, parseLaunchArguments } from '@/features/instances/model/instanceSettings'
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
 import type { LaunchProgress } from '@/types/system'
+import { normalizeGamePath } from '@/utils/path'
 import { useLauncherMessage } from './useLauncherMessage'
 import { globalLaunchProgress } from './useLaunchProgress'
 
@@ -77,6 +80,16 @@ export function useInstanceManager(t: (key: string, ...args: unknown[]) => strin
     instanceStore.setGamePath(path)
   }
 
+  /** 启动成功后写入"最近启动"列表，启动失败/取消不记录 */
+  function recordRecentLaunch() {
+    const scanned = instanceStore.scannedVersions.find(
+      (item) =>
+        item.versionId === selectedVersion.value && normalizeGamePath(item.path) === normalizeGamePath(currentGamePath.value)
+    )
+    const instanceName = scanned ? instanceDisplayName(scanned) : selectedVersion.value
+    useRecentInstances().recordLaunch(selectedVersion.value, instanceName, currentGamePath.value)
+  }
+
   async function launchGame(currentAccount: { id: string } | null) {
     // 防重入：启动进行中时忽略重复触发，避免并发 game_launch 与重复事件监听
     if (launching.value) return
@@ -114,6 +127,7 @@ export function useInstanceManager(t: (key: string, ...args: unknown[]) => strin
       const pct = payload?.percent
 
       if (phase === 'launched') {
+        recordRecentLaunch()
         setLaunchProgress(100, 'success', msg)
         setTimeout(hideLaunchProgress, LAUNCH_SUCCESS_HIDE_DELAY)
         unlisten()

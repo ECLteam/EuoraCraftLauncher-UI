@@ -139,10 +139,12 @@ import UiButton from '@/components/ui/Button.vue'
 import UiInput from '@/components/ui/Input.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { globalLaunchProgress } from '@/composables/useLaunchProgress'
+import { useRecentInstances } from '@/composables/useRecentInstances'
 import { LAUNCH_PROGRESS, LAUNCH_SUCCESS_HIDE_DELAY, LAUNCH_ERROR_HIDE_DELAY } from '@/config/game'
 import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
 import { findGamePathIndex, type GamePath } from '@/features/instances/model/gamePath'
+import { instanceDisplayName } from '@/features/instances/model/instancePresentation'
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
@@ -451,6 +453,11 @@ const removePath = async (index: number) => {
 
 const { show: showLaunchProgress, hide: hideLaunchProgress, setProgress: setLaunchProgress } = globalLaunchProgress
 
+/** 启动成功后写入"最近启动"列表，启动失败/取消不记录 */
+function recordRecentLaunch(version: ScannedVersion) {
+  useRecentInstances().recordLaunch(version.versionId, instanceDisplayName(version), currentPath.value?.path || '')
+}
+
 let launchInFlight = false
 
 const handleLaunch = async (version: ScannedVersion) => {
@@ -556,6 +563,7 @@ const handleLaunch = async (version: ScannedVersion) => {
     if (!globalLaunchProgress.progress.value.canceled) {
       setLaunchProgress(100, 'launched', ` ${version.versionId} 已启动`)
       message.success(` ${version.versionId} 已启动`)
+      recordRecentLaunch(version)
     }
     setTimeout(hideLaunchProgress, LAUNCH_SUCCESS_HIDE_DELAY)
   } catch (e) {

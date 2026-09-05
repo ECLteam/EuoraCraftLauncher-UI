@@ -597,13 +597,10 @@ import WardrobeModal from '@/features/accounts/components/WardrobeModal.vue'
 import { useGameInfoCard } from '@/features/game-home/composables/useGameInfoCard'
 import { useGameHomeStore } from '@/features/game-home/stores/gameHomeStore'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
-import { instanceDisplayName } from '@/features/instances/model/instancePresentation'
-import { useInstanceStore } from '@/features/instances/stores/instanceStore'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import InstanceTerminalModule from '@/features/terminal/components/InstanceTerminalModule.vue'
 import type { AccountTextures, MinecraftAccount } from '@/types/accounts'
 import { getAccountTypeLabelKey, getAccountTypeShortLabelKey } from '@/utils/enums'
-import { normalizeGamePath } from '@/utils/path'
 import RunningInstancesTab from '@/views/instances/RunningInstancesTab.vue'
 
 const { t } = useI18n()
@@ -611,7 +608,7 @@ const router = useRouter()
 const account = useAccountManager(t)
 const { isFolia } = useUiSkin()
 const version = useInstanceManager(t)
-const { recentList, recordLaunch, togglePin, removeRecent } = useRecentInstances()
+const { recentList, togglePin, removeRecent } = useRecentInstances()
 const { progress: launchProgress, smoothPercent } = globalLaunchProgress
 const gameHomeStore = useGameHomeStore()
 const { hasGamePath } = storeToRefs(gameHomeStore)
@@ -805,16 +802,7 @@ function openVersionSettings() {
 }
 
 function handleLaunch() {
-  if (version.selectedVersion) {
-    const instanceStore = useInstanceStore()
-    const scanned = instanceStore.scannedVersions.find(
-      (item) =>
-        item.versionId === version.selectedVersion &&
-        normalizeGamePath(item.path) === normalizeGamePath(version.currentGamePath)
-    )
-    const instanceName = scanned ? instanceDisplayName(scanned) : version.selectedVersion
-    recordLaunch(version.selectedVersion, instanceName, version.currentGamePath)
-  }
+  // "最近启动"由启动成功事件写入（useInstanceManager），启动失败/取消不再留下记录
   version.launchGame(account.currentAccount)
 }
 
