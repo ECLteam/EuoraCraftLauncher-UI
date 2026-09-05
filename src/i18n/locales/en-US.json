@@ -819,7 +819,17 @@
         "pipTools": "Python dependency locking tool keeping pinned versions fresh",
         "harmonyOsSans": "Primary Chinese interface font used by the launcher",
         "mapleMono": "Monospace font used for terminals, logs, and code content",
-        "tablerIcons": "Provides launcher interface icons offline through Iconify"
+        "tablerIcons": "Provides launcher interface icons offline through Iconify",
+        "unpluginAutoImport": "Vite plugin auto-importing composables from Vue, Pinia, Router and more",
+        "unpluginVueComponents": "Vite plugin registering interface components on demand",
+        "vitePluginChecker": "Shows TypeScript and ESLint errors in the browser during development",
+        "vitePluginVueDevtools": "In-browser Vue DevTools for debugging components and state",
+        "vitePluginInspect": "Visualizes intermediate Vite plugin output for build debugging",
+        "jsdomDesc": "Browser environment emulation powering Vitest component tests",
+        "piniaTestingDesc": "Official Pinia testing helpers for isolating and asserting store state",
+        "eslintPluginVueDesc": "ESLint rule set for Vue single-file components",
+        "typescriptEslintDesc": "Provides TypeScript parsing and rules for ESLint",
+        "pnpmDesc": "Frontend package manager handling dependency install and lockfile"
       },
       "legal": {
         "disclaimer": "Not an official MINECRAFT product. Not approved by or associated with MOJANG or MICROSOFT.",

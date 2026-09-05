@@ -53,7 +53,7 @@ export const URLS = {
   },
   pinia: {
     repo: 'https://github.com/vuejs/pinia',
-    license: 'https://github.com/vuejs/pinia/blob/v2/packages/pinia/LICENSE',
+    license: 'https://github.com/vuejs/pinia/blob/v4/LICENSE',
   },
   vueRouter: {
     repo: 'https://github.com/vuejs/router',

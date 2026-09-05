@@ -188,13 +188,59 @@ const frontendUtilityEntries: AboutEntry[] = [
 
 const engineeringEntries: AboutEntry[] = [
   createGithubEntry('vite-plugin-vue', '@vitejs/plugin-vue', 'VP', 'vitePluginVue', 'https://github.com/vitejs/vite-plugin-vue'),
+  createGithubEntry(
+    'unplugin-auto-import',
+    'unplugin-auto-import',
+    'UA',
+    'unpluginAutoImport',
+    'https://github.com/unplugin/unplugin-auto-import'
+  ),
+  createGithubEntry(
+    'unplugin-vue-components',
+    'unplugin-vue-components',
+    'UC',
+    'unpluginVueComponents',
+    'https://github.com/unplugin/unplugin-vue-components'
+  ),
+  createGithubEntry(
+    'vite-plugin-checker',
+    'vite-plugin-checker',
+    'VC',
+    'vitePluginChecker',
+    'https://github.com/fi3ework/vite-plugin-checker'
+  ),
+  createGithubEntry(
+    'vite-plugin-vue-devtools',
+    'vite-plugin-vue-devtools',
+    'VD',
+    'vitePluginVueDevtools',
+    'https://github.com/webfansplz/vite-plugin-vue-devtools'
+  ),
+  createGithubEntry(
+    'vite-plugin-inspect',
+    'vite-plugin-inspect',
+    'VI',
+    'vitePluginInspect',
+    'https://github.com/antfu-collective/vite-plugin-inspect'
+  ),
   createGithubEntry('vitest', 'Vitest', 'VT', 'vitest', 'https://github.com/vitest-dev/vitest'),
   createGithubEntry('vue-test-utils', '@vue/test-utils', 'VU', 'vueTestUtils', 'https://github.com/vuejs/test-utils'),
+  createGithubEntry('jsdom', 'jsdom', 'JS', 'jsdomDesc', 'https://github.com/jsdom/jsdom'),
+  createGithubEntry('pinia-testing', '@pinia/testing', 'PT', 'piniaTestingDesc', 'https://github.com/vuejs/pinia'),
   createGithubEntry('vue-tsc', 'vue-tsc', 'VS', 'vueTsc', 'https://github.com/vuejs/language-tools'),
   createGithubEntry('eslint', 'ESLint', 'ES', 'eslint', 'https://github.com/eslint/eslint'),
+  createGithubEntry('eslint-plugin-vue', 'eslint-plugin-vue', 'EV', 'eslintPluginVueDesc', 'https://github.com/vuejs/eslint-plugin-vue'),
+  createGithubEntry(
+    'typescript-eslint',
+    'typescript-eslint',
+    'TE',
+    'typescriptEslintDesc',
+    'https://github.com/typescript-eslint/typescript-eslint'
+  ),
   createGithubEntry('prettier', 'Prettier', 'PR', 'prettier', 'https://github.com/prettier/prettier'),
   createGithubEntry('postcss', 'PostCSS', 'PC', 'postcss', 'https://github.com/postcss/postcss'),
   createGithubEntry('autoprefixer', 'Autoprefixer', 'AP', 'autoprefixer', 'https://github.com/postcss/autoprefixer'),
+  createGithubEntry('pnpm', 'pnpm', 'PN', 'pnpmDesc', 'https://github.com/pnpm/pnpm'),
   createGithubEntry('ruff', 'Ruff', 'R', 'ruff', 'https://github.com/astral-sh/ruff'),
   createGithubEntry('pyinstaller', 'PyInstaller', 'PI', 'pyinstaller', 'https://github.com/pyinstaller/pyinstaller'),
   createGithubEntry('nuitka', 'Nuitka', 'N', 'nuitka', 'https://github.com/Nuitka/Nuitka'),
