@@ -832,7 +832,7 @@
         "pnpmDesc": "Frontend package manager handling dependency install and lockfile"
       },
       "legal": {
-        "disclaimer": "Not an official MINECRAFT product. Not approved by or associated with MOJANG or MICROSOFT.",
+        "disclaimer": "Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.",
         "trademark": "Minecraft is a trademark of Mojang Synergies AB."
       }
     },
