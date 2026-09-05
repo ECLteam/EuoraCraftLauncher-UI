@@ -23,6 +23,8 @@ interface TauriCore {
 declare global {
   interface Window {
     __TAURI__?: TauriCore
+    /** 工具箱等宿主注入的 Dev Channel 连接信息，嵌入前端据此建立 WebSocket 传输层 */
+    __ECL_DEV_WS__?: { port: number; token: string; url?: string }
   }
 }
 

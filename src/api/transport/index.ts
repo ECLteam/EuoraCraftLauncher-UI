@@ -2,6 +2,7 @@ import { detectRuntimeMode, hasShowcaseQuery } from '@/app/runtime/mode'
 import { createShowcaseTransport } from './showcase'
 import { createTauriTransport } from './tauri'
 import { createUnavailableTransport } from './unavailable'
+import { createWsTransport, resolveWsConnection } from './ws'
 import type { BackendTransport } from './types'
 
 export function createBackendTransport(): BackendTransport {
@@ -13,6 +14,9 @@ export function createBackendTransport(): BackendTransport {
   }
   if (mode === 'showcase') return createShowcaseTransport()
   if (mode === 'desktop') return createTauriTransport()
+  // 工具箱内嵌前端：宿主注入 Dev Channel 连接信息时，回落为真实后端的 WebSocket 传输层
+  const wsConnection = resolveWsConnection()
+  if (wsConnection) return createWsTransport(wsConnection)
   return createUnavailableTransport()
 }
 
