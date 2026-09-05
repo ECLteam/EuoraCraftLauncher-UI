@@ -1,13 +1,21 @@
 import { createI18n } from 'vue-i18n'
 import backend from '@/api/client'
 import type { UiConfig } from '@/types/config'
+import deDE from './locales/de-DE.json'
 import enUS from './locales/en-US.json'
+import jaJP from './locales/ja-JP.json'
+import ruRU from './locales/ru-RU.json'
 import zhCN from './locales/zh-CN.json'
+import zhTW from './locales/zh-TW.json'
 
 // 支持的语言列表
 export const supportedLocales = [
   { code: 'zh-CN', name: '简体中文', flag: '🇨🇳' },
+  { code: 'zh-TW', name: '繁體中文', flag: '🇹🇼' },
   { code: 'en-US', name: 'English', flag: '🇺🇸' },
+  { code: 'ja-JP', name: '日本語', flag: '🇯🇵' },
+  { code: 'ru-RU', name: 'Русский', flag: '🇷🇺' },
+  { code: 'de-DE', name: 'Deutsch', flag: '🇩🇪' },
 ] as const
 
 export type LocaleCode = (typeof supportedLocales)[number]['code']
@@ -22,7 +30,11 @@ export const i18n = createI18n({
   fallbackWarn: import.meta.env.DEV,
   messages: {
     'zh-CN': zhCN,
+    'zh-TW': zhTW,
     'en-US': enUS,
+    'ja-JP': jaJP,
+    'ru-RU': ruRU,
+    'de-DE': deDE,
   },
 })
 
