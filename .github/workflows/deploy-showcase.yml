@@ -1,0 +1,40 @@
+name: Deploy Showcase to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# GITHUB_TOKEN 仅用于部署 GitHub Pages，不授予仓库内容写权限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      # 复用本地 setup-node 复合 action：装好环境、checkout、安装依赖
+      - uses: ./.github/actions/setup-node
+
+      - name: Build showcase
+        # build:showcase = typecheck + vite build --mode showcase，产物输出到 dist/
+        run: pnpm build:showcase
+
+      # 一键构建，产物交给官方 Pages 动作上传并部署
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
