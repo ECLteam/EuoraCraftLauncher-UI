@@ -189,6 +189,15 @@
   opacity: 0.6;
 }
 
+.about-btn.is-disabled,
+.about-btn.is-disabled:hover {
+  border-color: var(--border);
+  background: var(--bg-base);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .launcher-summary__action {
   display: flex;
   justify-content: flex-end;

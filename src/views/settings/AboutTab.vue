@@ -21,7 +21,13 @@
             </div>
           </div>
           <div class="launcher-summary__action">
-            <a class="about-btn" href="#" :class="{ 'is-loading': checking }" @click.prevent="checkForUpdates">
+            <a
+              class="about-btn"
+              href="#"
+              :class="{ 'is-loading': checking, 'is-disabled': isAlpha }"
+              :title="isAlpha ? t('settings.aboutTab.update.disabled') : undefined"
+              @click.prevent="checkForUpdates"
+            >
               <UiIcon name="refresh" :size="14" :class="{ spin: checking }" />
               <span>{{ t('settings.aboutTab.update.check') }}</span>
             </a>
@@ -127,9 +133,10 @@ const translateVersion = (key: string): string => t(`settings.aboutTab.version.$
 const { lastResult, checking, checkUpdate } = useUpdateCheck()
 const hasUpdate = computed(() => lastResult.value?.status === 'update_available')
 const message = useLauncherMessage()
+const isAlpha = computed(() => (launcherInfo.value?.version_type || launcherVersionType?.value) === 'alpha')
 
 async function checkForUpdates(): Promise<void> {
-  if (checking.value) return
+  if (checking.value || isAlpha.value) return
   const loadingMessage = message.loading(t('settings.aboutTab.update.checking'))
   const result = await checkUpdate()
   loadingMessage.destroy()
