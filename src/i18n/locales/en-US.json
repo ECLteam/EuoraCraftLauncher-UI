@@ -746,6 +746,7 @@
         "title": "Check for Updates",
         "checking": "Checking for updates…",
         "availableBadge": "Update Available",
+        "upToDateBadge": "Latest",
         "foundNew": "New version v{version} available. Click to open download page",
         "upToDate": "You're on the latest version",
         "disabled": "Alpha builds are excluded from update checks",

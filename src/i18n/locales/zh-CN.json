@@ -746,6 +746,7 @@
         "title": "检查更新",
         "checking": "正在检查更新…",
         "availableBadge": "有新版本",
+        "upToDateBadge": "已是最新",
         "foundNew": "发现新版本 v{version}，点击前往下载页",
         "upToDate": "已是最新版本",
         "disabled": "Alpha 版本不参与更新检测",
