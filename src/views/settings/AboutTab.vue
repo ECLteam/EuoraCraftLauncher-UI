@@ -38,8 +38,6 @@
       </div>
     </div>
 
-    <UpdateCheckModal v-model:visible="showUpdateModal" :result="lastResult" />
-
     <!-- ECLTeam -->
     <div class="about-card">
       <div class="card-title">{{ t('settings.aboutTab.sections.team') }}</div>
@@ -111,9 +109,9 @@ import { URLS } from '@/config/urls'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { specialThanksEntries, teamMembers, technologyCategories } from '@/features/settings/about/aboutContent'
 import { aboutApi } from '@/features/settings/api/aboutApi'
-import UpdateCheckModal from '@/features/settings/components/UpdateCheckModal.vue'
 import { useUpdateCheck } from '@/features/settings/composables/useUpdateCheck'
-import type { LauncherInfo } from '@/types/system'
+import { useLauncherMessage } from '@/composables/useLauncherMessage'
+import type { LauncherInfo, UpdateCheckResult } from '@/types/system'
 import { openExternalUrl } from '@/utils/openExternal'
 
 const { t } = useI18n()
@@ -127,12 +125,36 @@ const isDevMode = import.meta.env.DEV
 const translateVersion = (key: string): string => t(`settings.aboutTab.version.${key}`)
 
 const { lastResult, checking, checkUpdate } = useUpdateCheck()
-const showUpdateModal = ref(false)
 const hasUpdate = computed(() => lastResult.value?.status === 'update_available')
+const message = useLauncherMessage()
 
 async function checkForUpdates(): Promise<void> {
-  await checkUpdate()
-  showUpdateModal.value = true
+  if (checking.value) return
+  const loadingMessage = message.loading(t('settings.aboutTab.update.checking'))
+  const result = await checkUpdate()
+  loadingMessage.destroy()
+  if (result) showCheckResult(result)
+}
+
+function showCheckResult(result: UpdateCheckResult): void {
+  const title = t('settings.aboutTab.update.title')
+  if (result.status === 'update_available') {
+    const url = result.latest_url || undefined
+    message.info(
+      t('settings.aboutTab.update.foundNew', { version: result.latest_version }),
+      { title, duration: 6000, onClick: url ? () => void openExternalUrl(url) : undefined }
+    )
+    return
+  }
+  if (result.status === 'up_to_date') {
+    message.success(t('settings.aboutTab.update.upToDate'), { title })
+    return
+  }
+  if (result.status === 'disabled') {
+    message.info(result.message || t('settings.aboutTab.update.disabled'), { title })
+    return
+  }
+  message.error(result.message || t('settings.aboutTab.update.failed'), { title, duration: 6000 })
 }
 
 const versionText = computed(() => {

@@ -8,6 +8,8 @@ export interface LauncherMessageOptions {
   title?: string
   duration?: number
   closable?: boolean
+  /** 点击通知内容时触发的回调（启用后通知区域显示可点击样式）。 */
+  onClick?: () => void
   onClose?: () => void
 }
 
@@ -24,13 +26,14 @@ function normalizeOptions(options?: LauncherMessageArgument): LauncherMessageOpt
   return typeof options === 'number' ? { duration: options } : (options ?? {})
 }
 
-function renderContent(content: string, title?: string) {
+function renderContent(content: string, title?: string, onClick?: () => void) {
+  const clickable = onClick ? { onClick } : undefined
+  const className = ['launcher-message-content', onClick ? 'is-clickable' : ''].join(' ').trim()
   if (!title?.trim()) return content
-  return () =>
-    h('div', { class: 'launcher-message-content' }, [
-      h('strong', { class: 'launcher-message-title' }, title),
-      h('span', { class: 'launcher-message-text' }, content),
-    ])
+  return () => h('div', { class: className, ...(clickable ?? {}) }, [
+    h('strong', { class: 'launcher-message-title' }, title),
+    h('span', { class: 'launcher-message-text' }, content),
+  ])
 }
 
 /**
@@ -106,7 +109,7 @@ export function useLauncherMessage() {
       },
     }
     // show() 已对 !message 提前 return，此处 message 必非空
-    const reactive = message![type](renderContent(content, options.title), nativeOptions)
+    const reactive = message![type](renderContent(content, options.title, options.onClick), nativeOptions)
     const entry: ActiveMessage = { key, reactive, count, timer: null }
     resetTimer(entry, effectiveDuration)
     activeMessages.set(key, entry)

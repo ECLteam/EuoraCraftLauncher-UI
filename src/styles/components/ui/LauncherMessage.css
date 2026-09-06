@@ -33,6 +33,10 @@
   gap: 2px;
 }
 
+.launcher-message-content.is-clickable {
+  cursor: pointer;
+}
+
 .launcher-message-title {
   overflow: hidden;
   color: var(--text-primary);

@@ -744,19 +744,12 @@
       "update": {
         "check": "Check for Updates",
         "title": "Check for Updates",
+        "checking": "Checking for updates…",
         "availableBadge": "Update Available",
-        "latest": "Latest Version",
-        "notes": "Release Notes",
-        "download": "Open Download Page",
-        "retry": "Check Again",
+        "foundNew": "New version v{version} available. Click to open download page",
         "upToDate": "You're on the latest version",
         "disabled": "Alpha builds are excluded from update checks",
-        "failed": "Update check failed",
-        "channels": {
-          "alpha": "Alpha",
-          "beta": "Beta",
-          "release": "Release"
-        }
+        "failed": "Update check failed"
       },
       "technologyCategories": {
         "runtimeFrameworks": "Runtime & Frameworks",
