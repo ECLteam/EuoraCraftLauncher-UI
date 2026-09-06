@@ -1,0 +1,28 @@
+name: Build Frontend
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 复用本仓库的复合 action：装好 Node22 + pnpm10、checkout、安装依赖
+      - uses: ./.github/actions/setup-node
+
+      - name: Build frontend（正式构建）
+        # typecheck 通过后 vite build，产物输出到 dist/
+        run: pnpm build
+
+      - name: Upload dist
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-dist
+          path: dist
+          retention-days: 7
+          if-no-files-found: error
