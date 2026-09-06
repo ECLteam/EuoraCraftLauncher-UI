@@ -362,11 +362,12 @@ async function handleActionSelect(key: string) {
 }
 
 onMounted(async () => {
-  categories.value = await instanceProfileApi.categories().catch(() => [])
+  // 后端可能返回 null/undefined（如演示环境未实现分类），统一归并为空数组，避免渲染期 .find 崩溃
+  categories.value = (await instanceProfileApi.categories().catch(() => [])) ?? []
 })
 
 async function handleCategoriesChanged() {
-  categories.value = await instanceProfileApi.categories()
+  categories.value = (await instanceProfileApi.categories()) ?? []
   emit('changed')
 }
 

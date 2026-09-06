@@ -175,7 +175,16 @@ export function createShowcaseTransport(): BackendTransport {
         speed: 13 * 1024 * 1024,
         subtask: 'download_assets',
       },
-      { phase: 'download', task_id: taskId, message: '正在校验展示文件', done: totalBytes, total: totalBytes, subtask: 'check_files', downloaded_files: totalFiles, total_files: totalFiles },
+      {
+        phase: 'download',
+        task_id: taskId,
+        message: '正在校验展示文件',
+        done: totalBytes,
+        total: totalBytes,
+        subtask: 'check_files',
+        downloaded_files: totalFiles,
+        total_files: totalFiles,
+      },
       {
         phase: 'done',
         task_id: taskId,
@@ -187,7 +196,12 @@ export function createShowcaseTransport(): BackendTransport {
         speed: 0,
       },
     ]
-    steps.forEach((step, index) => setTimeout(() => emit('game:install_progress', { ...step, task_id: taskId } as BackendEvents['game:install_progress']), 480 * (index + 1)))
+    steps.forEach((step, index) =>
+      setTimeout(
+        () => emit('game:install_progress', { ...step, task_id: taskId } as BackendEvents['game:install_progress']),
+        480 * (index + 1)
+      )
+    )
   }
 
   const emitLaunchProgress = () => {
@@ -749,6 +763,15 @@ export function createShowcaseTransport(): BackendTransport {
         return success({ path: 'Showcase/SavedImage.png' })
       case 'export_logs':
         return success({ path: 'Showcase/ECL-logs.zip' })
+      // 演示环境无实例分类功能：读返回空数组，写入视为空操作。
+      // 该命令此前落入 default 返回 success()（data 为 undefined），
+      // 导致调用方 merge 成 categories.value = undefined，渲染期 .find 崩溃
+      case 'game_instance_categories_get':
+        return success([])
+      case 'game_instance_categories_upsert':
+        return success()
+      case 'game_instance_categories_delete':
+        return success()
       default:
         return success()
     }
