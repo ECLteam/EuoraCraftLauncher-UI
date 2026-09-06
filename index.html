@@ -7,9 +7,6 @@
     <title>EuoraCraft Launcher</title>
 
     <!-- Font Awesome 6 (Classic Regular) via npm SVG package, no CDN webfont needed -->
-  </head>
-  <body>
-    <div id="app"></div>
     <script>
       // 启动无闪烁：主脚本加载前从 localStorage 快照恢复亮暗与主色
       ;(function () {
@@ -31,6 +28,127 @@
         } catch (e) {}
       })()
     </script>
+    <style>
+      /* 启动白屏加载动画：主脚本挂载前展示品牌 Logo + 旋转光环。
+         值硬编码自设计令牌（tokens.css），此时主题快照已注入，可响应亮暗。 */
+      :root {
+        --boot-primary: #5b6ff5;
+        --boot-ring: rgba(91, 111, 245, 0.35);
+        --boot-bg: #f4f6fa;
+        --boot-text: #1d2433;
+        --boot-text-secondary: #596275;
+      }
+      [data-theme='dark'] {
+        --boot-primary: #7d8df8;
+        --boot-ring: rgba(125, 141, 248, 0.32);
+        --boot-bg: #171a21;
+        --boot-text: #f1f3f7;
+        --boot-text-secondary: #b4bbc9;
+      }
+      @keyframes boot-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes boot-bar {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(400%);
+        }
+      }
+      .boot-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
+        background: var(--boot-bg);
+        color: var(--boot-text);
+        font-family: 'HarmonyOS Sans SC', -apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        user-select: none;
+      }
+      .boot-splash__logo-wrap {
+        position: relative;
+        width: 92px;
+        height: 92px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: rgba(255, 255, 255, 0.55);
+        box-shadow: 0 12px 32px rgba(29, 36, 51, 0.12);
+      }
+      [data-theme='dark'] .boot-splash__logo-wrap {
+        background: rgba(34, 38, 48, 0.55);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+      }
+      .boot-splash__logo {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+      }
+      .boot-splash__ring {
+        position: absolute;
+        inset: -3px;
+        border-radius: 50%;
+        border: 2px solid transparent;
+        border-top-color: var(--boot-primary);
+        border-right-color: var(--boot-ring);
+        animation: boot-spin 0.95s linear infinite;
+      }
+      .boot-splash__brand {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+      .boot-splash__name {
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+      }
+      .boot-splash__bar {
+        width: 128px;
+        height: 3px;
+        border-radius: 2px;
+        overflow: hidden;
+        background: var(--boot-ring);
+      }
+      .boot-splash__bar i {
+        display: block;
+        width: 50%;
+        height: 100%;
+        border-radius: 2px;
+        background: var(--boot-primary);
+        animation: boot-bar 1.1s ease-in-out infinite;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .boot-splash__ring {
+          animation: none;
+        }
+        .boot-splash__bar i {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="boot-splash" role="status" aria-label="加载中">
+        <div class="boot-splash__logo-wrap">
+          <div class="boot-splash__ring"></div>
+          <img class="boot-splash__logo" src="/favicon.ico" alt="EuoraCraft Launcher" />
+        </div>
+        <div class="boot-splash__brand">
+          <span class="boot-splash__name">EuoraCraft Launcher</span>
+          <span class="boot-splash__bar"><i></i></span>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
