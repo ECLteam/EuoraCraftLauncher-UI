@@ -27,7 +27,7 @@ class FakeWebSocket {
     this.sent.push(text)
     const frame = JSON.parse(text) as Record<string, unknown>
     if (frame.op === 'auth') {
-      this.incoming({ op: 'auth_ok', protocolVersion: 1, launcherVersion: '0.1.0' })
+      this.incoming({ op: 'auth_ok', protocolVersion: 1, launcherVersion: '1.4.2-alpha.3+20260906' })
     } else if (frame.method === 'frontend.invoke') {
       const payload = (frame.params as { payload?: { value?: unknown } }).payload
       this.incoming({ id: frame.id, ok: true, data: { command: (frame.params as { command: string }).command, result: { echo: payload?.value } } })

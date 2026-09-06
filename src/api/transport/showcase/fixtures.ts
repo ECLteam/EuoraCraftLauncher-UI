@@ -7,8 +7,8 @@ import type { InfoCardData } from '@/types/system'
 
 export const showcaseConfig: Record<string, unknown> = {
   launcher: {
-    version: '0.2.0-showcase',
-    version_type: 'dev',
+    version: '1.4.2-alpha.3+20260906',
+    version_type: 'alpha',
     debug: true,
     api_proxy_mode: 'none',
     proxy_mode: 'none',

@@ -30,7 +30,7 @@ interface UseAppRuntimeOptions {
 export function useAppRuntime(options: UseAppRuntimeOptions) {
   const isDevMode = ref(false)
   const launcherVersion = ref('')
-  const launcherVersionType = ref<'dev' | 'beta' | 'release'>('release')
+  const launcherVersionType = ref<'alpha' | 'beta' | 'rc' | 'release'>('release')
   const gameConfig = ref<GameConfig | null>(null)
   const downloadConfig = ref<DownloadConfig | null>(null)
 

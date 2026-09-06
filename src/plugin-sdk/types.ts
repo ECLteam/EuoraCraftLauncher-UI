@@ -20,7 +20,7 @@ export interface ThemeState extends ThemeConfig {
   isDark: boolean
 }
 
-export type LauncherVersionType = 'dev' | 'beta' | 'release'
+export type LauncherVersionType = 'alpha' | 'beta' | 'rc' | 'release'
 
 export interface LauncherState {
   version: string

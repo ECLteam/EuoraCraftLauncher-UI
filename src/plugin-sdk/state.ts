@@ -43,7 +43,7 @@ function syncTheme(state: Ref<ThemeState>, ui: ThemeConfigPayload): void {
 
 function syncLauncher(state: Ref<LauncherState>, launcher: LauncherConfig): void {
   state.value.version = launcher.version || ''
-  state.value.versionType = launcher.version_type || 'dev'
+  state.value.versionType = launcher.version_type || 'release'
   state.value.devMode = launcher.debug === true
 }
 
@@ -75,7 +75,7 @@ const themeSlice = createStateSlice<ThemeState>(
 const launcherSlice = createStateSlice<LauncherState>(
   {
     version: '',
-    versionType: 'dev',
+    versionType: 'release',
     devMode: false,
   },
   (state) => {

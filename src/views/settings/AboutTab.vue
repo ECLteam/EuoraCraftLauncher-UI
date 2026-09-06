@@ -110,7 +110,7 @@ import { openExternalUrl } from '@/utils/openExternal'
 const { t } = useI18n()
 
 const launcherVersion = inject<Readonly<Ref<string>>>('launcherVersion')
-const launcherVersionType = inject<Readonly<Ref<'dev' | 'beta' | 'release'>>>('launcherVersionType')
+const launcherVersionType = inject<Readonly<Ref<'alpha' | 'beta' | 'rc' | 'release'>>>('launcherVersionType')
 const runtimeMode = inject<AppRuntimeMode>('runtimeMode', 'browser')
 const launcherInfo = ref<LauncherInfo | null>(null)
 const frontendVersion = import.meta.env.VITE_APP_VERSION?.trim() || ''
@@ -129,7 +129,8 @@ const versionText = computed(() => {
   const versionType = launcherInfo.value?.version_type || launcherVersionType?.value
   if (!version) return ''
   const status = versionType && versionType !== 'release' ? translateVersion(`types.${versionType}`) : ''
-  const base = `${translateVersion('label')}：v${version}${versionType && versionType !== 'release' ? `-${versionType}` : ''}`
+  // 后端 version 已含预发布与构建日期（如 1.4.2-alpha.3+20260906），直接展示完整格式
+  const base = `${translateVersion('label')}：v${version}`
   return status ? `${base} · ${status}` : base
 })
 

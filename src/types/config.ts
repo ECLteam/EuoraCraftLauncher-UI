@@ -6,7 +6,7 @@ import type { InstanceSortKey } from '@/types/instances'
 
 export interface LauncherConfig {
   version?: string
-  version_type?: 'dev' | 'beta' | 'release'
+  version_type?: 'alpha' | 'beta' | 'rc' | 'release'
   debug?: boolean
   /** 控制台日志最低级别，与 debug 模式相互独立 */
   debug_log_level?: 'debug' | 'info' | 'warning' | 'error'

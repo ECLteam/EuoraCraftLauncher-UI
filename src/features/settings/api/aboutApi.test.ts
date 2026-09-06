@@ -21,12 +21,12 @@ describe('aboutApi', () => {
   it('桌面模式通过 launcher_info 获取启动器版本', async () => {
     mocks.command.mockResolvedValue({
       success: true,
-      data: { version: '0.1.1', version_type: 'dev', debug: true },
+      data: { version: '1.4.2-alpha.3+20260906', version_type: 'alpha', debug: true },
     })
 
     await expect(aboutApi.getLauncherInfo()).resolves.toEqual({
-      version: '0.1.1',
-      version_type: 'dev',
+      version: '1.4.2-alpha.3+20260906',
+      version_type: 'alpha',
       debug: true,
     })
     expect(backend.command).toHaveBeenCalledWith('launcher_info')
