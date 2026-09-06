@@ -19,14 +19,24 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      # 复用本地 setup-node 复合 action：装好环境、checkout、安装依赖
-      - uses: ./.github/actions/setup-node
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10
+
+      - uses: actions/checkout@v7
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Build showcase
         # build:showcase = typecheck + vite build --mode showcase，产物输出到 dist/
         run: pnpm build:showcase
 
-      # 一键构建，产物交给官方 Pages 动作上传并部署
+      # 产物交给官方 Pages 动作上传并部署
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
