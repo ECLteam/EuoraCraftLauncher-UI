@@ -471,7 +471,10 @@ export function useAccountManager(t: (key: string, ...args: unknown[]) => string
   async function openMicrosoftLoginPage() {
     const verificationUri = microsoftLoginData.value.verificationUri
     if (!verificationUri) return
-    await Promise.allSettled([copyUserCode(), openExternalUrl(verificationUri)])
+    // 先复制授权码，稍作延迟再拉起浏览器，避免弹窗尚未呈现即被切换窗口。
+    await copyUserCode()
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+    await openExternalUrl(verificationUri)
   }
 
   async function handleMicrosoftLoginStatus(event: MicrosoftLoginStatusEvent) {

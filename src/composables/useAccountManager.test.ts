@@ -72,22 +72,27 @@ describe('useAccountManager Microsoft login', () => {
   })
 
   it('opens the browser and copies the device code after login starts', async () => {
-    vi.mocked(accountsApi.startMicrosoftLogin).mockResolvedValue({
-      status: 'pending',
-      userCode: 'ABCD-EFGH',
-      verificationUri: 'https://microsoft.com/link',
-      interval: 5,
-    })
-    const account = useAccountManager((key) => key)
+    vi.useFakeTimers()
+    try {
+      vi.mocked(accountsApi.startMicrosoftLogin).mockResolvedValue({
+        status: 'pending',
+        userCode: 'ABCD-EFGH',
+        verificationUri: 'https://microsoft.com/link',
+        interval: 5,
+      })
+      const account = useAccountManager((key) => key)
 
-    await account.loadMicrosoftLoginConfig()
-    await account.startMicrosoftLogin()
-    await Promise.resolve()
+      await account.loadMicrosoftLoginConfig()
+      await account.startMicrosoftLogin()
+      await vi.advanceTimersByTimeAsync(2000)
 
-    expect(openExternalUrl).toHaveBeenCalledWith('https://microsoft.com/link')
-    expect(mocks.copy).toHaveBeenCalledWith('ABCD-EFGH')
-    expect(account.showMicrosoftLoginModal).toBe(true)
-    expect(accountsApi.pollMicrosoftLogin).not.toHaveBeenCalled()
+      expect(openExternalUrl).toHaveBeenCalledWith('https://microsoft.com/link')
+      expect(mocks.copy).toHaveBeenCalledWith('ABCD-EFGH')
+      expect(account.showMicrosoftLoginModal).toBe(true)
+      expect(accountsApi.pollMicrosoftLogin).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('does not start login when MICROSOFT_CLIENT_ID is missing', async () => {
