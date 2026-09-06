@@ -741,6 +741,23 @@
           "release": "正式版"
         }
       },
+      "update": {
+        "check": "检查更新",
+        "title": "检查更新",
+        "availableBadge": "有新版本",
+        "latest": "最新版本",
+        "notes": "更新说明",
+        "download": "前往下载页",
+        "retry": "重新检测",
+        "upToDate": "已是最新版本",
+        "disabled": "Alpha 版本不参与更新检测",
+        "failed": "版本检测失败",
+        "channels": {
+          "alpha": "Alpha 版本",
+          "beta": "测试版",
+          "release": "正式版"
+        }
+      },
       "technologyCategories": {
         "runtimeFrameworks": "运行时与框架",
         "backendRuntime": "后端运行依赖",

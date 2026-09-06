@@ -741,6 +741,23 @@
           "release": "Release"
         }
       },
+      "update": {
+        "check": "Check for Updates",
+        "title": "Check for Updates",
+        "availableBadge": "Update Available",
+        "latest": "Latest Version",
+        "notes": "Release Notes",
+        "download": "Open Download Page",
+        "retry": "Check Again",
+        "upToDate": "You're on the latest version",
+        "disabled": "Alpha builds are excluded from update checks",
+        "failed": "Update check failed",
+        "channels": {
+          "alpha": "Alpha",
+          "beta": "Beta",
+          "release": "Release"
+        }
+      },
       "technologyCategories": {
         "runtimeFrameworks": "Runtime & Frameworks",
         "backendRuntime": "Backend Runtime",

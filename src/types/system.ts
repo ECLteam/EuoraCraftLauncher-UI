@@ -19,6 +19,19 @@ export interface LauncherInfo {
   debug: boolean
 }
 
+/** 版本检测结果：status 为 disabled=通道禁用 / up_to_date=已最新 / update_available=有新版本 / error=检测失败 */
+export interface UpdateCheckResult {
+  status: 'disabled' | 'up_to_date' | 'update_available' | 'error'
+  current_version: string
+  /** 检测通道：alpha=预发布禁用 / beta=测试版 / release=正式版 */
+  channel: 'alpha' | 'beta' | 'release'
+  latest_version: string | null
+  latest_url: string | null
+  latest_notes: string | null
+  /** 检测失败等补充信息 */
+  message: string | null
+}
+
 export interface DebugMaintenanceResult {
   action: 'reset_launcher_data' | 'clear_plugins'
   restart_required: boolean

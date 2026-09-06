@@ -168,6 +168,27 @@
   border: 1px solid rgba(122, 162, 247, 0.4);
 }
 
+.about-update-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary) 40%, transparent);
+}
+
+.about-btn.is-loading {
+  cursor: default;
+  opacity: 0.6;
+}
+
 .launcher-summary__action {
   display: flex;
   justify-content: flex-end;

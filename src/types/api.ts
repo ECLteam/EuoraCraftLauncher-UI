@@ -4,7 +4,7 @@ import type { ConnectorMatchResult, ConnectorStatus, EasyTierStatus, NatTypeResu
 import type { CrashAnalysisResult, CrashCandidateFile, GameInstance, GameInstancesChangedEvent, GameOperation, GameResource, GameResourceType, InstallProgress, InstallVersionResult, InstanceCategory, InstanceProfile, InstanceTargetPayload, JavaInstallation, LaunchInstanceResult, LaunchProgress, MinecraftVersion, MinecraftVersionCatalog, ScannedVersion, ScreenshotEntry, ServerEntry, ServerStatus, VersionRunStats, WorldEntry } from '@/types/instances'
 import type { ModInfo, ModInstallResult, ModItem, ModpackTypeInfo, ModSearchResult, ModSourceConfig, ModVersion, ResourcePack, SaveEntry, ShaderPack } from '@/types/mods'
 import type { PluginInfo, PluginRoute, PluginSettingsData, PluginSlotItem, VueComponentDef, VueSlotItem } from '@/types/plugins'
-import type { DebugMaintenanceResult, FileContent, FsEntry, ImageSaveAsPayload, InfoCardData, LauncherErrorEvent, LauncherInfo, LauncherPopupEvent, PathInfo, ProcessInstance, ProcessLogEntry, TerminalLogEntry, UserAgreement } from '@/types/system'
+import type { DebugMaintenanceResult, FileContent, FsEntry, ImageSaveAsPayload, InfoCardData, LauncherErrorEvent, LauncherInfo, LauncherPopupEvent, PathInfo, ProcessInstance, ProcessLogEntry, TerminalLogEntry, UpdateCheckResult, UserAgreement } from '@/types/system'
 export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
@@ -484,6 +484,7 @@ export interface CommandPayloadMap {
 
   // 启动器信息 / 页信息卡
   launcher_info: undefined
+  launcher_check_update: undefined
   info_card_get: undefined
   debug_reset_launcher_data: undefined
   debug_clear_plugins: undefined
@@ -701,6 +702,7 @@ export const COMMAND_NAMES = {
   download_mod: 'download_mod',
   download_mod_to_path: 'download_mod_to_path',
   launcher_info: 'launcher_info',
+  launcher_check_update: 'launcher_check_update',
   info_card_get: 'info_card_get',
   debug_reset_launcher_data: 'debug_reset_launcher_data',
   debug_clear_plugins: 'debug_clear_plugins',
@@ -949,6 +951,7 @@ export interface CommandResponseMap {
   download_mod_to_path: { filename: string }
 
   launcher_info: LauncherInfo
+  launcher_check_update: UpdateCheckResult
   info_card_get: InfoCardData
   debug_reset_launcher_data: DebugMaintenanceResult
   debug_clear_plugins: DebugMaintenanceResult

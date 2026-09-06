@@ -8,10 +8,14 @@ import type { BackendEvents } from '@/types/api'
 import type { DownloadConfig, GameConfig } from '@/types/config'
 import type { InstallProgress } from '@/types/instances'
 import { getErrorMessage } from '@/utils/error'
+import { useUpdateCheck } from '@/features/settings/composables/useUpdateCheck'
 import { launcherErrorQueue } from './errorPresentation'
 import { installDesktopInteractionPolicy } from './interactionPolicy'
 import { launcherPopupQueue, notifyLauncherPopup } from './useLauncherPopupQueue'
 import type { Router } from 'vue-router'
+
+/** 版本检测共享状态，启动自动检测与设置页手动检测共用。 */
+const updateCheck = useUpdateCheck()
 
 interface MessageService {
   warning(message: string, options?: number | { title?: string; duration?: number }): unknown
@@ -283,6 +287,8 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
     await loadInitialConfig()
     await notifyFrontendReady()
     await syncPendingErrors()
+    // 启动时静默检测一次版本更新，结果供设置页"检查更新"入口展示状态。
+    if (backend.runtime.isDesktop) void updateCheck.checkUpdate()
     // 启动时同步一次积压错误；此后依赖 launcher:error 事件实时推送，低频轮询仅作兜底
     const pendingErrorTimer = window.setInterval(() => void syncPendingErrors(), 1_000)
     cleanupCallbacks.push(() => window.clearInterval(pendingErrorTimer))

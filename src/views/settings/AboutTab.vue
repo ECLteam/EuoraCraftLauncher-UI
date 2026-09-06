@@ -17,9 +17,14 @@
             </div>
             <div v-if="versionText" class="launcher-summary__version">
               {{ versionText }}
+              <span v-if="hasUpdate" class="about-update-badge">{{ t('settings.aboutTab.update.availableBadge') }}</span>
             </div>
           </div>
           <div class="launcher-summary__action">
+            <a class="about-btn" href="#" :class="{ 'is-loading': checking }" @click.prevent="checkForUpdates">
+              <UiIcon name="refresh" :size="14" :class="{ spin: checking }" />
+              <span>{{ t('settings.aboutTab.update.check') }}</span>
+            </a>
             <a class="about-btn" href="#" @click.prevent="openExternalUrl(URLS.issues)">
               <UiIcon name="bug" :size="14" />
               <span>{{ t('settings.aboutTab.actions.issue') }}</span>
@@ -32,6 +37,8 @@
         </div>
       </div>
     </div>
+
+    <UpdateCheckModal v-model:visible="showUpdateModal" :result="lastResult" />
 
     <!-- ECLTeam -->
     <div class="about-card">
@@ -104,6 +111,8 @@ import { URLS } from '@/config/urls'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { specialThanksEntries, teamMembers, technologyCategories } from '@/features/settings/about/aboutContent'
 import { aboutApi } from '@/features/settings/api/aboutApi'
+import UpdateCheckModal from '@/features/settings/components/UpdateCheckModal.vue'
+import { useUpdateCheck } from '@/features/settings/composables/useUpdateCheck'
 import type { LauncherInfo } from '@/types/system'
 import { openExternalUrl } from '@/utils/openExternal'
 
@@ -116,6 +125,15 @@ const launcherInfo = ref<LauncherInfo | null>(null)
 const frontendVersion = import.meta.env.VITE_APP_VERSION?.trim() || ''
 const isDevMode = import.meta.env.DEV
 const translateVersion = (key: string): string => t(`settings.aboutTab.version.${key}`)
+
+const { lastResult, checking, checkUpdate } = useUpdateCheck()
+const showUpdateModal = ref(false)
+const hasUpdate = computed(() => lastResult.value?.status === 'update_available')
+
+async function checkForUpdates(): Promise<void> {
+  await checkUpdate()
+  showUpdateModal.value = true
+}
 
 const versionText = computed(() => {
   if (runtimeMode === 'showcase') {
