@@ -14,11 +14,11 @@
               <span v-if="isDevMode" class="about-mode-badge about-mode-badge--dev" title="开发模式：Vite 开发构建">
                 DEV
               </span>
+              <span v-if="hasUpdate" class="about-update-badge">{{ t('settings.aboutTab.update.availableBadge') }}</span>
+              <span v-else-if="isUpToDate" class="about-update-badge is-latest">{{ t('settings.aboutTab.update.upToDateBadge') }}</span>
             </div>
             <div v-if="versionText" class="launcher-summary__version">
               {{ versionText }}
-              <span v-if="hasUpdate" class="about-update-badge">{{ t('settings.aboutTab.update.availableBadge') }}</span>
-              <span v-else-if="isUpToDate" class="about-update-badge is-latest">{{ t('settings.aboutTab.update.upToDateBadge') }}</span>
             </div>
           </div>
           <div class="launcher-summary__action">
