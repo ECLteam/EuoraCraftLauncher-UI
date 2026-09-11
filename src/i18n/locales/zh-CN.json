@@ -1506,6 +1506,23 @@
     "capesRefreshed": "官方披风已刷新",
     "refreshFailed": "刷新官方披风失败"
   },
+  "schematic": {
+    "title": "原理图 3D 预览",
+    "preview": "预览",
+    "loading": "正在解析原理图…",
+    "empty": "原理图中没有可显示的方块",
+    "parseFailed": "解析原理图失败",
+    "rotateLeft": "向左旋转",
+    "rotateRight": "向右旋转",
+    "zoomIn": "放大",
+    "zoomOut": "缩小",
+    "resetView": "重置视角",
+    "sliceY": "Y 层切片",
+    "showAll": "显示全部",
+    "layer": "第 {n} / {total} 层",
+    "size": "尺寸 {x}×{y}×{z}",
+    "regions": "{count} 个区域"
+  },
   "task": {
     "subtask": {
       "downloadJson": "下载实例信息",

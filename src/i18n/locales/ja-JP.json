@@ -1602,6 +1602,23 @@
     "capesRefreshed": "公式マントを更新しました",
     "refreshFailed": "公式マントの更新に失敗しました"
   },
+  "schematic": {
+    "title": "図面 3D プレビュー",
+    "preview": "プレビュー",
+    "loading": "図面を解析中…",
+    "empty": "図面に表示できるブロックがありません",
+    "parseFailed": "図面の解析に失敗しました",
+    "rotateLeft": "左に回転",
+    "rotateRight": "右に回転",
+    "zoomIn": "拡大",
+    "zoomOut": "縮小",
+    "resetView": "視点をリセット",
+    "sliceY": "Y 層スライス",
+    "showAll": "すべて表示",
+    "layer": "{n} / {total} 層目",
+    "size": "サイズ {x}×{y}×{z}",
+    "regions": "{count} リージョン"
+  },
   "task": {
     "subtask": {
       "downloadJson": "インスタンス情報をダウンロード",

@@ -65,6 +65,16 @@
           <NSwitch v-if="resourceType !== 'schematic'" :value="item.enabled" @update:value="toggle(item, $event)" />
           <span v-else class="resource-na">—</span>
           <div class="resource-actions">
+            <NButton
+              v-if="resourceType === 'schematic'"
+              size="tiny"
+              quaternary
+              :title="t('schematic.preview')"
+              data-testid="schematic-preview-btn"
+              @click="openPreview(item)"
+            >
+              <template #icon><UiIcon name="cube" :size="14" /></template>
+            </NButton>
             <NButton size="tiny" type="error" quaternary @click="removeOne(item)">删除</NButton>
           </div>
         </div>
@@ -80,6 +90,12 @@
       :danger="confirmDanger"
       :closeOnConfirm="false"
       @confirm="handleConfirm"
+    />
+    <SchematicPreviewModal
+      v-model:visible="previewVisible"
+      :version="version"
+      :resourceId="previewResource?.id"
+      :resourceName="previewResource?.name || previewResource?.id"
     />
     <Modal v-model:visible="onlineVisible" title="在线搜索资源" width="700px">
       <div class="online-toolbar">
@@ -100,6 +116,7 @@
 <script setup lang="ts">
 import { NButton, NCheckbox, NEmpty, NInput, NSelect, NSpin, NSwitch } from 'naive-ui'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import backend from '@/api/client'
 import { unwrapResponse } from '@/app/runtime/errorPresentation'
 import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
@@ -107,6 +124,7 @@ import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
+import SchematicPreviewModal from '@/features/instances/components/SchematicPreviewModal.vue'
 import type { GameResource, GameResourceType, ScannedVersion } from '@/types/instances'
 import { getErrorMessage } from '@/utils/error'
 
@@ -119,6 +137,7 @@ const props = defineProps<{
   allowedTypes?: GameResourceType[]
 }>()
 const message = useLauncherMessage()
+const { t } = useI18n()
 const resourceType = ref<GameResourceType>(props.initialType || 'mod')
 const worldId = ref<string | null>(null)
 const resources = ref<GameResource[]>([])
@@ -130,6 +149,8 @@ const onlineQuery = ref('')
 const onlineSource = ref<'modrinth' | 'curseforge'>('modrinth')
 const onlineItems = ref<unknown[]>([])
 const onlineLoading = ref(false)
+const previewResource = ref<GameResource | null>(null)
+const previewVisible = ref(false)
 const allTypes: Array<{ value: GameResourceType; label: string }> = [
   { value: 'mod', label: '模组' },
   { value: 'resourcepack', label: '资源包' },
@@ -235,6 +256,10 @@ function removeOne(item: GameResource) {
 }
 function removeSelected() {
   confirmDelete([...selected.value])
+}
+function openPreview(item: GameResource) {
+  previewResource.value = item
+  previewVisible.value = true
 }
 async function searchOnline() {
   if (!onlineQuery.value.trim()) return

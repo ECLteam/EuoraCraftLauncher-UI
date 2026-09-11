@@ -1509,6 +1509,23 @@
     "capesRefreshed": "官方披風已重新整理",
     "refreshFailed": "重新整理官方披風失敗"
   },
+  "schematic": {
+    "title": "原理圖 3D 預覽",
+    "preview": "預覽",
+    "loading": "正在解析原理圖…",
+    "empty": "原理圖中沒有可顯示的方塊",
+    "parseFailed": "解析原理圖失敗",
+    "rotateLeft": "向左旋轉",
+    "rotateRight": "向右旋轉",
+    "zoomIn": "放大",
+    "zoomOut": "縮小",
+    "resetView": "重設視角",
+    "sliceY": "Y 層切片",
+    "showAll": "顯示全部",
+    "layer": "第 {n} / {total} 層",
+    "size": "尺寸 {x}×{y}×{z}",
+    "regions": "共 {count} 個區域"
+  },
   "task": {
     "subtask": {
       "downloadJson": "下載實例資訊",

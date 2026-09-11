@@ -1602,6 +1602,23 @@
     "capesRefreshed": "Offizielle Umhänge aktualisiert",
     "refreshFailed": "Offizielle Umhänge konnten nicht aktualisiert werden"
   },
+  "schematic": {
+    "title": "3D-Schema-Vorschau",
+    "preview": "Vorschau",
+    "loading": "Schema wird geparst…",
+    "parseFailed": "Schema konnte nicht geparst werden",
+    "empty": "Das Schema enthält keine anzeigbaren Blöcke",
+    "rotateLeft": "Nach links drehen",
+    "rotateRight": "Nach rechts drehen",
+    "zoomIn": "Vergrößern",
+    "zoomOut": "Verkleinern",
+    "resetView": "Ansicht zurücksetzen",
+    "sliceY": "Y-Ebene slicen",
+    "showAll": "Alles anzeigen",
+    "layer": "Ebene {n} / {total}",
+    "size": "Größe {x}×{y}×{z}",
+    "regions": "{count} Regionen"
+  },
   "task": {
     "subtask": {
       "downloadJson": "Instanzinformationen herunterladen",

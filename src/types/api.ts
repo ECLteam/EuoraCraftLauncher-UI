@@ -462,6 +462,7 @@ export interface CommandPayloadMap {
     update: Record<string, unknown>
     world_id?: string
   }
+  game_schematic_preview: InstanceTargetPayload & { resource_type: GameResourceType; resource_id: string }
   game_launch: {
     version_id: string
     game_path: string
@@ -762,6 +763,7 @@ export const COMMAND_NAMES = {
   game_resource_identify: 'game_resource_identify',
   game_resource_update_check: 'game_resource_update_check',
   game_resource_update: 'game_resource_update',
+  game_schematic_preview: 'game_schematic_preview',
   game_launch: 'game_launch',
   game_launch_cancel: 'game_launch_cancel',
   game_instance_stop: 'game_instance_stop',
@@ -1014,6 +1016,7 @@ export interface CommandResponseMap {
   }
   game_resource_update_check: Array<Record<string, unknown>>
   game_resource_update: GameOperation
+  game_schematic_preview: SchematicPreviewData
   game_launch: LaunchInstanceResult
   game_launch_cancel: void
   export_logs: { path: string }
@@ -1086,4 +1089,18 @@ export interface CommandResponseMap {
   fs_read_file: FileContent
   fs_exists: PathInfo
   file_resolve: SelectResult
+}
+
+export interface SchematicRegionData {
+  name: string
+  size: number[]
+  position: number[]
+  palette: number[][]
+  indices: number[]
+}
+
+export interface SchematicPreviewData {
+  type: 'litematic' | 'schem'
+  size: number[]
+  regions: SchematicRegionData[]
 }

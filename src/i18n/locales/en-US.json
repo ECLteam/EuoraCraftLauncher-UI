@@ -1596,6 +1596,23 @@
     "capesRefreshed": "Official capes refreshed",
     "refreshFailed": "Failed to refresh official capes"
   },
+  "schematic": {
+    "title": "Schematic 3D Preview",
+    "preview": "Preview",
+    "loading": "Parsing schematic…",
+    "empty": "The schematic contains no visible blocks",
+    "parseFailed": "Failed to parse schematic",
+    "rotateLeft": "Rotate left",
+    "rotateRight": "Rotate right",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "resetView": "Reset view",
+    "sliceY": "Y-layer slice",
+    "showAll": "Show all",
+    "layer": "Layer {n} / {total}",
+    "size": "Size {x}×{y}×{z}",
+    "regions": "{count} regions"
+  },
   "task": {
     "subtask": {
       "downloadJson": "Download instance info",

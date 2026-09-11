@@ -1,5 +1,6 @@
 import backend from '@/api/client'
 import { unwrapResponse } from '@/app/runtime/errorPresentation'
+import type { SchematicPreviewData } from '@/types/api'
 import type {
   GameOperation,
   GameResource,
@@ -187,6 +188,12 @@ export const instanceWorkspaceApi = {
     ),
   patchOptions: (target: InstanceTargetPayload, patch: Record<string, number | string | boolean>) =>
     call<{ path: string; updated: number }>('game_options_patch', { ...target, patch }, '保存游戏设置'),
+  schematicPreview: (target: InstanceTargetPayload, resourceId: string) =>
+    call<SchematicPreviewData>(
+      'game_schematic_preview',
+      { ...target, resource_type: 'schematic', resource_id: resourceId },
+      '预览原理图'
+    ),
 }
 
 export interface GameOptionEntry {
