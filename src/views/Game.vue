@@ -76,11 +76,14 @@
       :showFooter="false"
       bodyClass="running-instances-modal-body"
     >
-      <RunningInstancesTab
-        v-if="showRunningInstances && runningView === 'management'"
-        @openTerminal="openInstanceTerminal"
-      />
-      <InstanceTerminalModule v-else-if="showRunningInstances" @back="closeInstanceTerminal" />
+      <Transition name="page" mode="out-in">
+        <RunningInstancesTab
+          v-if="showRunningInstances && runningView === 'management'"
+          key="management"
+          @openTerminal="openInstanceTerminal"
+        />
+        <InstanceTerminalModule v-else-if="showRunningInstances" key="terminal" @back="closeInstanceTerminal" />
+      </Transition>
     </FullscreenModal>
 
     <FullscreenModal
