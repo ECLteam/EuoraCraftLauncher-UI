@@ -741,6 +741,23 @@
           "release": "Release"
         }
       },
+      "update": {
+        "check": "Nach Updates suchen",
+        "title": "Nach Updates suchen",
+        "checking": "Suche nach Updates…",
+        "availableBadge": "Update verfügbar",
+        "upToDateBadge": "Aktuell",
+        "foundNew": "Neue Version v{version} verfügbar. Klicken, um die Download-Seite zu öffnen",
+        "upToDate": "Sie nutzen die aktuelle Version",
+        "disabled": "Alpha-Versionen werden von der Update-Prüfung ausgeschlossen",
+        "failed": "Update-Prüfung fehlgeschlagen",
+        "downloading": "Update wird heruntergeladen…",
+        "downloadAndRestart": "Herunterladen und neu starten",
+        "preparing": "Update wird vorbereitet…",
+        "downloadFailed": "Update-Download fehlgeschlagen. Bitte später erneut versuchen",
+        "restarting": "v{version} ist bereit. Der Launcher startet neu, um das Update abzuschließen",
+        "applyFailed": "Update konnte nicht angewendet werden. Bitte später erneut versuchen"
+      },
       "technologyCategories": {
         "runtimeFrameworks": "Laufzeitumgebung & Frameworks",
         "backendRuntime": "Backend-Laufzeitabhängigkeiten",

@@ -91,7 +91,11 @@ import type {
   ProcessInstance,
   ProcessLogEntry,
   TerminalLogEntry,
+  UpdateApplyResult,
   UpdateCheckResult,
+  UpdateDownloadResult,
+  UpdateProgressEvent,
+  UpdateStatus,
   UserAgreement,
 } from '@/types/system'
 export interface ApiResponse<T = unknown> {
@@ -135,6 +139,7 @@ export interface BackendEvents {
   'launcher:log': TerminalLogEntry
   'process:instance_log': ProcessLogEntry
   'process:instances_changed': ProcessInstance[]
+  'update:progress': UpdateProgressEvent
   'game:install_progress': InstallProgress
   'game:launch_progress': LaunchProgress
   'game:operation_progress': GameOperation
@@ -576,6 +581,9 @@ export interface CommandPayloadMap {
   // 启动器信息 / 页信息卡
   launcher_info: undefined
   launcher_check_update: undefined
+  launcher_update_status: undefined
+  launcher_update_download: undefined
+  launcher_update_apply: undefined
   info_card_get: undefined
   debug_reset_launcher_data: undefined
   debug_clear_plugins: undefined
@@ -794,6 +802,9 @@ export const COMMAND_NAMES = {
   download_mod_to_path: 'download_mod_to_path',
   launcher_info: 'launcher_info',
   launcher_check_update: 'launcher_check_update',
+  launcher_update_status: 'launcher_update_status',
+  launcher_update_download: 'launcher_update_download',
+  launcher_update_apply: 'launcher_update_apply',
   info_card_get: 'info_card_get',
   debug_reset_launcher_data: 'debug_reset_launcher_data',
   debug_clear_plugins: 'debug_clear_plugins',
@@ -1043,6 +1054,9 @@ export interface CommandResponseMap {
 
   launcher_info: LauncherInfo
   launcher_check_update: UpdateCheckResult
+  launcher_update_status: UpdateStatus
+  launcher_update_download: UpdateDownloadResult
+  launcher_update_apply: UpdateApplyResult
   info_card_get: InfoCardData
   debug_reset_launcher_data: DebugMaintenanceResult
   debug_clear_plugins: DebugMaintenanceResult

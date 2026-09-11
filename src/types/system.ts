@@ -32,6 +32,33 @@ export interface UpdateCheckResult {
   message: string | null
 }
 
+/** 启动器自动更新是否允许（打包运行且通道在 beta / rc / release 白名单内） */
+export interface UpdateStatus {
+  enabled: boolean
+}
+
+/** 下载并落盘更新结果 */
+export interface UpdateDownloadResult {
+  version: string
+  target: string
+  new_binary: string
+  downloaded: boolean
+}
+
+/** 自动更新下载进度事件 */
+export interface UpdateProgressEvent {
+  phase: 'download' | 'complete'
+  name: string
+  received: number
+  total: number
+}
+
+/** 触发重启完成更新的结果 */
+export interface UpdateApplyResult {
+  version: string
+  restarting: boolean
+}
+
 export interface DebugMaintenanceResult {
   action: 'reset_launcher_data' | 'clear_plugins'
   restart_required: boolean

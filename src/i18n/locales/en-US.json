@@ -750,7 +750,13 @@
         "foundNew": "New version v{version} available. Click to open download page",
         "upToDate": "You're on the latest version",
         "disabled": "Alpha builds are excluded from update checks",
-        "failed": "Update check failed"
+        "failed": "Update check failed",
+        "downloading": "Downloading update…",
+        "downloadAndRestart": "Download & Restart",
+        "preparing": "Preparing update…",
+        "downloadFailed": "Update download failed, please try again later",
+        "restarting": "v{version} is ready. The launcher will restart to finish the update",
+        "applyFailed": "Failed to apply update, please try again later"
       },
       "technologyCategories": {
         "runtimeFrameworks": "Runtime & Frameworks",

@@ -741,6 +741,23 @@
           "release": "正式版"
         }
       },
+      "update": {
+        "check": "檢查更新",
+        "title": "檢查更新",
+        "checking": "正在檢查更新…",
+        "availableBadge": "有新版本",
+        "upToDateBadge": "已是最新",
+        "foundNew": "發現新版本 v{version}，點擊前往下載頁",
+        "upToDate": "已是最新版本",
+        "disabled": "Alpha 版本不參與更新檢測",
+        "failed": "版本檢測失敗",
+        "downloading": "正在下載更新…",
+        "downloadAndRestart": "下載並重啟",
+        "preparing": "正在準備更新…",
+        "downloadFailed": "更新下載失敗，請稍後重試",
+        "restarting": "v{version} 已就緒，啟動器即將重啟以完成更新",
+        "applyFailed": "更新套用失敗，請稍後重試"
+      },
       "technologyCategories": {
         "runtimeFrameworks": "執行時與框架",
         "backendRuntime": "後端執行依賴",

@@ -741,6 +741,23 @@
           "release": "正式版"
         }
       },
+      "update": {
+        "check": "更新を確認",
+        "title": "更新を確認",
+        "checking": "更新を確認中…",
+        "availableBadge": "新しいバージョンあり",
+        "upToDateBadge": "最新版",
+        "foundNew": "新しいバージョン v{version} があります。ダウンロードページを開く",
+        "upToDate": "現在最新バージョンです",
+        "disabled": "Alpha バージョンは更新チェックの対象外です",
+        "failed": "更新の確認に失敗しました",
+        "downloading": "更新をダウンロード中…",
+        "downloadAndRestart": "ダウンロードして再起動",
+        "preparing": "更新を準備中…",
+        "downloadFailed": "更新のダウンロードに失敗しました。後でもう一度お試しください",
+        "restarting": "v{version} の準備ができました。ランチャーが再起動して更新を完了します",
+        "applyFailed": "更新の適用に失敗しました。後でもう一度お試しください"
+      },
       "technologyCategories": {
         "runtimeFrameworks": "ランタイムとフレームワーク",
         "backendRuntime": "バックエンド実行依存",

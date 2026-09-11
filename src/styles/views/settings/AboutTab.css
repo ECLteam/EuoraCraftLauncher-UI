@@ -195,11 +195,44 @@
   opacity: 0.6;
 }
 
+.about-btn.is-download {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
 .launcher-summary__action {
   display: flex;
   justify-content: flex-end;
   align-items: center;
   gap: 7px;
+  flex-wrap: wrap;
+}
+
+.about-update-progress {
+  position: relative;
+  width: 120px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1px solid color-mix(in srgb, var(--primary) 40%, transparent);
+  background: var(--bg-base);
+  overflow: hidden;
+}
+
+.about-update-progress__bar {
+  height: 100%;
+  background: color-mix(in srgb, var(--primary) 30%, transparent);
+  transition: width var(--duration-normal) ease;
+}
+
+.about-update-progress__text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--text-primary);
+  line-height: 1;
 }
 
 .about-btn {
