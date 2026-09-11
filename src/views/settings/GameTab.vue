@@ -115,9 +115,9 @@
             </span>
           </div>
           <div v-if="systemMemoryError" class="memory-error-hint">
-          无法读取真实内存信息，当前为默认占位值。请重启后端或检查控制台日志。
+            无法读取真实内存信息，当前为默认占位值。请重启后端或检查控制台日志。
+          </div>
         </div>
-      </div>
       </div>
 
       <SettingRow :label="t('settings.lockMemory')" :description="t('settings.lockMemoryDesc')">

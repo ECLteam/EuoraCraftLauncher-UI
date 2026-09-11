@@ -1,10 +1,5 @@
 import backend from '@/api/client'
-import type {
-  UpdateApplyResult,
-  UpdateCheckResult,
-  UpdateDownloadResult,
-  UpdateStatus,
-} from '@/types/system'
+import type { UpdateApplyResult, UpdateCheckResult, UpdateDownloadResult, UpdateStatus } from '@/types/system'
 
 export const updateApi = {
   async checkUpdate(): Promise<UpdateCheckResult | null> {
