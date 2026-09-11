@@ -1,19 +1,29 @@
 import type { MinecraftAccount, WardrobeItem } from '@/types/accounts'
 import type { ApiResponse, BackendEvents } from '@/types/api'
 import type { ConnectorMatchResult, ConnectorStatus, EasyTierStatus } from '@/types/connect'
-import type { CrashAnalysisResult, GameInstance, VersionRunStats } from '@/types/instances'
+import type { GameInstance, GameResource, VersionRunStats } from '@/types/instances'
+import type { CrashAnalysisResult } from '@/types/instances'
 import type { PluginInfo } from '@/types/plugins'
 import { loadShowcaseConfig, persistShowcaseConfig } from './configPersistence'
 import {
   createShowcaseAccount,
+  makeShowcaseWorldBackups,
+  showcaseInstanceMods,
   showcaseAccounts,
   showcaseAuthlibServers,
   showcaseConfig,
+  showcaseGameOptions,
   showcaseInfoCard,
   showcaseLoaderVersions,
   showcaseMods,
   showcasePlugins,
+  showcaseResources,
   showcaseScannedVersions,
+  showcaseScreenshots,
+  showcaseSearchItemsByType,
+  showcaseServers,
+  showcaseSchematicPreview,
+  showcaseWorlds,
   showcaseVersionCatalog,
 } from './fixtures'
 import type { BackendTransport } from '../types'
@@ -53,6 +63,15 @@ export function createShowcaseTransport(): BackendTransport {
   const wardrobe: WardrobeItem[] = []
   const runningInstances: GameInstance[] = []
   const versionStats = new Map<string, VersionRunStats>()
+  // 实例工作区可变状态：存档 / 备份 / 截图 / 服务器 / 资源
+  const worlds = structuredClone(showcaseWorlds)
+  const worldBackups = new Map<
+    string,
+    { id: string; createdAt?: string; locked: boolean; automatic: boolean; size: number }[]
+  >(showcaseWorlds.map((world, index) => [world.id, makeShowcaseWorldBackups(index)]))
+  const servers = structuredClone(showcaseServers)
+  const screenshots = structuredClone(showcaseScreenshots)
+  const resources: Record<string, GameResource[]> = structuredClone(showcaseResources)
   let connectorStatus: ConnectorStatus = {
     mode: 'idle',
     roomCode: null,
@@ -72,6 +91,15 @@ export function createShowcaseTransport(): BackendTransport {
   }
   let portScanCount = 0
   let connectorStartTimer: ReturnType<typeof setTimeout> | null = null
+
+  /** 演示用已完成操作（GameOperation 消费方期待可直接完成的任务） */
+  const demoOperation = (kind: string) => ({
+    operationId: `showcase-${kind}-${Date.now()}`,
+    kind,
+    status: 'completed' as const,
+    percent: 100,
+    message: '展示模式操作已即时完成',
+  })
 
   const hostPlayer = {
     name: 'CloudMaple685',
@@ -653,7 +681,9 @@ export function createShowcaseTransport(): BackendTransport {
         return success()
       case 'search_mods': {
         const query = String(payload.query ?? '').toLowerCase()
-        const items = showcaseMods.filter(
+        const type = String(payload.resource_type ?? 'mod')
+        const catalog = showcaseSearchItemsByType[type] ?? showcaseMods
+        const items = catalog.filter(
           (item) =>
             !query ||
             item.title.toLowerCase().includes(query) ||
@@ -674,17 +704,8 @@ export function createShowcaseTransport(): BackendTransport {
       case 'mod_source_config':
         return success({ curseforge: { available: false } })
       case 'get_mods':
-        return success([
-          {
-            filename: 'sodium-fabric.jar',
-            name: 'Sodium',
-            version: '0.6.13',
-            author: 'CaffeineMC',
-            loader_type: 'Fabric',
-            game_version: '1.21.5',
-            enabled: true,
-          },
-        ])
+        // 演示实例共享同一 .minecraft 目录（非隔离），Fabric/Forge 模组混装属正常情况
+        return success(structuredClone(showcaseInstanceMods))
       case 'get_mod_info':
         return success({
           ...(showcaseMods.find((item) => item.id === payload.mod_id || item.projectId === payload.mod_id) ??
@@ -750,7 +771,6 @@ export function createShowcaseTransport(): BackendTransport {
       case 'select_image':
         return success({ path: 'Showcase/SelectedImage.png', base64: '' })
       case 'image_fetch_data_url':
-      case 'image_read_file':
         return success({})
       case 'image_save_url':
         return success({
@@ -771,6 +791,319 @@ export function createShowcaseTransport(): BackendTransport {
       case 'game_instance_categories_upsert':
         return success()
       case 'game_instance_categories_delete':
+        return success()
+
+      /* ── 实例工作区：打开目录 / 存档 ── */
+      case 'game_instance_folder_open':
+        return success({ path: `Showcase/.minecraft/${String(payload.folder ?? 'instance')}` })
+      case 'game_world_list':
+        return success(structuredClone(worlds))
+      case 'game_world_detail': {
+        const world = worlds.find((item) => item.id === payload.world_id)
+        return world ? success(structuredClone(world)) : failure('存档不存在', 'WORLD_NOT_FOUND')
+      }
+      case 'game_world_patch': {
+        const world = worlds.find((item) => item.id === payload.world_id)
+        if (!world) return failure('存档不存在', 'WORLD_NOT_FOUND')
+        Object.assign(world, getPayload(payload.patch))
+        return success(structuredClone(world))
+      }
+      case 'game_world_copy': {
+        const source = worlds.find((item) => item.id === payload.world_id)
+        if (source) {
+          worlds.push({
+            ...structuredClone(source),
+            id: String(payload.new_world_id ?? `${source.id}-copy`),
+            name: `${source.name} 副本`,
+            path: `${source.path}-copy`,
+          })
+        }
+        return success(demoOperation('world_copy'))
+      }
+      case 'game_world_delete': {
+        const index = worlds.findIndex((item) => item.id === payload.world_id)
+        if (index >= 0) worlds.splice(index, 1)
+        return success()
+      }
+      case 'game_world_import': {
+        const template = worlds[0] ?? showcaseWorlds[0]
+        if (template) {
+          worlds.push({
+            ...structuredClone(template),
+            id: `imported-${Date.now()}`,
+            name: '导入的存档',
+            path: String(payload.source_path ?? 'Showcase/.minecraft/saves/imported'),
+          })
+        }
+        return success(demoOperation('world_import'))
+      }
+      case 'game_world_export':
+        return success(demoOperation('world_export'))
+      case 'game_world_icon_set': {
+        const world = worlds.find((item) => item.id === payload.world_id)
+        if (world) world.iconPath = String(payload.source_path ?? '')
+        return success({ path: String(payload.source_path ?? '') })
+      }
+
+      /* ── 存档备份 ── */
+      case 'game_world_backup_create': {
+        const worldId = String(payload.world_id ?? '')
+        const list = worldBackups.get(worldId) ?? []
+        list.unshift({
+          id: `backup-${Date.now()}`,
+          createdAt: new Date().toISOString(),
+          locked: false,
+          automatic: false,
+          size: 48_600_000,
+        })
+        worldBackups.set(worldId, list)
+        return success(demoOperation('world_backup_create'))
+      }
+      case 'game_world_backup_list':
+        return success(structuredClone(worldBackups.get(String(payload.world_id ?? '')) ?? []))
+      case 'game_world_backup_restore':
+        return success(demoOperation('world_backup_restore'))
+      case 'game_world_backup_lock': {
+        const list = worldBackups.get(String(payload.world_id ?? '')) ?? []
+        const backup = list.find((item) => item.id === payload.backup_id)
+        if (backup) backup.locked = Boolean(payload.locked)
+        return success()
+      }
+      case 'game_world_backup_delete': {
+        const worldId = String(payload.world_id ?? '')
+        worldBackups.set(
+          worldId,
+          (worldBackups.get(worldId) ?? []).filter((item) => item.id !== payload.backup_id)
+        )
+        return success()
+      }
+
+      /* ── 截图 ── */
+      case 'game_screenshot_list':
+        return success(structuredClone(screenshots))
+      case 'game_screenshot_thumbnail':
+        return success({
+          path:
+            screenshots.find((item) => item.id === payload.screenshot_id)?.path ??
+            'Showcase/.minecraft/screenshots/placeholder.png',
+        })
+      case 'game_screenshot_copy':
+        return success()
+      case 'game_screenshot_save_as':
+        return success({ path: String(payload.output_path ?? 'Showcase/screenshot.png') })
+      case 'game_screenshot_delete': {
+        const index = screenshots.findIndex((item) => item.id === payload.screenshot_id)
+        if (index >= 0) screenshots.splice(index, 1)
+        return success()
+      }
+      case 'game_screenshot_set_cover':
+      case 'game_screenshot_set_background':
+        return success()
+
+      /* ── 服务器列表 ── */
+      case 'game_server_list':
+        return success(structuredClone(servers))
+      case 'game_server_upsert': {
+        const id = payload.server_id ? String(payload.server_id) : `srv-${Date.now()}`
+        const entry = {
+          id,
+          name: String(payload.name ?? '服务器'),
+          address: String(payload.address ?? ''),
+          icon: null,
+          favorite: Boolean(payload.favorite),
+          order: servers.length,
+        }
+        const index = servers.findIndex((item) => item.id === id)
+        if (index >= 0) servers[index] = entry
+        else servers.push(entry)
+        return success(structuredClone(entry))
+      }
+      case 'game_server_delete': {
+        const index = servers.findIndex((item) => item.id === payload.server_id)
+        if (index >= 0) servers.splice(index, 1)
+        return success()
+      }
+      case 'game_server_reorder':
+        return success()
+      case 'game_server_status_refresh': {
+        const addresses = Array.isArray(payload.addresses) ? payload.addresses : []
+        return success(
+          addresses.map((address) => {
+            const offline = String(address).startsWith('127.')
+            return {
+              address: String(address),
+              online: !offline,
+              latency: offline ? undefined : 24,
+              playersOnline: offline ? undefined : 8_412,
+              playersMax: offline ? undefined : 20_000,
+            }
+          })
+        )
+      }
+
+      /* ── 实例资源（资源包 / 光影包 / 数据包 / 原理图） ── */
+      case 'game_resource_list':
+        return success(structuredClone(resources[String(payload.resource_type ?? '')] ?? []))
+      case 'game_resource_toggle': {
+        const list = resources[String(payload.resource_type ?? '')] ?? []
+        const entry = list.find((item) => item.id === payload.resource_id)
+        if (entry) entry.enabled = Boolean(payload.enabled)
+        return success()
+      }
+      case 'game_resource_delete': {
+        const type = String(payload.resource_type ?? '')
+        const ids = new Set((Array.isArray(payload.resource_ids) ? payload.resource_ids : []).map(String))
+        resources[type] = (resources[type] ?? []).filter((item) => !ids.has(item.id))
+        return success()
+      }
+      case 'game_resource_install': {
+        const type = String(payload.resource_type ?? '')
+        const paths = Array.isArray(payload.source_paths) ? payload.source_paths : []
+        const list = resources[type] ?? (resources[type] = [])
+        paths.forEach((rawPath, offset) => {
+          const raw = String(rawPath)
+          const base = raw.split(/[\\/]/).pop() ?? 'resource'
+          list.push({
+            id: `${type}-${Date.now()}-${offset}`,
+            type: type as never,
+            path: raw,
+            name: base.replace(/\.[^.]+$/, ''),
+            enabled: true,
+            size: 2_400_000,
+            modifiedAt: new Date().toISOString(),
+            sha512: null,
+            source: 'local',
+          })
+        })
+        return success(demoOperation('resource_install'))
+      }
+      case 'game_resource_update_check':
+        return success([])
+      case 'game_resource_update':
+        return success(demoOperation('resource_update'))
+      case 'game_resource_manifest_export':
+        return success({ path: String(payload.output_path ?? 'Showcase/manifest.json') })
+      case 'game_resource_identify':
+        return success({ matched: false })
+      case 'game_schematic_preview':
+        return success(structuredClone(showcaseSchematicPreview))
+
+      /* ── 实例设置 / 资料与维护 ── */
+      case 'game_options_read':
+        return success({
+          path: 'Showcase/.minecraft/options.txt',
+          options: structuredClone(showcaseGameOptions),
+          ignoredCount: 0,
+        })
+      case 'game_options_patch':
+        return success({
+          path: 'Showcase/.minecraft/options.txt',
+          updated: Object.keys(getPayload(payload.patch)).length,
+        })
+      case 'game_version_settings_get':
+        return success({})
+      case 'game_version_settings_set':
+        return success()
+      case 'game_instance_profile_get':
+        return success({ schemaVersion: 1 })
+      case 'game_instance_profile_patch':
+      case 'game_instance_profile_reset':
+        return success()
+      case 'game_instance_files_check':
+        return success({ issues: [], downloadBytes: 0, canRepair: false })
+      case 'game_instance_files_repair':
+      case 'game_instance_clone':
+      case 'game_instance_export':
+      case 'game_instance_import':
+        return success(demoOperation('instance_maintenance'))
+      case 'game_instance_delete':
+      case 'game_instance_icon_set':
+      case 'game_instance_pin_order_set':
+      case 'game_operation_cancel':
+        return success()
+      case 'game_operation_get':
+        return success(demoOperation('showcase'))
+      case 'game_crash_list':
+        return success([])
+      case 'game_fabric_api_versions':
+        return success([])
+      case 'game_config_get':
+        return success({})
+      case 'game_config_patch':
+      case 'game_config_set':
+        return success()
+
+      /* ── 启动器信息 / 更新 / 进程 ── */
+      case 'launcher_info':
+        return success({ version: '1.4.2-alpha.3+20260906', version_type: 'alpha', debug: true })
+      case 'launcher_check_update':
+        return success({
+          status: 'up_to_date',
+          current_version: '1.4.2-alpha.3+20260906',
+          channel: 'alpha',
+          latest_version: null,
+          latest_url: null,
+          latest_notes: null,
+        })
+      case 'launcher_update_status':
+        return success({ enabled: true })
+      case 'launcher_update_download':
+      case 'launcher_update_apply':
+      case 'launcher_errors_ack':
+        return success()
+      case 'launcher_errors_pending':
+        return success([])
+      case 'process_instances':
+        return success({ instances: [] })
+      case 'process_stop':
+      case 'process_input':
+      case 'debug_devtools_open':
+      case 'debug_process_spawn':
+        return success()
+      case 'logs_get_history':
+        return success({ logs: [] })
+
+      /* ── 文件 / 账户辅助 ── */
+      case 'select_files':
+        return success({
+          paths: ['Showcase/Downloads/demo-resource.zip'],
+        })
+      case 'image_read_file':
+        // 占位图：展示模式下所有本地图片读取均返回同一张内联 SVG
+        return success({
+          dataUrl:
+            'data:image/svg+xml;utf8,' +
+            encodeURIComponent(
+              '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180"><rect width="320" height="180" fill="#1f232b"/><text x="50%" y="50%" fill="#5c5c5c" font-family="sans-serif" font-size="14" text-anchor="middle" dominant-baseline="middle">Showcase 图片</text></svg>'
+            ),
+        })
+      case 'image_list_files':
+        return success({ files: [] })
+      case 'accounts_auth_providers':
+        return success([])
+      case 'accounts_default_skins':
+        return success([])
+      case 'accounts_authlib_login_config':
+        return success({ available: false })
+      case 'accounts_add_plugin':
+        return success()
+      case 'accounts_set_favorite':
+      case 'accounts_set_pinned':
+      case 'accounts_set_offline_skin':
+        return success(structuredClone(accounts))
+      case 'open_url':
+      case 'open_folder':
+      case 'open_mods_folder':
+      case 'open_resourcepacks_folder':
+      case 'open_saves_folder':
+      case 'open_shaderpacks_folder':
+        return success()
+      case 'download_mod_to_path':
+        return success({ filename: 'showcase-mod.jar' })
+      case 'detect_modpack_type':
+        return success({ type: 'unknown' })
+      case 'import_modpack':
+      case 'export_modpack':
         return success()
       default:
         return success()

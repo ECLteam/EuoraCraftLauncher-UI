@@ -166,4 +166,92 @@ describe('ShowcaseTransport', () => {
     expect(firstStatus.data?.mode).toBe('guest')
     expect(secondStatus.data?.mode).toBe('idle')
   })
+  it('工作区读取命令返回演示数据而非空响应', async () => {
+    const transport = createShowcaseTransport()
+
+    const worlds = (await transport.invoke('game_world_list', {})) as ApiResponse<unknown[]>
+    expect(worlds.success).toBe(true)
+    expect(worlds.data?.length).toBeGreaterThan(0)
+    expect(worlds.data?.[0]).toMatchObject({ id: expect.any(String), path: expect.any(String) })
+
+    const backups = (await transport.invoke('game_world_backup_list', {
+      world_id: (worlds.data as Array<{ id: string }>)[0]!.id,
+    })) as ApiResponse<unknown[]>
+    expect(backups.data?.length).toBeGreaterThan(0)
+
+    const screenshots = (await transport.invoke('game_screenshot_list', {})) as ApiResponse<unknown[]>
+    expect(screenshots.data?.length).toBeGreaterThan(0)
+
+    const servers = (await transport.invoke('game_server_list', {})) as ApiResponse<unknown[]>
+    expect(servers.data?.length).toBeGreaterThan(0)
+
+    const resources = (await transport.invoke('game_resource_list', { resource_type: 'shaderpack' })) as ApiResponse<
+      unknown[]
+    >
+    expect(resources.data?.length).toBeGreaterThan(0)
+
+    const options = (await transport.invoke('game_options_read', {})) as ApiResponse<{ options: unknown[] }>
+    expect(options.data?.options.length).toBeGreaterThan(0)
+  })
+
+  it('资源列表按类型区分并可被安装/删除命令修改', async () => {
+    const transport = createShowcaseTransport()
+
+    const installed = (await transport.invoke('game_resource_install', {
+      resource_type: 'shaderpack',
+      source_paths: ['Showcase/Downloads/demo-shader.zip'],
+    })) as ApiResponse<{ status: string }>
+    expect(installed.data?.status).toBe('completed')
+
+    const list = (await transport.invoke('game_resource_list', { resource_type: 'shaderpack' })) as ApiResponse<
+      Array<{ id: string; path: string }>
+    >
+    expect(list.data?.some((item) => item.path === 'Showcase/Downloads/demo-shader.zip')).toBe(true)
+
+    const targetId = list.data?.find((item) => item.path === 'Showcase/Downloads/demo-shader.zip')?.id
+    await transport.invoke('game_resource_delete', { resource_type: 'shaderpack', resource_ids: [targetId] })
+    const afterDelete = (await transport.invoke('game_resource_list', { resource_type: 'shaderpack' })) as ApiResponse<
+      Array<{ id: string }>
+    >
+    expect(afterDelete.data?.some((item) => item.id === targetId)).toBe(false)
+  })
+
+  it('搜索命令按资源类型返回对应结果', async () => {
+    const transport = createShowcaseTransport()
+
+    const worlds = (await transport.invoke('search_mods', { resource_type: 'world', query: '' })) as ApiResponse<{
+      items: Array<{ title: string; categories: string[] }>
+    }>
+    expect(worlds.data?.items.length).toBeGreaterThan(0)
+    expect(
+      worlds.data?.items.every(
+        (item) =>
+          item.categories.includes('survival') ||
+          item.categories.includes('skyblock') ||
+          item.categories.includes('map')
+      )
+    ).toBe(true)
+
+    const mods = (await transport.invoke('search_mods', { resource_type: 'mod', query: 'sodium' })) as ApiResponse<{
+      items: Array<{ title: string }>
+    }>
+    expect(mods.data?.items.some((item) => item.title === 'Sodium')).toBe(true)
+  })
+
+  it('图片读取返回内联占位图，截图缩略图返回可解析路径', async () => {
+    const transport = createShowcaseTransport()
+
+    const image = (await transport.invoke('image_read_file', { path: 'Showcase/x.png' })) as ApiResponse<{
+      dataUrl: string
+    }>
+    expect(image.data?.dataUrl.startsWith('data:image/svg+xml')).toBe(true)
+
+    const shots = (await transport.invoke('game_screenshot_list', {})) as ApiResponse<
+      Array<{ id: string; path: string }>
+    >
+    const thumb = (await transport.invoke('game_screenshot_thumbnail', {
+      screenshot_id: shots.data?.[0]?.id,
+    })) as ApiResponse<{ path: string }>
+    expect(thumb.data?.path).toBe(shots.data?.[0]?.path)
+  })
 })

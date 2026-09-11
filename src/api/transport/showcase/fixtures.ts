@@ -1,6 +1,15 @@
 import type { TaskItem } from '@/composables/useTaskQueue'
+import type { SchematicPreviewData } from '@/types/api'
 import type { AccountListData, AuthlibServer, MinecraftAccount } from '@/types/accounts'
-import type { MinecraftVersionCatalog, ScannedVersion } from '@/types/instances'
+import type {
+  GameResource,
+  GameResourceType,
+  MinecraftVersionCatalog,
+  ScannedVersion,
+  ScreenshotEntry,
+  ServerEntry,
+  WorldEntry,
+} from '@/types/instances'
 import type { ModSearchItem } from '@/types/mods'
 import type { PluginInfo } from '@/types/plugins'
 import type { InfoCardData } from '@/types/system'
@@ -345,6 +354,394 @@ export function createShowcaseAccount(
     isCurrent: false,
   }
 }
+
+// ===========================================================================
+// Instance Workspace：存档 / 截图 / 服务器 / 资源 演示数据
+// ===========================================================================
+
+export const showcaseWorlds: WorldEntry[] = [
+  {
+    id: 'New World',
+    name: '主要生存世界',
+    path: 'Showcase/.minecraft/saves/New World',
+    iconPath: null,
+    gameMode: 'Survival',
+    gameModeId: 0,
+    difficulty: 'Normal',
+    difficultyId: 2,
+    difficultyLocked: false,
+    allowCommands: false,
+    version: '1.21.5',
+    seed: '-4172144997902289642',
+    spawn: { x: 128, y: 64, z: -256 },
+    weather: { raining: false, thundering: false },
+    lastPlayedAt: '2026-09-08T20:31:00Z',
+    modifiedAt: '2026-09-08T20:31:00Z',
+    createdAt: '2026-03-01T10:00:00Z',
+  },
+  {
+    id: 'Creative Flatland',
+    name: '建筑超平坦',
+    path: 'Showcase/.minecraft/saves/Creative Flatland',
+    iconPath: null,
+    gameMode: 'Creative',
+    gameModeId: 1,
+    difficulty: 'Peaceful',
+    difficultyId: 0,
+    difficultyLocked: false,
+    allowCommands: true,
+    version: '1.21.5',
+    seed: '2484293',
+    spawn: { x: 0, y: 4, z: 0 },
+    weather: { raining: false, thundering: false },
+    lastPlayedAt: '2026-08-27T14:02:00Z',
+    modifiedAt: '2026-08-27T14:02:00Z',
+    createdAt: '2026-06-15T09:30:00Z',
+  },
+  {
+    id: 'Old Challenge',
+    name: '1.20 老存档挑战',
+    path: 'Showcase/.minecraft/saves/Old Challenge',
+    iconPath: null,
+    gameMode: 'Survival',
+    gameModeId: 0,
+    difficulty: 'Hard',
+    difficultyId: 3,
+    difficultyLocked: true,
+    allowCommands: false,
+    version: '1.20.1',
+    seed: '8675309',
+    spawn: { x: -32, y: 72, z: 96 },
+    weather: { raining: true, thundering: false },
+    lastPlayedAt: '2026-02-14T11:45:00Z',
+    modifiedAt: '2026-02-14T11:45:00Z',
+    createdAt: '2025-11-20T18:00:00Z',
+  },
+]
+
+export interface ShowcaseWorldBackup {
+  id: string
+  createdAt?: string
+  locked: boolean
+  automatic: boolean
+  size: number
+}
+
+/** 生成某存档的演示备份列表（index 区分不同存档） */
+export function makeShowcaseWorldBackups(worldIndex: number): ShowcaseWorldBackup[] {
+  if (worldIndex % 3 === 2) return []
+  return [
+    {
+      id: `backup-auto-${worldIndex}-1`,
+      createdAt: '2026-09-08T18:00:00Z',
+      locked: false,
+      automatic: true,
+      size: 48_600_000,
+    },
+    {
+      id: `backup-auto-${worldIndex}-2`,
+      createdAt: '2026-09-07T18:00:00Z',
+      locked: worldIndex % 2 === 0,
+      automatic: true,
+      size: 47_100_000,
+    },
+    {
+      id: `backup-manual-${worldIndex}-1`,
+      createdAt: '2026-09-01T09:12:00Z',
+      locked: true,
+      automatic: false,
+      size: 45_800_000,
+    },
+  ]
+}
+
+export const showcaseServers: ServerEntry[] = [
+  { id: 'srv-hypixel', name: 'Hypixel', address: 'mc.hypixel.net', icon: null, favorite: true, order: 0 },
+  { id: 'srv-local', name: '本地开发服', address: '127.0.0.1:25565', icon: null, favorite: false, order: 1 },
+  { id: 'srv-demo', name: 'ECL 演示生存服', address: 'demo.euoracraft.dev', icon: null, favorite: false, order: 2 },
+]
+
+export const showcaseScreenshots: ScreenshotEntry[] = [
+  {
+    id: 'shot-1',
+    name: 'screenshot-2026-09-08-20.31.04',
+    path: 'Showcase/.minecraft/screenshots/screenshot-2026-09-08-20.31.04.png',
+    width: 1920,
+    height: 1080,
+    size: 1_820_000,
+    modifiedAt: '2026-09-08T20:31:04Z',
+    dateGroup: '2026-09-08',
+  },
+  {
+    id: 'shot-2',
+    name: 'screenshot-2026-09-08-20.29.51',
+    path: 'Showcase/.minecraft/screenshots/screenshot-2026-09-08-20.29.51.png',
+    width: 1920,
+    height: 1080,
+    size: 1_640_000,
+    modifiedAt: '2026-09-08T20:29:51Z',
+    dateGroup: '2026-09-08',
+  },
+  {
+    id: 'shot-3',
+    name: 'screenshot-2026-08-27-14.05.12',
+    path: 'Showcase/.minecraft/screenshots/screenshot-2026-08-27-14.05.12.png',
+    width: 2560,
+    height: 1440,
+    size: 2_960_000,
+    modifiedAt: '2026-08-27T14:05:12Z',
+    dateGroup: '2026-08-27',
+  },
+]
+
+export const showcaseResources: Record<Exclude<GameResourceType, 'mod'>, GameResource[]> = {
+  resourcepack: [
+    {
+      id: 'rp-faithful',
+      type: 'resourcepack',
+      path: 'Showcase/.minecraft/resourcepacks/Faithful-32x.zip',
+      name: 'Faithful 32x',
+      version: '1.21.5',
+      enabled: true,
+      size: 12_600_000,
+      modifiedAt: '2026-07-02T10:00:00Z',
+      sha512: null,
+      source: 'local',
+    },
+    {
+      id: 'rp-vanilla-tweaks',
+      type: 'resourcepack',
+      path: 'Showcase/.minecraft/resourcepacks/VanillaTweaks.zip',
+      name: 'Vanilla Tweaks',
+      enabled: false,
+      size: 3_400_000,
+      modifiedAt: '2026-05-18T10:00:00Z',
+      sha512: null,
+      source: 'local',
+    },
+  ],
+  shaderpack: [
+    {
+      id: 'sp-bsl',
+      type: 'shaderpack',
+      path: 'Showcase/.minecraft/shaderpacks/BSL-Shaders-8.4.zip',
+      name: 'BSL Shaders 8.4',
+      enabled: true,
+      size: 5_100_000,
+      modifiedAt: '2026-07-20T10:00:00Z',
+      sha512: null,
+      source: 'local',
+    },
+    {
+      id: 'sp-complementary',
+      type: 'shaderpack',
+      path: 'Showcase/.minecraft/shaderpacks/Complementary-Reimagined.zip',
+      name: 'Complementary Reimagined',
+      enabled: false,
+      size: 4_300_000,
+      modifiedAt: '2026-06-11T10:00:00Z',
+      sha512: null,
+      source: 'local',
+    },
+  ],
+  datapack: [
+    {
+      id: 'dp-terralith',
+      type: 'datapack',
+      path: 'Showcase/.minecraft/saves/New World/datapacks/Terralith.zip',
+      name: 'Terralith',
+      version: '2.5',
+      enabled: true,
+      size: 8_200_000,
+      modifiedAt: '2026-06-30T10:00:00Z',
+      sha512: null,
+      source: 'local',
+    },
+  ],
+  schematic: [
+    {
+      id: 'sch-base-tower',
+      type: 'schematic',
+      path: 'Showcase/.minecraft/schematics/生存基地主塔.litematic',
+      name: '生存基地主塔',
+      version: '1.21.5',
+      enabled: true,
+      size: 480_000,
+      modifiedAt: '2026-08-15T10:00:00Z',
+      sha512: null,
+      source: 'local',
+    },
+  ],
+}
+
+/** 极小演示原理图：8×1×8 石砖/深板岩棋盘平台，供 3D 预览渲染 */
+export const showcaseSchematicPreview: SchematicPreviewData = {
+  type: 'litematic',
+  size: [8, 1, 8],
+  regions: [
+    {
+      name: 'platform',
+      size: [8, 1, 8],
+      position: [0, 0, 0],
+      palette: [
+        [126, 126, 126],
+        [94, 84, 76],
+      ],
+      indices: Array.from({ length: 64 }, (_, i) => i % 2),
+    },
+  ],
+}
+
+/** 典型 options.txt 条目（实例设置页签演示用） */
+export const showcaseGameOptions = [
+  { key: 'renderDistance', value: 12, type: 'int', min: 2, max: 32 },
+  { key: 'maxFps', value: 120, type: 'int', min: 10, max: 260 },
+  { key: 'guiScale', value: 2, type: 'int', min: 0, max: 4 },
+  { key: 'musicVolume', value: 0.4, type: 'float', min: 0, max: 1 },
+  { key: 'mouseSensitivity', value: 0.5, type: 'float', min: 0, max: 1 },
+  { key: 'fullscreen', value: false, type: 'bool' },
+  { key: 'lang', value: 'zh_cn', type: 'string' },
+] as const
+
+// ── 按资源类型区分的在线搜索演示数据 ──
+
+interface SearchItemSeed {
+  id: string
+  title: string
+  displayTitle: string
+  description: string
+  author: string
+  downloads: number
+  categories: string[]
+}
+
+function makeShowcaseSearchItem(resourceType: string, seed: SearchItemSeed): ModSearchItem {
+  return {
+    id: `modrinth:${seed.id}`,
+    projectId: seed.id,
+    slug: seed.id,
+    title: seed.title,
+    displayTitle: seed.displayTitle,
+    description: seed.description,
+    author: seed.author,
+    downloads: seed.downloads,
+    follows: Math.round(seed.downloads / 180),
+    dateModified: '2026-08-30T12:00:00Z',
+    source: 'modrinth',
+    projectUrl: `https://modrinth.com/${resourceType}/${seed.id}`,
+    categories: seed.categories,
+    loaders: [],
+    gameVersions: ['1.21.5', '1.20.1'],
+    alternatives: [],
+  }
+}
+
+/** 各资源类型的在线搜索演示结果；mod 复用 showcaseMods */
+export const showcaseSearchItemsByType: Record<string, ModSearchItem[]> = {
+  mod: showcaseMods,
+  resourcepack: [
+    makeShowcaseSearchItem('resourcepack', {
+      id: 'faithful-32x',
+      title: 'Faithful 32x',
+      displayTitle: 'Faithful 32x',
+      description: '经典高分辨率原版风格资源包。',
+      author: 'Vattic',
+      downloads: 42_000_000,
+      categories: ['faithful', '16x'],
+    }),
+    makeShowcaseSearchItem('resourcepack', {
+      id: 'vanilla-tweaks',
+      title: 'Vanilla Tweaks',
+      displayTitle: 'Vanilla Tweaks',
+      description: '可自由组合的原版微调资源包。',
+      author: 'VanillaTweaks',
+      downloads: 18_000_000,
+      categories: ['vanilla'],
+    }),
+  ],
+  shaderpack: [
+    makeShowcaseSearchItem('shaderpack', {
+      id: 'bsl-shaders',
+      title: 'BSL Shaders',
+      displayTitle: 'BSL 光影',
+      description: '柔和光影与可玩性兼顾的通用光影包。',
+      author: 'Capt Tatsu',
+      downloads: 36_000_000,
+      categories: ['vanilla-like', 'performance'],
+    }),
+    makeShowcaseSearchItem('shaderpack', {
+      id: 'complementary-reimagined',
+      title: 'Complementary Reimagined',
+      displayTitle: 'Complementary 重构版',
+      description: '保持原版观感的光影重构方案。',
+      author: 'EminGT',
+      downloads: 28_000_000,
+      categories: ['vanilla-like'],
+    }),
+  ],
+  datapack: [
+    makeShowcaseSearchItem('datapack', {
+      id: 'terralith',
+      title: 'Terralith',
+      displayTitle: 'Terralith',
+      description: '原版风格的地形与生物群系扩展数据包。',
+      author: 'Starmute',
+      downloads: 15_000_000,
+      categories: ['worldgen'],
+    }),
+    makeShowcaseSearchItem('datapack', {
+      id: 'chunky',
+      title: 'Chunky',
+      displayTitle: 'Chunky',
+      description: '预生成区块，提升服务器运行效率。',
+      author: 'pop4959',
+      downloads: 9_200_000,
+      categories: ['utility'],
+    }),
+  ],
+  world: [
+    makeShowcaseSearchItem('world', {
+      id: 'midnight-survival',
+      title: 'Midnight Survival',
+      displayTitle: '午夜生存存档',
+      description: '生存 300 天的进阶存档，含自动化农场。',
+      author: 'ShowcaseBuilder',
+      downloads: 1_800_000,
+      categories: ['survival'],
+    }),
+    makeShowcaseSearchItem('world', {
+      id: 'skyblock-classic',
+      title: 'Skyblock Classic',
+      displayTitle: '经典空岛生存',
+      description: '重制版经典空岛地图，含挑战清单。',
+      author: 'ShowcaseBuilder',
+      downloads: 6_400_000,
+      categories: ['skyblock', 'map'],
+    }),
+  ],
+}
+
+/** 共享 .minecraft 目录的演示模组：Fabric 与 Forge 各一（非隔离目录混装属正常情况） */
+export const showcaseInstanceMods = [
+  {
+    filename: 'sodium-fabric.jar',
+    name: 'Sodium',
+    version: '0.6.13',
+    author: 'CaffeineMC',
+    loader_type: 'Fabric',
+    game_version: '1.21.5',
+    enabled: true,
+  },
+  {
+    filename: 'jei-1.20.1-forge-15.3.0.4.jar',
+    name: 'Just Enough Items (JEI)',
+    version: '15.3.0.4',
+    author: 'mezz',
+    loader_type: 'Forge',
+    game_version: '1.20.1',
+    enabled: true,
+  },
+]
 
 // ===========================================================================
 // Demo Task Queue
