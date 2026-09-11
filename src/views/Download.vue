@@ -18,12 +18,19 @@
     </aside>
 
     <main class="download-content">
-      <InstancesTab v-if="activeTab === 'instances'" />
-      <OnlineModSearch v-else-if="activeTab === 'mod'" :resourceType="'mod'" />
-      <OnlineModSearch v-else-if="activeTab === 'resourcepack'" :resourceType="'resourcepack'" />
-      <OnlineModSearch v-else-if="activeTab === 'shaderpack'" :resourceType="'shaderpack'" />
-      <OnlineModSearch v-else-if="activeTab === 'datapack'" :resourceType="'datapack'" />
-      <OnlineModSearch v-else-if="activeTab === 'world'" resourceType="world" fixedSource="curseforge" />
+      <Transition name="page" mode="out-in">
+        <InstancesTab v-if="activeTab === 'instances'" :key="activeTab" />
+        <OnlineModSearch v-else-if="activeTab === 'mod'" :key="activeTab" :resourceType="'mod'" />
+        <OnlineModSearch v-else-if="activeTab === 'resourcepack'" :key="activeTab" :resourceType="'resourcepack'" />
+        <OnlineModSearch v-else-if="activeTab === 'shaderpack'" :key="activeTab" :resourceType="'shaderpack'" />
+        <OnlineModSearch v-else-if="activeTab === 'datapack'" :key="activeTab" :resourceType="'datapack'" />
+        <OnlineModSearch
+          v-else-if="activeTab === 'world'"
+          :key="activeTab"
+          resourceType="world"
+          fixedSource="curseforge"
+        />
+      </Transition>
     </main>
   </div>
 </template>

@@ -74,296 +74,304 @@
         </UiCard>
 
         <div class="connect-scroll-area">
-          <template v-if="displayStatus.mode === 'idle'">
-            <div class="connect-idle-layout">
-              <div class="connect-idle-primary">
-                <UiCard v-if="displayHostStep !== 2" class="connect-main-card">
-                  <template #header>
-                    <div class="connect-card-heading">
-                      <UiIcon name="login" :size="18" />
-                      <div>
-                        <strong>{{ t('connect.join.title') }}</strong>
-                        <span>{{ t('connect.join.hint') }}</span>
+          <Transition name="page" mode="out-in">
+            <template v-if="displayStatus.mode === 'idle'">
+              <div key="idle" class="connect-idle-layout">
+                <div class="connect-idle-primary">
+                  <UiCard v-if="displayHostStep !== 2" class="connect-main-card">
+                    <template #header>
+                      <div class="connect-card-heading">
+                        <UiIcon name="login" :size="18" />
+                        <div>
+                          <strong>{{ t('connect.join.title') }}</strong>
+                          <span>{{ t('connect.join.hint') }}</span>
+                        </div>
+                      </div>
+                    </template>
+                    <div class="connect-form">
+                      <label for="connect-room-code">{{ t('connect.join.roomCode') }}</label>
+                      <div class="connect-room-input-row">
+                        <UiInput
+                          id="connect-room-code"
+                          v-model="roomCode"
+                          placeholder="U/XXXX-XXXX-XXXX-XXXX"
+                          prefixIcon="link"
+                          :aria-label="t('connect.join.roomCode')"
+                          :disabled="!serviceReady"
+                          @enter="joinRoom"
+                        />
+                        <UiButton
+                          variant="outline"
+                          icon="close"
+                          :disabled="!serviceReady || !roomCode"
+                          @click="clearRoomCode"
+                        >
+                          {{ t('common.clear') }}
+                        </UiButton>
+                        <UiButton
+                          variant="outline"
+                          icon="clipboard"
+                          :title="t('connect.join.paste')"
+                          :disabled="!serviceReady"
+                          @click="pasteRoomCode"
+                        >
+                          {{ t('connect.join.paste') }}
+                        </UiButton>
+                        <UiButton
+                          icon="login"
+                          :loading="busy"
+                          :disabled="!serviceReady || !roomCode.trim()"
+                          @click="joinRoom"
+                        >
+                          {{ t('connect.join.action') }}
+                        </UiButton>
                       </div>
                     </div>
-                  </template>
-                  <div class="connect-form">
-                    <label for="connect-room-code">{{ t('connect.join.roomCode') }}</label>
-                    <div class="connect-room-input-row">
-                      <UiInput
-                        id="connect-room-code"
-                        v-model="roomCode"
-                        placeholder="U/XXXX-XXXX-XXXX-XXXX"
-                        prefixIcon="link"
-                        :aria-label="t('connect.join.roomCode')"
-                        :disabled="!serviceReady"
-                        @enter="joinRoom"
-                      />
-                      <UiButton
-                        variant="outline"
-                        icon="close"
-                        :disabled="!serviceReady || !roomCode"
-                        @click="clearRoomCode"
-                      >
-                        {{ t('common.clear') }}
-                      </UiButton>
-                      <UiButton
-                        variant="outline"
-                        icon="clipboard"
-                        :title="t('connect.join.paste')"
-                        :disabled="!serviceReady"
-                        @click="pasteRoomCode"
-                      >
-                        {{ t('connect.join.paste') }}
-                      </UiButton>
-                      <UiButton
-                        icon="login"
-                        :loading="busy"
-                        :disabled="!serviceReady || !roomCode.trim()"
-                        @click="joinRoom"
-                      >
-                        {{ t('connect.join.action') }}
-                      </UiButton>
-                    </div>
-                  </div>
-                </UiCard>
+                  </UiCard>
 
-                <UiCard
-                  class="connect-main-card"
-                  :class="{ 'connect-main-card--disabled': busy }"
-                  :aria-disabled="busy"
-                >
-                  <template #header>
-                    <div class="connect-card-heading">
-                      <UiIcon name="server" :size="18" />
-                      <div>
-                        <strong>{{ t('connect.create.title') }}</strong>
-                        <span>{{ t('connect.create.hint') }}</span>
+                  <UiCard
+                    class="connect-main-card"
+                    :class="{ 'connect-main-card--disabled': busy }"
+                    :aria-disabled="busy"
+                  >
+                    <template #header>
+                      <div class="connect-card-heading">
+                        <UiIcon name="server" :size="18" />
+                        <div>
+                          <strong>{{ t('connect.create.title') }}</strong>
+                          <span>{{ t('connect.create.hint') }}</span>
+                        </div>
+                        <UiButton
+                          class="connect-header-nat"
+                          variant="outline"
+                          size="sm"
+                          icon="wifi"
+                          :loading="natBusy"
+                          :disabled="availability !== 'available' || busy"
+                          @click="detectNatWithNotify"
+                        >
+                          {{ t('connect.nat.detect') }}
+                        </UiButton>
                       </div>
-                      <UiButton
-                        class="connect-header-nat"
-                        variant="outline"
-                        size="sm"
-                        icon="wifi"
-                        :loading="natBusy"
-                        :disabled="availability !== 'available' || busy"
-                        @click="detectNatWithNotify"
-                      >
-                        {{ t('connect.nat.detect') }}
-                      </UiButton>
-                    </div>
-                  </template>
+                    </template>
 
-                  <div v-if="displayHostStep === 1" class="connect-form">
-                    <label for="connect-instance">{{ t('connect.create.selectInstance') }}</label>
-                    <div class="connect-room-input-row">
-                      <UiSelect
-                        id="connect-instance"
-                        v-model="selectedInstanceKey"
-                        :options="runningInstanceOptions"
-                        :placeholder="t('connect.create.instancePlaceholder')"
-                        searchable
-                        :disabled="createRoomDisabled"
-                      />
-                      <UiButton variant="outline" icon="edit" :disabled="createRoomDisabled" @click="goToManualPort">
-                        {{ t('connect.create.manualPortEntry') }}
-                      </UiButton>
-                      <UiButton
-                        icon="arrow-right"
-                        :disabled="createRoomDisabled || !selectedInstanceKey"
-                        @click="goToPortStep"
-                      >
-                        {{ t('connect.create.next') }}
-                      </UiButton>
+                    <div v-if="displayHostStep === 1" class="connect-form">
+                      <label for="connect-instance">{{ t('connect.create.selectInstance') }}</label>
+                      <div class="connect-room-input-row">
+                        <UiSelect
+                          id="connect-instance"
+                          v-model="selectedInstanceKey"
+                          :options="runningInstanceOptions"
+                          :placeholder="t('connect.create.instancePlaceholder')"
+                          searchable
+                          :disabled="createRoomDisabled"
+                        />
+                        <UiButton variant="outline" icon="edit" :disabled="createRoomDisabled" @click="goToManualPort">
+                          {{ t('connect.create.manualPortEntry') }}
+                        </UiButton>
+                        <UiButton
+                          icon="arrow-right"
+                          :disabled="createRoomDisabled || !selectedInstanceKey"
+                          @click="goToPortStep"
+                        >
+                          {{ t('connect.create.next') }}
+                        </UiButton>
+                      </div>
+                      <p v-if="!runningInstances.length && serviceReady" class="connect-help-text">
+                        {{ t('connect.create.noRunningInstance') }}
+                      </p>
+                      <div v-else-if="runningInstances.length" class="connect-running-games">
+                        <span class="connect-running-games__hint">{{ t('connect.create.runningGameHint') }}</span>
+                        <ul class="connect-running-games__list">
+                          <li v-for="instance in runningInstances" :key="instance.id" class="connect-running-game">
+                            <span class="connect-running-game__name">
+                              <UiIcon name="game" :size="14" />
+                              {{ instance.name || instance.versionId }}
+                            </span>
+                            <UiButton
+                              size="sm"
+                              variant="outline"
+                              :disabled="createRoomDisabled"
+                              @click="quickCreate(instance)"
+                            >
+                              {{ t('connect.create.createRoom') }}
+                            </UiButton>
+                          </li>
+                        </ul>
+                      </div>
                     </div>
-                    <p v-if="!runningInstances.length && serviceReady" class="connect-help-text">
-                      {{ t('connect.create.noRunningInstance') }}
-                    </p>
-                    <div v-else-if="runningInstances.length" class="connect-running-games">
-                      <span class="connect-running-games__hint">{{ t('connect.create.runningGameHint') }}</span>
-                      <ul class="connect-running-games__list">
-                        <li v-for="instance in runningInstances" :key="instance.id" class="connect-running-game">
-                          <span class="connect-running-game__name">
-                            <UiIcon name="game" :size="14" />
-                            {{ instance.name || instance.versionId }}
-                          </span>
-                          <UiButton
-                            size="sm"
-                            variant="outline"
-                            :disabled="createRoomDisabled"
-                            @click="quickCreate(instance)"
-                          >
+
+                    <div v-else class="connect-form">
+                      <p class="connect-help-text">{{ t('connect.create.lanHint') }}</p>
+                      <div class="connect-port-scan">
+                        <div v-if="displayScanning" class="connect-scan-state">
+                          <UiIcon name="spinner" :size="18" class="spin" />
+                          <span>{{
+                            scanPhase === 'detecting' ? t('connect.create.detecting') : t('connect.create.searching')
+                          }}</span>
+                        </div>
+                        <div v-else-if="displayDetectedPort" class="connect-detected-port">
+                          <div>
+                            <span>{{ t('connect.create.detectedPort') }}</span>
+                            <strong>{{ displayDetectedPort }}</strong>
+                            <span v-if="selectedInstance" class="connect-detected-game">
+                              {{ t('connect.create.runningGame', { name: selectedInstance.name }) }}
+                            </span>
+                          </div>
+                          <UiButton :loading="busy" :disabled="createRoomDisabled" @click="createDetectedPort">
                             {{ t('connect.create.createRoom') }}
                           </UiButton>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  <div v-else class="connect-form">
-                    <p class="connect-help-text">{{ t('connect.create.lanHint') }}</p>
-                    <div class="connect-port-scan">
-                      <div v-if="displayScanning" class="connect-scan-state">
-                        <UiIcon name="spinner" :size="18" class="spin" />
-                        <span>{{
-                          scanPhase === 'detecting' ? t('connect.create.detecting') : t('connect.create.searching')
-                        }}</span>
-                      </div>
-                      <div v-else-if="displayDetectedPort" class="connect-detected-port">
-                        <div>
-                          <span>{{ t('connect.create.detectedPort') }}</span>
-                          <strong>{{ displayDetectedPort }}</strong>
-                          <span v-if="selectedInstance" class="connect-detected-game">
-                            {{ t('connect.create.runningGame', { name: selectedInstance.name }) }}
-                          </span>
                         </div>
-                        <UiButton :loading="busy" :disabled="createRoomDisabled" @click="createDetectedPort">
+                        <div v-else class="connect-scan-state">
+                          <UiIcon name="info" :size="18" />
+                          <span>{{ t('connect.create.noPort') }}</span>
+                          <UiButton size="sm" variant="text" :disabled="createRoomDisabled" @click="startPortScan">
+                            {{ t('common.refresh') }}
+                          </UiButton>
+                        </div>
+                      </div>
+                      <label for="connect-port">{{ t('connect.create.manualPort') }}</label>
+                      <div class="connect-port-input">
+                        <UiInput
+                          id="connect-port"
+                          v-model="port"
+                          type="number"
+                          placeholder="25565"
+                          :aria-label="t('connect.create.manualPort')"
+                          :disabled="createRoomDisabled"
+                          @enter="createManualPort"
+                        />
+                        <UiButton :loading="busy" :disabled="createRoomDisabled" @click="createManualPort">
                           {{ t('connect.create.createRoom') }}
                         </UiButton>
                       </div>
-                      <div v-else class="connect-scan-state">
-                        <UiIcon name="info" :size="18" />
-                        <span>{{ t('connect.create.noPort') }}</span>
-                        <UiButton size="sm" variant="text" :disabled="createRoomDisabled" @click="startPortScan">
-                          {{ t('common.refresh') }}
-                        </UiButton>
-                      </div>
+                      <button class="connect-mode-link" type="button" :disabled="busy" @click="goBackToInstanceStep">
+                        <UiIcon name="arrow-left" :size="16" />
+                        <span>{{ t('connect.create.back') }}</span>
+                      </button>
                     </div>
-                    <label for="connect-port">{{ t('connect.create.manualPort') }}</label>
-                    <div class="connect-port-input">
-                      <UiInput
-                        id="connect-port"
-                        v-model="port"
-                        type="number"
-                        placeholder="25565"
-                        :aria-label="t('connect.create.manualPort')"
-                        :disabled="createRoomDisabled"
-                        @enter="createManualPort"
-                      />
-                      <UiButton :loading="busy" :disabled="createRoomDisabled" @click="createManualPort">
-                        {{ t('connect.create.createRoom') }}
-                      </UiButton>
-                    </div>
-                    <button class="connect-mode-link" type="button" :disabled="busy" @click="goBackToInstanceStep">
-                      <UiIcon name="arrow-left" :size="16" />
-                      <span>{{ t('connect.create.back') }}</span>
-                    </button>
-                  </div>
-                </UiCard>
-              </div>
-            </div>
-          </template>
-
-          <UiCard v-else-if="displayStatus.mode === 'starting'" class="connect-main-card connect-state-card">
-            <div v-if="displayStatus.error" class="connect-state-content connect-state-error">
-              <UiIcon name="alert-circle" :size="32" />
-              <h2>{{ t('connect.starting.failed') }}</h2>
-              <p>{{ displayStatus.error }}</p>
-              <UiButton @click="leave">{{ t('common.confirm') }}</UiButton>
-            </div>
-            <div v-else class="connect-state-content">
-              <UiIcon name="spinner" :size="32" class="spin connect-state-icon" />
-              <h2>{{ t('connect.starting.title') }}</h2>
-              <p>{{ t('connect.starting.description') }}</p>
-              <UiProgress processing :height="6" />
-              <UiButton variant="danger" :loading="busy" @click="leave">{{ t('common.cancel') }}</UiButton>
-            </div>
-          </UiCard>
-
-          <div v-else class="connect-room-layout" :class="`connect-room-layout--${displayStatus.mode}`">
-            <UiCard class="connect-main-card connect-room-card connect-room-main">
-              <template #header>
-                <div class="connect-card-heading connect-members-heading">
-                  <span class="connect-members-heading__icon"><UiIcon name="users" :size="18" /></span>
-                  <div>
-                    <strong>{{ t('connect.players.title', { count: displayStatus.players.length }) }}</strong>
-                    <span>
-                      {{ t(displayStatus.mode === 'host' ? 'connect.host.description' : 'connect.guest.description') }}
-                    </span>
-                  </div>
+                  </UiCard>
                 </div>
-              </template>
-              <PlayerList
-                :players="displayStatus.players"
-                :hostControls="displayStatus.mode === 'host'"
-                :busy="busy"
-                @kick="kick"
-              />
+              </div>
+            </template>
+
+            <UiCard
+              v-else-if="displayStatus.mode === 'starting'"
+              key="starting"
+              class="connect-main-card connect-state-card"
+            >
+              <div v-if="displayStatus.error" class="connect-state-content connect-state-error">
+                <UiIcon name="alert-circle" :size="32" />
+                <h2>{{ t('connect.starting.failed') }}</h2>
+                <p>{{ displayStatus.error }}</p>
+                <UiButton @click="leave">{{ t('common.confirm') }}</UiButton>
+              </div>
+              <div v-else class="connect-state-content">
+                <UiIcon name="spinner" :size="32" class="spin connect-state-icon" />
+                <h2>{{ t('connect.starting.title') }}</h2>
+                <p>{{ t('connect.starting.description') }}</p>
+                <UiProgress processing :height="6" />
+                <UiButton variant="danger" :loading="busy" @click="leave">{{ t('common.cancel') }}</UiButton>
+              </div>
             </UiCard>
 
-            <aside class="connect-side-panel connect-room-sidebar">
-              <UiCard class="connect-side-card connect-room-summary-card">
+            <div v-else key="room" class="connect-room-layout" :class="`connect-room-layout--${displayStatus.mode}`">
+              <UiCard class="connect-main-card connect-room-card connect-room-main">
                 <template #header>
-                  <div class="connect-card-heading connect-card-heading--compact">
-                    <UiIcon name="info" :size="17" />
-                    <strong>{{ t('connect.roomInfo.title') }}</strong>
+                  <div class="connect-card-heading connect-members-heading">
+                    <span class="connect-members-heading__icon"><UiIcon name="users" :size="18" /></span>
+                    <div>
+                      <strong>{{ t('connect.players.title', { count: displayStatus.players.length }) }}</strong>
+                      <span>
+                        {{
+                          t(displayStatus.mode === 'host' ? 'connect.host.description' : 'connect.guest.description')
+                        }}
+                      </span>
+                    </div>
                   </div>
                 </template>
+                <PlayerList
+                  :players="displayStatus.players"
+                  :hostControls="displayStatus.mode === 'host'"
+                  :busy="busy"
+                  @kick="kick"
+                />
+              </UiCard>
 
-                <div class="connect-room-owner">
-                  <ConnectorPlayerAvatar
-                    :skinBase64="hostPlayer?.iconBase64"
-                    :name="hostName || t('connect.host.title')"
-                    :size="38"
-                  />
-                  <div class="connect-room-owner__identity">
-                    <strong>{{ hostName || t('connect.host.title') }}</strong>
-                    <span>{{ t('connect.roomInfo.creator') }}</span>
-                  </div>
-                  <UiTag tone="info" size="tiny">{{ t('connect.players.host') }}</UiTag>
-                </div>
+              <aside class="connect-side-panel connect-room-sidebar">
+                <UiCard class="connect-side-card connect-room-summary-card">
+                  <template #header>
+                    <div class="connect-card-heading connect-card-heading--compact">
+                      <UiIcon name="info" :size="17" />
+                      <strong>{{ t('connect.roomInfo.title') }}</strong>
+                    </div>
+                  </template>
 
-                <div class="connect-room-summary-divider"></div>
-
-                <div class="connect-room-code-block">
-                  <span>{{ t('connect.join.roomCode') }}</span>
-                  <div>
-                    <code>{{ displayStatus.roomCode }}</code>
-                    <UiButton
-                      size="sm"
-                      variant="ghost"
-                      shape="square"
-                      icon="copy"
-                      :title="t('connect.copy')"
-                      @click="copyCurrentRoomCode"
+                  <div class="connect-room-owner">
+                    <ConnectorPlayerAvatar
+                      :skinBase64="hostPlayer?.iconBase64"
+                      :name="hostName || t('connect.host.title')"
+                      :size="38"
                     />
+                    <div class="connect-room-owner__identity">
+                      <strong>{{ hostName || t('connect.host.title') }}</strong>
+                      <span>{{ t('connect.roomInfo.creator') }}</span>
+                    </div>
+                    <UiTag tone="info" size="tiny">{{ t('connect.players.host') }}</UiTag>
                   </div>
-                </div>
-                <div class="connect-side-status">
-                  <div v-if="displayStatus.gameInfo" class="connect-side-status-row">
-                    <span>{{ t('connect.roomInfo.game') }}</span>
-                    <code>{{ displayStatus.gameInfo.gameVersion }}</code>
-                  </div>
-                  <div v-if="displayStatus.mode === 'guest'" class="connect-side-status-row">
-                    <span>{{ t('connect.guest.serverAddress') }}</span>
-                    <div class="connect-copy-value">
-                      <code>{{ serverAddress }}</code>
+
+                  <div class="connect-room-summary-divider"></div>
+
+                  <div class="connect-room-code-block">
+                    <span>{{ t('connect.join.roomCode') }}</span>
+                    <div>
+                      <code>{{ displayStatus.roomCode }}</code>
                       <UiButton
                         size="sm"
                         variant="ghost"
                         shape="square"
                         icon="copy"
                         :title="t('connect.copy')"
-                        @click="copyServerAddress"
+                        @click="copyCurrentRoomCode"
                       />
                     </div>
                   </div>
-                </div>
+                  <div class="connect-side-status">
+                    <div v-if="displayStatus.gameInfo" class="connect-side-status-row">
+                      <span>{{ t('connect.roomInfo.game') }}</span>
+                      <code>{{ displayStatus.gameInfo.gameVersion }}</code>
+                    </div>
+                    <div v-if="displayStatus.mode === 'guest'" class="connect-side-status-row">
+                      <span>{{ t('connect.guest.serverAddress') }}</span>
+                      <div class="connect-copy-value">
+                        <code>{{ serverAddress }}</code>
+                        <UiButton
+                          size="sm"
+                          variant="ghost"
+                          shape="square"
+                          icon="copy"
+                          :title="t('connect.copy')"
+                          @click="copyServerAddress"
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-                <div class="connect-room-summary-divider"></div>
+                  <div class="connect-room-summary-divider"></div>
 
-                <div class="connect-room-operation-list">
-                  <strong class="connect-room-operation-title">{{ t('connect.roomActions.title') }}</strong>
-                  <UiButton variant="ghost" icon="refresh" :loading="busy" @click="() => refreshStatus()">
-                    {{ t('connect.players.refresh') }}
-                  </UiButton>
-                  <UiButton variant="danger" icon="logout" :loading="busy" @click="leave">
-                    {{ t(displayStatus.mode === 'host' ? 'connect.host.close' : 'connect.guest.leave') }}
-                  </UiButton>
-                </div>
-              </UiCard>
-            </aside>
-          </div>
+                  <div class="connect-room-operation-list">
+                    <strong class="connect-room-operation-title">{{ t('connect.roomActions.title') }}</strong>
+                    <UiButton variant="ghost" icon="refresh" :loading="busy" @click="() => refreshStatus()">
+                      {{ t('connect.players.refresh') }}
+                    </UiButton>
+                    <UiButton variant="danger" icon="logout" :loading="busy" @click="leave">
+                      {{ t(displayStatus.mode === 'host' ? 'connect.host.close' : 'connect.guest.leave') }}
+                    </UiButton>
+                  </div>
+                </UiCard>
+              </aside>
+            </div>
+          </Transition>
         </div>
       </div>
     </section>
