@@ -65,7 +65,7 @@
   font-size: 12px;
   font-weight: 600;
   text-align: left;
-  transition: color var(--duration-fast) ease-out;
+  transition: color var(--duration-fast) var(--ease-emphasized);
 }
 
 .technology-category__toggle:hover {
@@ -107,24 +107,6 @@
 
 .technology-category__entries {
   padding: 2px 0 10px;
-}
-
-.technology-expand-enter-active,
-.technology-expand-leave-active {
-  transition: all var(--duration-normal) ease;
-  overflow: hidden;
-}
-
-.technology-expand-enter-from,
-.technology-expand-leave-to {
-  opacity: 0;
-  max-height: 0;
-}
-
-.technology-expand-enter-to,
-.technology-expand-leave-from {
-  opacity: 1;
-  max-height: 800px;
 }
 
 .launcher-summary__content {
@@ -216,7 +198,7 @@
   text-decoration: none;
   cursor: pointer;
   white-space: nowrap;
-  transition: all var(--duration-fast) ease-out;
+  transition: all var(--duration-fast) var(--ease-emphasized);
 }
 
 .about-btn:hover {

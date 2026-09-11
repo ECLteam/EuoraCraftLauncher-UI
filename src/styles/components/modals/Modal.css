@@ -87,7 +87,7 @@
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-standard);
+  transition: all var(--duration-fast) var(--ease-emphasized);
   flex-shrink: 0;
 }
 
@@ -124,15 +124,15 @@
 /* 后端主动推送弹窗：淡入淡出 + 轻微上浮 */
 .launcher-popup-enter-active,
 .launcher-popup-leave-active {
-  transition: opacity var(--duration-normal) var(--ease-standard);
+  transition: opacity var(--duration-normal) var(--ease-emphasized);
 }
 
 .launcher-popup-enter-active .launcher-popup-modal {
-  transition: transform var(--duration-normal) var(--ease-standard);
+  transition: transform var(--duration-normal) var(--ease-emphasized);
 }
 
 .launcher-popup-leave-active .launcher-popup-modal {
-  transition: transform var(--duration-fast) var(--ease-standard);
+  transition: transform var(--duration-fast) var(--ease-emphasized);
 }
 
 .launcher-popup-enter-from,

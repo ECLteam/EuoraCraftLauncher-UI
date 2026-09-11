@@ -15,7 +15,7 @@
   border-radius: var(--r-md);
   box-shadow: var(--shadow-xs);
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-standard);
+  transition: all var(--duration-fast) var(--ease-emphasized);
 }
 
 .select-trigger:hover {
@@ -44,7 +44,7 @@
 .select-arrow {
   font-size: 10px;
   color: var(--text-secondary);
-  transition: transform var(--duration-normal) var(--ease-standard);
+  transition: transform var(--duration-normal) var(--ease-emphasized);
   margin-left: var(--s-sm);
   flex-shrink: 0;
 }
@@ -84,7 +84,7 @@
   padding: var(--s-sm) var(--s-md);
   cursor: pointer;
   border-radius: var(--r-sm);
-  transition: all var(--duration-fast) var(--ease-standard);
+  transition: all var(--duration-fast) var(--ease-emphasized);
 }
 
 .select-option:hover {

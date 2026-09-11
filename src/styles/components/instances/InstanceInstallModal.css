@@ -178,9 +178,9 @@
   border-radius: var(--ecl-radius-control);
   cursor: pointer;
   transition:
-    color var(--duration-fast) var(--ease-smooth),
-    background var(--duration-fast) var(--ease-smooth),
-    border-color var(--duration-fast) var(--ease-smooth);
+    color var(--duration-fast) var(--ease-emphasized),
+    background var(--duration-fast) var(--ease-emphasized),
+    border-color var(--duration-fast) var(--ease-emphasized);
 }
 
 .install-loader-card:hover {

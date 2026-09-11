@@ -5,7 +5,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: border-color var(--duration-normal) var(--ease-standard);
+  transition: border-color var(--duration-normal) var(--ease-emphasized);
 }
 
 .ui-card.hoverable:hover {

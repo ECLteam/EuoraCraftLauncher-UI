@@ -201,7 +201,7 @@
   color: var(--text-secondary);
   font-size: 12px;
   cursor: pointer;
-  transition: all var(--duration-normal);
+  transition: all var(--duration-normal) var(--ease-emphasized);
 }
 .loader-btn:hover {
   border-color: var(--primary);

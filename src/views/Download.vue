@@ -114,8 +114,8 @@ function switchTab(tab: DownloadTab) {
   font-size: 12px;
   font-weight: 500;
   transition:
-    color var(--duration-fast) ease-out,
-    background var(--duration-fast) ease-out;
+    color var(--duration-fast) var(--ease-emphasized),
+    background var(--duration-fast) var(--ease-emphasized);
 }
 
 .download-nav-item:hover {

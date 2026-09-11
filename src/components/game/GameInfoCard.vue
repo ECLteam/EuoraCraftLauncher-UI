@@ -201,7 +201,7 @@ function announcementPreview(content: string): string {
   background: transparent;
   border: 0;
   border-bottom: 1px solid var(--divider);
-  transition: color var(--duration-fast) var(--ease-standard);
+  transition: color var(--duration-fast) var(--ease-emphasized);
 }
 
 .announce-item:hover,

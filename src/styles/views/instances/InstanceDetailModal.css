@@ -54,7 +54,7 @@
   border-radius: var(--ecl-radius-control);
   background: transparent;
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-smooth);
+  transition: all var(--duration-fast) var(--ease-emphasized);
 }
 
 .vdm-nav-icon-btn:hover {
@@ -115,7 +115,7 @@
   border: 0;
   border-radius: var(--ecl-radius-control);
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-smooth);
+  transition: all var(--duration-fast) var(--ease-emphasized);
   white-space: nowrap;
 }
 
@@ -286,7 +286,7 @@
   border: none !important;
   font-size: 13px;
   font-weight: 500;
-  transition: all var(--duration-fast) var(--ease-smooth);
+  transition: all var(--duration-fast) var(--ease-emphasized);
   box-shadow: none !important;
 }
 
@@ -507,7 +507,7 @@
   border: 1px solid var(--ecl-border);
   border-radius: var(--ecl-radius-control);
   background: var(--ecl-surface);
-  transition: border-color var(--duration-fast) ease-out;
+  transition: border-color var(--duration-fast) var(--ease-emphasized);
 }
 
 .mods-page .search-box:focus-within {
@@ -550,7 +550,7 @@
   background: transparent;
   color: var(--ecl-text-secondary);
   cursor: pointer;
-  transition: all var(--duration-fast) ease-out;
+  transition: all var(--duration-fast) var(--ease-emphasized);
 }
 
 .mods-page .search-clear:hover {
@@ -581,7 +581,7 @@
   font-size: 11px;
   font-weight: 500;
   cursor: pointer;
-  transition: all var(--duration-fast) ease-out;
+  transition: all var(--duration-fast) var(--ease-emphasized);
 }
 
 .mods-filter-btn:hover {
@@ -652,7 +652,7 @@
   padding: 8px 12px;
   background: color-mix(in srgb, var(--ecl-surface) 78%, transparent);
   border-bottom: 1px solid var(--ecl-border);
-  transition: background var(--duration-fast) ease-out;
+  transition: background var(--duration-fast) var(--ease-emphasized);
 }
 
 .mod-list-row:hover {
@@ -795,7 +795,7 @@
   background: transparent;
   color: var(--ecl-text-secondary);
   cursor: pointer;
-  transition: all var(--duration-fast) ease-out;
+  transition: all var(--duration-fast) var(--ease-emphasized);
 }
 
 .mods-list .btn-action:hover {
@@ -1002,8 +1002,8 @@
     0 0 0 1px var(--border),
     var(--shadow-xs);
   transition:
-    transform var(--duration-fast) var(--ease-standard),
-    box-shadow var(--duration-fast) ease-out;
+    transform var(--duration-fast) var(--ease-emphasized),
+    box-shadow var(--duration-fast) var(--ease-emphasized);
 }
 
 .memory-slider-input::-webkit-slider-thumb:hover {
@@ -1085,7 +1085,7 @@
 
 .memory-bar-segment {
   height: 100%;
-  transition: width var(--duration-normal) var(--ease-smooth);
+  transition: width var(--duration-normal) var(--ease-emphasized);
   min-width: 0;
 }
 
@@ -1217,7 +1217,7 @@
   background: var(--ecl-surface);
   color: var(--ecl-text-secondary);
   cursor: pointer;
-  transition: all var(--duration-fast) ease-out;
+  transition: all var(--duration-fast) var(--ease-emphasized);
 }
 
 .icon-picker-grid button:hover {

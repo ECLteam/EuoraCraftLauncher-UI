@@ -12,9 +12,9 @@
   min-height: 29px;
   padding: 5px 13px;
   transition:
-    background-color var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard),
-    color var(--duration-fast) var(--ease-standard);
+    background-color var(--duration-fast) var(--ease-emphasized),
+    border-color var(--duration-fast) var(--ease-emphasized),
+    color var(--duration-fast) var(--ease-emphasized);
   position: relative;
   overflow: hidden;
   white-space: nowrap;
@@ -30,7 +30,7 @@
   justify-content: center;
   pointer-events: none;
   font-size: 14px;
-  transition: all var(--duration-fast) var(--ease-standard);
+  transition: all var(--duration-fast) var(--ease-emphasized);
 }
 
 .btn-primary {

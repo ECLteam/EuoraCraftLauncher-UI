@@ -9,8 +9,8 @@
   border-right: 1px solid var(--glass-border);
   box-shadow: 1px 0 0 rgba(255, 255, 255, 0.35);
   transition:
-    width var(--duration-fast) ease-out,
-    min-width var(--duration-fast) ease-out;
+    width var(--duration-fast) var(--ease-emphasized),
+    min-width var(--duration-fast) var(--ease-emphasized);
   z-index: 100;
   position: relative;
   min-height: 0;
@@ -104,10 +104,10 @@
   position: relative;
   z-index: 1;
   transition:
-    color var(--duration-fast) ease-out,
-    background var(--duration-fast) ease-out,
-    gap var(--duration-fast) ease-out,
-    padding var(--duration-fast) ease-out;
+    color var(--duration-fast) var(--ease-emphasized),
+    background var(--duration-fast) var(--ease-emphasized),
+    gap var(--duration-fast) var(--ease-emphasized),
+    padding var(--duration-fast) var(--ease-emphasized);
   outline: none;
 }
 
@@ -163,8 +163,8 @@
   border-radius: var(--r-xs);
   opacity: 0.5;
   transition:
-    opacity var(--duration-fast) ease-out,
-    transform var(--duration-fast) ease-out;
+    opacity var(--duration-fast) var(--ease-emphasized),
+    transform var(--duration-fast) var(--ease-emphasized);
   flex-shrink: 0;
 }
 
@@ -242,7 +242,7 @@
   height: 20px;
   flex-shrink: 0;
   opacity: 0.75;
-  transition: opacity var(--duration-fast) ease-out;
+  transition: opacity var(--duration-fast) var(--ease-emphasized);
 }
 
 .sidebar-item:hover .sidebar-item-icon,
@@ -257,8 +257,8 @@
   opacity: 1;
   max-width: 200px;
   transition:
-    opacity var(--duration-normal) var(--ease-exit),
-    max-width var(--duration-fast) ease-out;
+    opacity var(--duration-normal) var(--ease-emphasized),
+    max-width var(--duration-fast) var(--ease-emphasized);
 }
 
 .sidebar.collapsed .sidebar-item-text {
@@ -292,7 +292,7 @@
   z-index: 90;
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--duration-normal) var(--ease-exit);
+  transition: opacity var(--duration-normal) var(--ease-emphasized);
 }
 
 .sidebar-plugin-divider {

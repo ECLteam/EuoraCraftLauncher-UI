@@ -39,11 +39,11 @@
   font-weight: 600;
   white-space: nowrap;
   transition:
-    width 0.28s var(--ease-standard),
-    justify-content 0.28s var(--ease-standard),
-    padding 0.28s var(--ease-standard),
-    background var(--duration-fast) ease-out,
-    box-shadow var(--duration-fast) ease-out;
+    width var(--duration-normal) var(--ease-emphasized),
+    justify-content var(--duration-normal) var(--ease-emphasized),
+    padding var(--duration-normal) var(--ease-emphasized),
+    background var(--duration-fast) var(--ease-emphasized),
+    box-shadow var(--duration-fast) var(--ease-emphasized);
 }
 
 .running-instances-trigger .trigger-label {
@@ -53,9 +53,9 @@
   white-space: nowrap;
   flex-shrink: 0;
   transition:
-    max-width 0.28s var(--ease-standard),
-    opacity 0.2s var(--ease-standard),
-    margin 0.28s var(--ease-standard);
+    max-width var(--duration-normal) var(--ease-emphasized),
+    opacity var(--duration-normal) var(--ease-emphasized),
+    margin var(--duration-normal) var(--ease-emphasized);
 }
 
 .running-instances-trigger:hover .trigger-label {
@@ -195,7 +195,7 @@
   gap: 8px;
   padding: 8px 12px;
   border-bottom: 1px solid var(--border-strong);
-  transition: background 0.15s ease;
+  transition: background var(--duration-fast) var(--ease-emphasized);
 }
 
 .account-row:hover {
@@ -471,9 +471,9 @@
   border: 1px solid var(--divider);
   border-radius: var(--r-sm);
   transition:
-    color var(--duration-fast) var(--ease-standard),
-    background var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard);
+    color var(--duration-fast) var(--ease-emphasized),
+    background var(--duration-fast) var(--ease-emphasized),
+    border-color var(--duration-fast) var(--ease-emphasized);
 }
 
 .offline-advanced-toggle:hover,
@@ -484,7 +484,7 @@
 }
 
 .offline-advanced-toggle .icon {
-  transition: transform var(--duration-fast) var(--ease-standard);
+  transition: transform var(--duration-fast) var(--ease-emphasized);
 }
 
 .offline-advanced-toggle.expanded .icon {
@@ -526,20 +526,6 @@
 
 .offline-advanced-panel small.error {
   color: var(--error);
-}
-
-.offline-advanced-enter-active,
-.offline-advanced-leave-active {
-  overflow: hidden;
-  transition:
-    opacity var(--duration-fast) var(--ease-standard),
-    transform var(--duration-fast) var(--ease-standard);
-}
-
-.offline-advanced-enter-from,
-.offline-advanced-leave-to {
-  opacity: 0;
-  transform: translateY(-6px);
 }
 
 .ms-login-content {

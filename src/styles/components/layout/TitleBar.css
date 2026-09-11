@@ -184,11 +184,11 @@
 }
 
 .titlebar-tray-btn {
-  transition: color var(--duration-fast) ease-out;
+  transition: color var(--duration-fast) var(--ease-emphasized);
 }
 
 .titlebar-tray-btn .icon {
-  transition: transform var(--duration-fast) ease-out;
+  transition: transform var(--duration-fast) var(--ease-emphasized);
 }
 
 .titlebar-tray.is-open .titlebar-tray-btn .icon {

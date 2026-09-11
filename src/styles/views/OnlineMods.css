@@ -242,7 +242,7 @@
   border-bottom: 1px solid color-mix(in srgb, var(--ecl-border) 60%, transparent);
   border-radius: var(--ecl-radius-card);
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-smooth);
+  transition: background var(--duration-fast) var(--ease-emphasized);
 }
 
 .mod-row:last-child {
@@ -308,7 +308,7 @@
 }
 
 .mod-row-tags :deep(.n-tag) {
-  transition: opacity var(--duration-fast) var(--ease-smooth);
+  transition: opacity var(--duration-fast) var(--ease-emphasized);
 }
 
 .mod-row-tags :deep(.n-tag:hover) {
@@ -635,8 +635,8 @@
   border: 1px solid var(--ecl-border);
   border-radius: 9px;
   transition:
-    border-color 0.15s ease,
-    background-color 0.15s ease;
+    border-color var(--duration-fast) var(--ease-emphasized),
+    background-color var(--duration-fast) var(--ease-emphasized);
 }
 
 .version-accordion-group:hover,
@@ -686,7 +686,7 @@
   color: var(--ecl-text-secondary, #5d6678);
   visibility: visible;
   opacity: 1;
-  transition: transform 0.18s ease;
+  transition: transform var(--duration-fast) var(--ease-emphasized);
 }
 
 .version-group-chevron.expanded {

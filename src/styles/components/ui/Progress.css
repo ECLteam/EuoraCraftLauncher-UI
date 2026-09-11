@@ -18,7 +18,7 @@
   height: 100%;
   border-radius: 999px;
   background: var(--ecl-primary);
-  transition: width 200ms var(--ease-smooth, ease);
+  transition: width var(--duration-normal) var(--ease-emphasized);
 }
 
 .ui-progress--processing .ui-progress__bar {
@@ -28,7 +28,7 @@
   width: 35% !important;
   border-radius: 999px;
   background: linear-gradient(90deg, transparent, var(--ecl-primary), transparent);
-  animation: ui-progress-slide 1.2s var(--ease-smooth, ease) infinite;
+  animation: ui-progress-slide 1.2s var(--ease-linear) infinite;
 }
 
 @keyframes ui-progress-slide {

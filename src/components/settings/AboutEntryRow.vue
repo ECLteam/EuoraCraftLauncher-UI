@@ -120,7 +120,7 @@ const { t } = useI18n()
   cursor: pointer;
   font-size: 11px;
   text-decoration: none;
-  transition: all var(--duration-fast) ease-out;
+  transition: all var(--duration-fast) var(--ease-emphasized);
   white-space: nowrap;
 }
 

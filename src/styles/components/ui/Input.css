@@ -17,9 +17,9 @@
   font-size: 12px;
   outline: none;
   transition:
-    border-color var(--duration-fast) var(--ease-standard),
-    box-shadow var(--duration-fast) var(--ease-standard),
-    background-color var(--duration-fast) var(--ease-standard);
+    border-color var(--duration-fast) var(--ease-emphasized),
+    box-shadow var(--duration-fast) var(--ease-emphasized),
+    background-color var(--duration-fast) var(--ease-emphasized);
 }
 
 .ui-input::placeholder {
@@ -78,7 +78,7 @@
   background: transparent;
   cursor: pointer;
   border-radius: var(--r-sm);
-  transition: all var(--duration-fast) var(--ease-standard);
+  transition: all var(--duration-fast) var(--ease-emphasized);
 }
 
 .clear-icon:hover {

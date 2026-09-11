@@ -138,7 +138,7 @@ watch(
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity var(--duration-normal) var(--ease-emphasized);
 }
 
 .fade-enter-from,

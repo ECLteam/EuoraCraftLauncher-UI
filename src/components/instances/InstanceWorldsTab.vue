@@ -457,8 +457,8 @@ onMounted(load)
   border-radius: var(--ecl-radius-card);
   background: var(--ecl-surface);
   transition:
-    border-color 0.15s ease,
-    background 0.15s ease;
+    border-color var(--duration-fast) var(--ease-emphasized),
+    background var(--duration-fast) var(--ease-emphasized);
 }
 
 .world-card:hover {

@@ -19,7 +19,7 @@
   border-top-color: var(--primary);
   border-radius: 50%;
   content: '';
-  animation: spin 0.8s var(--ease-smooth) infinite;
+  animation: spin 0.8s var(--ease-linear) infinite;
 }
 
 .skin-container.is-error {

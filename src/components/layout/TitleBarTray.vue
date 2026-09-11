@@ -153,7 +153,7 @@ function onDocClick(e: MouseEvent) {
   font-family: inherit;
   cursor: pointer;
   white-space: nowrap;
-  transition: background var(--duration-fast) ease-out;
+  transition: background var(--duration-fast) var(--ease-emphasized);
 }
 
 .tray-menu-item:hover {

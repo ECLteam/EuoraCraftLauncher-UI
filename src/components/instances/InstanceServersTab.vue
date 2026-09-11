@@ -268,7 +268,7 @@ async function handleConfirm() {
   padding: 14px 16px;
   border: 1px solid var(--ecl-border);
   border-radius: 10px;
-  transition: background 0.15s ease;
+  transition: background var(--duration-fast) var(--ease-emphasized);
 }
 .server-row:hover {
   background: var(--ecl-hover);

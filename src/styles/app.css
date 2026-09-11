@@ -118,7 +118,7 @@
   text-decoration: none;
   font-size: 12px;
   font-weight: 500;
-  transition: top var(--duration-fast) ease;
+  transition: top var(--duration-fast) var(--ease-emphasized);
 }
 .skip-link:focus {
   top: 11px;
@@ -226,12 +226,3 @@
   color: var(--primary);
 }
 
-.drop-fade-enter-active,
-.drop-fade-leave-active {
-  transition: opacity 0.18s ease;
-}
-
-.drop-fade-enter-from,
-.drop-fade-leave-to {
-  opacity: 0;
-}

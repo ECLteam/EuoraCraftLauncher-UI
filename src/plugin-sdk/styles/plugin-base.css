@@ -22,7 +22,7 @@
   --plugin-font-sm: 11px;
   --plugin-gap: 8px;
   --plugin-gap-lg: 14px;
-  --plugin-transition: 150ms ease-out;
+  --plugin-transition: var(--duration-fast) var(--ease-emphasized);
   color: var(--plugin-text);
   font-size: var(--plugin-font);
   line-height: 1.5;
@@ -299,7 +299,7 @@
   height: 100%;
   border-radius: 2px;
   background: var(--plugin-primary);
-  transition: width 300ms ease-out;
+  transition: width var(--duration-normal) var(--ease-emphasized);
 }
 
 /* ---- 分组 ---- */
@@ -315,7 +315,7 @@
 }
 
 .plugin-group-header-arrow {
-  transition: transform 150ms;
+  transition: transform var(--duration-fast) var(--ease-emphasized);
   font-size: 10px;
 }
 

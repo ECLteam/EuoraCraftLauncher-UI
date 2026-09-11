@@ -111,7 +111,7 @@
 .update-result-modal__progress-bar {
   height: 100%;
   background: color-mix(in srgb, var(--primary) 30%, transparent);
-  transition: width var(--duration-normal) ease;
+  transition: width var(--duration-normal) var(--ease-emphasized);
 }
 
 .update-result-modal__progress-text {

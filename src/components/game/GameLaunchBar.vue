@@ -231,8 +231,8 @@ const { t } = useI18n()
   background: var(--primary);
   overflow: hidden;
   transition:
-    filter var(--duration-fast) var(--ease-standard),
-    opacity var(--duration-fast) var(--ease-standard);
+    filter var(--duration-fast) var(--ease-emphasized),
+    opacity var(--duration-fast) var(--ease-emphasized);
 }
 
 .split-launch-btn.disabled {
@@ -263,7 +263,7 @@ const { t } = useI18n()
   font-size: 13px;
   font-weight: 650;
   outline: none;
-  transition: background var(--duration-fast) var(--ease-standard);
+  transition: background var(--duration-fast) var(--ease-emphasized);
 }
 
 .split-main:hover {
@@ -310,7 +310,7 @@ const { t } = useI18n()
   color: var(--text-on-primary);
   cursor: pointer;
   outline: none;
-  transition: background var(--duration-fast) var(--ease-standard);
+  transition: background var(--duration-fast) var(--ease-emphasized);
   border-radius: 0 var(--r-md) var(--r-md) 0;
 }
 
@@ -380,7 +380,7 @@ const { t } = useI18n()
   cursor: pointer;
   text-align: left;
   gap: 8px;
-  transition: background var(--duration-fast) var(--ease-standard);
+  transition: background var(--duration-fast) var(--ease-emphasized);
 }
 
 .recent-instance-item:hover {
@@ -429,7 +429,7 @@ const { t } = useI18n()
   gap: 2px;
   flex-shrink: 0;
   opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease-standard);
+  transition: opacity var(--duration-fast) var(--ease-emphasized);
 }
 
 .recent-instance-item:hover .recent-item-actions,
@@ -451,8 +451,8 @@ const { t } = useI18n()
   font-size: 12px;
   cursor: pointer;
   transition:
-    background var(--duration-fast) var(--ease-standard),
-    color var(--duration-fast) var(--ease-standard);
+    background var(--duration-fast) var(--ease-emphasized),
+    color var(--duration-fast) var(--ease-emphasized);
 }
 
 .recent-action-btn:hover {
@@ -488,8 +488,8 @@ const { t } = useI18n()
   border: 1px solid var(--primary) !important;
   background: var(--primary-alpha-strong) !important;
   transition:
-    background-color var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard);
+    background-color var(--duration-fast) var(--ease-emphasized),
+    border-color var(--duration-fast) var(--ease-emphasized);
 }
 
 .launch-manage-button:hover:not(:disabled) {
@@ -518,9 +518,9 @@ const { t } = useI18n()
   background: var(--ecl-surface) !important;
   box-shadow: var(--ecl-shadow-surface);
   transition:
-    background-color var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard),
-    color var(--duration-fast) var(--ease-standard);
+    background-color var(--duration-fast) var(--ease-emphasized),
+    border-color var(--duration-fast) var(--ease-emphasized),
+    color var(--duration-fast) var(--ease-emphasized);
 }
 
 .launch-settings-button:hover:not(:disabled) {

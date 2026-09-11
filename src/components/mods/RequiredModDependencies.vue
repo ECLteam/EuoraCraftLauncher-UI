@@ -115,8 +115,8 @@ function loaderName(value: string): string {
   border: 1px solid var(--ecl-border);
   border-radius: 7px;
   transition:
-    border-color var(--duration-fast) var(--ease-smooth),
-    background var(--duration-fast) var(--ease-smooth);
+    border-color var(--duration-fast) var(--ease-emphasized),
+    background var(--duration-fast) var(--ease-emphasized);
 }
 
 .dependency-mod-card:hover {

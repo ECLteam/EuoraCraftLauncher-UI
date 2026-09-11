@@ -69,8 +69,8 @@
   border-radius: var(--ecl-radius-card);
   overflow: hidden;
   transition:
-    border-color var(--duration-fast) var(--ease-standard),
-    box-shadow var(--duration-fast) var(--ease-standard);
+    border-color var(--duration-fast) var(--ease-emphasized),
+    box-shadow var(--duration-fast) var(--ease-emphasized);
 }
 
 .tq-task--running {
@@ -167,13 +167,13 @@
   height: 100%;
   background: var(--primary);
   border-radius: var(--r-xs);
-  transition: width var(--duration-normal) ease;
+  transition: width var(--duration-normal) var(--ease-emphasized);
   min-width: 0;
 }
 
 .tq-progress-fill.tq-progress--indeterminate {
   width: 30% !important;
-  animation: indeterminate-bar 1.5s var(--ease-smooth) infinite;
+  animation: indeterminate-bar 1.5s var(--ease-linear) infinite;
 }
 
 .tq-progress-text {
@@ -227,9 +227,9 @@
   cursor: pointer;
   opacity: 0;
   transition:
-    opacity var(--duration-fast) var(--ease-standard),
-    background var(--duration-fast) var(--ease-standard),
-    color var(--duration-fast) var(--ease-standard);
+    opacity var(--duration-fast) var(--ease-emphasized),
+    background var(--duration-fast) var(--ease-emphasized),
+    color var(--duration-fast) var(--ease-emphasized);
 }
 
 .tq-task:hover .tq-remove-btn {
@@ -298,24 +298,6 @@
   color: var(--text-tertiary);
 }
 
-.tq-expand-enter-active,
-.tq-expand-leave-active {
-  transition: all var(--duration-normal) ease;
-  overflow: hidden;
-}
-
-.tq-expand-enter-from,
-.tq-expand-leave-to {
-  opacity: 0;
-  max-height: 0;
-}
-
-.tq-expand-enter-to,
-.tq-expand-leave-from {
-  opacity: 1;
-  max-height: 320px;
-}
-
 .tq-toolbar {
   display: flex;
   align-items: center;
@@ -337,7 +319,7 @@
   color: var(--text-secondary);
   font-size: 12px;
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-standard);
+  transition: all var(--duration-fast) var(--ease-emphasized);
 }
 
 .tq-clear-btn:hover:not(:disabled) {
@@ -521,13 +503,3 @@
   white-space: nowrap;
 }
 
-.tq-fade-enter-active,
-.tq-fade-leave-active {
-  transition: all var(--duration-normal) var(--ease-standard);
-}
-
-.tq-fade-enter-from,
-.tq-fade-leave-to {
-  opacity: 0;
-  transform: translateY(4px);
-}

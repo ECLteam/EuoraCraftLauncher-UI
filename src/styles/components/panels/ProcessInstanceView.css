@@ -33,6 +33,9 @@
   color: var(--ecl-text);
   text-align: left;
   cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-emphasized),
+    box-shadow var(--duration-fast) var(--ease-emphasized);
 }
 
 .piv-item:hover {
@@ -147,6 +150,10 @@
   word-break: break-word;
 }
 
+.piv-line {
+  transition: background var(--duration-fast) var(--ease-emphasized);
+}
+
 .piv-line:hover {
   background: rgba(127, 127, 127, 0.08);
 }
@@ -179,6 +186,10 @@
   background: transparent;
   color: var(--ecl-text-secondary);
   cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-emphasized),
+    border-color var(--duration-fast) var(--ease-emphasized),
+    color var(--duration-fast) var(--ease-emphasized);
 }
 
 .piv-btn:hover:not(:disabled) {

@@ -406,8 +406,8 @@ onBeforeUnmount(() => {
   padding: 10px 16px;
   border-bottom: 1px solid var(--ecl-border);
   transition:
-    background 0.15s ease,
-    transform 0.15s ease;
+    background var(--duration-fast) var(--ease-emphasized),
+    transform var(--duration-fast) var(--ease-emphasized);
 }
 
 .resource-row:last-child {
@@ -498,8 +498,8 @@ onBeforeUnmount(() => {
   border: 1px solid var(--ecl-border);
   border-radius: var(--ecl-radius-card);
   transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
+    background var(--duration-fast) var(--ease-emphasized),
+    border-color var(--duration-fast) var(--ease-emphasized);
 }
 
 .online-results > div:hover {

@@ -92,7 +92,7 @@ onUnmounted(() => globalProcessInstances.dispose())
   color: var(--text-secondary);
   cursor: pointer;
   font-size: 12px;
-  transition: all var(--duration-fast) ease-out;
+  transition: all var(--duration-fast) var(--ease-emphasized);
 }
 
 .itm-back:hover {

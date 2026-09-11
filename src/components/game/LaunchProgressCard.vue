@@ -151,7 +151,7 @@ const { t } = useI18n()
 
 .lp-bar-fill.indeterminate {
   width: 30% !important;
-  animation: indeterminate-bar 1.6s var(--ease-smooth) infinite;
+  animation: indeterminate-bar 1.6s var(--ease-linear) infinite;
 }
 
 .lp-bar-percent {
@@ -214,7 +214,7 @@ const { t } = useI18n()
   color: var(--text-tertiary);
   font-size: 13px;
   cursor: pointer;
-  transition: all var(--duration-fast) ease-out;
+  transition: all var(--duration-fast) var(--ease-emphasized);
 }
 
 .lp-cancel-btn:hover {

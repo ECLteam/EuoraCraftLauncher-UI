@@ -113,8 +113,8 @@
     0 0 0 1px var(--border),
     var(--shadow-xs);
   transition:
-    transform var(--duration-fast) var(--ease-standard),
-    box-shadow var(--duration-fast) ease-out;
+    transform var(--duration-fast) var(--ease-emphasized),
+    box-shadow var(--duration-fast) var(--ease-emphasized);
 }
 
 .memory-slider-input::-webkit-slider-thumb:hover {
@@ -179,7 +179,7 @@
 
 .memory-bar-segment {
   height: 100%;
-  transition: width var(--duration-normal) var(--ease-smooth);
+  transition: width var(--duration-normal) var(--ease-emphasized);
   min-width: 0;
 }
 
@@ -281,7 +281,7 @@
 }
 
 .memory-manual-section.is-auto .memory-bar-segment {
-  transition: width var(--duration-normal) var(--ease-smooth);
+  transition: width var(--duration-normal) var(--ease-emphasized);
 }
 
 .memory-manual-section.is-auto .memory-bar-segment.system-used {

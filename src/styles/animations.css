@@ -1,12 +1,17 @@
 /* ============================================================
-   animations.css — 极简动画系统（重建版）
+   animations.css — 统一动画系统
 
    设计原则：
-   1. 只保留功能性动效：加载指示（旋转 / 进度条 / 骨架屏）与
-      必要的淡入淡出（页面 / 弹窗 / 下拉），一律使用标准缓动
-   2. 移除全部装饰性动效：弹跳、弹性、故障、砸入、浮空、心跳、
-      涟漪、闪烁等效果不再使用
-   3. 单点定义：所有 @keyframes 与 Vue <Transition> 类只在此处定义
+   1. 单点定义：所有 @keyframes 与 Vue <Transition> 类只在此处定义，
+      组件样式文件不得自行声明过渡类
+   2. 曲线语义分离：进入一律用 --ease-emphasized-decelerate（快速
+      减速到位），退出一律用 --ease-emphasized-accelerate（先缓后快
+      离场）；交互状态反馈用 --ease-emphasized；scale 类过渡可用
+      --ease-spring 产生轻微回弹；进度/旋转等循环动画用 --ease-linear
+   3. 时长语义：进入比退出长（exit 更干脆）；所有时长/缓动一律引用
+      base.css 令牌，禁止裸值
+   4. 只做功能性动效（反馈 / 进出场 / 加载指示），不引入装饰性动效；
+      prefers-reduced-motion 下全局压制
    ============================================================ */
 
 /* ─────────────────────────────────────────
@@ -71,15 +76,19 @@
 }
 
 /* ─────────────────────────────────────────
-   2. Vue <Transition> 命名过渡（标准缓动，无弹跳）
+   2. Vue <Transition> 命名过渡
    ───────────────────────────────────────── */
 
 /* ── 页面路由过渡：淡入 + 轻微上移 ─── */
-.page-enter-active,
+.page-enter-active {
+  transition:
+    opacity var(--duration-normal) var(--ease-emphasized-decelerate),
+    transform var(--duration-normal) var(--ease-emphasized-decelerate);
+}
 .page-leave-active {
   transition:
-    opacity var(--duration-fast) var(--ease-standard),
-    transform var(--duration-fast) var(--ease-standard);
+    opacity var(--duration-fast) var(--ease-emphasized-accelerate),
+    transform var(--duration-fast) var(--ease-emphasized-accelerate);
 }
 .page-enter-from {
   opacity: 0;
@@ -90,16 +99,18 @@
   transform: translateY(-6px);
 }
 
-/* ── 弹窗 ─────────────────────────── */
-.modal-enter-active,
+/* ── 弹窗：缩放带轻微回弹 ─────────── */
+.modal-enter-active {
+  transition: opacity var(--duration-normal) var(--ease-emphasized-decelerate);
+}
 .modal-leave-active {
-  transition: opacity var(--duration-normal) var(--ease-standard);
+  transition: opacity var(--duration-fast) var(--ease-emphasized-accelerate);
 }
 .modal-enter-active .modal-container {
-  transition: transform var(--duration-normal) var(--ease-standard);
+  transition: transform var(--duration-normal) var(--ease-spring);
 }
 .modal-leave-active .modal-container {
-  transition: transform var(--duration-fast) var(--ease-standard);
+  transition: transform var(--duration-fast) var(--ease-emphasized-accelerate);
 }
 .modal-enter-from,
 .modal-leave-to {
@@ -112,16 +123,18 @@
   transform: scale(0.98);
 }
 
-/* ── 全屏模态 ─────────────────────── */
-.fullscreen-modal-enter-active,
+/* ── 全屏模态：横向滑入 ───────────── */
+.fullscreen-modal-enter-active {
+  transition: opacity var(--duration-normal) var(--ease-emphasized-decelerate);
+}
 .fullscreen-modal-leave-active {
-  transition: opacity var(--duration-normal) var(--ease-standard);
+  transition: opacity var(--duration-fast) var(--ease-emphasized-accelerate);
 }
 .fullscreen-modal-enter-active .fullscreen-modal-wrapper {
-  transition: transform var(--duration-normal) var(--ease-standard);
+  transition: transform var(--duration-normal) var(--ease-emphasized-decelerate);
 }
 .fullscreen-modal-leave-active .fullscreen-modal-wrapper {
-  transition: transform var(--duration-fast) var(--ease-standard);
+  transition: transform var(--duration-fast) var(--ease-emphasized-accelerate);
 }
 .fullscreen-modal-enter-from,
 .fullscreen-modal-leave-to {
@@ -135,11 +148,15 @@
 }
 
 /* ── 下拉选择框 ───────────────────── */
-.select-dropdown-enter-active,
+.select-dropdown-enter-active {
+  transition:
+    opacity var(--duration-fast) var(--ease-emphasized-decelerate),
+    transform var(--duration-fast) var(--ease-emphasized-decelerate);
+}
 .select-dropdown-leave-active {
   transition:
-    opacity var(--duration-fast) var(--ease-standard),
-    transform var(--duration-fast) var(--ease-standard);
+    opacity var(--duration-fast) var(--ease-emphasized-accelerate),
+    transform var(--duration-fast) var(--ease-emphasized-accelerate);
 }
 .select-dropdown-enter-from,
 .select-dropdown-leave-to {
@@ -148,11 +165,15 @@
 }
 
 /* ── 信息卡片切换 ─────────────────── */
-.info-fade-enter-active,
+.info-fade-enter-active {
+  transition:
+    opacity var(--duration-fast) var(--ease-emphasized-decelerate),
+    transform var(--duration-fast) var(--ease-emphasized-decelerate);
+}
 .info-fade-leave-active {
   transition:
-    opacity var(--duration-fast) var(--ease-standard),
-    transform var(--duration-fast) var(--ease-standard);
+    opacity var(--duration-fast) var(--ease-emphasized-accelerate),
+    transform var(--duration-fast) var(--ease-emphasized-accelerate);
 }
 .info-fade-enter-from,
 .info-fade-leave-to {
@@ -161,11 +182,15 @@
 }
 
 /* ── 滑出面板（游戏视图切换） ─────── */
-.slide-out-enter-active,
+.slide-out-enter-active {
+  transition:
+    opacity var(--duration-fast) var(--ease-emphasized-decelerate),
+    transform var(--duration-fast) var(--ease-emphasized-decelerate);
+}
 .slide-out-leave-active {
   transition:
-    opacity var(--duration-fast) var(--ease-standard),
-    transform var(--duration-fast) var(--ease-standard);
+    opacity var(--duration-fast) var(--ease-emphasized-accelerate),
+    transform var(--duration-fast) var(--ease-emphasized-accelerate);
 }
 .slide-out-enter-from,
 .slide-out-leave-to {
@@ -173,15 +198,122 @@
   transform: translateY(8px);
 }
 
+/* ── 通用淡入淡出（PluginSettingsModal 等） ── */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--duration-fast) var(--ease-emphasized);
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* ── 全局拖放遮罩 ─────────────────── */
+.drop-fade-enter-active,
+.drop-fade-leave-active {
+  transition: opacity var(--duration-fast) var(--ease-emphasized);
+}
+.drop-fade-enter-from,
+.drop-fade-leave-to {
+  opacity: 0;
+}
+
+/* ── 任务队列面板 ─────────────────── */
+.tq-expand-enter-active {
+  transition: all var(--duration-normal) var(--ease-emphasized-decelerate);
+  overflow: hidden;
+}
+.tq-expand-leave-active {
+  transition: all var(--duration-fast) var(--ease-emphasized-accelerate);
+  overflow: hidden;
+}
+.tq-expand-enter-from,
+.tq-expand-leave-to {
+  opacity: 0;
+  max-height: 0;
+}
+.tq-expand-enter-to,
+.tq-expand-leave-from {
+  opacity: 1;
+  max-height: 320px;
+}
+
+.tq-fade-enter-active {
+  transition: all var(--duration-normal) var(--ease-emphasized-decelerate);
+}
+.tq-fade-leave-active {
+  transition: all var(--duration-fast) var(--ease-emphasized-accelerate);
+}
+.tq-fade-enter-from,
+.tq-fade-leave-to {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+/* ── 离线高级设置折叠 ─────────────── */
+.offline-advanced-enter-active {
+  overflow: hidden;
+  transition:
+    opacity var(--duration-fast) var(--ease-emphasized-decelerate),
+    transform var(--duration-fast) var(--ease-emphasized-decelerate);
+}
+.offline-advanced-leave-active {
+  overflow: hidden;
+  transition:
+    opacity var(--duration-fast) var(--ease-emphasized-accelerate),
+    transform var(--duration-fast) var(--ease-emphasized-accelerate);
+}
+.offline-advanced-enter-from,
+.offline-advanced-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+/* ── 技术栈展开（关于页） ─────────── */
+.technology-expand-enter-active {
+  transition: all var(--duration-normal) var(--ease-emphasized-decelerate);
+  overflow: hidden;
+}
+.technology-expand-leave-active {
+  transition: all var(--duration-fast) var(--ease-emphasized-accelerate);
+  overflow: hidden;
+}
+.technology-expand-enter-from,
+.technology-expand-leave-to {
+  opacity: 0;
+  max-height: 0;
+}
+.technology-expand-enter-to,
+.technology-expand-leave-from {
+  opacity: 1;
+  max-height: 800px;
+}
+
+/* ── 运行中实例表格行（TransitionGroup） ── */
+.running-row-enter-active {
+  transition: all var(--duration-normal) var(--ease-emphasized-decelerate);
+}
+.running-row-leave-active {
+  transition: all var(--duration-fast) var(--ease-emphasized-accelerate);
+}
+.running-row-enter-from,
+.running-row-leave-to {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+/* LauncherMessage toast 走 naive-ui 内部过渡（曲线经 themeOverrides
+   cubicBezier* 覆写对齐本体系），此处不再单独定义 */
+
 /* ─────────────────────────────────────────
    3. 工具类
    ───────────────────────────────────────── */
 
 .fade-in {
-  animation: fade-in var(--duration-normal) var(--ease-standard) forwards;
+  animation: fade-in var(--duration-normal) var(--ease-emphasized-decelerate) forwards;
 }
 .fade-out {
-  animation: fade-out var(--duration-fast) var(--ease-standard) forwards;
+  animation: fade-out var(--duration-fast) var(--ease-emphasized-accelerate) forwards;
 }
 .spin {
   animation: spin 1s linear infinite;

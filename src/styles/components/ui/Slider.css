@@ -32,7 +32,7 @@
   background: var(--primary);
   border: 2px solid var(--bg-elevated);
   cursor: pointer;
-  transition: transform 150ms ease-out;
+  transition: transform var(--duration-fast) var(--ease-emphasized);
 }
 
 .ui-slider-input::-webkit-slider-thumb:hover {

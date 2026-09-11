@@ -303,7 +303,7 @@ async function handleConfirm() {
   color: var(--text-secondary);
   cursor: pointer;
   font-size: 11px;
-  transition: all var(--duration-fast) ease-out;
+  transition: all var(--duration-fast) var(--ease-emphasized);
 }
 
 .running-refresh:hover:not(:disabled) {
@@ -328,7 +328,7 @@ async function handleConfirm() {
   color: var(--primary);
   cursor: pointer;
   font-size: 11px;
-  transition: all var(--duration-fast) ease-out;
+  transition: all var(--duration-fast) var(--ease-emphasized);
 }
 
 .running-terminal:hover {
@@ -385,7 +385,7 @@ async function handleConfirm() {
 .running-instance-row {
   flex: 0 0 56px;
   border-bottom: 1px solid var(--divider);
-  transition: background var(--duration-fast) ease-out;
+  transition: background var(--duration-fast) var(--ease-emphasized);
 }
 
 .running-instance-row:hover {
@@ -513,7 +513,7 @@ async function handleConfirm() {
   color: var(--text-tertiary);
   cursor: pointer;
   font-size: 10px;
-  transition: all var(--duration-fast) ease-out;
+  transition: all var(--duration-fast) var(--ease-emphasized);
 }
 
 .running-stop-button:hover:not(:disabled) {
@@ -556,17 +556,6 @@ async function handleConfirm() {
   color: var(--text-secondary);
   font-size: 11px;
   line-height: 1.6;
-}
-
-.running-row-enter-active,
-.running-row-leave-active {
-  transition: all var(--duration-normal) var(--ease-smooth);
-}
-
-.running-row-enter-from,
-.running-row-leave-to {
-  opacity: 0;
-  transform: translateY(6px);
 }
 
 @media (max-width: 760px) {

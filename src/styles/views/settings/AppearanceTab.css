@@ -31,7 +31,7 @@
   border: 2px solid var(--ecl-surface);
   box-shadow: 0 0 0 1px var(--ecl-border);
   cursor: pointer;
-  transition: transform 0.15s ease;
+  transition: transform var(--duration-fast) var(--ease-emphasized);
 }
 
 .color-dot:hover {
@@ -143,7 +143,7 @@
   --n-text-color-checked: var(--primary, rgb(91, 111, 245)) !important;
   background-color: transparent !important;
   color: var(--ecl-text-secondary, #5c5c5c) !important;
-  transition: background-color var(--duration-fast, 0.15s) ease;
+  transition: background-color var(--duration-fast, 0.15s) var(--ease-emphasized);
 }
 
 .appearance-settings :deep(.n-radio-button):hover {
