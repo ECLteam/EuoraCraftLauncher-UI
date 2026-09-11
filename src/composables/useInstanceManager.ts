@@ -14,6 +14,7 @@ import { instanceSettingsApi } from '@/features/instances/api/instanceSettingsAp
 import { instanceDisplayName } from '@/features/instances/model/instancePresentation'
 import { createDefaultVersionSettings, parseLaunchArguments } from '@/features/instances/model/instanceSettings'
 import { useInstanceStore } from '@/features/instances/stores/instanceStore'
+import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import type { LaunchProgress } from '@/types/system'
 import { normalizeGamePath } from '@/utils/path'
 import { useLauncherMessage } from './useLauncherMessage'
@@ -47,6 +48,7 @@ export function useInstanceManager(t: (key: string, ...args: unknown[]) => strin
   const message = useLauncherMessage()
   const router = useRouter()
   const instanceStore = useInstanceStore()
+  const settingsStore = useSettingsStore()
   const { versions, selectedVersion, currentGamePath } = storeToRefs(instanceStore)
   const { show: showLaunchProgress, hide: hideLaunchProgress, setProgress: setLaunchProgress } = globalLaunchProgress
 
@@ -203,6 +205,8 @@ export function useInstanceManager(t: (key: string, ...args: unknown[]) => strin
       game_path: currentGamePath.value,
       java_path: versionSettings.customJava ? versionSettings.javaPath || undefined : undefined,
       memory: versionSettings.customMemory ? versionSettings.memory : undefined,
+      lock_memory: settingsStore.game.lock_memory,
+      process_priority: settingsStore.game.process_priority || 'normal',
       jvm_args: versionSettings.jvmArgs ? parseLaunchArguments(versionSettings.jvmArgs) : undefined,
       game_args: versionSettings.gameArgs ? parseLaunchArguments(versionSettings.gameArgs) : undefined,
       version_isolation: versionSettings.isolated,

@@ -451,6 +451,8 @@ export interface CommandPayloadMap {
     game_path: string
     java_path?: string
     memory?: number
+    lock_memory?: boolean
+    process_priority?: 'idle' | 'below_normal' | 'normal' | 'above_normal' | 'high'
     width?: number
     height?: number
     fullscreen?: boolean

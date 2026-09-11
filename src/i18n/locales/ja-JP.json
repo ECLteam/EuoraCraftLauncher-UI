@@ -898,6 +898,17 @@
     "memoryHint": "MB",
     "memoryRecommendedMax": "推奨最大値",
     "memoryOverRecommended": "推奨値を超えています。システムの動作が重くなる可能性があります",
+    "lockMemory": "メモリを固定",
+    "lockMemoryDesc": "初期ヒープを最大ヒープに揃え、実行中のリサイズを抑えます",
+    "processPriority": "プロセス優先度",
+    "processPriorityDesc": "ゲームプロセスのCPUスケジューリング優先度を設定します",
+    "processPriorityOptions": {
+      "idle": "アイドル",
+      "below_normal": "低",
+      "normal": "通常",
+      "above_normal": "高",
+      "high": "最高"
+    },
     "javaSettings": "Java 設定",
     "javaSelection": "Java の選択",
     "javaSelectionAutoDesc": "最適な Java を自動選択",

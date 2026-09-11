@@ -898,6 +898,17 @@
     "memoryHint": "MB",
     "memoryRecommendedMax": "建議最大值",
     "memoryOverRecommended": "超過建議值，可能導致系統卡頓",
+    "lockMemory": "鎖定記憶體",
+    "lockMemoryDesc": "將初始記憶體與最大記憶體設為一致，減少執行中的堆反覆調整",
+    "processPriority": "處理程序優先順序",
+    "processPriorityDesc": "設定遊戲處理程序的 CPU 排程優先順序",
+    "processPriorityOptions": {
+      "idle": "閒置",
+      "below_normal": "低",
+      "normal": "正常",
+      "above_normal": "高",
+      "high": "最高"
+    },
     "javaSettings": "Java 設定",
     "javaSelection": "Java 選擇",
     "javaSelectionAutoDesc": "自動選擇最適合的 Java",

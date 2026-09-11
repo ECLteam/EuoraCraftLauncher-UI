@@ -115,10 +115,23 @@
             </span>
           </div>
           <div v-if="systemMemoryError" class="memory-error-hint">
-            无法读取真实内存信息，当前为默认占位值。请重启后端或检查控制台日志。
-          </div>
+          无法读取真实内存信息，当前为默认占位值。请重启后端或检查控制台日志。
         </div>
       </div>
+      </div>
+
+      <SettingRow :label="t('settings.lockMemory')" :description="t('settings.lockMemoryDesc')">
+        <NSwitch :value="localSettings.lock_memory" @update:value="handleLockMemoryToggle" />
+      </SettingRow>
+
+      <SettingRow :label="t('settings.processPriority')" :description="t('settings.processPriorityDesc')">
+        <NSelect
+          :value="localSettings.process_priority || 'normal'"
+          :options="priorityOptions"
+          class="process-priority-select"
+          @update:value="handlePriorityChange"
+        />
+      </SettingRow>
     </SettingSection>
 
     <SettingSection :title="t('settings.runtime')">
@@ -285,6 +298,14 @@ const formatMemory = (mb: number): string => {
   return mb + ' MB'
 }
 
+const PROCESS_PRIORITIES = ['idle', 'below_normal', 'normal', 'above_normal', 'high'] as const
+type ProcessPriority = (typeof PROCESS_PRIORITIES)[number]
+
+const priorityOptions = PROCESS_PRIORITIES.map((value) => ({
+  value,
+  label: t(`settings.processPriorityOptions.${value}`),
+}))
+
 const loadJavaList = async () => {
   const result = await run(async () => settingsApi.listJava())
   if (result) javaList.value = result
@@ -318,6 +339,8 @@ const saveConfig = async () => {
     java_path: localSettings.value.java_path,
     memory_auto: localSettings.value.memory_auto,
     memory_size: localSettings.value.memory_size,
+    lock_memory: localSettings.value.lock_memory,
+    process_priority: localSettings.value.process_priority || 'normal',
     game_width: localSettings.value.game_width,
     game_height: localSettings.value.game_height,
     fullscreen: localSettings.value.fullscreen,
@@ -348,6 +371,16 @@ const handleMemoryAutoToggle = (value: boolean) => {
   if (value) {
     localSettings.value.memory_size = autoMemorySize.value
   }
+  saveConfig()
+}
+
+const handleLockMemoryToggle = (value: boolean) => {
+  localSettings.value.lock_memory = value
+  saveConfig()
+}
+
+const handlePriorityChange = (value: ProcessPriority) => {
+  localSettings.value.process_priority = value
   saveConfig()
 }
 

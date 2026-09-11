@@ -10,6 +10,8 @@ const DEFAULT_GAME_CONFIG: GameConfig = {
   java_path: '',
   memory_auto: true,
   memory_size: 4096,
+  lock_memory: false,
+  process_priority: 'normal',
   game_width: 854,
   game_height: 480,
   fullscreen: false,

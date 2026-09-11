@@ -331,3 +331,7 @@
   border-color: rgba(239, 68, 68, 0.4);
   background: rgba(239, 68, 68, 0.08);
 }
+
+.process-priority-select {
+  width: 240px;
+}

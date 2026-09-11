@@ -47,6 +47,10 @@ export interface GameConfig {
   java_path?: string
   memory_auto?: boolean
   memory_size?: number
+  /** 是否锁定 JVM 初始堆与最大堆一致（-Xms=-Xmx），减少游戏运行中堆的反复扩容与收缩 */
+  lock_memory?: boolean
+  /** 游戏进程优先级：idle 最低，high 最高 */
+  process_priority?: 'idle' | 'below_normal' | 'normal' | 'above_normal' | 'high'
   game_width?: number
   game_height?: number
   jvm_args?: string[]

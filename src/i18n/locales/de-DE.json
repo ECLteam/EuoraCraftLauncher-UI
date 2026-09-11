@@ -898,6 +898,17 @@
     "memoryHint": "MB",
     "memoryRecommendedMax": "Empfohlenes Maximum",
     "memoryOverRecommended": "Über dem empfohlenen Wert; kann das System ruckelig machen",
+    "lockMemory": "Speicher sperren",
+    "lockMemoryDesc": "Anfangsheap gleich dem Maximalheap halten, um Laufzeit-Resizing zu vermeiden",
+    "processPriority": "Prozesspriorität",
+    "processPriorityDesc": "Legt die CPU-Scheduling-Priorität des Spielprozesses fest",
+    "processPriorityOptions": {
+      "idle": "Leerlauf",
+      "below_normal": "Niedrig",
+      "normal": "Normal",
+      "above_normal": "Hoch",
+      "high": "Höchste"
+    },
     "javaSettings": "Java-Einstellungen",
     "javaSelection": "Java-Auswahl",
     "javaSelectionAutoDesc": "Das am besten geeignete Java automatisch auswählen",

@@ -909,6 +909,17 @@
     "memoryHint": "MB",
     "memoryRecommendedMax": "建议最大值",
     "memoryOverRecommended": "超过建议值，可能导致系统卡顿",
+    "lockMemory": "锁定内存",
+    "lockMemoryDesc": "锁定初始内存与最大内存一致，减少运行中的堆反复扩容与收缩",
+    "processPriority": "进程优先级",
+    "processPriorityDesc": "设置游戏进程的 CPU 调度优先级，合理选择可减少卡顿",
+    "processPriorityOptions": {
+      "idle": "空闲",
+      "below_normal": "低",
+      "normal": "正常",
+      "above_normal": "高",
+      "high": "最高"
+    },
     "javaSettings": "Java 设置",
     "javaSelection": "Java 选择",
     "javaSelectionAutoDesc": "自动选择最适合的 Java",

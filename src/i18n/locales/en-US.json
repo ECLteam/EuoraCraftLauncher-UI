@@ -909,6 +909,17 @@
     "memoryHint": "MB",
     "memoryRecommendedMax": "Recommended Maximum",
     "memoryOverRecommended": "Exceeds recommended value, may cause system lag",
+    "lockMemory": "Lock Memory",
+    "lockMemoryDesc": "Keep initial heap equal to the max heap to reduce runtime resizing",
+    "processPriority": "Process Priority",
+    "processPriorityDesc": "Sets the game process CPU scheduling priority",
+    "processPriorityOptions": {
+      "idle": "Idle",
+      "below_normal": "Low",
+      "normal": "Normal",
+      "above_normal": "High",
+      "high": "Highest"
+    },
     "javaSettings": "Java Settings",
     "javaSelection": "Java Selection",
     "javaSelectionAutoDesc": "Automatically select the most suitable Java",

@@ -898,6 +898,17 @@
     "memoryHint": "МБ",
     "memoryRecommendedMax": "Рекомендуемый максимум",
     "memoryOverRecommended": "Превышает рекомендуемое значение, возможны подтормаживания системы",
+    "lockMemory": "Зафиксировать память",
+    "lockMemoryDesc": "Начальная куча равна максимальной, чтобы избежать изменения размера во время работы",
+    "processPriority": "Приоритет процесса",
+    "processPriorityDesc": "Задаёт приоритет планирования ЦП для игрового процесса",
+    "processPriorityOptions": {
+      "idle": "Простой",
+      "below_normal": "Низкий",
+      "normal": "Обычный",
+      "above_normal": "Высокий",
+      "high": "Наивысший"
+    },
     "javaSettings": "Настройки Java",
     "javaSelection": "Выбор Java",
     "javaSelectionAutoDesc": "Автоматически выбирать наиболее подходящую Java",
