@@ -181,6 +181,8 @@ export interface WorldEntry {
   allowCommands?: boolean
   version?: string
   seed?: string
+  spawn?: { x: number; y: number; z: number }
+  weather?: { raining: boolean; thundering: boolean }
   lastPlayedAt?: string | null
   modifiedAt?: string
   createdAt?: string

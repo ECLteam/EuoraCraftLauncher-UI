@@ -179,4 +179,20 @@ export const instanceWorkspaceApi = {
   repairFiles: (target: InstanceTargetPayload) =>
     call<GameOperation>('game_instance_files_repair', target, '补全实例文件'),
   deleteInstance: (target: InstanceTargetPayload) => call<void>('game_instance_delete', target, '删除实例'),
+  readOptions: (target: InstanceTargetPayload) =>
+    call<{ path: string; options: GameOptionEntry[]; ignoredCount: number }>(
+      'game_options_read',
+      target,
+      '读取游戏设置'
+    ),
+  patchOptions: (target: InstanceTargetPayload, patch: Record<string, number | string | boolean>) =>
+    call<{ path: string; updated: number }>('game_options_patch', { ...target, patch }, '保存游戏设置'),
+}
+
+export interface GameOptionEntry {
+  key: string
+  value: number | string | boolean
+  type: 'string' | 'int' | 'float' | 'bool'
+  min?: number
+  max?: number
 }

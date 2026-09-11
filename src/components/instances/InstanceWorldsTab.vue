@@ -5,6 +5,7 @@
       <NSelect v-model:value="sortKey" :options="sortOptions" class="sort-select" />
       <NButton :loading="loading" @click="load">刷新</NButton>
       <NButton @click="importWorld">导入</NButton>
+      <NButton @click="editOptions">游戏设置</NButton>
       <NButton @click="openFolder">打开存档目录</NButton>
     </header>
     <NSpin :show="loading">
@@ -65,11 +66,20 @@
       :closeOnConfirm="false"
       @confirm="handleConfirm"
     />
-    <Modal v-model:visible="editorVisible" title="世界设置" width="460px">
+    <Modal v-model:visible="editorVisible" title="世界设置" width="520px">
       <div class="world-editor">
+        <label>游戏模式<NSelect v-model:value="editor.gameMode" :options="gameModeOptions" /></label>
         <label>难度<NSelect v-model:value="editor.difficulty" :options="difficultyOptions" /></label>
-        <label><NSwitch v-model:value="editor.allowCommands" /> 允许作弊</label>
-        <label><NSwitch v-model:value="editor.difficultyLocked" /> 锁定难度</label>
+        <label>出生点 X<NInputNumber v-model:value="editor.spawnX" :min="-30000000" :max="30000000" /></label>
+        <label>出生点 Y<NInputNumber v-model:value="editor.spawnY" :min="-30000000" :max="30000000" /></label>
+        <label>出生点 Z<NInputNumber v-model:value="editor.spawnZ" :min="-30000000" :max="30000000" /></label>
+        <label>世界种子<NInputNumber v-model:value="editor.seed" placeholder="整数种子" /></label>
+        <div class="world-editor-row">
+          <label><NSwitch v-model:value="editor.allowCommands" /> 允许作弊</label>
+          <label><NSwitch v-model:value="editor.difficultyLocked" /> 锁定难度</label>
+          <label><NSwitch v-model:value="editor.raining" /> 下雨</label>
+          <label><NSwitch v-model:value="editor.thundering" /> 雷暴</label>
+        </div>
       </div>
       <template #footer
         ><NButton @click="editorVisible = false">取消</NButton
@@ -90,11 +100,45 @@
         </div>
       </div>
     </Modal>
+    <Modal v-model:visible="optionsVisible" title="游戏设置" width="560px">
+      <NSpin :show="optionsLoading">
+        <div v-if="optionsEntries.length" class="options-editor">
+          <div v-for="entry in optionsEntries" :key="entry.key" class="options-row">
+            <span class="options-label">{{ optionLabel(entry.key) }}</span>
+            <NSwitch
+              v-if="entry.type === 'bool'"
+              :value="optionValues[entry.key] === true"
+              @update:value="optionValues[entry.key] = $event"
+            />
+            <NInputNumber
+              v-else-if="entry.type === 'int' || entry.type === 'float'"
+              :value="Number(optionValues[entry.key])"
+              :min="entry.min"
+              :max="entry.max"
+              :step="entry.type === 'float' ? 0.1 : 1"
+              @update:value="optionValues[entry.key] = ($event ?? 0) as number"
+            />
+            <NInput
+              v-else
+              :value="String(optionValues[entry.key] ?? '')"
+              @update:value="optionValues[entry.key] = $event"
+            />
+          </div>
+        </div>
+        <NEmpty v-else description="没有检测到可编辑的游戏设置" />
+      </NSpin>
+      <template #footer
+        ><NButton @click="optionsVisible = false">取消</NButton
+        ><NButton type="primary" :loading="savingOptions" :disabled="!optionsEntries.length" @click="saveOptions"
+          >保存设置</NButton
+        ></template
+      >
+    </Modal>
   </section>
 </template>
 
 <script setup lang="ts">
-import { NButton, NEmpty, NInput, NSelect, NSpin, NSwitch } from 'naive-ui'
+import { NButton, NEmpty, NInput, NInputNumber, NSelect, NSpin, NSwitch } from 'naive-ui'
 import { computed, onMounted, reactive, ref } from 'vue'
 import backend from '@/api/client'
 import { unwrapResponse } from '@/app/runtime/errorPresentation'
@@ -103,6 +147,7 @@ import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
+import type { GameOptionEntry } from '@/features/instances/api/instanceWorkspaceApi'
 import type { ScannedVersion, WorldEntry } from '@/types/instances'
 
 const props = defineProps<{ version: ScannedVersion }>()
@@ -115,16 +160,38 @@ const sortKey = ref<'name' | 'modifiedAt' | 'lastPlayedAt' | 'createdAt'>('modif
 const iconUrls = reactive<Record<string, string>>({})
 const editorVisible = ref(false)
 const editing = ref<WorldEntry | null>(null)
-const editor = reactive({ difficulty: 2, allowCommands: false, difficultyLocked: false })
+const editor = reactive({
+  difficulty: 2,
+  gameMode: 0,
+  allowCommands: false,
+  difficultyLocked: false,
+  raining: false,
+  thundering: false,
+  seed: 0,
+  spawnX: 0,
+  spawnY: 64,
+  spawnZ: 0,
+})
 const backupsVisible = ref(false)
 const backupWorld = ref<WorldEntry | null>(null)
 const backups = ref<Array<{ id: string; createdAt?: string; locked: boolean; automatic: boolean; size: number }>>([])
+const optionsVisible = ref(false)
+const optionsLoading = ref(false)
+const savingOptions = ref(false)
+const optionsEntries = ref<GameOptionEntry[]>([])
+const optionValues = reactive<Record<string, number | string | boolean>>({})
 const target = computed(() => workspaceTarget(props.version))
 const sortOptions = [
   { label: '名称', value: 'name' },
   { label: '修改时间', value: 'modifiedAt' },
   { label: '上次游玩', value: 'lastPlayedAt' },
   { label: '创建时间', value: 'createdAt' },
+]
+const gameModeOptions = [
+  { label: '生存', value: 0 },
+  { label: '创造', value: 1 },
+  { label: '冒险', value: 2 },
+  { label: '旁观', value: 3 },
 ]
 const difficultyOptions = [
   { label: '和平', value: 0 },
@@ -169,16 +236,29 @@ async function quickPlay(world: WorldEntry) {
 function editWorld(world: WorldEntry) {
   editing.value = world
   editor.difficulty = world.difficultyId ?? 2
+  editor.gameMode = world.gameModeId ?? 0
   editor.allowCommands = Boolean(world.allowCommands)
   editor.difficultyLocked = Boolean(world.difficultyLocked)
+  editor.raining = Boolean(world.weather?.raining)
+  editor.thundering = Boolean(world.weather?.thundering)
+  const numericSeed = Number.parseInt(String(world.seed ?? ''), 10)
+  editor.seed = Number.isNaN(numericSeed) ? 0 : numericSeed
+  editor.spawnX = world.spawn?.x ?? 0
+  editor.spawnY = world.spawn?.y ?? 64
+  editor.spawnZ = world.spawn?.z ?? 0
   editorVisible.value = true
 }
 async function saveWorld() {
   if (!editing.value) return
   await instanceWorkspaceApi.patchWorld(target.value, editing.value.id, {
     difficulty: editor.difficulty,
+    gameMode: editor.gameMode,
     allowCommands: editor.allowCommands,
     difficultyLocked: editor.difficultyLocked,
+    raining: editor.raining,
+    thundering: editor.thundering,
+    seed: editor.seed,
+    spawn: { x: editor.spawnX, y: editor.spawnY, z: editor.spawnZ },
   })
   editorVisible.value = false
   await load()
@@ -191,6 +271,47 @@ async function manageBackups(world: WorldEntry) {
   backupWorld.value = world
   backups.value = await instanceWorkspaceApi.worldBackups(target.value, world.id)
   backupsVisible.value = true
+}
+async function editOptions() {
+  optionsVisible.value = true
+  optionsLoading.value = true
+  try {
+    const result = await instanceWorkspaceApi.readOptions(target.value)
+    optionsEntries.value = result.options
+    for (const key in optionValues) delete optionValues[key]
+    for (const entry of result.options) optionValues[entry.key] = entry.value
+  } finally {
+    optionsLoading.value = false
+  }
+}
+async function saveOptions() {
+  if (!optionsEntries.value.length) return
+  savingOptions.value = true
+  try {
+    await instanceWorkspaceApi.patchOptions(target.value, { ...optionValues })
+    message.success('游戏设置已保存')
+    optionsVisible.value = false
+  } finally {
+    savingOptions.value = false
+  }
+}
+function optionLabel(key: string) {
+  const labels: Record<string, string> = {
+    language: '语言',
+    fullscreen: '全屏',
+    vsync: '垂直同步',
+    renderDistance: '渲染距离',
+    guiScale: '界面缩放',
+    fov: '视野',
+    sensitivity: '鼠标灵敏度',
+    mouseSensitivity: '鼠标灵敏度',
+    gamma: '亮度',
+    difficulty: '难度',
+    particles: '粒子效果',
+    clouds: '云层',
+  }
+  if (key.startsWith('soundCategory_')) return `音量·${key.slice('soundCategory_'.length)}`
+  return labels[key] ?? key
 }
 async function toggleBackupLock(item: { id: string; locked: boolean }) {
   if (!backupWorld.value) return
@@ -417,22 +538,68 @@ onMounted(load)
 
 .world-editor {
   display: grid;
-  gap: 18px;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
 }
 
 .world-editor label {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 
-.world-editor .n-select {
+.world-editor .n-select,
+.world-editor .n-input-number {
   flex: 1;
+  width: 100%;
+}
+
+.world-editor-row {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  gap: 14px 22px;
+  padding-top: 4px;
+}
+
+.world-editor-row label {
+  gap: 8px;
 }
 
 .backup-list {
   display: grid;
   gap: 8px;
+}
+
+.options-editor {
+  display: grid;
+  max-height: 52vh;
+  overflow-y: auto;
+  gap: 10px;
+  padding-right: 4px;
+}
+
+.options-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.options-row .n-select,
+.options-row .n-input-number,
+.options-row .n-input {
+  width: 220px;
+}
+
+.options-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ecl-text);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .backup-list > div {

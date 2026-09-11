@@ -384,7 +384,16 @@ export interface CommandPayloadMap {
   game_world_detail: InstanceTargetPayload & { world_id: string }
   game_world_patch: InstanceTargetPayload & {
     world_id: string
-    patch: { difficulty?: number; allowCommands?: boolean; difficultyLocked?: boolean }
+    patch: {
+      difficulty?: number
+      allowCommands?: boolean
+      difficultyLocked?: boolean
+      gameMode?: number
+      raining?: boolean
+      thundering?: boolean
+      seed?: number
+      spawn?: { x: number; y: number; z: number }
+    }
   }
   game_world_copy: InstanceTargetPayload & { world_id: string; new_world_id: string }
   game_world_import: InstanceTargetPayload & { source_path: string }
@@ -396,6 +405,8 @@ export interface CommandPayloadMap {
   game_world_backup_restore: InstanceTargetPayload & { world_id: string; backup_id: string }
   game_world_backup_lock: InstanceTargetPayload & { world_id: string; backup_id: string; locked: boolean }
   game_world_backup_delete: InstanceTargetPayload & { world_id: string; backup_id: string }
+  game_options_read: InstanceTargetPayload
+  game_options_patch: InstanceTargetPayload & { patch: Record<string, number | string | boolean> }
   game_screenshot_list: InstanceTargetPayload
   game_screenshot_thumbnail: InstanceTargetPayload & { screenshot_id: string; size?: number }
   game_screenshot_copy: InstanceTargetPayload & { screenshot_id: string }
@@ -728,6 +739,8 @@ export const COMMAND_NAMES = {
   game_world_backup_restore: 'game_world_backup_restore',
   game_world_backup_lock: 'game_world_backup_lock',
   game_world_backup_delete: 'game_world_backup_delete',
+  game_options_read: 'game_options_read',
+  game_options_patch: 'game_options_patch',
   game_screenshot_list: 'game_screenshot_list',
   game_screenshot_thumbnail: 'game_screenshot_thumbnail',
   game_screenshot_copy: 'game_screenshot_copy',
@@ -968,6 +981,12 @@ export interface CommandResponseMap {
   game_world_backup_restore: GameOperation
   game_world_backup_lock: { id: string; locked: boolean }
   game_world_backup_delete: void
+  game_options_read: {
+    path: string
+    options: Array<{ key: string; value: number | string | boolean; type: string; min?: number; max?: number }>
+    ignoredCount: number
+  }
+  game_options_patch: { path: string; updated: number }
   game_screenshot_list: ScreenshotEntry[]
   game_screenshot_thumbnail: { path: string; sourcePath: string }
   game_screenshot_copy: void
