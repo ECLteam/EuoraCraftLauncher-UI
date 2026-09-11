@@ -129,8 +129,6 @@
   font-size: 12px;
 }
 
-
-
 .ui-select.is-disabled .select-trigger {
   cursor: not-allowed;
   opacity: 0.55;

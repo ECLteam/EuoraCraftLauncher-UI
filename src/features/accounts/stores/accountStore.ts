@@ -2,7 +2,18 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAsyncState } from '@/composables/useAsyncState'
 import { accountsApi } from '@/features/accounts/api/accountsApi'
-import type { AuthProvider, AuthlibLoginConfigData, AuthlibServer, DefaultSkin, MicrosoftCompleteData, MicrosoftLoginConfigData, MicrosoftLoginData, MicrosoftLoginStatusEvent, MicrosoftPollData, MinecraftAccount } from '@/types/accounts'
+import type {
+  AuthProvider,
+  AuthlibLoginConfigData,
+  AuthlibServer,
+  DefaultSkin,
+  MicrosoftCompleteData,
+  MicrosoftLoginConfigData,
+  MicrosoftLoginData,
+  MicrosoftLoginStatusEvent,
+  MicrosoftPollData,
+  MinecraftAccount,
+} from '@/types/accounts'
 
 export const useAccountStore = defineStore('accounts', () => {
   const accounts = ref<MinecraftAccount[]>([])

@@ -1020,131 +1020,227 @@
       "reasons": {
         "jvm_invalid_arguments": {
           "title": "Ungültige JVM-Argumente",
-          "suggestions": ["Zuletzt hinzugefügte JVM-Argumente entfernen.", "Stellen sicher, dass die Argumente zur aktuellen Java-Version passen."]
+          "suggestions": [
+            "Zuletzt hinzugefügte JVM-Argumente entfernen.",
+            "Stellen sicher, dass die Argumente zur aktuellen Java-Version passen."
+          ]
         },
         "memory_out_of_memory": {
           "title": "Nicht genügend freier Arbeitsspeicher",
-          "suggestions": ["Spiel-RAM angemessen erhöhen oder speicherintensive Programme schließen.", "Falls bereits zu viel RAM zugewiesen wurde, den Wert senken und die Mods prüfen."]
+          "suggestions": [
+            "Spiel-RAM angemessen erhöhen oder speicherintensive Programme schließen.",
+            "Falls bereits zu viel RAM zugewiesen wurde, den Wert senken und die Mods prüfen."
+          ]
         },
         "java_incompatible_version": {
           "title": "Inkompatible Java-Version",
-          "suggestions": ["Die zur Minecraft- und Loader-Version passende Java-Version wählen.", "Vorzugsweise eine 64-Bit-HotSpot-/OpenJDK-Distribution verwenden."]
+          "suggestions": [
+            "Die zur Minecraft- und Loader-Version passende Java-Version wählen.",
+            "Vorzugsweise eine 64-Bit-HotSpot-/OpenJDK-Distribution verwenden."
+          ]
         },
         "java_module_access": {
           "title": "Java-Modulzugriff eingeschränkt",
-          "suggestions": ["Zur für diese Version empfohlenen Java-Version wechseln.", "Inkompatible alte Loader oder Kern-Mods entfernen."]
+          "suggestions": [
+            "Zur für diese Version empfohlenen Java-Version wechseln.",
+            "Inkompatible alte Loader oder Kern-Mods entfernen."
+          ]
         },
         "java_legacy_forge": {
           "title": "Alte Forge-Version mit Java inkompatibel",
-          "suggestions": ["Für alte Forge-Versionen ein kompatibles Java 8 wählen.", "Forge oder die zugehörigen Startkomponenten aktualisieren."]
+          "suggestions": [
+            "Für alte Forge-Versionen ein kompatibles Java 8 wählen.",
+            "Forge oder die zugehörigen Startkomponenten aktualisieren."
+          ]
         },
         "java_openj9": {
           "title": "Die aktuelle Java-VM wird nicht unterstützt",
-          "suggestions": ["Zu einer HotSpot-basierten Java-Distribution wechseln.", "Java-Laufzeiten neu scannen und eine kompatible auswählen."]
+          "suggestions": [
+            "Zu einer HotSpot-basierten Java-Distribution wechseln.",
+            "Java-Laufzeiten neu scannen und eine kompatible auswählen."
+          ]
         },
         "java_32bit_heap": {
           "title": "Eingeschränkter RAM bei 32-Bit-Java",
-          "suggestions": ["64-Bit-Java installieren und auswählen.", "Vor dem Wechsel vorübergehend weniger RAM zuweisen."]
+          "suggestions": [
+            "64-Bit-Java installieren und auswählen.",
+            "Vor dem Wechsel vorübergehend weniger RAM zuweisen."
+          ]
         },
         "java_architecture_mismatch": {
           "title": "Architekturen von Java oder nativen Bibliotheken stimmen nicht überein",
-          "suggestions": ["Sicherstellen, dass Java, System und native Bibliotheken dieselbe Architektur haben.", "Den nativen Bibliothekscache der Version löschen und die Dateien erneut vervollständigen."]
+          "suggestions": [
+            "Sicherstellen, dass Java, System und native Bibliotheken dieselbe Architektur haben.",
+            "Den nativen Bibliothekscache der Version löschen und die Dateien erneut vervollständigen."
+          ]
         },
         "graphics_opengl_unsupported": {
           "title": "OpenGL wird nicht unterstützt",
-          "suggestions": ["Grafiktreiber aktualisieren und sicherstellen, dass das Spiel die dedizierte Grafikkarte nutzt.", "Start über Remotedesktop ohne Hardwarebeschleunigung vermeiden."]
+          "suggestions": [
+            "Grafiktreiber aktualisieren und sicherstellen, dass das Spiel die dedizierte Grafikkarte nutzt.",
+            "Start über Remotedesktop ohne Hardwarebeschleunigung vermeiden."
+          ]
         },
         "graphics_driver_crash": {
           "title": "Absturz des Grafiktreibers",
-          "suggestions": ["Grafiktreiber aktualisieren oder auf eine stabile Version zurücksetzen.", "Shader-, HD-Fix- und Grafik-Mods vorübergehend deaktivieren."]
+          "suggestions": [
+            "Grafiktreiber aktualisieren oder auf eine stabile Version zurücksetzen.",
+            "Shader-, HD-Fix- und Grafik-Mods vorübergehend deaktivieren."
+          ]
         },
         "jvm_native_crash": {
           "title": "Absturz der nativen Java-Schicht",
-          "suggestions": ["Den problematischen Frame im hs_err_pid-Protokoll prüfen.", "Java wechseln und Grafiktreiber oder zugehörige native Komponenten aktualisieren."]
+          "suggestions": [
+            "Den problematischen Frame im hs_err_pid-Protokoll prüfen.",
+            "Java wechseln und Grafiktreiber oder zugehörige native Komponenten aktualisieren."
+          ]
         },
         "native_library_missing": {
           "title": "Native Bibliotheken fehlen oder können nicht geladen werden",
-          "suggestions": ["Versionsdateien und native Bibliotheken erneut vervollständigen.", "Prüfen, ob Sicherheitssoftware DLLs oder dynamische Bibliotheken isoliert hat."]
+          "suggestions": [
+            "Versionsdateien und native Bibliotheken erneut vervollständigen.",
+            "Prüfen, ob Sicherheitssoftware DLLs oder dynamische Bibliotheken isoliert hat."
+          ]
         },
         "files_integrity_failure": {
           "title": "Spieldateien beschädigt",
-          "suggestions": ["Spiel- und Loader-Dateien erneut vervollständigen.", "Die im Protokoll genannte beschädigte JAR-Datei löschen und neu herunterladen."]
+          "suggestions": [
+            "Spiel- und Loader-Dateien erneut vervollständigen.",
+            "Die im Protokoll genannte beschädigte JAR-Datei löschen und neu herunterladen."
+          ]
         },
         "loader_install_incomplete": {
           "title": "Mod-Loader-Installation unvollständig",
-          "suggestions": ["Forge, Fabric, NeoForge oder Quilt neu installieren.", "Sicherstellen, dass die Versions-JSON und Abhängigkeitsbibliotheken nicht manuell verändert wurden."]
+          "suggestions": [
+            "Forge, Fabric, NeoForge oder Quilt neu installieren.",
+            "Sicherstellen, dass die Versions-JSON und Abhängigkeitsbibliotheken nicht manuell verändert wurden."
+          ]
         },
         "mod_extracted_jar": {
           "title": "Mod wurde falsch entpackt",
-          "suggestions": ["Entpackte Ordner im mods-Verzeichnis löschen.", "Nur die ursprünglichen JAR-Mod-Dateien behalten."]
+          "suggestions": [
+            "Entpackte Ordner im mods-Verzeichnis löschen.",
+            "Nur die ursprünglichen JAR-Mod-Dateien behalten."
+          ]
         },
         "mod_duplicate": {
           "title": "Doppelte Mods vorhanden",
-          "suggestions": ["Anhand der Protokollbelege doppelte Mod-Kopien entfernen.", "Prüfen, ob derselbe Mod gleichzeitig in aktivierter und deaktivierter Version vorliegt."]
+          "suggestions": [
+            "Anhand der Protokollbelege doppelte Mod-Kopien entfernen.",
+            "Prüfen, ob derselbe Mod gleichzeitig in aktivierter und deaktivierter Version vorliegt."
+          ]
         },
         "mod_missing_dependency": {
           "title": "Mod-Abhängigkeit fehlt",
-          "suggestions": ["Die im Protokoll aufgeführten Abhängigkeiten in der richtigen Version installieren.", "Sicherstellen, dass die Abhängigkeiten zur aktuellen Loader- und Minecraft-Version passen."]
+          "suggestions": [
+            "Die im Protokoll aufgeführten Abhängigkeiten in der richtigen Version installieren.",
+            "Sicherstellen, dass die Abhängigkeiten zur aktuellen Loader- und Minecraft-Version passen."
+          ]
         },
         "mod_incompatible": {
           "title": "Inkompatible Mod-Versionen",
-          "suggestions": ["Konfliktverursachende Mods entfernen oder kompatible Versionen installieren.", "Die Mod-Kombination nach der Lösung des Loaders anpassen."]
+          "suggestions": [
+            "Konfliktverursachende Mods entfernen oder kompatible Versionen installieren.",
+            "Die Mod-Kombination nach der Lösung des Loaders anpassen."
+          ]
         },
         "mod_mixin_failure": {
           "title": "Mixin-Injektion fehlgeschlagen",
-          "suggestions": ["Die in den Belegen genannten Mods samt Abhängigkeiten aktualisieren.", "Zuletzt hinzugefügte Kern- oder Optimierungs-Mods stapelweise deaktivieren."]
+          "suggestions": [
+            "Die in den Belegen genannten Mods samt Abhängigkeiten aktualisieren.",
+            "Zuletzt hinzugefügte Kern- oder Optimierungs-Mods stapelweise deaktivieren."
+          ]
         },
         "mod_config_failure": {
           "title": "Mod-Konfiguration nicht lesbar",
-          "suggestions": ["Nach einem Backup die fehlerhafte Konfigurationsdatei löschen, damit der Mod sie neu erzeugt.", "Prüfen, ob die Konfiguration manuell in ein ungültiges Format bearbeitet wurde."]
+          "suggestions": [
+            "Nach einem Backup die fehlerhafte Konfigurationsdatei löschen, damit der Mod sie neu erzeugt.",
+            "Prüfen, ob die Konfiguration manuell in ein ungültiges Format bearbeitet wurde."
+          ]
         },
         "mod_initialization_failure": {
           "title": "Mod-Initialisierung fehlgeschlagen",
-          "suggestions": ["Die in den Belegen genannten Mods aktualisieren oder vorübergehend entfernen.", "Die benötigten Voraussetzungen des Mods und die Loader-Version abgleichen."]
+          "suggestions": [
+            "Die in den Belegen genannten Mods aktualisieren oder vorübergehend entfernen.",
+            "Die benötigten Voraussetzungen des Mods und die Loader-Version abgleichen."
+          ]
         },
         "mod_loader_reported": {
           "title": "Der Loader meldet fehlgeschlagene Mod-Ladungen",
-          "suggestions": ["Zuerst die im Loader-Protokoll genannte Lösung umsetzen.", "Bericht exportieren, um den vollständigen Kontext des Ladefehlers zu sehen."]
+          "suggestions": [
+            "Zuerst die im Loader-Protokoll genannte Lösung umsetzen.",
+            "Bericht exportieren, um den vollständigen Kontext des Ladefehlers zu sehen."
+          ]
         },
         "mod_optifine_conflict": {
           "title": "Konflikt mit OptiFine oder Grafik-Mods",
-          "suggestions": ["OptiFine vorübergehend entfernen und erneut versuchen.", "Eine mit dem aktuellen Loader kompatible Grafikoptimierung verwenden."]
+          "suggestions": [
+            "OptiFine vorübergehend entfernen und erneut versuchen.",
+            "Eine mit dem aktuellen Loader kompatible Grafikoptimierung verwenden."
+          ]
         },
         "resource_render_failure": {
           "title": "Ressourcenpaket oder Renderressourcen fehlerhaft",
-          "suggestions": ["Zuletzt hinzugefügte Ressourcen- oder Shaderpakete deaktivieren.", "Ressourcenauflösung senken und die Grafikspeichernutzung prüfen."]
+          "suggestions": [
+            "Zuletzt hinzugefügte Ressourcen- oder Shaderpakete deaktivieren.",
+            "Ressourcenauflösung senken und die Grafikspeichernutzung prüfen."
+          ]
         },
         "world_block_failure": {
           "title": "Ein Block in der Welt hat den Absturz verursacht",
-          "suggestions": ["Zuerst die Welt sichern.", "Anhand der Belege den Block ausfindig machen und den zugehörigen Mod entfernen oder das Chunk mit einem Reparaturwerkzeug behandeln."]
+          "suggestions": [
+            "Zuerst die Welt sichern.",
+            "Anhand der Belege den Block ausfindig machen und den zugehörigen Mod entfernen oder das Chunk mit einem Reparaturwerkzeug behandeln."
+          ]
         },
         "world_entity_failure": {
           "title": "Eine Entität in der Welt hat den Absturz verursacht",
-          "suggestions": ["Zuerst die Welt sichern.", "Anhand der Belege die Entität ausfindig machen, den zugehörigen Mod entfernen oder die fehlerhafte Entität bereinigen."]
+          "suggestions": [
+            "Zuerst die Welt sichern.",
+            "Anhand der Belege die Entität ausfindig machen, den zugehörigen Mod entfernen oder die fehlerhafte Entität bereinigen."
+          ]
         },
         "game_manual_debug_crash": {
           "title": "Das Spiel hat einen Debug-Absturz ausgelöst",
-          "suggestions": ["Prüfen, ob die Debug-Absturz-Tastenkombination versehentlich gedrückt wurde.", "Falls nicht absichtlich: Tastaturbelegung oder Automatisierungstools prüfen."]
+          "suggestions": [
+            "Prüfen, ob die Debug-Absturz-Tastenkombination versehentlich gedrückt wurde.",
+            "Falls nicht absichtlich: Tastaturbelegung oder Automatisierungstools prüfen."
+          ]
         },
         "game_crash_report": {
           "title": "Minecraft hat einen Absturzbericht erstellt",
-          "suggestions": ["Weitere mögliche Ursachen und Protokollbelege ansehen.", "Den vollständigen Bericht zur weiteren Diagnose exportieren."]
+          "suggestions": [
+            "Weitere mögliche Ursachen und Protokollbelege ansehen.",
+            "Den vollständigen Bericht zur weiteren Diagnose exportieren."
+          ]
         },
         "stack_suspected_mod": {
           "title": "Der Stacktrace zeigt auf einen verdächtigen Mod",
-          "suggestions": ["Die aufgeführten verdächtigen Mods aktualisieren oder vorübergehend entfernen.", "Falls das Problem bleibt, benachbarte Abhängigkeits-Mods stapelweise prüfen."]
+          "suggestions": [
+            "Die aufgeführten verdächtigen Mods aktualisieren oder vorübergehend entfernen.",
+            "Falls das Problem bleibt, benachbarte Abhängigkeits-Mods stapelweise prüfen."
+          ]
         },
         "stack_suspected_component": {
           "title": "Der Stacktrace zeigt auf eine Komponente von Drittanbietern",
-          "suggestions": ["Anhand der aufgeführten Paketnamen den zugehörigen Mod oder die Komponente prüfen.", "Bericht exportieren und mit der Modliste weiter eingrenzen."]
+          "suggestions": [
+            "Anhand der aufgeführten Paketnamen den zugehörigen Mod oder die Komponente prüfen.",
+            "Bericht exportieren und mit der Modliste weiter eingrenzen."
+          ]
         },
         "unknown_no_logs": {
           "title": "Keine Absturzprotokolle verfügbar",
-          "suggestions": ["Erneut starten und abwarten, bis der Absturzbericht vollständig geschrieben ist.", "Berechtigungen des Protokollverzeichnisses und Sicherheitssoftware prüfen."]
+          "suggestions": [
+            "Erneut starten und abwarten, bis der Absturzbericht vollständig geschrieben ist.",
+            "Berechtigungen des Protokollverzeichnisses und Sicherheitssoftware prüfen."
+          ]
         },
         "unknown_unclassified": {
           "title": "Ursache derzeit nicht bestimmbar",
-          "suggestions": ["Absturzbericht exportieren und vollständige Protokolle aufbewahren.", "Die letzten Änderungen entfernen und erneut starten."]
+          "suggestions": [
+            "Absturzbericht exportieren und vollständige Protokolle aufbewahren.",
+            "Die letzten Änderungen entfernen und erneut starten."
+          ]
         }
       }
     }

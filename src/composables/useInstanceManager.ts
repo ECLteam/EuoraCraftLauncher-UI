@@ -84,7 +84,8 @@ export function useInstanceManager(t: (key: string, ...args: unknown[]) => strin
   function recordRecentLaunch() {
     const scanned = instanceStore.scannedVersions.find(
       (item) =>
-        item.versionId === selectedVersion.value && normalizeGamePath(item.path) === normalizeGamePath(currentGamePath.value)
+        item.versionId === selectedVersion.value &&
+        normalizeGamePath(item.path) === normalizeGamePath(currentGamePath.value)
     )
     const instanceName = scanned ? instanceDisplayName(scanned) : selectedVersion.value
     useRecentInstances().recordLaunch(selectedVersion.value, instanceName, currentGamePath.value)

@@ -143,13 +143,7 @@ const technologies = {
     'materialColors',
     'https://github.com/material-foundation/material-color-utilities'
   ),
-  sass: createGithubEntry(
-    'sass-embedded',
-    'sass-embedded',
-    'SE',
-    'sass',
-    'https://github.com/sass/embedded-host-node'
-  ),
+  sass: createGithubEntry('sass-embedded', 'sass-embedded', 'SE', 'sass', 'https://github.com/sass/embedded-host-node'),
 } satisfies Record<string, AboutEntry>
 
 const backendRuntimeEntries: AboutEntry[] = [
@@ -187,7 +181,13 @@ const frontendUtilityEntries: AboutEntry[] = [
 ]
 
 const engineeringEntries: AboutEntry[] = [
-  createGithubEntry('vite-plugin-vue', '@vitejs/plugin-vue', 'VP', 'vitePluginVue', 'https://github.com/vitejs/vite-plugin-vue'),
+  createGithubEntry(
+    'vite-plugin-vue',
+    '@vitejs/plugin-vue',
+    'VP',
+    'vitePluginVue',
+    'https://github.com/vitejs/vite-plugin-vue'
+  ),
   createGithubEntry(
     'unplugin-auto-import',
     'unplugin-auto-import',
@@ -229,7 +229,13 @@ const engineeringEntries: AboutEntry[] = [
   createGithubEntry('pinia-testing', '@pinia/testing', 'PT', 'piniaTestingDesc', 'https://github.com/vuejs/pinia'),
   createGithubEntry('vue-tsc', 'vue-tsc', 'VS', 'vueTsc', 'https://github.com/vuejs/language-tools'),
   createGithubEntry('eslint', 'ESLint', 'ES', 'eslint', 'https://github.com/eslint/eslint'),
-  createGithubEntry('eslint-plugin-vue', 'eslint-plugin-vue', 'EV', 'eslintPluginVueDesc', 'https://github.com/vuejs/eslint-plugin-vue'),
+  createGithubEntry(
+    'eslint-plugin-vue',
+    'eslint-plugin-vue',
+    'EV',
+    'eslintPluginVueDesc',
+    'https://github.com/vuejs/eslint-plugin-vue'
+  ),
   createGithubEntry(
     'typescript-eslint',
     'typescript-eslint',
@@ -245,7 +251,13 @@ const engineeringEntries: AboutEntry[] = [
   createGithubEntry('pyinstaller', 'PyInstaller', 'PI', 'pyinstaller', 'https://github.com/pyinstaller/pyinstaller'),
   createGithubEntry('nuitka', 'Nuitka', 'N', 'nuitka', 'https://github.com/Nuitka/Nuitka'),
   createGithubEntry('pytest', 'pytest', 'PY', 'pytest', 'https://github.com/pytest-dev/pytest'),
-  createGithubEntry('pytest-asyncio', 'pytest-asyncio', 'PA', 'pytestAsyncio', 'https://github.com/pytest-dev/pytest-asyncio'),
+  createGithubEntry(
+    'pytest-asyncio',
+    'pytest-asyncio',
+    'PA',
+    'pytestAsyncio',
+    'https://github.com/pytest-dev/pytest-asyncio'
+  ),
   createGithubEntry(
     'python-semantic-release',
     'python-semantic-release',
@@ -294,7 +306,11 @@ export const technologyCategories: TechnologyCategory[] = [
       technologies.typescript,
     ],
   },
-  { id: 'ui-styling', titleKey: 'uiStyling', entries: [technologies.naiveUi, technologies.tailwind, technologies.materialColors, technologies.sass] },
+  {
+    id: 'ui-styling',
+    titleKey: 'uiStyling',
+    entries: [technologies.naiveUi, technologies.tailwind, technologies.materialColors, technologies.sass],
+  },
   {
     id: 'frontend-utilities',
     titleKey: 'frontendUtilities',

@@ -32,7 +32,12 @@ interface NotificationFrame {
 export function resolveWsConnection(): DevChannelConnection | null {
   if (typeof window === 'undefined') return null
   const injected = window.__ECL_DEV_WS__
-  if (!injected || typeof injected !== 'object' || typeof injected.port !== 'number' || typeof injected.token !== 'string') {
+  if (
+    !injected ||
+    typeof injected !== 'object' ||
+    typeof injected.port !== 'number' ||
+    typeof injected.token !== 'string'
+  ) {
     return null
   }
   if (!injected.token) return null

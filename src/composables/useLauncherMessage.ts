@@ -30,10 +30,11 @@ function renderContent(content: string, title?: string, onClick?: () => void) {
   const clickable = onClick ? { onClick } : undefined
   const className = ['launcher-message-content', onClick ? 'is-clickable' : ''].join(' ').trim()
   if (!title?.trim()) return content
-  return () => h('div', { class: className, ...(clickable ?? {}) }, [
-    h('strong', { class: 'launcher-message-title' }, title),
-    h('span', { class: 'launcher-message-text' }, content),
-  ])
+  return () =>
+    h('div', { class: className, ...(clickable ?? {}) }, [
+      h('strong', { class: 'launcher-message-title' }, title),
+      h('span', { class: 'launcher-message-text' }, content),
+    ])
 }
 
 /**

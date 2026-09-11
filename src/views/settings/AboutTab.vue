@@ -14,8 +14,12 @@
               <span v-if="isDevMode" class="about-mode-badge about-mode-badge--dev" title="开发模式：Vite 开发构建">
                 DEV
               </span>
-              <span v-if="hasUpdate" class="about-update-badge">{{ t('settings.aboutTab.update.availableBadge') }}</span>
-              <span v-else-if="isUpToDate" class="about-update-badge is-latest">{{ t('settings.aboutTab.update.upToDateBadge') }}</span>
+              <span v-if="hasUpdate" class="about-update-badge">{{
+                t('settings.aboutTab.update.availableBadge')
+              }}</span>
+              <span v-else-if="isUpToDate" class="about-update-badge is-latest">{{
+                t('settings.aboutTab.update.upToDateBadge')
+              }}</span>
             </div>
             <div v-if="versionText" class="launcher-summary__version">
               {{ versionText }}
@@ -51,7 +55,13 @@
     <div class="about-card">
       <div class="card-title">{{ t('settings.aboutTab.sections.specialThanks') }}</div>
       <div class="card-body">
-        <AboutEntryRow v-for="entry in specialThanksEntries" :key="entry.id" :entry="entry" :licenseText="licenseById[entry.id]?.text" :licenseUrl="licenseById[entry.id]?.license" />
+        <AboutEntryRow
+          v-for="entry in specialThanksEntries"
+          :key="entry.id"
+          :entry="entry"
+          :licenseText="licenseById[entry.id]?.text"
+          :licenseUrl="licenseById[entry.id]?.license"
+        />
       </div>
     </div>
 
@@ -71,7 +81,13 @@
           </button>
           <Transition name="technology-expand">
             <div v-if="isTechnologyCategoryExpanded(category.id)" class="technology-category__entries">
-              <AboutEntryRow v-for="entry in category.entries" :key="entry.id" :entry="entry" :licenseText="licenseById[entry.id]?.text" :licenseUrl="licenseById[entry.id]?.license" />
+              <AboutEntryRow
+                v-for="entry in category.entries"
+                :key="entry.id"
+                :entry="entry"
+                :licenseText="licenseById[entry.id]?.text"
+                :licenseUrl="licenseById[entry.id]?.license"
+              />
             </div>
           </Transition>
         </div>
@@ -106,12 +122,12 @@ import { useI18n } from 'vue-i18n'
 import type { AppRuntimeMode } from '@/app/runtime/mode'
 import AboutEntryRow from '@/components/settings/AboutEntryRow.vue'
 import UiIcon from '@/components/ui/Icon.vue'
+import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { URLS } from '@/config/urls'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { specialThanksEntries, teamMembers, technologyCategories } from '@/features/settings/about/aboutContent'
 import { aboutApi } from '@/features/settings/api/aboutApi'
 import { useUpdateCheck } from '@/features/settings/composables/useUpdateCheck'
-import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import type { LauncherInfo, UpdateCheckResult } from '@/types/system'
 import { openExternalUrl } from '@/utils/openExternal'
 
@@ -142,10 +158,11 @@ function showCheckResult(result: UpdateCheckResult): void {
   const title = t('settings.aboutTab.update.title')
   if (result.status === 'update_available') {
     const url = result.latest_url || undefined
-    message.info(
-      t('settings.aboutTab.update.foundNew', { version: result.latest_version }),
-      { title, duration: 6000, onClick: url ? () => void openExternalUrl(url) : undefined }
-    )
+    message.info(t('settings.aboutTab.update.foundNew', { version: result.latest_version }), {
+      title,
+      duration: 6000,
+      onClick: url ? () => void openExternalUrl(url) : undefined,
+    })
     return
   }
   if (result.status === 'up_to_date') {
@@ -354,7 +371,7 @@ licenseEntries.push(
     text: 'Licensed under MIT.',
     repo: 'https://github.com/TanStack/query',
     license: 'https://www.npmjs.com/package/@tanstack/vue-query',
-  },
+  }
 )
 
 licenseEntries.push(
@@ -417,7 +434,7 @@ licenseEntries.push(
     text: 'Licensed under GPL-2.0-or-later with a special exception.',
     repo: 'https://github.com/pyinstaller/pyinstaller',
     license: 'https://pypi.org/project/pyinstaller/',
-  },
+  }
 )
 
 licenseEntries.push(
@@ -468,7 +485,7 @@ licenseEntries.push(
     text: 'Copyright Nuitka contributors. Licensed under AGPL-3.0.',
     repo: 'https://github.com/Nuitka/Nuitka',
     license: 'https://pypi.org/project/Nuitka/',
-  },
+  }
 )
 
 licenseEntries.push(
@@ -549,7 +566,7 @@ licenseEntries.push(
     text: 'Copyright 2025 PCL Community. Licensed under Apache 2.0.',
     repo: URLS.pcl.repo,
     license: URLS.pcl.license,
-  },
+  }
 )
 
 licenseEntries.push(
@@ -612,7 +629,7 @@ licenseEntries.push(
     text: 'Copyright typescript-eslint and other contributors. Licensed under MIT.',
     repo: 'https://github.com/typescript-eslint/typescript-eslint',
     license: 'https://www.npmjs.com/package/typescript-eslint',
-  },
+  }
 )
 
 const licenseByName = new Map(licenseEntries.map((entry) => [entry.name, entry]))

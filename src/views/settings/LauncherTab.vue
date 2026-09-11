@@ -199,9 +199,7 @@ async function handleDebugModeChange(value: boolean): Promise<void> {
 }
 
 async function handleDebugLogLevelChange(value: string): Promise<void> {
-  await run(() =>
-    setDebugLogLevel(value as NonNullable<LauncherConfig['debug_log_level']>)
-  )
+  await run(() => setDebugLogLevel(value as NonNullable<LauncherConfig['debug_log_level']>))
 }
 
 async function handleDisableSslVerifyChange(value: boolean): Promise<void> {

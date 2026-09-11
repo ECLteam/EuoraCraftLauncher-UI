@@ -25,7 +25,6 @@
 </template>
 
 <script setup lang="ts">
-
 defineOptions({ name: 'UiButton' })
 
 const props = withDefaults(

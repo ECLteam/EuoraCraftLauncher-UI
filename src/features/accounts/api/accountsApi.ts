@@ -2,7 +2,24 @@ import { minLength, nonEmpty, object, pipe, string } from 'valibot'
 import backend from '@/api/client'
 import { unwrapResponse as assertSuccess } from '@/app/runtime/errorPresentation'
 import { assertParams } from '@/app/validation'
-import type { AccountListData, AccountTextures, AuthProvider, AuthlibLoginConfigData, AuthlibServer, DefaultSkin, MicrosoftCompleteData, MicrosoftLoginConfigData, MicrosoftLoginData, MicrosoftLoginStatusEvent, MicrosoftPollData, MinecraftAccount, SkinModel, WardrobeImportResult, WardrobeItem, WardrobeKind } from '@/types/accounts'
+import type {
+  AccountListData,
+  AccountTextures,
+  AuthProvider,
+  AuthlibLoginConfigData,
+  AuthlibServer,
+  DefaultSkin,
+  MicrosoftCompleteData,
+  MicrosoftLoginConfigData,
+  MicrosoftLoginData,
+  MicrosoftLoginStatusEvent,
+  MicrosoftPollData,
+  MinecraftAccount,
+  SkinModel,
+  WardrobeImportResult,
+  WardrobeItem,
+  WardrobeKind,
+} from '@/types/accounts'
 
 export const accountsApi = {
   async list(): Promise<AccountListData> {

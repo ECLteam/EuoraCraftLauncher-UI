@@ -1020,10 +1020,7 @@
       "reasons": {
         "jvm_invalid_arguments": {
           "title": "JVM 引數無效",
-          "suggestions": [
-            "移除最近新增的 JVM 引數。",
-            "確認引數適用於當前 Java 版本。"
-          ]
+          "suggestions": ["移除最近新增的 JVM 引數。", "確認引數適用於當前 Java 版本。"]
         },
         "memory_out_of_memory": {
           "title": "可用記憶體不足",
@@ -1034,213 +1031,123 @@
         },
         "java_incompatible_version": {
           "title": "Java 版本不相容",
-          "suggestions": [
-            "根據 Minecraft 與載入器版本選擇正確的 Java。",
-            "優先使用 64 位 HotSpot/OpenJDK 發行版。"
-          ]
+          "suggestions": ["根據 Minecraft 與載入器版本選擇正確的 Java。", "優先使用 64 位 HotSpot/OpenJDK 發行版。"]
         },
         "java_module_access": {
           "title": "Java 模組訪問受限",
-          "suggestions": [
-            "切換到該版本推薦的 Java。",
-            "移除不相容的舊版載入器或核心模組。"
-          ]
+          "suggestions": ["切換到該版本推薦的 Java。", "移除不相容的舊版載入器或核心模組。"]
         },
         "java_legacy_forge": {
           "title": "舊版 Forge 與 Java 不相容",
-          "suggestions": [
-            "為舊版 Forge 選擇相容的 Java 8。",
-            "更新 Forge 或相關啟動元件。"
-          ]
+          "suggestions": ["為舊版 Forge 選擇相容的 Java 8。", "更新 Forge 或相關啟動元件。"]
         },
         "java_openj9": {
           "title": "當前 Java 虛擬機器不受支援",
-          "suggestions": [
-            "改用 HotSpot 系列 Java。",
-            "重新掃描並選擇相容的 Java 執行時。"
-          ]
+          "suggestions": ["改用 HotSpot 系列 Java。", "重新掃描並選擇相容的 Java 執行時。"]
         },
         "java_32bit_heap": {
           "title": "32 位 Java 記憶體受限",
-          "suggestions": [
-            "安裝並選擇 64 位 Java。",
-            "在切換前臨時降低記憶體分配。"
-          ]
+          "suggestions": ["安裝並選擇 64 位 Java。", "在切換前臨時降低記憶體分配。"]
         },
         "java_architecture_mismatch": {
           "title": "Java 或原生庫架構不匹配",
-          "suggestions": [
-            "確保 Java、系統和原生庫均為相同架構。",
-            "刪除版本的原生庫快取後重新補全檔案。"
-          ]
+          "suggestions": ["確保 Java、系統和原生庫均為相同架構。", "刪除版本的原生庫快取後重新補全檔案。"]
         },
         "graphics_opengl_unsupported": {
           "title": "OpenGL 不受支援",
-          "suggestions": [
-            "更新顯示卡驅動並確認遊戲使用獨立顯示卡。",
-            "避免透過不支援硬體加速的遠端桌面啟動。"
-          ]
+          "suggestions": ["更新顯示卡驅動並確認遊戲使用獨立顯示卡。", "避免透過不支援硬體加速的遠端桌面啟動。"]
         },
         "graphics_driver_crash": {
           "title": "顯示卡驅動發生崩潰",
-          "suggestions": [
-            "更新或回退到穩定版顯示卡驅動。",
-            "暫時關閉光影、高畫質修復和圖形增強模組。"
-          ]
+          "suggestions": ["更新或回退到穩定版顯示卡驅動。", "暫時關閉光影、高畫質修復和圖形增強模組。"]
         },
         "jvm_native_crash": {
           "title": "Java 原生層崩潰",
-          "suggestions": [
-            "檢查 hs_err_pid 日誌中的問題幀。",
-            "更換 Java 並更新顯示卡驅動或相關原生元件。"
-          ]
+          "suggestions": ["檢查 hs_err_pid 日誌中的問題幀。", "更換 Java 並更新顯示卡驅動或相關原生元件。"]
         },
         "native_library_missing": {
           "title": "原生庫缺失或無法載入",
-          "suggestions": [
-            "重新補全版本檔案和原生庫。",
-            "檢查安全軟體是否隔離了 DLL 或動態庫。"
-          ]
+          "suggestions": ["重新補全版本檔案和原生庫。", "檢查安全軟體是否隔離了 DLL 或動態庫。"]
         },
         "files_integrity_failure": {
           "title": "遊戲檔案損壞",
-          "suggestions": [
-            "重新補全遊戲與載入器檔案。",
-            "刪除日誌中指出的損壞 JAR 後重新下載。"
-          ]
+          "suggestions": ["重新補全遊戲與載入器檔案。", "刪除日誌中指出的損壞 JAR 後重新下載。"]
         },
         "loader_install_incomplete": {
           "title": "模組載入器安裝不完整",
-          "suggestions": [
-            "重新安裝 Forge、Fabric、NeoForge 或 Quilt。",
-            "確認版本 JSON 與依賴庫沒有被手動修改。"
-          ]
+          "suggestions": ["重新安裝 Forge、Fabric、NeoForge 或 Quilt。", "確認版本 JSON 與依賴庫沒有被手動修改。"]
         },
         "mod_extracted_jar": {
           "title": "模組被錯誤解壓",
-          "suggestions": [
-            "刪除 mods 目錄中的解壓資料夾。",
-            "僅保留原始 JAR 模組檔案。"
-          ]
+          "suggestions": ["刪除 mods 目錄中的解壓資料夾。", "僅保留原始 JAR 模組檔案。"]
         },
         "mod_duplicate": {
           "title": "存在重複模組",
-          "suggestions": [
-            "根據日誌證據刪除重複的模組副本。",
-            "檢查同一模組是否同時存在啟用和禁用版本。"
-          ]
+          "suggestions": ["根據日誌證據刪除重複的模組副本。", "檢查同一模組是否同時存在啟用和禁用版本。"]
         },
         "mod_missing_dependency": {
           "title": "模組依賴缺失",
-          "suggestions": [
-            "安裝日誌中列出的依賴及正確版本。",
-            "確認依賴與當前載入器和 Minecraft 版本匹配。"
-          ]
+          "suggestions": ["安裝日誌中列出的依賴及正確版本。", "確認依賴與當前載入器和 Minecraft 版本匹配。"]
         },
         "mod_incompatible": {
           "title": "模組版本不相容",
-          "suggestions": [
-            "移除衝突模組或安裝相容版本。",
-            "按載入器給出的解決方案調整模組組合。"
-          ]
+          "suggestions": ["移除衝突模組或安裝相容版本。", "按載入器給出的解決方案調整模組組合。"]
         },
         "mod_mixin_failure": {
           "title": "Mixin 注入失敗",
-          "suggestions": [
-            "更新證據中關聯的模組及其依賴。",
-            "逐批禁用最近新增的核心或最佳化模組。"
-          ]
+          "suggestions": ["更新證據中關聯的模組及其依賴。", "逐批禁用最近新增的核心或最佳化模組。"]
         },
         "mod_config_failure": {
           "title": "模組配置無法解析",
-          "suggestions": [
-            "備份後刪除出錯的配置檔案，讓模組重新生成。",
-            "檢查配置是否被手動編輯為無效格式。"
-          ]
+          "suggestions": ["備份後刪除出錯的配置檔案，讓模組重新生成。", "檢查配置是否被手動編輯為無效格式。"]
         },
         "mod_initialization_failure": {
           "title": "模組初始化失敗",
-          "suggestions": [
-            "更新或暫時移除證據中涉及的模組。",
-            "核對該模組所需的前置依賴與載入器版本。"
-          ]
+          "suggestions": ["更新或暫時移除證據中涉及的模組。", "核對該模組所需的前置依賴與載入器版本。"]
         },
         "mod_loader_reported": {
           "title": "載入器報告模組載入失敗",
-          "suggestions": [
-            "優先按載入器日誌中的解決方案處理。",
-            "匯出報告以檢視完整的載入失敗上下文。"
-          ]
+          "suggestions": ["優先按載入器日誌中的解決方案處理。", "匯出報告以檢視完整的載入失敗上下文。"]
         },
         "mod_optifine_conflict": {
           "title": "OptiFine 或圖形模組衝突",
-          "suggestions": [
-            "暫時移除 OptiFine 後重試。",
-            "使用與當前載入器相容的圖形最佳化方案。"
-          ]
+          "suggestions": ["暫時移除 OptiFine 後重試。", "使用與當前載入器相容的圖形最佳化方案。"]
         },
         "resource_render_failure": {
           "title": "資源包或渲染資源異常",
-          "suggestions": [
-            "禁用最近新增的資源包或光影包。",
-            "降低資源解析度並檢查視訊記憶體佔用。"
-          ]
+          "suggestions": ["禁用最近新增的資源包或光影包。", "降低資源解析度並檢查視訊記憶體佔用。"]
         },
         "world_block_failure": {
           "title": "世界中的方塊導致崩潰",
-          "suggestions": [
-            "先備份存檔。",
-            "根據證據定位方塊，移除相關模組或使用修復工具處理區塊。"
-          ]
+          "suggestions": ["先備份存檔。", "根據證據定位方塊，移除相關模組或使用修復工具處理區塊。"]
         },
         "world_entity_failure": {
           "title": "世界中的實體導致崩潰",
-          "suggestions": [
-            "先備份存檔。",
-            "根據證據定位實體，移除相關模組或清理異常實體。"
-          ]
+          "suggestions": ["先備份存檔。", "根據證據定位實體，移除相關模組或清理異常實體。"]
         },
         "game_manual_debug_crash": {
           "title": "遊戲觸發了除錯崩潰",
-          "suggestions": [
-            "確認是否誤觸發了除錯崩潰快捷鍵。",
-            "若非主動觸發，請檢查鍵盤對映或自動化工具。"
-          ]
+          "suggestions": ["確認是否誤觸發了除錯崩潰快捷鍵。", "若非主動觸發，請檢查鍵盤對映或自動化工具。"]
         },
         "game_crash_report": {
           "title": "Minecraft 已生成崩潰報告",
-          "suggestions": [
-            "檢視其他可能原因與日誌證據。",
-            "匯出完整報告供進一步排查。"
-          ]
+          "suggestions": ["檢視其他可能原因與日誌證據。", "匯出完整報告供進一步排查。"]
         },
         "stack_suspected_mod": {
           "title": "堆疊指向可疑模組",
-          "suggestions": [
-            "更新或暫時移除列出的可疑模組。",
-            "若問題仍存在，逐批排查相鄰依賴模組。"
-          ]
+          "suggestions": ["更新或暫時移除列出的可疑模組。", "若問題仍存在，逐批排查相鄰依賴模組。"]
         },
         "stack_suspected_component": {
           "title": "堆疊指向第三方元件",
-          "suggestions": [
-            "根據列出的包名檢查對應模組或元件。",
-            "匯出報告並結合模組列表進一步定位。"
-          ]
+          "suggestions": ["根據列出的包名檢查對應模組或元件。", "匯出報告並結合模組列表進一步定位。"]
         },
         "unknown_no_logs": {
           "title": "沒有可用的崩潰日誌",
-          "suggestions": [
-            "再次啟動並等待崩潰報告寫入完成。",
-            "檢查日誌目錄許可權與安全軟體攔截。"
-          ]
+          "suggestions": ["再次啟動並等待崩潰報告寫入完成。", "檢查日誌目錄許可權與安全軟體攔截。"]
         },
         "unknown_unclassified": {
           "title": "暫時無法確定原因",
-          "suggestions": [
-            "匯出崩潰報告並保留完整日誌。",
-            "嘗試移除最近的改動後再次啟動。"
-          ]
+          "suggestions": ["匯出崩潰報告並保留完整日誌。", "嘗試移除最近的改動後再次啟動。"]
         }
       }
     }

@@ -25,9 +25,9 @@ describe('instanceInstallApi validation', () => {
 
   it('安装参数缺少游戏路径时校验失败，不发起 IPC', async () => {
     mocks.command.mockResolvedValue({ success: true, data: {} })
-    await expect(
-      instanceInstallApi.install({ version_id: '1.21.1', game_path: '' })
-    ).rejects.toThrow(/游戏路径不能为空/)
+    await expect(instanceInstallApi.install({ version_id: '1.21.1', game_path: '' })).rejects.toThrow(
+      /游戏路径不能为空/
+    )
     expect(mocks.command).not.toHaveBeenCalled()
   })
 

@@ -195,7 +195,6 @@
   box-shadow: 0 6px 24px rgba(var(--primary-rgb), 0.14);
 }
 
-
 /* 全局文件拖放反馈层：拖动文件到窗口任意位置时全窗模糊 + 提示文字 */
 .global-drop-overlay {
   position: fixed;

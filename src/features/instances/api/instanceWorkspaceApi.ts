@@ -1,6 +1,16 @@
 import backend from '@/api/client'
 import { unwrapResponse } from '@/app/runtime/errorPresentation'
-import type { GameOperation, GameResource, GameResourceType, InstanceTargetPayload, ScannedVersion, ScreenshotEntry, ServerEntry, ServerStatus, WorldEntry } from '@/types/instances'
+import type {
+  GameOperation,
+  GameResource,
+  GameResourceType,
+  InstanceTargetPayload,
+  ScannedVersion,
+  ScreenshotEntry,
+  ServerEntry,
+  ServerStatus,
+  WorldEntry,
+} from '@/types/instances'
 
 export function workspaceTarget(version: ScannedVersion, versionIsolation = false): InstanceTargetPayload {
   return { game_path: version.path, version_id: version.versionId, version_isolation: versionIsolation }
@@ -38,11 +48,7 @@ export const instanceWorkspaceApi = {
   lockWorldBackup: (target: InstanceTargetPayload, worldId: string, backupId: string, locked: boolean) =>
     call('game_world_backup_lock', { ...target, world_id: worldId, backup_id: backupId, locked }, '锁定存档备份'),
   deleteWorldBackup: (target: InstanceTargetPayload, worldId: string, backupId: string) =>
-    call<void>(
-      'game_world_backup_delete',
-      { ...target, world_id: worldId, backup_id: backupId },
-      '删除存档备份'
-    ),
+    call<void>('game_world_backup_delete', { ...target, world_id: worldId, backup_id: backupId }, '删除存档备份'),
   setWorldIcon: (target: InstanceTargetPayload, worldId: string, sourcePath: string) =>
     call<{ path: string }>(
       'game_world_icon_set',

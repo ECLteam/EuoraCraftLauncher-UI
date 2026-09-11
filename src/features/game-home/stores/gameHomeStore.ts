@@ -37,7 +37,9 @@ export const useGameHomeStore = defineStore('game-home', () => {
   }
 
   function cancelLaunch(): Promise<void> {
-    return gameHomeApi.cancelLaunch().finally(() => queryClient.invalidateQueries({ queryKey: queryKeys.gameHome.infoCard }))
+    return gameHomeApi
+      .cancelLaunch()
+      .finally(() => queryClient.invalidateQueries({ queryKey: queryKeys.gameHome.infoCard }))
   }
 
   return {

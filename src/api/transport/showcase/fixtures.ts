@@ -454,7 +454,19 @@ export function loadShowcaseTasks(globalTaskQueue: {
   updateTask: (
     id: string,
     updates: Partial<
-      Pick<TaskItem, 'status' | 'progress' | 'message' | 'subtasks' | 'progressType' | 'done' | 'total' | 'totalFiles' | 'downloadedFiles' | 'speed'>
+      Pick<
+        TaskItem,
+        | 'status'
+        | 'progress'
+        | 'message'
+        | 'subtasks'
+        | 'progressType'
+        | 'done'
+        | 'total'
+        | 'totalFiles'
+        | 'downloadedFiles'
+        | 'speed'
+      >
     >
   ) => void
   addSubtask: (

@@ -339,4 +339,3 @@ export interface LaunchProgress {
   total?: number
   errorCode?: string
 }
-

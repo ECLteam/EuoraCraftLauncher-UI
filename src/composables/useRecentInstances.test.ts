@@ -35,14 +35,7 @@ describe('useRecentInstancesStore', () => {
     expect(store.recentList.map((item) => item.versionId)).toEqual(['v2', 'v4', 'v3', 'v1', 'v0'])
 
     recordRange(store, 5, 2)
-    expect(store.recentList.map((item) => item.versionId)).toEqual([
-      'v2',
-      'v6',
-      'v5',
-      'v4',
-      'v3',
-      'v1',
-    ])
+    expect(store.recentList.map((item) => item.versionId)).toEqual(['v2', 'v6', 'v5', 'v4', 'v3', 'v1'])
     expect(store.recentList.filter((item) => item.pinned)).toHaveLength(1)
   })
 

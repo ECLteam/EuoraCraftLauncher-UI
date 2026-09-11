@@ -30,7 +30,11 @@ class FakeWebSocket {
       this.incoming({ op: 'auth_ok', protocolVersion: 1, launcherVersion: '1.4.2-alpha.3+20260906' })
     } else if (frame.method === 'frontend.invoke') {
       const payload = (frame.params as { payload?: { value?: unknown } }).payload
-      this.incoming({ id: frame.id, ok: true, data: { command: (frame.params as { command: string }).command, result: { echo: payload?.value } } })
+      this.incoming({
+        id: frame.id,
+        ok: true,
+        data: { command: (frame.params as { command: string }).command, result: { echo: payload?.value } },
+      })
     } else if (frame.method === 'frontend.subscribe') {
       const names = (frame.params as { events: string[] }).events
       this.incoming({ id: frame.id, ok: true, data: { subscribed: names } })

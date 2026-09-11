@@ -125,7 +125,12 @@
                 <span>{{ t('taskQueue.liveTitle') }}</span>
               </div>
               <span v-if="activeDownload.totalFiles != null" class="tq-live-filecount">
-                {{ t('taskQueue.filesProgress', { done: activeDownload.downloadedFiles ?? 0, total: activeDownload.totalFiles }) }}
+                {{
+                  t('taskQueue.filesProgress', {
+                    done: activeDownload.downloadedFiles ?? 0,
+                    total: activeDownload.totalFiles,
+                  })
+                }}
               </span>
             </div>
 
@@ -137,22 +142,9 @@
               <span class="tq-live-chart-badge">
                 {{ activeDownload.speed && activeDownload.speed > 0 ? formatSpeed(activeDownload.speed) : '—' }}
               </span>
-              <svg
-                class="tq-live-chart-svg"
-                viewBox="0 0 100 36"
-                preserveAspectRatio="none"
-                aria-hidden="true"
-              >
-                <polygon
-                  v-if="chartArea"
-                  :points="chartArea"
-                  class="tq-live-chart-area"
-                />
-                <polyline
-                  v-if="chartLine"
-                  :points="chartLine"
-                  class="tq-live-chart-line"
-                />
+              <svg class="tq-live-chart-svg" viewBox="0 0 100 36" preserveAspectRatio="none" aria-hidden="true">
+                <polygon v-if="chartArea" :points="chartArea" class="tq-live-chart-area" />
+                <polyline v-if="chartLine" :points="chartLine" class="tq-live-chart-line" />
               </svg>
               <span class="tq-live-chart-window">
                 {{ t('taskQueue.chartWindow', { seconds: speedSamples.length }) }}

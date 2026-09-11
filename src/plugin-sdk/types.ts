@@ -55,27 +55,7 @@ export type {
   InstallProgress,
   LaunchProgress,
 } from '@/types/instances'
-export type {
-  PluginInfo,
-  PluginRoute,
-  PluginSettingsData,
-  PluginSettingSchema,
-} from '@/types/plugins'
-export type {
-  ModItem,
-  ModSearchItem,
-  ModVersion,
-  ResourcePack,
-  ShaderPack,
-  SaveEntry,
-} from '@/types/mods'
-export type {
-  FsEntry,
-  FileContent,
-  PathInfo,
-} from '@/types/system'
-export type {
-  SelectResult,
-  ImageSelection,
-  ImageDataUrl,
-} from '@/types/accounts'
+export type { PluginInfo, PluginRoute, PluginSettingsData, PluginSettingSchema } from '@/types/plugins'
+export type { ModItem, ModSearchItem, ModVersion, ResourcePack, ShaderPack, SaveEntry } from '@/types/mods'
+export type { FsEntry, FileContent, PathInfo } from '@/types/system'
+export type { SelectResult, ImageSelection, ImageDataUrl } from '@/types/accounts'

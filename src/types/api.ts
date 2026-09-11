@@ -1,10 +1,99 @@
-import type { AccountListData, AccountTextures, AuthlibLoginConfigData, AuthlibServer, AuthProvider, DefaultSkin, ImageDataUrl, ImageListResult, ImageSaveUrlResult, ImageSelection, MicrosoftCompleteData, MicrosoftLoginConfigData, MicrosoftLoginData, MicrosoftLoginStatusEvent, MicrosoftPollData, MinecraftAccount, SelectResult, SkinModel, WardrobeImportResult, WardrobeItem, WardrobeKind } from '@/types/accounts'
-import type { BackgroundConfig, ConfigSection, DownloadConfig, GameConfig, LauncherConfig, SystemMemoryInfo, ThemeConfig, WindowBounds, WindowMetadata } from '@/types/config'
+import type {
+  AccountListData,
+  AccountTextures,
+  AuthlibLoginConfigData,
+  AuthlibServer,
+  AuthProvider,
+  DefaultSkin,
+  ImageDataUrl,
+  ImageListResult,
+  ImageSaveUrlResult,
+  ImageSelection,
+  MicrosoftCompleteData,
+  MicrosoftLoginConfigData,
+  MicrosoftLoginData,
+  MicrosoftLoginStatusEvent,
+  MicrosoftPollData,
+  MinecraftAccount,
+  SelectResult,
+  SkinModel,
+  WardrobeImportResult,
+  WardrobeItem,
+  WardrobeKind,
+} from '@/types/accounts'
+import type {
+  BackgroundConfig,
+  ConfigSection,
+  DownloadConfig,
+  GameConfig,
+  LauncherConfig,
+  SystemMemoryInfo,
+  ThemeConfig,
+  WindowBounds,
+  WindowMetadata,
+} from '@/types/config'
 import type { ConnectorMatchResult, ConnectorStatus, EasyTierStatus, NatTypeResult } from '@/types/connect'
-import type { CrashAnalysisResult, CrashCandidateFile, GameInstance, GameInstancesChangedEvent, GameOperation, GameResource, GameResourceType, InstallProgress, InstallVersionResult, InstanceCategory, InstanceProfile, InstanceTargetPayload, JavaInstallation, LaunchInstanceResult, LaunchProgress, MinecraftVersion, MinecraftVersionCatalog, ScannedVersion, ScreenshotEntry, ServerEntry, ServerStatus, VersionRunStats, WorldEntry } from '@/types/instances'
-import type { ModInfo, ModInstallResult, ModItem, ModpackTypeInfo, ModSearchResult, ModSourceConfig, ModVersion, ResourcePack, SaveEntry, ShaderPack } from '@/types/mods'
-import type { PluginInfo, PluginRoute, PluginSettingsData, PluginSlotItem, VueComponentDef, VueSlotItem } from '@/types/plugins'
-import type { DebugMaintenanceResult, FileContent, FsEntry, ImageSaveAsPayload, InfoCardData, LauncherErrorEvent, LauncherInfo, LauncherPopupEvent, PathInfo, ProcessInstance, ProcessLogEntry, TerminalLogEntry, UpdateCheckResult, UserAgreement } from '@/types/system'
+import type {
+  CrashAnalysisResult,
+  CrashCandidateFile,
+  GameInstance,
+  GameInstancesChangedEvent,
+  GameOperation,
+  GameResource,
+  GameResourceType,
+  InstallProgress,
+  InstallVersionResult,
+  InstanceCategory,
+  InstanceProfile,
+  InstanceTargetPayload,
+  JavaInstallation,
+  LaunchInstanceResult,
+  LaunchProgress,
+  MinecraftVersion,
+  MinecraftVersionCatalog,
+  ScannedVersion,
+  ScreenshotEntry,
+  ServerEntry,
+  ServerStatus,
+  VersionRunStats,
+  WorldEntry,
+} from '@/types/instances'
+import type {
+  ModInfo,
+  ModInstallResult,
+  ModItem,
+  ModpackTypeInfo,
+  ModSearchResult,
+  ModSourceConfig,
+  ModVersion,
+  ResourcePack,
+  SaveEntry,
+  ShaderPack,
+} from '@/types/mods'
+import type {
+  PluginInfo,
+  PluginRoute,
+  PluginSettingsData,
+  PluginSlotItem,
+  VueComponentDef,
+  VueSlotItem,
+} from '@/types/plugins'
+import type {
+  DebugMaintenanceResult,
+  FileContent,
+  FsEntry,
+  ImageSaveAsPayload,
+  InfoCardData,
+  LauncherErrorEvent,
+  LauncherInfo,
+  LauncherPopupEvent,
+  PathInfo,
+  ProcessInstance,
+  ProcessLogEntry,
+  TerminalLogEntry,
+  UpdateCheckResult,
+  UserAgreement,
+} from '@/types/system'
 export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
@@ -963,4 +1052,3 @@ export interface CommandResponseMap {
   fs_exists: PathInfo
   file_resolve: SelectResult
 }
-

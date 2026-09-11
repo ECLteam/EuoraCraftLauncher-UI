@@ -34,7 +34,10 @@
                 v-for="item in recentInstances"
                 :key="`${item.gamePath}\0${item.versionId}`"
                 class="recent-instance-item"
-                :class="{ active: item.versionId === selectedVersion && item.gamePath === currentGamePath, pinned: item.pinned }"
+                :class="{
+                  active: item.versionId === selectedVersion && item.gamePath === currentGamePath,
+                  pinned: item.pinned,
+                }"
                 @click="handleSelectRecent(item)"
               >
                 <UiIcon v-if="item.pinned" name="pin-filled" :size="11" class="recent-pin-flag" />
@@ -164,7 +167,9 @@ function instanceNameOf(item: RecentInstance): string {
 }
 
 function instancePathNameOf(item: RecentInstance): string {
-  const entry = settingsStore.game.minecraft_paths.find((p) => normalizeGamePath(typeof p === 'string' ? p : p.path) === normalizeGamePath(item.gamePath))
+  const entry = settingsStore.game.minecraft_paths.find(
+    (p) => normalizeGamePath(typeof p === 'string' ? p : p.path) === normalizeGamePath(item.gamePath)
+  )
   if (!entry) return getPathDisplayName(item.gamePath)
   return typeof entry === 'string' ? getPathDisplayName(entry) : entry.name || getPathDisplayName(entry.path)
 }
