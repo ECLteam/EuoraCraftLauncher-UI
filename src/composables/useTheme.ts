@@ -389,6 +389,11 @@ function createThemeOverrides(
       borderRadius: 'var(--ecl-radius-control, 6px)',
       borderRadiusSmall: 'var(--ecl-radius-control, 6px)',
       fontFamily: 'var(--ecl-font-body, var(--font-body))',
+      // 与 base.css 的 emphasized 缓动族对齐，让 naive-ui 内部过渡
+      // （message / dialog / select / popover 等）跟随统一动画体系
+      cubicBezierEaseInOut: 'cubic-bezier(0.2, 0, 0, 1)',
+      cubicBezierEaseOut: 'cubic-bezier(0.05, 0.7, 0.1, 1)',
+      cubicBezierEaseIn: 'cubic-bezier(0.3, 0, 0.8, 0.15)',
     },
     Button: {
       color: baseColors.background,
