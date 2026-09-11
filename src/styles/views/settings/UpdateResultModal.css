@@ -50,13 +50,18 @@
 
 /* 更新说明 */
 .update-result-modal__notes {
+  flex: 1;
+  min-height: 220px;
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   background: color-mix(in srgb, var(--ecl-surface) 78%, transparent);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .update-result-modal__notes-head {
+  flex-shrink: 0;
   padding: 8px 14px;
   border-bottom: 1px solid var(--border);
   color: var(--text-secondary);
@@ -65,13 +70,14 @@
 }
 
 .update-result-modal__notes p {
+  flex: 1;
   margin: 0;
-  padding: 10px 14px;
-  max-height: 180px;
+  padding: 12px 14px 16px;
+  min-height: 0;
   overflow-y: auto;
-  color: var(--text-secondary);
-  font-size: 11px;
-  line-height: 1.6;
+  color: var(--text-primary);
+  font-size: 12px;
+  line-height: 1.7;
   white-space: pre-wrap;
   word-break: break-word;
 }
