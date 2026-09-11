@@ -756,7 +756,13 @@
         "preparing": "Preparing update…",
         "downloadFailed": "Update download failed, please try again later",
         "restarting": "v{version} is ready. The launcher will restart to finish the update",
-        "applyFailed": "Failed to apply update, please try again later"
+        "applyFailed": "Failed to apply update, please try again later",
+        "refresh": "Refresh",
+        "updateNow": "Update Now",
+        "currentVersion": "Current",
+        "latestVersion": "Latest",
+        "notesTitle": "Release Notes",
+        "selfUpdateDisabled": "This development build does not support self-update"
       },
       "technologyCategories": {
         "runtimeFrameworks": "Runtime & Frameworks",

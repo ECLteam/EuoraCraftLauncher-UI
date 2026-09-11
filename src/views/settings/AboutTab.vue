@@ -30,25 +30,6 @@
               <UiIcon name="refresh" :size="14" :class="{ spin: checking }" />
               <span>{{ t('settings.aboutTab.update.check') }}</span>
             </a>
-            <template v-if="hasUpdate && selfUpdateEnabled">
-              <a
-                class="about-btn is-download"
-                href="#"
-                :class="{ 'is-loading': downloading }"
-                @click.prevent="downloadAndRestart"
-              >
-                <UiIcon name="download" :size="14" :class="{ spin: downloading }" />
-                <span>{{
-                  downloading
-                    ? t('settings.aboutTab.update.downloading')
-                    : t('settings.aboutTab.update.downloadAndRestart')
-                }}</span>
-              </a>
-              <div v-if="downloadPercent >= 0" class="about-update-progress">
-                <div class="about-update-progress__bar" :style="{ width: downloadPercent + '%' }"></div>
-                <span class="about-update-progress__text">{{ downloadPercent }}%</span>
-              </div>
-            </template>
             <a class="about-btn" href="#" @click.prevent="openExternalUrl(URLS.issues)">
               <UiIcon name="bug" :size="14" />
               <span>{{ t('settings.aboutTab.actions.issue') }}</span>
@@ -132,6 +113,8 @@
     </div>
 
     <PluginSlotHost slotId="plugin-slot-settings-about-bottom" class="plugin-slot-container" />
+
+    <UpdateResultModal v-model:visible="showUpdateModal" />
   </div>
 </template>
 
@@ -146,6 +129,7 @@ import { URLS } from '@/config/urls'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { specialThanksEntries, teamMembers, technologyCategories } from '@/features/settings/about/aboutContent'
 import { aboutApi } from '@/features/settings/api/aboutApi'
+import UpdateResultModal from '@/features/settings/components/UpdateResultModal.vue'
 import { useUpdateCheck } from '@/features/settings/composables/useUpdateCheck'
 import type { LauncherInfo, UpdateCheckResult } from '@/types/system'
 import { openExternalUrl } from '@/utils/openExternal'
@@ -160,10 +144,10 @@ const frontendVersion = import.meta.env.VITE_APP_VERSION?.trim() || ''
 const isDevMode = import.meta.env.DEV
 const translateVersion = (key: string): string => t(`settings.aboutTab.version.${key}`)
 
-const { lastResult, checking, selfUpdateEnabled, downloading, downloadPercent, checkUpdate, downloadUpdate, applyUpdate } =
-  useUpdateCheck()
+const { lastResult, checking, checkUpdate } = useUpdateCheck()
 const hasUpdate = computed(() => lastResult.value?.status === 'update_available')
 const isUpToDate = computed(() => lastResult.value?.status === 'up_to_date')
+const showUpdateModal = ref(false)
 const message = useLauncherMessage()
 
 async function checkForUpdates(): Promise<void> {
@@ -174,33 +158,10 @@ async function checkForUpdates(): Promise<void> {
   if (result) showCheckResult(result)
 }
 
-async function downloadAndRestart(): Promise<void> {
-  if (downloading.value) return
-  const title = t('settings.aboutTab.update.title')
-  const loadingMessage = message.loading(t('settings.aboutTab.update.preparing'))
-  const version = await downloadUpdate()
-  loadingMessage.destroy()
-  if (!version) {
-    message.error(t('settings.aboutTab.update.downloadFailed'), { title, duration: 6000 })
-    return
-  }
-  const restarting = await applyUpdate()
-  if (restarting) {
-    message.success(t('settings.aboutTab.update.restarting', { version }), { title, duration: 6000 })
-  } else {
-    message.error(t('settings.aboutTab.update.applyFailed'), { title, duration: 6000 })
-  }
-}
-
 function showCheckResult(result: UpdateCheckResult): void {
   const title = t('settings.aboutTab.update.title')
   if (result.status === 'update_available') {
-    const url = result.latest_url || undefined
-    message.info(t('settings.aboutTab.update.foundNew', { version: result.latest_version }), {
-      title,
-      duration: 6000,
-      onClick: url ? () => void openExternalUrl(url) : undefined,
-    })
+    showUpdateModal.value = true
     return
   }
   if (result.status === 'up_to_date') {

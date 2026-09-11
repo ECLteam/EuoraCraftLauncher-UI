@@ -756,7 +756,13 @@
         "preparing": "Update wird vorbereitet…",
         "downloadFailed": "Update-Download fehlgeschlagen. Bitte später erneut versuchen",
         "restarting": "v{version} ist bereit. Der Launcher startet neu, um das Update abzuschließen",
-        "applyFailed": "Update konnte nicht angewendet werden. Bitte später erneut versuchen"
+        "applyFailed": "Update konnte nicht angewendet werden. Bitte später erneut versuchen",
+        "refresh": "Aktualisieren",
+        "updateNow": "Jetzt aktualisieren",
+        "currentVersion": "Aktuelle Version",
+        "latestVersion": "Neueste Version",
+        "notesTitle": "Versionshinweise",
+        "selfUpdateDisabled": "Diese Entwicklungsversion unterstützt kein automatisches Update"
       },
       "technologyCategories": {
         "runtimeFrameworks": "Laufzeitumgebung & Frameworks",
