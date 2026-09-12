@@ -795,6 +795,16 @@ export function createShowcaseTransport(): BackendTransport {
       /* ── 实例工作区：打开目录 / 存档 ── */
       case 'game_instance_folder_open':
         return success({ path: `Showcase/.minecraft/${String(payload.folder ?? 'instance')}` })
+      case 'game_instance_mods_list':
+        return success(structuredClone(showcaseInstanceMods))
+      case 'game_instance_mod_toggle':
+        return success({ enabled: true })
+      case 'game_instance_mod_add':
+        return success({ filename: 'showcase-mod.jar' })
+      case 'game_instance_mod_remove':
+        return success()
+      case 'game_instance_mods_folder_open':
+        return success({ path: 'Showcase/.minecraft/versions/mods' })
       case 'game_world_list':
         return success(structuredClone(worlds))
       case 'game_world_detail': {

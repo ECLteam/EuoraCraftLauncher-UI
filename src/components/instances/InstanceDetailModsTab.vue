@@ -146,7 +146,7 @@ import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { getLoaderName } from '@/config/version'
-import { localModsApi } from '@/features/instances/api/localModsApi'
+import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
 import { modApi } from '@/features/mods/api/modApi'
 import type { ScannedVersion } from '@/types/instances'
 import type { ModItem } from '@/types/mods'
@@ -195,17 +195,17 @@ const filteredMods = computed(() => {
   return list
 })
 
-function getGamePath(): string | null {
-  return props.version?.path || props.version?.jsonPath || null
+function getTarget() {
+  return props.version ? workspaceTarget(props.version) : null
 }
 
 async function loadMods() {
   if (!modSupported.value) return
-  const gamePath = getGamePath()
-  if (!gamePath) return
+  const target = getTarget()
+  if (!target) return
   modsLoading.value = true
   try {
-    mods.value = await localModsApi.list(gamePath)
+    mods.value = await instanceWorkspaceApi.mods(target)
   } catch (error) {
     message.error(error instanceof Error ? error.message : t('versions.mods.modAddFailed'))
   } finally {
@@ -214,10 +214,10 @@ async function loadMods() {
 }
 
 async function handleToggleMod(mod: ModItem) {
-  const gamePath = getGamePath()
-  if (!gamePath) return
+  const target = getTarget()
+  if (!target) return
   try {
-    const result = await localModsApi.toggle(gamePath, mod.filename)
+    const result = await instanceWorkspaceApi.toggleMod(target, mod.filename)
     mod.enabled = result.enabled
     const actionText = result.enabled ? t('versions.mods.toggleEnabled') : t('versions.mods.toggleDisabled')
     message.success(t('versions.mods.modToggled', { name: modDisplayName(mod), action: actionText }))
@@ -228,10 +228,10 @@ async function handleToggleMod(mod: ModItem) {
 
 function handleDeleteMod(mod: ModItem) {
   openConfirm(t('common.delete'), t('versions.mods.deleteConfirm', { name: modDisplayName(mod) }), async () => {
-    const gamePath = getGamePath()
-    if (!gamePath) return
+    const target = getTarget()
+    if (!target) return
     try {
-      await localModsApi.remove(gamePath, mod.filename)
+      await instanceWorkspaceApi.removeMod(target, mod.filename)
       mods.value = mods.value.filter((m) => m.filename !== mod.filename)
       message.success(t('versions.mods.modDeleted'))
     } catch (error) {
@@ -257,8 +257,8 @@ async function handleModDrop(event: DragEvent) {
   modDragging.value = false
   modDragDepth = 0
   if (!modSupported.value) return
-  const gamePath = getGamePath()
-  if (!gamePath) return
+  const target = getTarget()
+  if (!target) return
   const paths = [...(event.dataTransfer?.files || [])]
     .map((file) => (file as File & { path?: string }).path)
     .filter((path): path is string => Boolean(path))
@@ -267,7 +267,7 @@ async function handleModDrop(event: DragEvent) {
     return
   }
   try {
-    for (const path of paths) await localModsApi.add(gamePath, path)
+    for (const path of paths) await instanceWorkspaceApi.addMod(target, path)
     message.success(t('versions.mods.modAdded'))
     await loadMods()
   } catch (error) {
@@ -276,10 +276,10 @@ async function handleModDrop(event: DragEvent) {
 }
 
 async function handleOpenModsFolder() {
-  const gamePath = getGamePath()
-  if (!gamePath) return
+  const target = getTarget()
+  if (!target) return
   try {
-    await localModsApi.openFolder(gamePath)
+    await instanceWorkspaceApi.modsFolder(target)
   } catch (error) {
     message.error(error instanceof Error ? error.message : t('versions.mods.modAddFailed'))
   }

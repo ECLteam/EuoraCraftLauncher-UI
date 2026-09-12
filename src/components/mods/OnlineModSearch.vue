@@ -505,7 +505,6 @@ import { globalTaskQueue } from '@/composables/useTaskQueue'
 import { LOADERS } from '@/config/version'
 import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
-import { localModsApi } from '@/features/instances/api/localModsApi'
 import { modApi } from '@/features/mods/api/modApi'
 import {
   aprilFoolsAnchor,
@@ -1620,7 +1619,7 @@ async function handleDrop(event: DragEvent) {
   }
   try {
     if (props.resourceType === 'mod') {
-      for (const path of paths) await localModsApi.add(inst.path, path)
+      for (const path of paths) await instanceWorkspaceApi.addMod(workspaceTarget(inst), path)
     } else if (props.resourceType === 'world') {
       for (const path of paths) await instanceWorkspaceApi.importWorld(workspaceTarget(inst), path)
     } else {

@@ -370,6 +370,11 @@ export interface CommandPayloadMap {
   game_instance_folder_open: InstanceTargetPayload & {
     folder: 'instance' | 'mods' | 'saves' | 'screenshots' | 'logs' | 'crash-reports'
   }
+  game_instance_mods_list: InstanceTargetPayload
+  game_instance_mod_toggle: InstanceTargetPayload & { filename: string }
+  game_instance_mod_add: InstanceTargetPayload & { source_path: string }
+  game_instance_mod_remove: InstanceTargetPayload & { filename: string }
+  game_instance_mods_folder_open: InstanceTargetPayload
   game_instance_clone: InstanceTargetPayload & { new_version_id: string }
   game_instance_import: { game_path: string; source_path: string; new_version_id: string }
   game_instance_export: InstanceTargetPayload & {
@@ -721,6 +726,11 @@ export const COMMAND_NAMES = {
   game_instance_categories_upsert: 'game_instance_categories_upsert',
   game_instance_categories_delete: 'game_instance_categories_delete',
   game_instance_folder_open: 'game_instance_folder_open',
+  game_instance_mods_list: 'game_instance_mods_list',
+  game_instance_mod_toggle: 'game_instance_mod_toggle',
+  game_instance_mod_add: 'game_instance_mod_add',
+  game_instance_mod_remove: 'game_instance_mod_remove',
+  game_instance_mods_folder_open: 'game_instance_mods_folder_open',
   game_instance_clone: 'game_instance_clone',
   game_instance_import: 'game_instance_import',
   game_instance_export: 'game_instance_export',
@@ -961,6 +971,11 @@ export interface CommandResponseMap {
   game_instance_categories_upsert: InstanceCategory
   game_instance_categories_delete: void
   game_instance_folder_open: { path: string }
+  game_instance_mods_list: ModItem[]
+  game_instance_mod_toggle: { enabled: boolean }
+  game_instance_mod_add: { filename: string }
+  game_instance_mod_remove: void
+  game_instance_mods_folder_open: { path: string }
   game_instance_clone: GameOperation
   game_instance_import: GameOperation
   game_instance_export: GameOperation

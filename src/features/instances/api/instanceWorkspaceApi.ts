@@ -12,9 +12,11 @@ import type {
   ServerStatus,
   WorldEntry,
 } from '@/types/instances'
+import type { ModItem } from '@/types/mods'
 
-export function workspaceTarget(version: ScannedVersion, versionIsolation = false): InstanceTargetPayload {
-  return { game_path: version.path, version_id: version.versionId, version_isolation: versionIsolation }
+export function workspaceTarget(version: ScannedVersion, versionIsolation?: boolean): InstanceTargetPayload {
+  const target = { game_path: version.path, version_id: version.versionId }
+  return versionIsolation === undefined ? target : { ...target, version_isolation: versionIsolation }
 }
 
 const call = async <T>(name: Parameters<typeof backend.command>[0], payload: object, message: string): Promise<T> =>
@@ -25,6 +27,15 @@ export const instanceWorkspaceApi = {
     target: InstanceTargetPayload,
     folder: 'instance' | 'mods' | 'saves' | 'screenshots' | 'logs' | 'crash-reports'
   ) => call<{ path: string }>('game_instance_folder_open', { ...target, folder }, '打开实例目录'),
+  mods: (target: InstanceTargetPayload) => call<ModItem[]>('game_instance_mods_list', target, '获取模组列表'),
+  toggleMod: (target: InstanceTargetPayload, filename: string) =>
+    call<{ enabled: boolean }>('game_instance_mod_toggle', { ...target, filename }, '切换模组'),
+  addMod: (target: InstanceTargetPayload, sourcePath: string) =>
+    call<{ filename: string }>('game_instance_mod_add', { ...target, source_path: sourcePath }, '添加模组'),
+  removeMod: (target: InstanceTargetPayload, filename: string) =>
+    call<void>('game_instance_mod_remove', { ...target, filename }, '删除模组'),
+  modsFolder: (target: InstanceTargetPayload) =>
+    call<{ path: string }>('game_instance_mods_folder_open', target, '打开模组目录'),
   worlds: (target: InstanceTargetPayload) => call<WorldEntry[]>('game_world_list', target, '读取存档'),
   patchWorld: (target: InstanceTargetPayload, worldId: string, patch: object) =>
     call<WorldEntry>('game_world_patch', { ...target, world_id: worldId, patch }, '修改存档'),
