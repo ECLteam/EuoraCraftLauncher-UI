@@ -91,7 +91,7 @@
           <LauncherPopupModal :visible="popupVisible" :popup="activePopup" @dismiss="dismissActivePopup" />
 
           <!-- 启动时发现更新后显示；设置页手动检查也复用同一实例。 -->
-          <UpdateResultModal v-model:visible="updateDialogVisible" />
+          <UpdateResultModal v-model:visible="updateDialogVisible" @close="rememberCurrentUpdate" />
 
           <!-- 用户协议弹窗 -->
           <Modal
@@ -160,6 +160,7 @@ import { useModpackImportStore, extractPackPath } from '@/features/instances/sto
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import UpdateResultModal from '@/features/settings/components/UpdateResultModal.vue'
 import { useUpdateCheck } from '@/features/settings/composables/useUpdateCheck'
+import { rememberShownUpdate } from '@/features/settings/model/updateNotice'
 import FloatingLauncherLog from '@/features/terminal/components/FloatingLauncherLog.vue'
 import { getErrorMessage } from '@/utils/error'
 import { openExternalUrl } from '@/utils/openExternal'
@@ -177,7 +178,11 @@ const {
 const fullscreenModal = useFullscreenModal()
 const message = useLauncherMessage()
 const modpackImport = useModpackImportStore()
-const { updateDialogVisible } = useUpdateCheck()
+const { lastResult, updateDialogVisible } = useUpdateCheck()
+
+function rememberCurrentUpdate(): void {
+  rememberShownUpdate(lastResult.value)
+}
 
 // ── 全局文件拖放：识别整合包文件并打开导入对话框（未被子面板拦截时）──
 const dragging = ref(false)

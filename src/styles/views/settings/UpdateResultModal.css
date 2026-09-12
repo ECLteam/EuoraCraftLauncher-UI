@@ -4,48 +4,22 @@
   gap: 14px;
 }
 
-/* 版本信息作为更新内容的辅助元数据。 */
-.update-result-modal__versions {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: color-mix(in srgb, var(--ecl-surface) 78%, transparent);
-}
-
-.update-result-modal__version {
+/* 版本号只保留为更新说明下方的辅助元数据。 */
+.update-result-modal__version-summary {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-
-.update-result-modal__label {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 7px;
+  padding: 0 2px;
   color: var(--text-tertiary);
-  font-size: 10px;
-  font-weight: 500;
-}
-
-.update-result-modal__value {
-  overflow: hidden;
-  color: var(--text-primary);
   font-family: 'HarmonyOS Sans SC', var(--font-mono);
-  font-size: 13px;
-  font-weight: 650;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 10px;
+  line-height: 1.5;
 }
 
-.update-result-modal__version.is-latest .update-result-modal__value {
+.update-result-modal__version-summary strong {
   color: var(--primary);
-}
-
-.update-result-modal__arrow {
-  flex-shrink: 0;
-  color: var(--text-tertiary);
+  font-weight: 600;
 }
 
 /* 更新说明是弹窗主体。 */

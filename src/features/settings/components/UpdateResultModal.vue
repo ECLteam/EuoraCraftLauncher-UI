@@ -12,16 +12,13 @@
         <p>{{ notes }}</p>
       </div>
 
-      <div class="update-result-modal__versions">
-        <div class="update-result-modal__version">
-          <span class="update-result-modal__label">{{ t('settings.aboutTab.update.currentVersion') }}</span>
-          <strong class="update-result-modal__value">{{ result?.current_version }}</strong>
-        </div>
-        <UiIcon name="arrow-right" :size="16" class="update-result-modal__arrow" />
-        <div class="update-result-modal__version is-latest">
-          <span class="update-result-modal__label">{{ t('settings.aboutTab.update.latestVersion') }}</span>
-          <strong class="update-result-modal__value">{{ version }}</strong>
-        </div>
+      <div class="update-result-modal__version-summary">
+        <span>{{ t('settings.aboutTab.update.currentVersion') }} {{ result?.current_version }}</span>
+        <span aria-hidden="true">·</span>
+        <span>
+          {{ t('settings.aboutTab.update.latestVersion') }}
+          <strong>{{ version }}</strong>
+        </span>
       </div>
 
       <div v-if="!selfUpdateEnabled" class="update-result-modal__hint">

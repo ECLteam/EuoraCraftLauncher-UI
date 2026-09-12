@@ -5,6 +5,7 @@ import { globalTaskQueue } from '@/composables/useTaskQueue'
 import { initTheme } from '@/composables/useTheme'
 import { useGameHomeStore } from '@/features/game-home/stores/gameHomeStore'
 import { useUpdateCheck } from '@/features/settings/composables/useUpdateCheck'
+import { shouldShowStartupUpdate } from '@/features/settings/model/updateNotice'
 import { i18n, supportedLocales } from '@/i18n'
 import type { BackendEvents } from '@/types/api'
 import type { DownloadConfig, GameConfig } from '@/types/config'
@@ -293,7 +294,7 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
       void useGameHomeStore().load().catch(() => undefined)
       void backend.command('launcher_preload_connector').catch(() => undefined)
       void updateCheck.checkUpdate().then((result) => {
-        if (result?.status === 'update_available') updateCheck.updateDialogVisible.value = true
+        if (shouldShowStartupUpdate(result)) updateCheck.updateDialogVisible.value = true
       })
     }
     // 启动时同步一次积压错误；此后依赖 launcher:error 事件实时推送，低频轮询仅作兜底
