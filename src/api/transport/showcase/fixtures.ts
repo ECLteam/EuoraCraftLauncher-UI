@@ -1,6 +1,6 @@
 import type { TaskItem } from '@/composables/useTaskQueue'
-import type { SchematicPreviewData } from '@/types/api'
 import type { AccountListData, AuthlibServer, MinecraftAccount } from '@/types/accounts'
+import type { SchematicPreviewData } from '@/types/api'
 import type {
   GameResource,
   GameResourceType,
