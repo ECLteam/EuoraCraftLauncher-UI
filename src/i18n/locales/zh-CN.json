@@ -981,6 +981,8 @@
     "appearanceSectionLayout": "布局",
     "appearanceSectionEffects": "极光效果",
     "appearanceSectionDetails": "外观细节",
+    "windowRadius": "窗口圆角",
+    "windowRadiusDesc": "使用 CSS 绘制并裁剪启动器窗口边缘",
     "appearanceSectionSchedule": "定时自动切换",
     "themeFromBackground": "从背景图提取主题色",
     "themeFromBackgroundDesc": "从自定义背景图提取主色作为界面强调色；手动选色或切换为关闭可随时恢复",

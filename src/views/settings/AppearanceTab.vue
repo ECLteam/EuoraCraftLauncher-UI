@@ -72,6 +72,18 @@
     </SettingSection>
 
     <SettingSection :title="t('settings.appearanceSectionDetails')">
+      <SettingRow :label="t('settings.windowRadius')" :description="t('settings.windowRadiusDesc')">
+        <div class="slider-control">
+          <NSlider
+            :value="radiusWindow"
+            :min="0"
+            :max="32"
+            :tooltip="false"
+            @update:value="handleRadiusChange('radius_window', $event)"
+          />
+          <span>{{ radiusWindow }}px</span>
+        </div>
+      </SettingRow>
       <SettingRow label="卡片圆角" description="用户级覆盖；未设置时由主题预设决定">
         <div class="slider-control">
           <NSlider
@@ -381,6 +393,7 @@ async function handleDeriveModeChange(value: string | number) {
   await setDeriveMode(mode)
 }
 
+const radiusWindow = computed(() => appearance.value.radius_window ?? 12)
 const radiusCard = computed(() => appearance.value.radius_card ?? 8)
 const radiusControl = computed(() => appearance.value.radius_control ?? 6)
 const radiusDialog = computed(() => appearance.value.radius_dialog ?? 10)

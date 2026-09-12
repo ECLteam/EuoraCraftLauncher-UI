@@ -981,6 +981,8 @@
     "appearanceSectionLayout": "Layout",
     "appearanceSectionEffects": "Aurora Effects",
     "appearanceSectionDetails": "Appearance Details",
+    "windowRadius": "Window Corner Radius",
+    "windowRadiusDesc": "Draw and clip the launcher window edge with CSS",
     "appearanceSectionSchedule": "Scheduled Switching",
     "themeFromBackground": "Derive theme from background",
     "themeFromBackgroundDesc": "Extract the primary color from your custom background image; picking a color manually or choosing Off restores your choice",

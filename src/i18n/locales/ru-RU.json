@@ -981,6 +981,8 @@
     "appearanceSectionLayout": "Макет",
     "appearanceSectionEffects": "Эффекты полярного сияния",
     "appearanceSectionDetails": "Детали оформления",
+    "windowRadius": "Скругление окна",
+    "windowRadiusDesc": "Рисует и обрезает края окна лаунчера с помощью CSS",
     "appearanceSectionSchedule": "Автопереключение по расписанию",
     "themeFromBackground": "Выводить цвет темы из фона",
     "themeFromBackgroundDesc": "Извлекает основной цвет из своего фонового изображения и использует его как акцент интерфейса; ручной выбор цвета или выключение возвращает прежний выбор",

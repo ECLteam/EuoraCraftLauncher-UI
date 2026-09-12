@@ -83,6 +83,8 @@ export interface SystemMemoryInfo {
 }
 
 export interface ThemeAppearanceConfig {
+  /** 启动器窗口圆角（px） */
+  radius_window?: number
   /** 卡片圆角（px） */
   radius_card?: number
   /** 控件圆角（px） */

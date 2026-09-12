@@ -604,6 +604,7 @@ export const useThemeStore = defineStore('theme', () => {
   function applyAppearanceVars(): void {
     const el = document.documentElement
     const conf = appearance.value
+    if (typeof conf.radius_window === 'number') el.style.setProperty('--ecl-radius-window', `${conf.radius_window}px`)
     if (typeof conf.radius_control === 'number')
       el.style.setProperty('--ecl-radius-control', `${conf.radius_control}px`)
     if (typeof conf.radius_card === 'number') el.style.setProperty('--ecl-radius-card', `${conf.radius_card}px`)

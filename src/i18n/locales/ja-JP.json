@@ -981,6 +981,8 @@
     "appearanceSectionLayout": "レイアウト",
     "appearanceSectionEffects": "オーロラ効果",
     "appearanceSectionDetails": "外観の詳細",
+    "windowRadius": "ウィンドウの角丸",
+    "windowRadiusDesc": "CSS でランチャーウィンドウの端を描画・切り抜きします",
     "appearanceSectionSchedule": "自動切り替えの予約",
     "themeFromBackground": "背景画像からテーマカラーを抽出",
     "themeFromBackgroundDesc": "カスタム背景画像から主色を抽出してアクセントカラーに使用します。手動選色またはオフへの切り替えでいつでも元に戻せます",

@@ -5,6 +5,10 @@
   min-width: 820px;
   min-height: 600px;
   overflow: hidden;
+  border-radius: var(--ecl-radius-window, var(--window-radius));
+  clip-path: inset(0 round var(--ecl-radius-window, var(--window-radius)));
+  box-shadow: inset 0 0 0 1px var(--window-border);
+  isolation: isolate;
 }
 
 #app:not(.is-dev) {
@@ -225,4 +229,3 @@
 .global-drop-overlay__box .icon {
   color: var(--primary);
 }
-

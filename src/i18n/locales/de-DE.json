@@ -981,6 +981,8 @@
     "appearanceSectionLayout": "Layout",
     "appearanceSectionEffects": "Aurora-Effekte",
     "appearanceSectionDetails": "Erscheinungsdetails",
+    "windowRadius": "Fensterecken",
+    "windowRadiusDesc": "Zeichnet und beschneidet den Rand des Launcher-Fensters mit CSS",
     "appearanceSectionSchedule": "Automatischer Zeitwechsel",
     "themeFromBackground": "Akzentfarbe aus Hintergrundbild ableiten",
     "themeFromBackgroundDesc": "Die Hauptfarbe aus dem eigenen Hintergrundbild als Akzentfarbe der Oberfläche nutzen; eine manuelle Farbwahl oder „Aus“ stellt jederzeit den ursprünglichen Zustand wieder her",
