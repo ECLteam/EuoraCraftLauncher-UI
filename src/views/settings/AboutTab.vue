@@ -114,7 +114,6 @@
 
     <PluginSlotHost slotId="plugin-slot-settings-about-bottom" class="plugin-slot-container" />
 
-    <UpdateResultModal v-model:visible="showUpdateModal" />
   </div>
 </template>
 
@@ -129,7 +128,6 @@ import { URLS } from '@/config/urls'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { specialThanksEntries, teamMembers, technologyCategories } from '@/features/settings/about/aboutContent'
 import { aboutApi } from '@/features/settings/api/aboutApi'
-import UpdateResultModal from '@/features/settings/components/UpdateResultModal.vue'
 import { useUpdateCheck } from '@/features/settings/composables/useUpdateCheck'
 import type { LauncherInfo, UpdateCheckResult } from '@/types/system'
 import { openExternalUrl } from '@/utils/openExternal'
@@ -144,10 +142,9 @@ const frontendVersion = import.meta.env.VITE_APP_VERSION?.trim() || ''
 const isDevMode = import.meta.env.DEV
 const translateVersion = (key: string): string => t(`settings.aboutTab.version.${key}`)
 
-const { lastResult, checking, checkUpdate } = useUpdateCheck()
+const { lastResult, checking, checkUpdate, updateDialogVisible } = useUpdateCheck()
 const hasUpdate = computed(() => lastResult.value?.status === 'update_available')
 const isUpToDate = computed(() => lastResult.value?.status === 'up_to_date')
-const showUpdateModal = ref(false)
 const message = useLauncherMessage()
 
 async function checkForUpdates(): Promise<void> {
@@ -161,7 +158,7 @@ async function checkForUpdates(): Promise<void> {
 function showCheckResult(result: UpdateCheckResult): void {
   const title = t('settings.aboutTab.update.title')
   if (result.status === 'update_available') {
-    showUpdateModal.value = true
+    updateDialogVisible.value = true
     return
   }
   if (result.status === 'up_to_date') {

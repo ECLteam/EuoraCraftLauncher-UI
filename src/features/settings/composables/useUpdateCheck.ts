@@ -6,6 +6,8 @@ import { updateApi } from '../api/updateApi'
 /** 最近一次版本检测的结果，启动自动检测与手动检测共用同一份状态。 */
 const lastResult = ref<UpdateCheckResult | null>(null)
 const checking = ref(false)
+/** 启动检查与“关于”页共用的更新弹窗开关，由 App 根节点统一渲染。 */
+const updateDialogVisible = ref(false)
 
 /** 当前运行形态是否允许自动更新（打包运行且通道在白名单内）。 */
 const selfUpdateEnabled = ref(false)
@@ -76,6 +78,7 @@ export function useUpdateCheck() {
   return {
     lastResult: readonly(lastResult),
     checking: readonly(checking),
+    updateDialogVisible,
     selfUpdateEnabled: readonly(selfUpdateEnabled),
     downloading: readonly(downloading),
     progress: readonly(progress),

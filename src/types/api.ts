@@ -218,6 +218,7 @@ export interface CommandPayloadMap {
 
   // 联机（当前仅声明前端契约，后端实现后直接接入）
   connector_status: undefined
+  launcher_preload_connector: undefined
   connector_host_port: { port: number }
   connector_host_instance: InstanceTargetPayload
   connector_join: { code: string }
@@ -635,6 +636,7 @@ export const COMMAND_NAMES = {
   frontend_log: 'frontend_log',
   system_memory: 'system_memory',
   connector_status: 'connector_status',
+  launcher_preload_connector: 'launcher_preload_connector',
   connector_host_port: 'connector_host_port',
   connector_host_instance: 'connector_host_instance',
   connector_join: 'connector_join',
@@ -866,6 +868,7 @@ export interface CommandResponseMap {
   system_memory: SystemMemoryInfo
 
   connector_status: ConnectorStatus
+  launcher_preload_connector: void
   connector_host_port: { roomCode: string }
   connector_host_instance: { status: string }
   connector_join: { mcHost: string; mcPort: number }
