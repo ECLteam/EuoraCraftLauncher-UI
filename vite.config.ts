@@ -15,6 +15,18 @@ const packageVersion = (
   }
 ).version
 
+/** Vite 8 使用 Rolldown，需用函数式分包规则替代 Rollup 的静态依赖表。 */
+function getVendorChunkName(moduleId: string): string | undefined {
+  const id = moduleId.replaceAll('\\', '/')
+  if (id.includes('/node_modules/naive-ui/')) return 'naive-ui'
+  if (id.includes('/node_modules/vue-i18n/')) return 'i18n'
+  if (id.includes('/node_modules/@iconify-json/tabler/') || id.includes('/node_modules/@iconify/vue/')) {
+    return 'tabler-icons'
+  }
+  if (id.includes('/node_modules/vue/') || id.includes('/node_modules/vue-router/')) return 'vue-vendor'
+  return undefined
+}
+
 export default defineConfig(({ mode }) => {
   const isDev = mode === 'development'
   return {
@@ -60,14 +72,9 @@ export default defineConfig(({ mode }) => {
       target: 'chrome100',
       cssMinify: true,
       sourcemap: false,
-      rollupOptions: {
+      rolldownOptions: {
         output: {
-          manualChunks: {
-            'naive-ui': ['naive-ui'],
-            'vue-vendor': ['vue', 'vue-router'],
-            i18n: ['vue-i18n'],
-            'tabler-icons': ['@iconify-json/tabler', '@iconify/vue'],
-          },
+          manualChunks: getVendorChunkName,
         },
       },
     },
