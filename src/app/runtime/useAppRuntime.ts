@@ -291,7 +291,9 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
     await syncPendingErrors()
     // 首屏与事件监听已就绪后再预热低优先级数据，任何失败均不影响启动器可用性。
     if (backend.runtime.isDesktop) {
-      void useGameHomeStore().load().catch(() => undefined)
+      void useGameHomeStore()
+        .load()
+        .catch(() => undefined)
       void backend.command('launcher_preload_connector').catch(() => undefined)
       void updateCheck.checkUpdate().then((result) => {
         if (shouldShowStartupUpdate(result)) updateCheck.updateDialogVisible.value = true

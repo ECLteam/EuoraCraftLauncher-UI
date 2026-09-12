@@ -2,7 +2,11 @@ import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIntervalFn } from '@/composables/useIntervalFn'
-import { createLocalizedInfoCard, resolveInitialInfoCardView, type InfoCardView } from '@/features/game-home/model/infoCard'
+import {
+  createLocalizedInfoCard,
+  resolveInitialInfoCardView,
+  type InfoCardView,
+} from '@/features/game-home/model/infoCard'
 import { useGameHomeStore } from '@/features/game-home/stores/gameHomeStore'
 
 const WELCOME_STORAGE_KEY = 'euora-welcome-shown'

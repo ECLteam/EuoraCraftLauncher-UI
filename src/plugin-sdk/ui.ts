@@ -311,7 +311,8 @@ export function showNotification(options: NotificationOptions): () => void {
       maxWidth: '400px',
       boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
       cursor: options.onClick ? 'pointer' : 'default',
-      transition: 'opacity var(--duration-normal) var(--ease-emphasized), transform var(--duration-normal) var(--ease-emphasized)',
+      transition:
+        'opacity var(--duration-normal) var(--ease-emphasized), transform var(--duration-normal) var(--ease-emphasized)',
       opacity: '0',
       transform: 'translateX(20px)',
     },

@@ -113,7 +113,6 @@
     </div>
 
     <PluginSlotHost slotId="plugin-slot-settings-about-bottom" class="plugin-slot-container" />
-
   </div>
 </template>
 
