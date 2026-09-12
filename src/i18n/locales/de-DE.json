@@ -771,6 +771,7 @@
         "updateNow": "Jetzt aktualisieren",
         "currentVersion": "Aktuelle Version",
         "latestVersion": "Neueste Version",
+        "updateAvailableTitle": "Update verfügbar",
         "notesTitle": "Versionshinweise",
         "selfUpdateDisabled": "Diese Entwicklungsversion unterstützt kein automatisches Update"
       },

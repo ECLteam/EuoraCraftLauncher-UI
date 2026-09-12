@@ -771,6 +771,7 @@
         "updateNow": "立即更新",
         "currentVersion": "目前版本",
         "latestVersion": "最新版本",
+        "updateAvailableTitle": "發現新更新",
         "notesTitle": "更新說明",
         "selfUpdateDisabled": "目前為開發版，無法自動更新"
       },

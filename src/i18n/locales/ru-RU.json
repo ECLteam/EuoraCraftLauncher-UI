@@ -771,6 +771,7 @@
         "updateNow": "Обновить сейчас",
         "currentVersion": "Текущая версия",
         "latestVersion": "Последняя версия",
+        "updateAvailableTitle": "Доступно обновление",
         "notesTitle": "Примечания к выпуску",
         "selfUpdateDisabled": "Это среда разработки, автоматическое обновление недоступно"
       },

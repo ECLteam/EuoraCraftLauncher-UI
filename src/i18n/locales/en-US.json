@@ -771,6 +771,7 @@
         "updateNow": "Update Now",
         "currentVersion": "Current",
         "latestVersion": "Latest",
+        "updateAvailableTitle": "Update Available",
         "notesTitle": "Release Notes",
         "selfUpdateDisabled": "This development build does not support self-update"
       },

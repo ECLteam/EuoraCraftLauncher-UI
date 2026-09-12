@@ -1,13 +1,17 @@
 <template>
   <Modal
     :visible="visible"
-    :title="t('settings.aboutTab.update.title')"
+    :title="modalTitle"
     width="440px"
     :closable="!downloading"
     @update:visible="emit('update:visible', $event)"
     @close="emit('close')"
   >
     <div class="update-result-modal">
+      <div v-if="notes" class="update-result-modal__notes">
+        <p>{{ notes }}</p>
+      </div>
+
       <div class="update-result-modal__versions">
         <div class="update-result-modal__version">
           <span class="update-result-modal__label">{{ t('settings.aboutTab.update.currentVersion') }}</span>
@@ -18,11 +22,6 @@
           <span class="update-result-modal__label">{{ t('settings.aboutTab.update.latestVersion') }}</span>
           <strong class="update-result-modal__value">{{ version }}</strong>
         </div>
-      </div>
-
-      <div v-if="notes" class="update-result-modal__notes">
-        <div class="update-result-modal__notes-head">{{ t('settings.aboutTab.update.notesTitle') }}</div>
-        <p>{{ notes }}</p>
       </div>
 
       <div v-if="!selfUpdateEnabled" class="update-result-modal__hint">
@@ -55,6 +54,7 @@ import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { useUpdateCheck } from '../composables/useUpdateCheck'
+import { getUpdateModalTitle } from '../model/updateModal'
 
 defineOptions({ name: 'UpdateResultModal' })
 
@@ -81,6 +81,7 @@ const {
 const result = computed(() => lastResult.value)
 const version = computed(() => result.value?.latest_version || '')
 const notes = computed(() => result.value?.latest_notes || '')
+const modalTitle = computed(() => getUpdateModalTitle(notes.value, t))
 
 async function refresh(): Promise<void> {
   if (checking.value) return

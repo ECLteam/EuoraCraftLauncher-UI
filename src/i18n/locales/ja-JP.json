@@ -771,6 +771,7 @@
         "updateNow": "今すぐ更新",
         "currentVersion": "現在のバージョン",
         "latestVersion": "最新版",
+        "updateAvailableTitle": "新しい更新があります",
         "notesTitle": "更新情報",
         "selfUpdateDisabled": "開発版のため自動更新できません"
       },
