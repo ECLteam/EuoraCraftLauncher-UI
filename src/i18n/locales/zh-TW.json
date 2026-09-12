@@ -234,6 +234,16 @@
     "announcement": "公告",
     "noAnnouncements": "暫無公告",
     "viewAnnouncementDetails": "點選檢視詳情",
+    "infoCard": {
+      "toggleAnnouncements": "查看公告",
+      "toggleTips": "查看小提示",
+      "tips": {
+        "gameSettings": "可在設定中調整遊戲記憶體、視窗大小與 Java 路徑。",
+        "instanceSettings": "可在實例管理中為不同遊戲版本儲存獨立設定。",
+        "accounts": "帳戶管理支援離線帳戶與已擁有 Minecraft 的 Microsoft 帳戶。",
+        "dataDirectory": "插件、日誌、帳戶等可變資料統一儲存在 ECL_data 目錄。"
+      }
+    },
     "deleteConfirm": "確定要刪除帳戶 \"{name}\" 嗎？",
     "delete": "刪除",
     "switch": "切換",

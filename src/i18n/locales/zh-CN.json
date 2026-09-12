@@ -234,6 +234,16 @@
     "announcement": "公告",
     "noAnnouncements": "暂无公告",
     "viewAnnouncementDetails": "点击查看详情",
+    "infoCard": {
+      "toggleAnnouncements": "查看公告",
+      "toggleTips": "查看小贴士",
+      "tips": {
+        "gameSettings": "可以在设置中调整游戏内存、窗口大小和 Java 路径。",
+        "instanceSettings": "可以在版本管理中为不同游戏版本保存独立设置。",
+        "accounts": "账户管理支持离线账户与 Microsoft 正版账户。",
+        "dataDirectory": "插件、日志和账户等可变数据统一保存在 ECL_data 目录。"
+      }
+    },
     "deleteConfirm": "确定要删除账户 \"{name}\" 吗？",
     "delete": "删除",
     "switch": "切换",

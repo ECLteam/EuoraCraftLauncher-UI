@@ -1,14 +1,17 @@
 import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useIntervalFn } from '@/composables/useIntervalFn'
-import { resolveInitialInfoCardView, type InfoCardView } from '@/features/game-home/model/infoCard'
+import { createLocalizedInfoCard, resolveInitialInfoCardView, type InfoCardView } from '@/features/game-home/model/infoCard'
 import { useGameHomeStore } from '@/features/game-home/stores/gameHomeStore'
 
 const WELCOME_STORAGE_KEY = 'euora-welcome-shown'
 
 export function useGameInfoCard() {
   const store = useGameHomeStore()
-  const { infoCard: infoCardData } = storeToRefs(store)
+  const { infoCard: remoteInfoCard } = storeToRefs(store)
+  const { t } = useI18n()
+  const infoCardData = computed(() => createLocalizedInfoCard(remoteInfoCard.value.announcements, t))
   const infoCardMode = ref<InfoCardView>('tip')
   const isWelcome = ref(true)
   const currentTipIndex = ref(0)

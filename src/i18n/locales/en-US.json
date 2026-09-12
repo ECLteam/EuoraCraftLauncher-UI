@@ -234,6 +234,16 @@
     "announcement": "Announcement",
     "noAnnouncements": "No announcements",
     "viewAnnouncementDetails": "Click to view details",
+    "infoCard": {
+      "toggleAnnouncements": "View announcements",
+      "toggleTips": "View tips",
+      "tips": {
+        "gameSettings": "Adjust game memory, window size, and the Java path in Settings.",
+        "instanceSettings": "Save independent settings for each game instance in Instance Management.",
+        "accounts": "Account Management supports offline accounts and Microsoft accounts that own Minecraft.",
+        "dataDirectory": "Plugins, logs, accounts, and other mutable data are stored in the ECL_data directory."
+      }
+    },
     "deleteConfirm": "Are you sure you want to delete account \"{name}\"?",
     "delete": "Delete",
     "switch": "Switch",

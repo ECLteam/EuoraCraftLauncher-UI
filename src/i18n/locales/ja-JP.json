@@ -234,6 +234,16 @@
     "announcement": "お知らせ",
     "noAnnouncements": "お知らせはありません",
     "viewAnnouncementDetails": "クリックして詳細を表示",
+    "infoCard": {
+      "toggleAnnouncements": "お知らせを見る",
+      "toggleTips": "ヒントを見る",
+      "tips": {
+        "gameSettings": "設定ではゲームメモリ、ウィンドウサイズ、Java パスを調整できます。",
+        "instanceSettings": "インスタンス管理ではゲームごとに個別の設定を保存できます。",
+        "accounts": "アカウント管理はオフラインアカウントと Minecraft を所有する Microsoft アカウントに対応しています。",
+        "dataDirectory": "プラグイン、ログ、アカウントなどの可変データは ECL_data ディレクトリに保存されます。"
+      }
+    },
     "deleteConfirm": "アカウント「{name}」を削除してもよろしいですか？",
     "delete": "削除",
     "switch": "切り替え",

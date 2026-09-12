@@ -234,6 +234,16 @@
     "announcement": "Ankündigung",
     "noAnnouncements": "Keine Ankündigungen",
     "viewAnnouncementDetails": "Klicke für Details",
+    "infoCard": {
+      "toggleAnnouncements": "Ankündigungen anzeigen",
+      "toggleTips": "Tipps anzeigen",
+      "tips": {
+        "gameSettings": "In den Einstellungen lassen sich Spielspeicher, Fenstergröße und Java-Pfad anpassen.",
+        "instanceSettings": "In der Instanzverwaltung können eigene Einstellungen für jede Spielinstanz gespeichert werden.",
+        "accounts": "Die Kontoverwaltung unterstützt Offline-Konten und Microsoft-Konten mit Minecraft.",
+        "dataDirectory": "Plugins, Protokolle, Konten und andere veränderliche Daten werden im Verzeichnis ECL_data gespeichert."
+      }
+    },
     "deleteConfirm": "Möchtest du das Konto „{name}“ wirklich löschen?",
     "delete": "Löschen",
     "switch": "Wechseln",

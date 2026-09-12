@@ -6,7 +6,7 @@
       quaternary
       circle
       size="small"
-      :title="view === 'tip' ? '查看公告' : '查看小贴士'"
+      :title="view === 'tip' ? t('game.infoCard.toggleAnnouncements') : t('game.infoCard.toggleTips')"
       @click="emit('toggle')"
     >
       <template #icon><UiIcon :name="view === 'tip' ? 'bell' : 'lightbulb'" :size="14" /></template>
