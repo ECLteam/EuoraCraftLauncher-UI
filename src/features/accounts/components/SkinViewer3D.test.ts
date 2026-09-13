@@ -11,12 +11,18 @@ const viewerMocks = vi.hoisted(() => ({
   resetSkin: vi.fn(),
   resetCape: vi.fn(),
   dispose: vi.fn(),
+  setOuterLayerVisible: vi.fn(),
+  dispose3dSkinLayer: vi.fn(),
   playerRotation: { y: 0 },
   current: null as { autoRotate: boolean; animation: unknown; nameTag: unknown } | null,
 }))
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (key: string) => key }),
+}))
+
+vi.mock('./skinLayer3d', () => ({
+  createSkinLayer3d: vi.fn(() => ({ dispose: viewerMocks.dispose3dSkinLayer })),
 }))
 
 vi.mock('skinview3d', () => ({
@@ -27,7 +33,10 @@ vi.mock('skinview3d', () => ({
     autoRotateSpeed = 0
     animation: unknown = null
     nameTag: unknown = null
-    playerObject = { rotation: viewerMocks.playerRotation }
+    playerObject = {
+      rotation: viewerMocks.playerRotation,
+      skin: { setOuterLayerVisible: viewerMocks.setOuterLayerVisible },
+    }
     loadSkin = viewerMocks.loadSkin
     loadCape = viewerMocks.loadCape
     loadPanorama = viewerMocks.loadPanorama
@@ -184,6 +193,30 @@ describe('SkinViewer3D', () => {
     await wrapper.setProps({ elytra: true })
     await nextTick()
     expect(wrapper.find('[data-testid="animation-flying"]').exists()).toBe(true)
+
+    wrapper.unmount()
+  })
+
+  it('开启 3D 皮肤层时隐藏普通第二层，关闭后恢复', async () => {
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        observe() {}
+        disconnect() {}
+      }
+    )
+    const { createSkinLayer3d } = await import('./skinLayer3d')
+    const wrapper = mount(SkinViewer3D, { props: { skinUrl: 'skin-a', render3dSkinLayer: true } })
+    await nextTick()
+    await nextTick()
+
+    expect(createSkinLayer3d).toHaveBeenCalledWith(viewerMocks.current, 'classic')
+    expect(viewerMocks.setOuterLayerVisible).toHaveBeenLastCalledWith(false)
+
+    await wrapper.setProps({ render3dSkinLayer: false })
+    await nextTick()
+    expect(viewerMocks.dispose3dSkinLayer).toHaveBeenCalled()
+    expect(viewerMocks.setOuterLayerVisible).toHaveBeenLastCalledWith(true)
 
     wrapper.unmount()
   })

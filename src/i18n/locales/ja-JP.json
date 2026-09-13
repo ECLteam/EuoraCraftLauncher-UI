@@ -1604,6 +1604,8 @@
     "skinDownloaded": "アカウントのスキンをワードローブにダウンロードしました",
     "showElytra": "エリトラを表示",
     "showNameTag": "プレイヤーネームタグを表示",
+    "show3dSkinLayer": "3D スキンレイヤーを表示",
+    "threeDimensionalLayerUnavailable": "3D スキンレイヤーには標準の 64×64 スキンが必要です",
     "skinRendering": "スキンレンダリング",
     "animationIdle": "待機",
     "animationWalk": "歩き",

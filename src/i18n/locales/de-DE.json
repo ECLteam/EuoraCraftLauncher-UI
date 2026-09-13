@@ -1604,6 +1604,8 @@
     "skinDownloaded": "Konto-Skin in den Kleiderschrank geladen",
     "showElytra": "Elytren rendern",
     "showNameTag": "Spielernamen anzeigen",
+    "show3dSkinLayer": "3D-Skin-Schicht rendern",
+    "threeDimensionalLayerUnavailable": "3D-Skin-Schichten benötigen einen Standardskin mit 64×64 Pixeln",
     "skinRendering": "Skin-Darstellung",
     "animationIdle": "Stillstehen",
     "animationWalk": "Gehen",

@@ -47,6 +47,7 @@ import {
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
+import { createSkinLayer3d } from '@/features/accounts/components/skinLayer3d'
 import type { SkinModel } from '@/types/accounts'
 
 const props = withDefaults(
@@ -56,8 +57,9 @@ const props = withDefaults(
     model?: SkinModel
     elytra?: boolean
     nameTag?: string
+    render3dSkinLayer?: boolean
   }>(),
-  { skinUrl: '', capeUrl: '', model: 'classic', elytra: false, nameTag: '' }
+  { skinUrl: '', capeUrl: '', model: 'classic', elytra: false, nameTag: '', render3dSkinLayer: false }
 )
 
 const containerRef = ref<HTMLElement | null>(null)
@@ -68,6 +70,7 @@ const activeAnimation = ref('')
 const { t } = useI18n()
 let viewer: SkinViewer | null = null
 let resizeObserver: ResizeObserver | null = null
+let skinLayer3d: { dispose: () => void } | null = null
 
 const ANIMATIONS = [
   { key: 'idle', label: t('wardrobe.animationIdle'), create: () => new IdleAnimation() },
@@ -118,16 +121,31 @@ function resizeViewer(): void {
 async function loadSkin(): Promise<void> {
   if (!viewer) return
   error.value = ''
+  reset3dSkinLayer()
   try {
     if (!props.skinUrl) {
       viewer.resetSkin()
       return
     }
     await viewer.loadSkin(props.skinUrl, { model: props.model === 'slim' ? 'slim' : 'default' })
+    sync3dSkinLayer()
   } catch {
     error.value = '皮肤纹理加载失败'
     viewer.resetSkin()
   }
+}
+
+function reset3dSkinLayer(): void {
+  skinLayer3d?.dispose()
+  skinLayer3d = null
+  viewer?.playerObject.skin.setOuterLayerVisible(true)
+}
+
+function sync3dSkinLayer(): void {
+  reset3dSkinLayer()
+  if (!viewer || !props.render3dSkinLayer || !props.skinUrl) return
+  skinLayer3d = createSkinLayer3d(viewer, props.model)
+  if (skinLayer3d) viewer.playerObject.skin.setOuterLayerVisible(false)
 }
 
 async function loadCape(): Promise<void> {
@@ -166,10 +184,12 @@ onMounted(async () => {
 watch(() => [props.skinUrl, props.model], loadSkin)
 watch(() => [props.capeUrl, props.elytra], loadCape)
 watch(() => props.nameTag, applyNameTag)
+watch(() => props.render3dSkinLayer, sync3dSkinLayer)
 
 onBeforeUnmount(() => {
   resizeObserver?.disconnect()
   resizeObserver = null
+  reset3dSkinLayer()
   // skinview3d 持有 WebGL 纹理和动画帧，组件退出时必须显式释放。
   viewer?.dispose()
   viewer = null
