@@ -96,6 +96,7 @@
         <section class="account-list-panel ecl-surface">
           <div class="account-panel-header">
             <div class="account-panel-heading">
+              <UiIcon name="users" :size="16" />
               <span>{{ t('game.savedAccounts') }}</span>
               <NTag v-if="account.accounts.length" size="small" :bordered="false">
                 {{ account.accounts.length }}
@@ -103,7 +104,7 @@
             </div>
             <div class="account-panel-actions">
               <NButton size="small" @click="openWardrobeModal">
-                <template #icon><UiIcon name="wardrobe" :size="14" /></template>
+                <template #icon><UiIcon name="shirt" :size="14" /></template>
                 {{ t('wardrobe.title') }}
               </NButton>
               <NButton type="primary" size="small" @click="openAddAccountModal">
