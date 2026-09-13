@@ -1,4 +1,4 @@
-import { Group } from 'three'
+import { BoxGeometry, Group, Mesh, MeshStandardMaterial } from 'three'
 import { describe, expect, it, vi } from 'vitest'
 import { createSkinLayer3d } from './skinLayer3d'
 
@@ -9,7 +9,7 @@ function createViewer(
 ): Parameters<typeof createSkinLayer3d>[0] {
   const outerLayers = Array.from({ length: 6 }, () => {
     const parent = new Group()
-    const outerLayer = new Group()
+    const outerLayer = new Mesh(new BoxGeometry(1, 1, 1), new MeshStandardMaterial())
     parent.add(outerLayer)
     return outerLayer
   })
@@ -43,13 +43,13 @@ describe('createSkinLayer3d', () => {
     const frontHeadPixelOffset = (8 * 64 + 40) * 4
     pixels.set([255, 0, 0, 255], frontHeadPixelOffset)
     const viewer = createViewer(64, 64, pixels)
-    const headParent = viewer.playerObject.skin.head.outerLayer.parent as Group | null
+    const headLayer = viewer.playerObject.skin.head.outerLayer as unknown as Mesh
 
     const layer = createSkinLayer3d(viewer, 'classic')
 
     expect(layer).not.toBeNull()
-    expect(headParent?.children).toHaveLength(2)
+    expect(headLayer.children).toHaveLength(1)
     layer?.dispose()
-    expect(headParent?.children).toHaveLength(1)
+    expect(headLayer.children).toHaveLength(0)
   })
 })

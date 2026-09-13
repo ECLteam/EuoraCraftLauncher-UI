@@ -1,5 +1,3 @@
-import { BoxGeometry, Group, Mesh, MeshStandardMaterial, type Object3D } from 'three'
-
 type SkinPartName = 'head' | 'body' | 'rightArm' | 'leftArm' | 'rightLeg' | 'leftLeg'
 type Face = 'top' | 'bottom' | 'left' | 'front' | 'right' | 'back'
 
@@ -19,12 +17,45 @@ interface PixelColor {
   alpha: number
 }
 
+interface CompatibleGeometry {
+  clone(): CompatibleGeometry
+  scale(x: number, y: number, z: number): CompatibleGeometry
+  dispose(): void
+  parameters?: { width?: number; height?: number; depth?: number }
+}
+
+interface CompatibleMaterial {
+  clone(): CompatibleMaterial
+  dispose(): void
+  map: unknown
+  color: { setRGB(red: number, green: number, blue: number): void }
+  transparent: boolean
+  opacity: number
+  alphaTest: number
+  needsUpdate: boolean
+}
+
+interface CompatibleObject {
+  parent: CompatibleObject | null
+  add(object: CompatibleObject): void
+  remove(object: CompatibleObject): void
+  position: { set(x: number, y: number, z: number): void }
+  scale: { x: number; y: number; z: number }
+}
+
+interface CompatibleMesh extends CompatibleObject {
+  geometry: CompatibleGeometry
+  material: CompatibleMaterial
+}
+
+type CompatibleMeshConstructor = new (geometry: CompatibleGeometry, material: CompatibleMaterial) => CompatibleMesh
+
 type SkinLayerViewer = {
   skinCanvas: HTMLCanvasElement
   playerObject: {
     skin: {
       [partName in SkinPartName]: {
-        outerLayer: { parent: unknown }
+        outerLayer: unknown
       }
     }
   }
@@ -85,10 +116,10 @@ function positionVoxel(
   }
 }
 
-function geometryForFace(face: Face): BoxGeometry {
-  if (face === 'left' || face === 'right') return new BoxGeometry(voxelDepth, 1, 1)
-  if (face === 'top' || face === 'bottom') return new BoxGeometry(1, voxelDepth, 1)
-  return new BoxGeometry(1, 1, voxelDepth)
+function voxelDimensions(face: Face): { x: number; y: number; z: number } {
+  if (face === 'left' || face === 'right') return { x: voxelDepth, y: 1, z: 1 }
+  if (face === 'top' || face === 'bottom') return { x: 1, y: voxelDepth, z: 1 }
+  return { x: 1, y: 1, z: voxelDepth }
 }
 
 function skinParts(model: 'classic' | 'slim'): SkinPartDefinition[] {
@@ -103,11 +134,35 @@ function skinParts(model: 'classic' | 'slim'): SkinPartDefinition[] {
   ]
 }
 
+function createVoxelGeometry(outerLayer: CompatibleMesh, face: Face): CompatibleGeometry {
+  const dimensions = voxelDimensions(face)
+  const source = outerLayer.geometry.parameters ?? {}
+  const scale = outerLayer.scale
+  return outerLayer.geometry
+    .clone()
+    .scale(
+      dimensions.x / ((source.width ?? 1) * scale.x),
+      dimensions.y / ((source.height ?? 1) * scale.y),
+      dimensions.z / ((source.depth ?? 1) * scale.z)
+    )
+}
+
+function createVoxelMaterial(outerLayer: CompatibleMesh, color: PixelColor): CompatibleMaterial {
+  const material = outerLayer.material.clone()
+  material.map = null
+  material.color.setRGB(color.red / 255, color.green / 255, color.blue / 255)
+  material.transparent = color.alpha < 255
+  material.opacity = color.alpha / 255
+  material.alphaTest = 0.01
+  material.needsUpdate = true
+  return material
+}
+
 /**
  * 为标准皮肤的第二层建立逐像素的挤出模型。
  *
- * 该实现只读取 64×64 皮肤的标准第二层区域。每个非透明像素都会成为一个
- * 有厚度的方块，挂在 skinview3d 对应肢体的动画节点下，因此会随现有动作转动。
+ * 像素网格、材质与构造器均从 skinview3d 已创建的第二层网格派生，确保它们和
+ * skinview3d 的渲染器使用同一份 Three.js 运行时，避免跨版本对象导致 WebGL 崩溃。
  */
 export function createSkinLayer3d(viewer: SkinLayerViewer, model: 'classic' | 'slim'): { dispose: () => void } | null {
   const canvas = viewer.skinCanvas
@@ -117,47 +172,41 @@ export function createSkinLayer3d(viewer: SkinLayerViewer, model: 'classic' | 's
   if (!context) return null
 
   const pixels = context.getImageData(0, 0, standardSkinSize, standardSkinSize).data
-  const partGroups: Group[] = []
-  const geometries = new Map<Face, BoxGeometry>()
-  const materials = new Map<string, MeshStandardMaterial>()
+  const voxels: CompatibleMesh[] = []
+  const geometries = new Map<string, CompatibleGeometry>()
+  const materials = new Map<string, CompatibleMaterial>()
 
   for (const part of skinParts(model)) {
-    const outerLayerParent = viewer.playerObject.skin[part.name].outerLayer.parent as Object3D | null
-    if (!outerLayerParent) continue
-
-    const partGroup = new Group()
+    const outerLayer = viewer.playerObject.skin[part.name].outerLayer as CompatibleMesh
+    const meshConstructor = outerLayer.constructor as CompatibleMeshConstructor
     for (const textureFace of textureFaces(part)) {
-      const geometry = geometries.get(textureFace.face) ?? geometryForFace(textureFace.face)
-      geometries.set(textureFace.face, geometry)
+      const geometryKey = `${part.name}-${textureFace.face}`
+      const geometry = geometries.get(geometryKey) ?? createVoxelGeometry(outerLayer, textureFace.face)
+      geometries.set(geometryKey, geometry)
       for (let row = 0; row < textureFace.height; row += 1) {
         for (let column = 0; column < textureFace.width; column += 1) {
           const color = colorAt(pixels, textureFace.u + column, textureFace.v + row)
           if (color.alpha === 0) continue
           const materialKey = `${color.red},${color.green},${color.blue},${color.alpha}`
-          let material = materials.get(materialKey)
-          if (!material) {
-            material = new MeshStandardMaterial({
-              color: `rgb(${color.red}, ${color.green}, ${color.blue})`,
-              transparent: color.alpha < 255,
-              opacity: color.alpha / 255,
-              alphaTest: 0.01,
-            })
-            materials.set(materialKey, material)
-          }
-          const voxel = new Mesh(geometry, material)
+          const material = materials.get(materialKey) ?? createVoxelMaterial(outerLayer, color)
+          materials.set(materialKey, material)
+          const voxel = new meshConstructor(geometry, material)
           const position = positionVoxel(textureFace.face, column, row, part.width, part.height, part.depth)
-          voxel.position.set(position.x, position.y, position.z)
-          partGroup.add(voxel)
+          voxel.position.set(
+            position.x / outerLayer.scale.x,
+            position.y / outerLayer.scale.y,
+            position.z / outerLayer.scale.z
+          )
+          outerLayer.add(voxel)
+          voxels.push(voxel)
         }
       }
     }
-    outerLayerParent.add(partGroup)
-    partGroups.push(partGroup)
   }
 
   return {
     dispose: () => {
-      for (const partGroup of partGroups) partGroup.parent?.remove(partGroup)
+      for (const voxel of voxels) voxel.parent?.remove(voxel)
       for (const geometry of geometries.values()) geometry.dispose()
       for (const material of materials.values()) material.dispose()
     },
