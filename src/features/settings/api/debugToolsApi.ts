@@ -5,7 +5,7 @@ import type { DebugMaintenanceResult } from '@/types/system'
 
 export const debugToolsApi = {
   async resetLauncherData(): Promise<DebugMaintenanceResult> {
-    const result = assertSuccess(await backend.command('debug_reset_launcher_data'), '安排还原启动器数据')
+    const result = assertSuccess(await backend.command('debug_reset_launcher_data'), '安排还原启动器设置')
     clearLauncherPopupCache()
     return result
   },

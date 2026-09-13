@@ -51,7 +51,7 @@ describe('DevTools danger actions', () => {
     mocks.resetLauncherData.mockResolvedValue({
       action: 'reset_launcher_data',
       restart_required: true,
-      targets: ['setting.json', 'accounts', 'info_card.json'],
+      targets: ['setting.json', 'info_card.json', 'notice.json'],
     })
     const wrapper = mountDevTools()
     const resetButton = wrapper.findAll('.danger-action-card button')[0]
