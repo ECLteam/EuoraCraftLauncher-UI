@@ -62,6 +62,18 @@
   background: var(--error);
 }
 
+.titlebar-mode-badge--alpha {
+  background: #d97706;
+}
+
+.titlebar-mode-badge--beta {
+  background: #6366f1;
+}
+
+.titlebar-mode-badge--rc {
+  background: #0f766e;
+}
+
 .titlebar-back-btn {
   display: flex;
   align-items: center;

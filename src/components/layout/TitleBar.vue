@@ -41,6 +41,15 @@
           >
             SHOWCASE
           </span>
+          <span
+            v-if="releaseChannelLabel"
+            class="titlebar-mode-badge"
+            :class="`titlebar-mode-badge--${releaseChannelType}`"
+            :title="`${releaseChannelLabel} 预发布版本`"
+            :aria-label="`${releaseChannelLabel} 预发布版本`"
+          >
+            {{ releaseChannelLabel }}
+          </span>
         </div>
         <PluginSlotHost slotId="plugin-slot-titlebar-left" class="plugin-slot-container" />
       </template>
@@ -99,6 +108,7 @@ import { useTheme } from '@/composables/useTheme'
 import { useTopNav } from '@/composables/useTopNav'
 import { MENU_ITEMS } from '@/constants/menu'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
+import { titlebarVersionChannelLabel } from './titlebarVersionChannel'
 
 defineOptions({ name: 'TitleBar' })
 
@@ -117,7 +127,10 @@ const isDesktopMode = backend.runtime.isDesktop
 const isShowcaseMode = backend.runtime.isShowcase
 const isDevMode = import.meta.env.DEV
 const injectedDevMode = inject<Readonly<Ref<boolean>>>('devMode')
+const injectedLauncherVersionType = inject<Readonly<Ref<'alpha' | 'beta' | 'rc' | 'release'>>>('launcherVersionType')
 const isDebugMode = computed(() => injectedDevMode?.value ?? false)
+const releaseChannelType = computed(() => injectedLauncherVersionType?.value ?? 'release')
+const releaseChannelLabel = computed(() => titlebarVersionChannelLabel(releaseChannelType.value))
 
 const menuItems = computed(() =>
   MENU_ITEMS.map((item) => ({
