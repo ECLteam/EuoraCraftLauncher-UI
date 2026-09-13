@@ -10,10 +10,6 @@
     <div class="wardrobe-page">
       <main class="wardrobe-content">
         <section class="wardrobe-library ecl-surface">
-          <div class="wardrobe-panel-heading">
-            <UiIcon name="shirt" :size="16" />
-            <span>{{ t('wardrobe.title') }}</span>
-          </div>
           <div class="wardrobe-toolbar">
             <div class="wardrobe-account-row">
               <span>{{ t('wardrobe.accountLabel') }}</span>
@@ -220,10 +216,7 @@
 
         <section class="wardrobe-preview ecl-surface">
           <div class="wardrobe-preview-options">
-            <div class="wardrobe-preview-heading">
-              <UiIcon name="eye" :size="16" />
-              <span class="wardrobe-preview-label">{{ t('wardrobe.skinRendering') }}</span>
-            </div>
+            <span class="wardrobe-preview-label">{{ t('wardrobe.skinRendering') }}</span>
             <div class="wardrobe-preview-toggles">
               <NCheckbox v-model:checked="showElytra" size="small">{{ t('wardrobe.showElytra') }}</NCheckbox>
               <NCheckbox v-model:checked="showNameTag" size="small">{{ t('wardrobe.showNameTag') }}</NCheckbox>
@@ -727,16 +720,6 @@ async function downloadSkin(): Promise<void> {
   display: flex;
   flex-direction: column;
   padding: var(--s-md);
-}
-
-.wardrobe-panel-heading,
-.wardrobe-preview-heading {
-  display: flex;
-  align-items: center;
-  gap: var(--s-xs);
-  color: var(--text-secondary);
-  font-size: 14px;
-  font-weight: 600;
 }
 
 .wardrobe-toolbar {
