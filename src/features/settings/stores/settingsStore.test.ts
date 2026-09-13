@@ -37,7 +37,9 @@ describe('settingsStore', () => {
 
     expect(store.status).toBe('ready')
     expect(store.game.java_auto).toBe(true)
-    expect(store.game.instance_isolation_policy).toBe('modded_only')
+    expect(store.game.instance_isolation_policy).toBe('all')
+    expect(store.game.game_args_tail).toBe('')
+    expect(store.game.disable_crash_analysis).toBe(false)
     expect(store.game.minecraft_paths).toEqual([{ name: '主目录', path: 'D:/Minecraft' }])
     expect(store.download.mirror_source).toBe('bmclapi')
   })

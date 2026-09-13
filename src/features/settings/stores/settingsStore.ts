@@ -15,7 +15,12 @@ const DEFAULT_GAME_CONFIG: GameConfig = {
   game_width: 854,
   game_height: 480,
   fullscreen: false,
-  instance_isolation_policy: 'modded_only',
+  instance_isolation_policy: 'all',
+  game_args_tail: '',
+  pre_launch_command: '',
+  prefer_high_performance_gpu: false,
+  use_java_exe: false,
+  disable_crash_analysis: false,
   active_path: '',
 }
 

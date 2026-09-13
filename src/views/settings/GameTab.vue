@@ -120,10 +120,6 @@
         </div>
       </div>
 
-      <SettingRow :label="t('settings.lockMemory')" :description="t('settings.lockMemoryDesc')">
-        <NSwitch :value="localSettings.lock_memory" @update:value="handleLockMemoryToggle" />
-      </SettingRow>
-
       <SettingRow :label="t('settings.processPriority')" :description="t('settings.processPriorityDesc')">
         <NSelect
           :value="localSettings.process_priority || 'normal'"
@@ -140,7 +136,7 @@
         :description="t('settings.instanceIsolationPolicyDesc')"
       >
         <NSelect
-          :value="localSettings.instance_isolation_policy || 'modded_only'"
+          :value="localSettings.instance_isolation_policy || 'all'"
           :options="isolationPolicyOptions"
           class="process-priority-select"
           @update:value="handleIsolationPolicyChange"
@@ -180,12 +176,47 @@
       </SettingRow>
     </SettingSection>
 
+    <SettingSection :title="t('settings.launchAdvanced')">
+      <SettingRow :label="t('settings.gameArgsTail')" :description="t('settings.gameArgsTailDesc')">
+        <NInput
+          v-model:value="localSettings.game_args_tail"
+          type="textarea"
+          :autosize="{ minRows: 2, maxRows: 4 }"
+          :placeholder="t('settings.gameArgsTailPlaceholder')"
+          @blur="saveConfig"
+        />
+      </SettingRow>
+
+      <SettingRow :label="t('settings.preLaunchCommand')" :description="t('settings.preLaunchCommandDesc')">
+        <NInput v-model:value="localSettings.pre_launch_command" @blur="saveConfig" />
+      </SettingRow>
+
+      <SettingRow
+        :label="t('settings.preferHighPerformanceGpu')"
+        :description="t('settings.preferHighPerformanceGpuDesc')"
+      >
+        <NSwitch :value="localSettings.prefer_high_performance_gpu" @update:value="handleGpuPreferenceToggle" />
+      </SettingRow>
+
+      <SettingRow :label="t('settings.useJavaExe')" :description="t('settings.useJavaExeDesc')">
+        <NSwitch :value="localSettings.use_java_exe" @update:value="handleUseJavaExeToggle" />
+      </SettingRow>
+
+      <SettingRow :label="t('settings.disableCrashAnalysis')" :description="t('settings.disableCrashAnalysisDesc')">
+        <NSwitch :value="localSettings.disable_crash_analysis" @update:value="handleDisableCrashAnalysisToggle" />
+      </SettingRow>
+
+      <SettingRow :label="t('settings.lockMemory')" :description="t('settings.lockMemoryDesc')">
+        <NSwitch :value="localSettings.lock_memory" @update:value="handleLockMemoryToggle" />
+      </SettingRow>
+    </SettingSection>
+
     <PluginSlotHost slotId="plugin-slot-settings-game-section-after" class="plugin-slot-container" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { NInputNumber, NButton, NSelect, NSwitch } from 'naive-ui'
+import { NButton, NInput, NInputNumber, NSelect, NSwitch } from 'naive-ui'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -362,7 +393,12 @@ const saveConfig = async () => {
     game_width: localSettings.value.game_width,
     game_height: localSettings.value.game_height,
     fullscreen: localSettings.value.fullscreen,
-    instance_isolation_policy: localSettings.value.instance_isolation_policy || 'modded_only',
+    instance_isolation_policy: localSettings.value.instance_isolation_policy || 'all',
+    game_args_tail: localSettings.value.game_args_tail || '',
+    pre_launch_command: localSettings.value.pre_launch_command || '',
+    prefer_high_performance_gpu: localSettings.value.prefer_high_performance_gpu === true,
+    use_java_exe: localSettings.value.use_java_exe === true,
+    disable_crash_analysis: localSettings.value.disable_crash_analysis === true,
   }
   await run(async () => settingsStore.patchGame(config))
 }
@@ -410,6 +446,21 @@ const handleFullscreenToggle = (value: boolean) => {
 
 const handleIsolationPolicyChange = (value: InstanceIsolationPolicy) => {
   localSettings.value.instance_isolation_policy = value
+  saveConfig()
+}
+
+const handleGpuPreferenceToggle = (value: boolean) => {
+  localSettings.value.prefer_high_performance_gpu = value
+  saveConfig()
+}
+
+const handleUseJavaExeToggle = (value: boolean) => {
+  localSettings.value.use_java_exe = value
+  saveConfig()
+}
+
+const handleDisableCrashAnalysisToggle = (value: boolean) => {
+  localSettings.value.disable_crash_analysis = value
   saveConfig()
 }
 

@@ -58,6 +58,16 @@ export interface GameConfig {
   fullscreen?: boolean
   /** 实例未设置覆盖时使用的游戏目录隔离策略。 */
   instance_isolation_policy?: InstanceIsolationPolicy
+  /** 在 Minecraft 原始游戏参数后追加的全局参数文本。 */
+  game_args_tail?: string
+  /** 创建 Minecraft 进程前执行的全局命令。 */
+  pre_launch_command?: string
+  /** Windows 下将 Java 可执行文件登记为高性能 GPU 偏好。 */
+  prefer_high_performance_gpu?: boolean
+  /** Windows 下优先使用 java.exe 而不是 javaw.exe。 */
+  use_java_exe?: boolean
+  /** 是否禁止异常退出后的自动崩溃报告分析。 */
+  disable_crash_analysis?: boolean
   last_install_path?: string
   last_manage_path?: string
   /** 当前激活的游戏路径（用于确定启动哪个路径下的实例） */
