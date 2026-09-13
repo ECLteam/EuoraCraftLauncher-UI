@@ -14,8 +14,8 @@ const WELCOME_STORAGE_KEY = 'euora-welcome-shown'
 export function useGameInfoCard() {
   const store = useGameHomeStore()
   const { infoCard: remoteInfoCard } = storeToRefs(store)
-  const { t } = useI18n()
-  const infoCardData = computed(() => createLocalizedInfoCard(remoteInfoCard.value.announcements, t))
+  const { t, locale } = useI18n()
+  const infoCardData = computed(() => createLocalizedInfoCard(remoteInfoCard.value.announcements, t, locale.value))
   const infoCardMode = ref<InfoCardView>('tip')
   const isWelcome = ref(true)
   const currentTipIndex = ref(0)

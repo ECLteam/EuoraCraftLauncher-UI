@@ -187,6 +187,12 @@ export interface InfoCardAnnouncement {
   title: string
   date: string
   content: string
+  locales?: Record<string, InfoCardAnnouncementTranslation>
+}
+
+export interface InfoCardAnnouncementTranslation {
+  title: string
+  content: string
 }
 
 export interface InfoCardWelcome {

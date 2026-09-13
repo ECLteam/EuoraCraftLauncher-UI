@@ -18,7 +18,8 @@ export const EMPTY_INFO_CARD: InfoCardData = {
  */
 export function createLocalizedInfoCard(
   announcements: InfoCardAnnouncement[],
-  t: (key: string) => string
+  t: (key: string) => string,
+  locale = 'zh-CN'
 ): InfoCardData {
   return {
     mode: 'rotate',
@@ -30,13 +31,23 @@ export function createLocalizedInfoCard(
       t('game.infoCard.tips.accounts'),
       t('game.infoCard.tips.dataDirectory'),
     ],
-    announcements,
+    announcements: localizeAnnouncements(announcements, locale),
     welcome: {
       title: t('game.welcomeTitle'),
       content: t('game.welcomeContent'),
     },
     interval: 8000,
   }
+}
+
+/**
+ * 为当前界面语言选择远程公告文案，并提供稳定的中文与默认文案回退。
+ */
+export function localizeAnnouncements(announcements: InfoCardAnnouncement[], locale: string): InfoCardAnnouncement[] {
+  return announcements.map((announcement) => {
+    const translation = announcement.locales?.[locale] ?? announcement.locales?.['zh-CN']
+    return translation ? { ...announcement, ...translation } : announcement
+  })
 }
 
 export function normalizeInfoCard(data?: Partial<InfoCardData> | null): InfoCardData {
