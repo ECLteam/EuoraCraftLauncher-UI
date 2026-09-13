@@ -10,6 +10,10 @@
     <div class="wardrobe-page">
       <main class="wardrobe-content">
         <section class="wardrobe-library ecl-surface">
+          <div class="wardrobe-panel-heading">
+            <UiIcon name="shirt" :size="16" />
+            <span>{{ t('wardrobe.title') }}</span>
+          </div>
           <div class="wardrobe-toolbar">
             <div class="wardrobe-account-row">
               <span>{{ t('wardrobe.accountLabel') }}</span>
@@ -82,7 +86,7 @@
             {{ t('wardrobe.localCapePreviewOnly') }}
           </NAlert>
 
-          <NSpin :show="loading">
+          <NSpin :show="loading" class="wardrobe-library-content">
             <div v-if="activeTab !== 'official' && filteredItems.length" class="wardrobe-grid">
               <div
                 v-for="item in filteredItems"
@@ -208,13 +212,18 @@
                 </div>
               </div>
             </div>
-            <NEmpty v-else class="wardrobe-empty" :description="emptyDescription" />
+            <div v-else class="wardrobe-empty-state">
+              <NEmpty class="wardrobe-empty" :description="emptyDescription" />
+            </div>
           </NSpin>
         </section>
 
         <section class="wardrobe-preview ecl-surface">
           <div class="wardrobe-preview-options">
-            <span class="wardrobe-preview-label">{{ t('wardrobe.skinRendering') }}</span>
+            <div class="wardrobe-preview-heading">
+              <UiIcon name="eye" :size="16" />
+              <span class="wardrobe-preview-label">{{ t('wardrobe.skinRendering') }}</span>
+            </div>
             <div class="wardrobe-preview-toggles">
               <NCheckbox v-model:checked="showElytra" size="small">{{ t('wardrobe.showElytra') }}</NCheckbox>
               <NCheckbox v-model:checked="showNameTag" size="small">{{ t('wardrobe.showNameTag') }}</NCheckbox>
@@ -720,6 +729,16 @@ async function downloadSkin(): Promise<void> {
   padding: var(--s-md);
 }
 
+.wardrobe-panel-heading,
+.wardrobe-preview-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--s-xs);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
 .wardrobe-toolbar {
   display: flex;
   align-items: stretch;
@@ -784,6 +803,25 @@ html[data-theme='dark'] .wardrobe-category-row :deep(.n-button.n-button--primary
   width: min(280px, 100%);
   min-width: 180px;
   flex: 1 1 220px;
+}
+
+.wardrobe-library-content,
+.wardrobe-library-content :deep(.n-spin-content) {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+}
+
+.wardrobe-library-content :deep(.n-spin-content) > .wardrobe-grid {
+  min-height: 0;
+  flex: 1;
+}
+
+.wardrobe-empty-state {
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  place-items: center;
 }
 
 .wardrobe-grid {
@@ -880,7 +918,6 @@ html[data-theme='dark'] .wardrobe-category-row :deep(.n-button.n-button--primary
 }
 
 .wardrobe-preview-label {
-  padding-left: 4px;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-secondary);
@@ -929,7 +966,7 @@ html[data-theme='dark'] .wardrobe-category-row :deep(.n-button.n-button--primary
 }
 
 .wardrobe-empty {
-  margin: auto;
+  margin: 0;
 }
 
 @media (max-width: 1100px) {
