@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import type { SchematicAssetsBundle, SchematicPreviewData } from '@/types/api'
-import { buildSchematicStructure, computeWorldBox, normalizeBlockModelTextures } from './schematicStructureRenderer'
+import {
+  buildSchematicPreview,
+  buildSchematicStructure,
+  computeWorldBox,
+  maxDetailedBlocks,
+  normalizeBlockModelTextures,
+} from './schematicStructureRenderer'
 
 const assets: SchematicAssetsBundle = {
   blockstates: { 'minecraft:stone': {} },
@@ -59,5 +65,25 @@ describe('schematicStructureRenderer', () => {
         overlay: 'minecraft:block/redstone_dust_overlay',
       },
     })
+  })
+
+  it('在超过模型方块上限时限制预览结构规模', () => {
+    const largePreview: SchematicPreviewData = {
+      type: 'schem',
+      size: [maxDetailedBlocks + 1, 1, 1],
+      regions: [
+        {
+          name: 'large',
+          position: [0, 0, 0],
+          size: [maxDetailedBlocks + 1, 1, 1],
+          palette: [{ name: 'minecraft:stone', properties: {}, color: [128, 128, 128] }],
+          indices: Array.from({ length: maxDetailedBlocks + 1 }, () => 0),
+        },
+      ],
+    }
+    const result = buildSchematicPreview(largePreview, assets, computeWorldBox(largePreview))
+    expect(result.stats.simplified).toBe(true)
+    expect(result.stats.renderedBlocks).toBeLessThanOrEqual(maxDetailedBlocks)
+    expect(result.structure.getBlocks()).toHaveLength(result.stats.renderedBlocks)
   })
 })

@@ -12,6 +12,7 @@ import { mat4, vec3 } from 'gl-matrix'
 import type { SchematicAssetsBundle, SchematicPreviewData, SchematicRegionData } from '@/types/api'
 
 const fallbackBlock = 'minecraft:stone'
+export const maxDetailedBlocks = 24000
 
 const semiTransparentKeywords = [
   'glass',
@@ -79,6 +80,12 @@ export interface WorldBox {
   width: number
   height: number
   depth: number
+}
+
+export interface SchematicRenderStats {
+  totalBlocks: number
+  renderedBlocks: number
+  simplified: boolean
 }
 
 function isAir(name: string): boolean {
@@ -239,11 +246,13 @@ function addRegionBlocks(
   region: SchematicRegionData,
   box: WorldBox,
   bundle: SchematicAssetsBundle,
-  visibleLayers: number
-): void {
+  visibleLayers: number,
+  sampleEvery: number
+): number {
   const [width = 0, height = 0, depth = 0] = region.size
   const [originX = 0, originY = 0, originZ = 0] = region.position
-  if (!width || !height || !depth) return
+  if (!width || !height || !depth) return 0
+  let renderedBlocks = 0
   for (let index = 0; index < region.indices.length; index += 1) {
     const paletteIndex = region.indices[index]
     const entry = paletteIndex === undefined ? undefined : region.palette[paletteIndex]
@@ -254,9 +263,44 @@ function addRegionBlocks(
     const y = Math.floor(row / depth)
     const worldY = originY + y - box.minY
     if (worldY >= visibleLayers) continue
+    if (sampleEvery > 1 && index % sampleEvery !== 0) continue
     const name = bundle.blockstates[entry.name] ? entry.name : fallbackBlock
     structure.addBlock([originX + x - box.minX, worldY, originZ + z - box.minZ], name, entry.properties)
+    renderedBlocks += 1
   }
+  return renderedBlocks
+}
+
+function countVisibleBlocks(data: SchematicPreviewData, visibleLayers: number, box: WorldBox): number {
+  let total = 0
+  for (const region of data.regions) {
+    const [width = 0, , depth = 0] = region.size
+    const [, originY = 0] = region.position
+    if (!width || !depth) continue
+    for (let index = 0; index < region.indices.length; index += 1) {
+      const entry = region.palette[region.indices[index] ?? -1]
+      const row = Math.floor(index / width)
+      const y = Math.floor(row / depth)
+      if (entry && !isAir(entry.name) && originY + y - box.minY < visibleLayers) total += 1
+    }
+  }
+  return total
+}
+
+export function buildSchematicPreview(
+  data: SchematicPreviewData,
+  bundle: SchematicAssetsBundle,
+  box: WorldBox,
+  visibleLayers = box.height,
+  detailLimit = maxDetailedBlocks
+): { structure: Structure; stats: SchematicRenderStats } {
+  const totalBlocks = countVisibleBlocks(data, visibleLayers, box)
+  const sampleEvery = Math.max(1, Math.ceil(totalBlocks / Math.max(1, detailLimit)))
+  const structure = new Structure([box.width, box.height, box.depth])
+  let renderedBlocks = 0
+  for (const region of data.regions)
+    renderedBlocks += addRegionBlocks(structure, region, box, bundle, visibleLayers, sampleEvery)
+  return { structure, stats: { totalBlocks, renderedBlocks, simplified: sampleEvery > 1 } }
 }
 
 export function buildSchematicStructure(
@@ -265,9 +309,7 @@ export function buildSchematicStructure(
   box: WorldBox,
   visibleLayers = box.height
 ): Structure {
-  const structure = new Structure([box.width, box.height, box.depth])
-  for (const region of data.regions) addRegionBlocks(structure, region, box, bundle, visibleLayers)
-  return structure
+  return buildSchematicPreview(data, bundle, box, visibleLayers, Number.MAX_SAFE_INTEGER).structure
 }
 
 export class SchematicStructureViewer {
@@ -280,8 +322,9 @@ export class SchematicStructureViewer {
   private readonly removers: Array<() => void> = []
   private renderer: StructureRenderer | null = null
   private readonly cameraPosition = vec3.create()
-  private yaw = 0.55
-  private pitch = 0.72
+  private yaw = 0.5
+  private pitch = 0.8
+  private renderStats: SchematicRenderStats = { totalBlocks: 0, renderedBlocks: 0, simplified: false }
   private animationFrame = 0
   private disposed = false
 
@@ -299,22 +342,26 @@ export class SchematicStructureViewer {
     this.bundle = bundle
     this.resources = resources
     this.box = computeWorldBox(data)
-    const distance = Math.max(this.box.width, this.box.height, this.box.depth) * 1.8
-    vec3.set(this.cameraPosition, -distance, -distance * 0.62, -distance)
+    this.resetView()
     this.setVisibleLayers(this.box.height)
     this.bindControls()
     this.drawLoop()
   }
 
   setVisibleLayers(value: number): void {
-    const structure = buildSchematicStructure(this.data, this.bundle, this.box, Math.max(1, value))
+    const preview = buildSchematicPreview(this.data, this.bundle, this.box, Math.max(1, value))
+    this.renderStats = preview.stats
     if (this.renderer) {
-      this.renderer.setStructure(structure)
-      this.renderer.updateStructureBuffers()
+      // setStructure 内部已重建缓冲；重复调用会把大型原理图的主线程开销翻倍。
+      this.renderer.setStructure(preview.structure)
       return
     }
-    this.renderer = new StructureRenderer(this.gl, structure, this.resources, { chunkSize: 8 })
+    this.renderer = new StructureRenderer(this.gl, preview.structure, this.resources, { chunkSize: 8 })
     this.resize()
+  }
+
+  getRenderStats(): SchematicRenderStats {
+    return this.renderStats
   }
 
   resize(): void {
@@ -333,10 +380,9 @@ export class SchematicStructureViewer {
   }
 
   resetView(): void {
-    const distance = Math.max(this.box.width, this.box.height, this.box.depth) * 1.8
-    vec3.set(this.cameraPosition, -distance, -distance * 0.62, -distance)
-    this.yaw = 0.55
-    this.pitch = 0.72
+    vec3.set(this.cameraPosition, -this.box.width / 2, -this.box.height / 2, -this.box.depth / 2)
+    this.yaw = 0.5
+    this.pitch = 0.8
   }
 
   dispose(): void {
