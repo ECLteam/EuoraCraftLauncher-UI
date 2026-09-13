@@ -156,6 +156,25 @@ async function buildTextureAtlas(bundle: SchematicAssetsBundle): Promise<Texture
   return new TextureAtlas(context.getImageData(0, 0, pixels, pixels), uvById)
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+}
+
+/** 将新版游戏模型中的纹理描述对象降级为当前 Deepslate 可读取的纹理标识。 */
+export function normalizeBlockModelTextures(payload: unknown): unknown {
+  if (!isRecord(payload)) return payload
+  const normalized = { ...payload }
+  if (!isRecord(payload.textures)) return normalized
+  normalized.textures = Object.fromEntries(
+    Object.entries(payload.textures).map(([name, reference]) => {
+      if (typeof reference === 'string') return [name, reference]
+      if (isRecord(reference) && typeof reference.sprite === 'string') return [name, reference.sprite]
+      return [name, 'minecraft:missingno']
+    })
+  )
+  return normalized
+}
+
 export async function buildSchematicResources(bundle: SchematicAssetsBundle): Promise<Resources> {
   const definitions: Record<string, BlockDefinition> = {}
   for (const [id, payload] of Object.entries(bundle.blockstates)) {
@@ -168,7 +187,7 @@ export async function buildSchematicResources(bundle: SchematicAssetsBundle): Pr
   const models: Record<string, BlockModel> = {}
   for (const [id, payload] of Object.entries(bundle.models)) {
     try {
-      models[id] = BlockModel.fromJson(payload)
+      models[id] = BlockModel.fromJson(normalizeBlockModelTextures(payload))
     } catch {
       // 模型缺失时 deepslate 会使用缺失纹理，不让单个模型中断预览。
     }

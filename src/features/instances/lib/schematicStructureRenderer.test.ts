@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { SchematicAssetsBundle, SchematicPreviewData } from '@/types/api'
-import { buildSchematicStructure, computeWorldBox } from './schematicStructureRenderer'
+import { buildSchematicStructure, computeWorldBox, normalizeBlockModelTextures } from './schematicStructureRenderer'
 
 const assets: SchematicAssetsBundle = {
   blockstates: { 'minecraft:stone': {} },
@@ -43,5 +43,21 @@ describe('schematicStructureRenderer', () => {
     const box = computeWorldBox(preview)
     expect(buildSchematicStructure(preview, assets, box, 1).getBlocks()).toHaveLength(2)
     expect(buildSchematicStructure(preview, assets, box, 2).getBlocks()).toHaveLength(5)
+  })
+
+  it('将新版模型中的对象纹理转换为 Deepslate 可读取的标识', () => {
+    expect(
+      normalizeBlockModelTextures({
+        textures: {
+          all: { force_translucent: true, sprite: 'minecraft:block/black_stained_glass' },
+          overlay: { sprite: 'minecraft:block/redstone_dust_overlay' },
+        },
+      })
+    ).toEqual({
+      textures: {
+        all: 'minecraft:block/black_stained_glass',
+        overlay: 'minecraft:block/redstone_dust_overlay',
+      },
+    })
   })
 })
