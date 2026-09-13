@@ -810,6 +810,7 @@ html[data-theme='dark'] .wardrobe-category-row :deep(.n-button.n-button--primary
 .wardrobe-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  align-content: start;
   gap: var(--s-sm);
   overflow: auto;
 }
