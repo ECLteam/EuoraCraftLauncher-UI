@@ -48,7 +48,7 @@ export const showcaseConfig: Record<string, unknown> = {
     locale: 'zh-CN',
     theme: {
       mode: 'system',
-      primary_color: '#6f8cff',
+      primary_color: '#5B6FF5',
       blur_amount: 0,
       sidebar_collapsed: true,
       navigation_mode: 'sidebar',
