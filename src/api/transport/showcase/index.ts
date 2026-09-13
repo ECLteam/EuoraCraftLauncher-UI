@@ -996,6 +996,8 @@ export function createShowcaseTransport(): BackendTransport {
         return success({ matched: false })
       case 'game_schematic_preview':
         return success(structuredClone(showcaseSchematicPreview))
+      case 'game_schematic_assets':
+        return success({ blockstates: {}, models: {}, textures: {}, missingBlocks: [] })
 
       /* ── 实例设置 / 资料与维护 ── */
       case 'game_options_read':

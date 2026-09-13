@@ -469,6 +469,7 @@ export interface CommandPayloadMap {
     world_id?: string
   }
   game_schematic_preview: InstanceTargetPayload & { resource_type: GameResourceType; resource_id: string }
+  game_schematic_assets: InstanceTargetPayload & { blocks: string[] }
   game_launch: {
     version_id: string
     game_path: string
@@ -776,6 +777,7 @@ export const COMMAND_NAMES = {
   game_resource_update_check: 'game_resource_update_check',
   game_resource_update: 'game_resource_update',
   game_schematic_preview: 'game_schematic_preview',
+  game_schematic_assets: 'game_schematic_assets',
   game_launch: 'game_launch',
   game_launch_cancel: 'game_launch_cancel',
   game_instance_stop: 'game_instance_stop',
@@ -1035,6 +1037,7 @@ export interface CommandResponseMap {
   game_resource_update_check: Array<Record<string, unknown>>
   game_resource_update: GameOperation
   game_schematic_preview: SchematicPreviewData
+  game_schematic_assets: SchematicAssetsBundle
   game_launch: LaunchInstanceResult
   game_launch_cancel: void
   export_logs: { path: string }
@@ -1113,8 +1116,21 @@ export interface SchematicRegionData {
   name: string
   size: number[]
   position: number[]
-  palette: number[][]
+  palette: SchematicPaletteEntry[]
   indices: number[]
+}
+
+export interface SchematicPaletteEntry {
+  name: string
+  properties: Record<string, string>
+  color: [number, number, number]
+}
+
+export interface SchematicAssetsBundle {
+  blockstates: Record<string, unknown>
+  models: Record<string, unknown>
+  textures: Record<string, string>
+  missingBlocks: string[]
 }
 
 export interface SchematicPreviewData {

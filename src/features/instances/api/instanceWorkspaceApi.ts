@@ -1,6 +1,6 @@
 import backend from '@/api/client'
 import { unwrapResponse } from '@/app/runtime/errorPresentation'
-import type { SchematicPreviewData } from '@/types/api'
+import type { SchematicAssetsBundle, SchematicPreviewData } from '@/types/api'
 import type {
   GameOperation,
   GameResource,
@@ -205,6 +205,8 @@ export const instanceWorkspaceApi = {
       { ...target, resource_type: 'schematic', resource_id: resourceId },
       '预览原理图'
     ),
+  schematicAssets: (target: InstanceTargetPayload, blocks: string[]) =>
+    call<SchematicAssetsBundle>('game_schematic_assets', { ...target, blocks }, '读取原理图方块纹理'),
 }
 
 export interface GameOptionEntry {

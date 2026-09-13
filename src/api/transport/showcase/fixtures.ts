@@ -584,10 +584,11 @@ export const showcaseSchematicPreview: SchematicPreviewData = {
       size: [8, 1, 8],
       position: [0, 0, 0],
       palette: [
-        [126, 126, 126],
-        [94, 84, 76],
+        { name: 'minecraft:air', properties: {}, color: [0, 0, 0] },
+        { name: 'minecraft:stone_bricks', properties: {}, color: [126, 126, 126] },
+        { name: 'minecraft:deepslate', properties: {}, color: [94, 84, 76] },
       ],
-      indices: Array.from({ length: 64 }, (_, i) => i % 2),
+      indices: Array.from({ length: 64 }, (_, i) => (i % 2) + 1),
     },
   ],
 }
