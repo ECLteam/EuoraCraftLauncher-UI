@@ -1,14 +1,11 @@
 <template>
   <div ref="shellRef" class="schematic-viewer-shell">
+    <canvas ref="cubeCanvasRef" class="schematic-viewer-canvas schematic-viewer-cubes" />
     <canvas ref="canvasRef" class="schematic-viewer-canvas" />
     <div v-if="renderError" class="schematic-viewer-empty">{{ renderError }}</div>
     <div v-else-if="building" class="schematic-viewer-empty">{{ t('schematic.loading') }}</div>
     <div v-else-if="noBlocks" class="schematic-viewer-empty">{{ t('schematic.empty') }}</div>
     <div v-else class="schematic-viewer-info">{{ t('schematic.size', { x: size[0], y: size[1], z: size[2] }) }}</div>
-    <div v-if="renderStats.simplified" class="schematic-viewer-simplified">
-      已简化预览：{{ renderStats.renderedBlocks.toLocaleString() }} /
-      {{ renderStats.totalBlocks.toLocaleString() }} 个方块
-    </div>
     <div v-if="!noBlocks" class="schematic-viewer-toolbar">
       <NButtonGroup size="small">
         <NButton quaternary :title="t('schematic.rotateLeft')" @click="rotateModel(-1)"
@@ -41,23 +38,19 @@ import { NButton, NButtonGroup, NSlider } from 'naive-ui'
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
-import {
-  buildSchematicResources,
-  SchematicStructureViewer,
-  type SchematicRenderStats,
-} from '@/features/instances/lib/schematicStructureRenderer'
+import { buildSchematicResources, SchematicStructureViewer } from '@/features/instances/lib/schematicStructureRenderer'
 import type { SchematicAssetsBundle, SchematicPreviewData } from '@/types/api'
 
 const props = defineProps<{ data: SchematicPreviewData; assets: SchematicAssetsBundle | null }>()
 const { t } = useI18n()
 const shellRef = ref<HTMLElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
+const cubeCanvasRef = ref<HTMLCanvasElement | null>(null)
 const size = ref(props.data.size)
 const visibleLayers = ref(Math.max(1, props.data.size[1] ?? 1))
 const noBlocks = ref(false)
 const renderError = ref('')
 const building = ref(true)
-const renderStats = ref<SchematicRenderStats>({ totalBlocks: 0, renderedBlocks: 0, simplified: false })
 let viewer: SchematicStructureViewer | null = null
 let resizeObserver: ResizeObserver | null = null
 let disposed = false
@@ -73,16 +66,11 @@ function resetView(): void {
 function showAll(): void {
   visibleLayers.value = Math.max(1, size.value[1] ?? 1)
 }
-function updateRenderStats(): void {
-  if (viewer) renderStats.value = viewer.getRenderStats()
-}
-
 function rebuildVisibleLayers(value: number): void {
   cancelAnimationFrame(rebuildFrame)
   building.value = true
   rebuildFrame = requestAnimationFrame(() => {
     viewer?.setVisibleLayers(value)
-    updateRenderStats()
     building.value = false
   })
 }
@@ -91,8 +79,9 @@ watch(visibleLayers, rebuildVisibleLayers)
 
 function initializeViewer(): void {
   const canvas = canvasRef.value
+  const cubeCanvas = cubeCanvasRef.value
   const assets = props.assets
-  if (!canvas || !assets || viewer || initializationFrame) return
+  if (!canvas || !cubeCanvas || !assets || viewer || initializationFrame) return
   const bounds = canvas.getBoundingClientRect()
   if (bounds.width < 2 || bounds.height < 2) return
   initializationFrame = requestAnimationFrame(async () => {
@@ -100,9 +89,8 @@ function initializeViewer(): void {
     try {
       const resources = await buildSchematicResources(assets)
       if (disposed) return
-      viewer = new SchematicStructureViewer(canvas, props.data, assets, resources)
+      viewer = new SchematicStructureViewer(canvas, cubeCanvas, props.data, assets, resources)
       noBlocks.value = !props.data.regions.some((region) => region.palette.some((item) => !item.name.endsWith(':air')))
-      updateRenderStats()
     } catch (cause) {
       renderError.value = cause instanceof Error ? cause.message : t('schematic.parseFailed')
     } finally {
@@ -138,10 +126,14 @@ onBeforeUnmount(() => {
   background: var(--ecl-surface);
 }
 .schematic-viewer-canvas {
-  display: block;
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   touch-action: none;
+}
+.schematic-viewer-cubes {
+  pointer-events: none;
 }
 .schematic-viewer-empty {
   position: absolute;
@@ -163,17 +155,6 @@ onBeforeUnmount(() => {
   padding: 5px 10px;
   border-radius: 8px;
   color: var(--ecl-text-secondary, #999);
-  font-size: 12px;
-}
-.schematic-viewer-simplified {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  padding: 5px 10px;
-  border: 1px solid color-mix(in srgb, var(--warning, #e6a23c) 55%, transparent);
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--ecl-surface) 88%, transparent);
-  color: var(--warning, #e6a23c);
   font-size: 12px;
 }
 .schematic-viewer-toolbar {

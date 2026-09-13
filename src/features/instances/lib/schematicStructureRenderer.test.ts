@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import type { SchematicAssetsBundle, SchematicPreviewData } from '@/types/api'
 import {
-  buildSchematicPreview,
   buildSchematicStructure,
   computeWorldBox,
-  maxDetailedBlocks,
+  needsDetailedModel,
   normalizeBlockModelTextures,
 } from './schematicStructureRenderer'
 
@@ -67,23 +66,11 @@ describe('schematicStructureRenderer', () => {
     })
   })
 
-  it('在超过模型方块上限时限制预览结构规模', () => {
-    const largePreview: SchematicPreviewData = {
-      type: 'schem',
-      size: [maxDetailedBlocks + 1, 1, 1],
-      regions: [
-        {
-          name: 'large',
-          position: [0, 0, 0],
-          size: [maxDetailedBlocks + 1, 1, 1],
-          palette: [{ name: 'minecraft:stone', properties: {}, color: [128, 128, 128] }],
-          indices: Array.from({ length: maxDetailedBlocks + 1 }, () => 0),
-        },
-      ],
-    }
-    const result = buildSchematicPreview(largePreview, assets, computeWorldBox(largePreview))
-    expect(result.stats.simplified).toBe(true)
-    expect(result.stats.renderedBlocks).toBeLessThanOrEqual(maxDetailedBlocks)
-    expect(result.structure.getBlocks()).toHaveLength(result.stats.renderedBlocks)
+  it('保留完整方块并仅把非完整方块交给模型层', () => {
+    expect(needsDetailedModel('minecraft:stone')).toBe(false)
+    expect(needsDetailedModel('minecraft:piston')).toBe(true)
+    expect(needsDetailedModel('minecraft:redstone_wire')).toBe(true)
+    expect(needsDetailedModel('minecraft:black_stained_glass')).toBe(true)
+    expect(buildSchematicStructure(preview, assets, computeWorldBox(preview)).getBlocks()).toHaveLength(5)
   })
 })

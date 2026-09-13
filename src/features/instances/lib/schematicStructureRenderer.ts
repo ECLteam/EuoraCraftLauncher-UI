@@ -9,10 +9,23 @@ import {
   type Resources,
 } from 'deepslate'
 import { mat4, vec3 } from 'gl-matrix'
+import {
+  BoxGeometry,
+  Color,
+  InstancedMesh,
+  Matrix4,
+  MeshBasicMaterial,
+  NearestFilter,
+  PerspectiveCamera,
+  Scene,
+  SRGBColorSpace,
+  type Texture,
+  TextureLoader,
+  WebGLRenderer,
+} from 'three'
 import type { SchematicAssetsBundle, SchematicPreviewData, SchematicRegionData } from '@/types/api'
 
 const fallbackBlock = 'minecraft:stone'
-export const maxDetailedBlocks = 24000
 
 const semiTransparentKeywords = [
   'glass',
@@ -71,6 +84,7 @@ const nonSolidKeywords = [
   'hopper',
   'brewing_stand',
   'piston',
+  'redstone',
 ]
 
 export interface WorldBox {
@@ -80,12 +94,6 @@ export interface WorldBox {
   width: number
   height: number
   depth: number
-}
-
-export interface SchematicRenderStats {
-  totalBlocks: number
-  renderedBlocks: number
-  simplified: boolean
 }
 
 function isAir(name: string): boolean {
@@ -98,6 +106,14 @@ function blockFlags(id: Identifier): BlockFlags {
   const nonSolid = nonSolidKeywords.some((keyword) => name.includes(keyword))
   const opaque = !semiTransparent && !nonSolid
   return { opaque, semi_transparent: semiTransparent, self_culling: opaque }
+}
+
+export function needsDetailedModel(name: string): boolean {
+  const blockName = name.split(':').at(-1) ?? ''
+  return (
+    nonSolidKeywords.some((keyword) => blockName.includes(keyword)) ||
+    ['glass', 'leaves', 'water', 'lava', 'ice', 'portal'].some((keyword) => blockName.includes(keyword))
+  )
 }
 
 function decodeBase64(value: string): Uint8Array {
@@ -247,60 +263,36 @@ function addRegionBlocks(
   box: WorldBox,
   bundle: SchematicAssetsBundle,
   visibleLayers: number,
-  sampleEvery: number
-): number {
+  include: (name: string) => boolean
+): void {
   const [width = 0, height = 0, depth = 0] = region.size
   const [originX = 0, originY = 0, originZ = 0] = region.position
-  if (!width || !height || !depth) return 0
-  let renderedBlocks = 0
+  if (!width || !height || !depth) return
   for (let index = 0; index < region.indices.length; index += 1) {
     const paletteIndex = region.indices[index]
     const entry = paletteIndex === undefined ? undefined : region.palette[paletteIndex]
-    if (!entry || isAir(entry.name)) continue
+    if (!entry || isAir(entry.name) || !include(entry.name)) continue
     const x = index % width
     const row = Math.floor(index / width)
     const z = row % depth
     const y = Math.floor(row / depth)
     const worldY = originY + y - box.minY
     if (worldY >= visibleLayers) continue
-    if (sampleEvery > 1 && index % sampleEvery !== 0) continue
     const name = bundle.blockstates[entry.name] ? entry.name : fallbackBlock
     structure.addBlock([originX + x - box.minX, worldY, originZ + z - box.minZ], name, entry.properties)
-    renderedBlocks += 1
   }
-  return renderedBlocks
 }
 
-function countVisibleBlocks(data: SchematicPreviewData, visibleLayers: number, box: WorldBox): number {
-  let total = 0
-  for (const region of data.regions) {
-    const [width = 0, , depth = 0] = region.size
-    const [, originY = 0] = region.position
-    if (!width || !depth) continue
-    for (let index = 0; index < region.indices.length; index += 1) {
-      const entry = region.palette[region.indices[index] ?? -1]
-      const row = Math.floor(index / width)
-      const y = Math.floor(row / depth)
-      if (entry && !isAir(entry.name) && originY + y - box.minY < visibleLayers) total += 1
-    }
-  }
-  return total
-}
-
-export function buildSchematicPreview(
+function buildFilteredStructure(
   data: SchematicPreviewData,
   bundle: SchematicAssetsBundle,
   box: WorldBox,
   visibleLayers = box.height,
-  detailLimit = maxDetailedBlocks
-): { structure: Structure; stats: SchematicRenderStats } {
-  const totalBlocks = countVisibleBlocks(data, visibleLayers, box)
-  const sampleEvery = Math.max(1, Math.ceil(totalBlocks / Math.max(1, detailLimit)))
+  include: (name: string) => boolean = () => true
+): Structure {
   const structure = new Structure([box.width, box.height, box.depth])
-  let renderedBlocks = 0
-  for (const region of data.regions)
-    renderedBlocks += addRegionBlocks(structure, region, box, bundle, visibleLayers, sampleEvery)
-  return { structure, stats: { totalBlocks, renderedBlocks, simplified: sampleEvery > 1 } }
+  for (const region of data.regions) addRegionBlocks(structure, region, box, bundle, visibleLayers, include)
+  return structure
 }
 
 export function buildSchematicStructure(
@@ -309,11 +301,167 @@ export function buildSchematicStructure(
   box: WorldBox,
   visibleLayers = box.height
 ): Structure {
-  return buildSchematicPreview(data, bundle, box, visibleLayers, Number.MAX_SAFE_INTEGER).structure
+  return buildFilteredStructure(data, bundle, box, visibleLayers)
+}
+
+function buildDetailedStructure(
+  data: SchematicPreviewData,
+  bundle: SchematicAssetsBundle,
+  box: WorldBox,
+  visibleLayers: number
+): Structure {
+  return buildFilteredStructure(data, bundle, box, visibleLayers, needsDetailedModel)
+}
+
+type CubeEntry = { color: [number, number, number]; position: [number, number, number] }
+
+function modelReference(value: unknown): string | null {
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const found = modelReference(item)
+      if (found) return found
+    }
+    return null
+  }
+  if (!isRecord(value)) return null
+  if (typeof value.model === 'string') return value.model
+  for (const item of Object.values(value)) {
+    const found = modelReference(item)
+    if (found) return found
+  }
+  return null
+}
+
+function textureReference(bundle: SchematicAssetsBundle, block: string): string | null {
+  const model = modelReference(bundle.blockstates[block])
+  if (!model) return null
+  let modelId = model.includes(':') ? model : `minecraft:${model}`
+  const visited = new Set<string>()
+  while (!visited.has(modelId)) {
+    visited.add(modelId)
+    const payload = bundle.models[modelId]
+    if (!isRecord(payload)) return null
+    if (isRecord(payload.textures)) {
+      for (const reference of Object.values(payload.textures)) {
+        const sprite = isRecord(reference) ? reference.sprite : reference
+        if (typeof sprite === 'string' && !sprite.startsWith('#'))
+          return sprite.includes(':') ? sprite : `minecraft:${sprite}`
+      }
+    }
+    if (typeof payload.parent !== 'string') return null
+    modelId = payload.parent.includes(':') ? payload.parent : `minecraft:${payload.parent}`
+  }
+  return null
+}
+
+class LightweightCubeRenderer {
+  private readonly renderer: WebGLRenderer
+  private readonly scene = new Scene()
+  private readonly camera = new PerspectiveCamera(70, 1, 0.1, 500)
+  private readonly geometry = new BoxGeometry(1, 1, 1)
+  private readonly root = new Scene()
+  private readonly textureById = new Map<string, Texture>()
+
+  constructor(
+    canvas: HTMLCanvasElement,
+    private readonly data: SchematicPreviewData,
+    private readonly bundle: SchematicAssetsBundle,
+    private readonly box: WorldBox
+  ) {
+    this.renderer = new WebGLRenderer({ canvas, antialias: false, alpha: true })
+    this.renderer.setClearColor(0x000000, 0)
+    this.renderer.sortObjects = false
+    this.camera.matrixAutoUpdate = false
+    this.scene.add(this.root)
+  }
+
+  setVisibleLayers(visibleLayers: number): void {
+    this.clearMeshes()
+    const groups = new Map<string, CubeEntry[]>()
+    for (const region of this.data.regions) {
+      const [width = 0, height = 0, depth = 0] = region.size
+      const [originX = 0, originY = 0, originZ = 0] = region.position
+      if (!width || !height || !depth) continue
+      for (let index = 0; index < region.indices.length; index += 1) {
+        const entry = region.palette[region.indices[index] ?? -1]
+        if (!entry || isAir(entry.name) || needsDetailedModel(entry.name)) continue
+        const x = index % width
+        const row = Math.floor(index / width)
+        const z = row % depth
+        const y = Math.floor(row / depth)
+        const worldY = originY + y - this.box.minY
+        if (worldY >= visibleLayers) continue
+        const entries = groups.get(entry.name) ?? []
+        entries.push({
+          position: [originX + x - this.box.minX + 0.5, worldY + 0.5, originZ + z - this.box.minZ + 0.5],
+          color: entry.color,
+        })
+        groups.set(entry.name, entries)
+      }
+    }
+    const matrix = new Matrix4()
+    for (const [block, entries] of groups) {
+      const mesh = new InstancedMesh(
+        this.geometry,
+        new MeshBasicMaterial({ map: this.textureForBlock(block), color: new Color(...entries[0]!.color) }),
+        entries.length
+      )
+      for (const [index, entry] of entries.entries()) {
+        matrix.makeTranslation(...entry.position)
+        mesh.setMatrixAt(index, matrix)
+      }
+      mesh.instanceMatrix.needsUpdate = true
+      this.root.add(mesh)
+    }
+  }
+
+  resize(width: number, height: number): void {
+    this.renderer.setSize(width, height, false)
+    this.camera.aspect = width / height
+    this.camera.updateProjectionMatrix()
+  }
+
+  render(view: mat4): void {
+    this.camera.matrixWorldInverse.fromArray(view)
+    this.camera.matrixWorld.copy(this.camera.matrixWorldInverse).invert()
+    this.renderer.render(this.scene, this.camera)
+  }
+
+  dispose(): void {
+    this.clearMeshes()
+    this.geometry.dispose()
+    this.textureById.forEach((texture) => texture.dispose())
+    this.renderer.dispose()
+  }
+
+  private textureForBlock(block: string): Texture | null {
+    const textureId = textureReference(this.bundle, block)
+    if (!textureId) return null
+    const cached = this.textureById.get(textureId)
+    if (cached) return cached
+    const encoded = this.bundle.textures[textureId]
+    if (!encoded) return null
+    const texture = new TextureLoader().load(`data:image/png;base64,${encoded}`)
+    texture.magFilter = NearestFilter
+    texture.minFilter = NearestFilter
+    texture.colorSpace = SRGBColorSpace
+    this.textureById.set(textureId, texture)
+    return texture
+  }
+
+  private clearMeshes(): void {
+    for (const child of this.root.children) {
+      const material = (child as InstancedMesh).material
+      if (Array.isArray(material)) material.forEach((item) => item.dispose())
+      else material.dispose()
+    }
+    this.root.clear()
+  }
 }
 
 export class SchematicStructureViewer {
   private readonly canvas: HTMLCanvasElement
+  private readonly cubeRenderer: LightweightCubeRenderer
   private readonly gl: WebGLRenderingContext
   private readonly data: SchematicPreviewData
   private readonly bundle: SchematicAssetsBundle
@@ -324,17 +472,17 @@ export class SchematicStructureViewer {
   private readonly cameraPosition = vec3.create()
   private yaw = 0.5
   private pitch = 0.8
-  private renderStats: SchematicRenderStats = { totalBlocks: 0, renderedBlocks: 0, simplified: false }
   private animationFrame = 0
   private disposed = false
 
   constructor(
     canvas: HTMLCanvasElement,
+    cubeCanvas: HTMLCanvasElement,
     data: SchematicPreviewData,
     bundle: SchematicAssetsBundle,
     resources: Resources
   ) {
-    const gl = canvas.getContext('webgl', { antialias: true, alpha: false })
+    const gl = canvas.getContext('webgl', { antialias: true, alpha: true })
     if (!gl) throw new Error('当前设备不支持 WebGL 原理图预览')
     this.canvas = canvas
     this.gl = gl
@@ -342,6 +490,7 @@ export class SchematicStructureViewer {
     this.bundle = bundle
     this.resources = resources
     this.box = computeWorldBox(data)
+    this.cubeRenderer = new LightweightCubeRenderer(cubeCanvas, data, bundle, this.box)
     this.resetView()
     this.setVisibleLayers(this.box.height)
     this.bindControls()
@@ -349,19 +498,16 @@ export class SchematicStructureViewer {
   }
 
   setVisibleLayers(value: number): void {
-    const preview = buildSchematicPreview(this.data, this.bundle, this.box, Math.max(1, value))
-    this.renderStats = preview.stats
+    const visibleLayers = Math.max(1, value)
+    this.cubeRenderer.setVisibleLayers(visibleLayers)
+    const structure = buildDetailedStructure(this.data, this.bundle, this.box, visibleLayers)
     if (this.renderer) {
       // setStructure 内部已重建缓冲；重复调用会把大型原理图的主线程开销翻倍。
-      this.renderer.setStructure(preview.structure)
+      this.renderer.setStructure(structure)
       return
     }
-    this.renderer = new StructureRenderer(this.gl, preview.structure, this.resources, { chunkSize: 8 })
+    this.renderer = new StructureRenderer(this.gl, structure, this.resources, { chunkSize: 8 })
     this.resize()
-  }
-
-  getRenderStats(): SchematicRenderStats {
-    return this.renderStats
   }
 
   resize(): void {
@@ -372,6 +518,7 @@ export class SchematicStructureViewer {
       this.canvas.width = width
       this.canvas.height = height
     }
+    this.cubeRenderer.resize(width, height)
     this.renderer?.setViewport(0, 0, width, height)
   }
 
@@ -389,6 +536,7 @@ export class SchematicStructureViewer {
     this.disposed = true
     cancelAnimationFrame(this.animationFrame)
     for (const remove of this.removers) remove()
+    this.cubeRenderer.dispose()
     this.renderer = null
   }
 
@@ -396,13 +544,14 @@ export class SchematicStructureViewer {
     if (this.disposed) return
     const renderer = this.renderer
     if (renderer) {
-      this.gl.viewport(0, 0, this.canvas.width, this.canvas.height)
-      this.gl.clearColor(0.07, 0.08, 0.11, 1)
-      this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT)
       const view = mat4.create()
       mat4.rotateX(view, view, this.pitch)
       mat4.rotateY(view, view, this.yaw)
       mat4.translate(view, view, this.cameraPosition)
+      this.cubeRenderer.render(view)
+      this.gl.viewport(0, 0, this.canvas.width, this.canvas.height)
+      this.gl.clearColor(0.07, 0.08, 0.11, 0)
+      this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT)
       renderer.drawStructure(view)
       renderer.drawGrid(view)
     }
