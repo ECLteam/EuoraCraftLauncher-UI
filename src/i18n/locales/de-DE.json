@@ -463,7 +463,12 @@
       "available": "Funktionsfähig",
       "broken": "Beschädigt",
       "isolated": "Instanzisolierung",
-      "isolatedDesc": "Ein eigenes Verzeichnis für diese Instanz verwenden",
+      "isolatedDesc": "Standardrichtlinie übernehmen oder die Isolierung für diese Instanz erzwingen",
+      "isolationModes": {
+        "inherit": "Standardrichtlinie verwenden",
+        "enabled": "Isolierung erzwingen",
+        "disabled": "Keine Isolierung erzwingen"
+      },
       "customMemory": "Eigener RAM",
       "customMemoryDesc": "RAM-Größe separat für diese Instanz festlegen",
       "memorySize": "RAM-Größe",
@@ -960,6 +965,15 @@
     "fullscreen": "Im Vollbild starten",
     "fullscreenDesc": "Beim Start automatisch in den Vollbildmodus wechseln",
     "runtime": "Laufzeiteinstellungen",
+    "instanceIsolationPolicy": "Standard-Instanzisolierung",
+    "instanceIsolationPolicyDesc": "Gilt nur für Instanzen ohne explizite Isolierungsüberschreibung",
+    "instanceIsolationPolicyOptions": {
+      "disabled": "Keine Isolierung",
+      "modded_only": "Nur modfähige Instanzen",
+      "non_release_only": "Nur Nicht-Release-Versionen",
+      "modded_or_non_release": "Modfähig + Nicht-Release",
+      "all": "Alle isolieren"
+    },
     "windowSize": "Fenstergröße",
     "windowSizeDesc": "Anfangsgröße des Spielfensters; beim Vollbildstart ohne Wirkung",
     "windowWidth": "Fensterbreite",

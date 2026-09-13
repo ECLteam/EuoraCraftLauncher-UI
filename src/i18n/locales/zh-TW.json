@@ -463,7 +463,12 @@
       "available": "正常",
       "broken": "損壞",
       "isolated": "實例隔離",
-      "isolatedDesc": "為此實例使用獨立的目錄",
+      "isolatedDesc": "可繼承全域策略，或為目前實例強制指定隔離狀態",
+      "isolationModes": {
+        "inherit": "跟隨預設策略",
+        "enabled": "強制隔離",
+        "disabled": "強制不隔離"
+      },
       "customMemory": "自定義記憶體",
       "customMemoryDesc": "為此實例單獨設定記憶體大小",
       "memorySize": "記憶體大小",
@@ -960,6 +965,15 @@
     "fullscreen": "全屏啟動",
     "fullscreenDesc": "啟動時自動進入全屏模式",
     "runtime": "執行設定",
+    "instanceIsolationPolicy": "預設實例隔離",
+    "instanceIsolationPolicyDesc": "僅影響未在實例設定中強制指定隔離狀態的實例",
+    "instanceIsolationPolicyOptions": {
+      "disabled": "不隔離",
+      "modded_only": "僅可安裝 Mod 的實例",
+      "non_release_only": "僅非正式版",
+      "modded_or_non_release": "可安裝 Mod 的實例 + 非正式版",
+      "all": "全部隔離"
+    },
     "windowSize": "視窗尺寸",
     "windowSizeDesc": "遊戲視窗的初始大小，全屏啟動時不生效",
     "windowWidth": "視窗寬度",

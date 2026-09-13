@@ -209,7 +209,12 @@ export function useInstanceManager(t: (key: string, ...args: unknown[]) => strin
       process_priority: settingsStore.game.process_priority || 'normal',
       jvm_args: versionSettings.jvmArgs ? parseLaunchArguments(versionSettings.jvmArgs) : undefined,
       game_args: versionSettings.gameArgs ? parseLaunchArguments(versionSettings.gameArgs) : undefined,
-      version_isolation: versionSettings.isolated,
+      version_isolation:
+        versionSettings.isolationMode === 'enabled'
+          ? true
+          : versionSettings.isolationMode === 'disabled'
+            ? false
+            : undefined,
     })
 
     unlisten()

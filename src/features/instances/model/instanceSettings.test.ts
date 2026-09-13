@@ -13,8 +13,13 @@ describe('versionSettings', () => {
       customMemory: true,
       memory: 512,
       javaPath: '',
-      isolated: false,
+      isolationMode: 'inherit',
     })
+  })
+
+  it('将旧版隔离开关迁移为明确的实例覆盖', () => {
+    expect(normalizeVersionSettings({ isolated: true }).isolationMode).toBe('enabled')
+    expect(normalizeVersionSettings({ isolated: false }).isolationMode).toBe('disabled')
   })
 
   it('解析带引号和转义字符的启动参数', () => {

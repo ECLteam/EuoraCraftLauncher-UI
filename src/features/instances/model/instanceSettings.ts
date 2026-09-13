@@ -3,8 +3,10 @@ export interface VersionSettingsTarget {
   path: string
 }
 
+export type InstanceIsolationMode = 'inherit' | 'enabled' | 'disabled'
+
 export interface VersionLaunchSettings {
-  isolated: boolean
+  isolationMode: InstanceIsolationMode
   customMemory: boolean
   memory: number
   customJava: boolean
@@ -14,7 +16,7 @@ export interface VersionLaunchSettings {
 }
 
 export const DEFAULT_VERSION_SETTINGS: Readonly<VersionLaunchSettings> = {
-  isolated: false,
+  isolationMode: 'inherit',
   customMemory: false,
   memory: 4096,
   customJava: false,
@@ -34,11 +36,19 @@ export function createVersionSettingsKey(target: VersionSettingsTarget): string 
 
 export function normalizeVersionSettings(value: unknown): VersionLaunchSettings {
   if (!value || typeof value !== 'object') return createDefaultVersionSettings()
-  const data = value as Partial<Record<keyof VersionLaunchSettings, unknown>>
+  const data = value as Partial<Record<keyof VersionLaunchSettings, unknown>> & { isolated?: unknown }
   const parsedMemory = Number(data.memory)
+  const isolationMode: InstanceIsolationMode =
+    data.isolationMode === 'enabled' || data.isolationMode === 'disabled' || data.isolationMode === 'inherit'
+      ? data.isolationMode
+      : data.isolated === true
+        ? 'enabled'
+        : data.isolated === false
+          ? 'disabled'
+          : 'inherit'
 
   return {
-    isolated: data.isolated === true,
+    isolationMode,
     customMemory: data.customMemory === true,
     memory: Number.isFinite(parsedMemory) ? Math.min(65536, Math.max(512, Math.round(parsedMemory))) : 4096,
     customJava: data.customJava === true,

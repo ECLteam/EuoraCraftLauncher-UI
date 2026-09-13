@@ -135,6 +135,18 @@
     </SettingSection>
 
     <SettingSection :title="t('settings.runtime')">
+      <SettingRow
+        :label="t('settings.instanceIsolationPolicy')"
+        :description="t('settings.instanceIsolationPolicyDesc')"
+      >
+        <NSelect
+          :value="localSettings.instance_isolation_policy || 'modded_only'"
+          :options="isolationPolicyOptions"
+          class="process-priority-select"
+          @update:value="handleIsolationPolicyChange"
+        />
+      </SettingRow>
+
       <SettingRow :label="t('settings.fullscreen')" :description="t('settings.fullscreenDesc')">
         <NSwitch :value="localSettings.fullscreen" @update:value="handleFullscreenToggle" />
       </SettingRow>
@@ -184,7 +196,7 @@ import { settingsApi } from '@/features/settings/api/settingsApi'
 import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
-import type { SystemMemoryInfo } from '@/types/config'
+import type { InstanceIsolationPolicy, SystemMemoryInfo } from '@/types/config'
 import type { JavaInstallation } from '@/types/instances'
 
 type JavaInfo = JavaInstallation
@@ -306,6 +318,12 @@ const priorityOptions = PROCESS_PRIORITIES.map((value) => ({
   label: t(`settings.processPriorityOptions.${value}`),
 }))
 
+const ISOLATION_POLICIES = ['disabled', 'modded_only', 'non_release_only', 'modded_or_non_release', 'all'] as const
+const isolationPolicyOptions = ISOLATION_POLICIES.map((value) => ({
+  value,
+  label: t(`settings.instanceIsolationPolicyOptions.${value}`),
+}))
+
 const loadJavaList = async () => {
   const result = await run(async () => settingsApi.listJava())
   if (result) javaList.value = result
@@ -344,6 +362,7 @@ const saveConfig = async () => {
     game_width: localSettings.value.game_width,
     game_height: localSettings.value.game_height,
     fullscreen: localSettings.value.fullscreen,
+    instance_isolation_policy: localSettings.value.instance_isolation_policy || 'modded_only',
   }
   await run(async () => settingsStore.patchGame(config))
 }
@@ -386,6 +405,11 @@ const handlePriorityChange = (value: ProcessPriority) => {
 
 const handleFullscreenToggle = (value: boolean) => {
   localSettings.value.fullscreen = value
+  saveConfig()
+}
+
+const handleIsolationPolicyChange = (value: InstanceIsolationPolicy) => {
+  localSettings.value.instance_isolation_policy = value
   saveConfig()
 }
 

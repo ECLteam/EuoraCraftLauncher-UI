@@ -463,7 +463,12 @@
       "available": "Available",
       "broken": "Broken",
       "isolated": "Instance Isolation",
-      "isolatedDesc": "Use a separate game directory for this instance",
+      "isolatedDesc": "Inherit the default policy or force an isolation state for this instance",
+      "isolationModes": {
+        "inherit": "Follow Default Policy",
+        "enabled": "Force Isolation",
+        "disabled": "Force No Isolation"
+      },
       "customMemory": "Custom Memory",
       "customMemoryDesc": "Set memory size separately for this instance",
       "memorySize": "Memory Size",
@@ -960,6 +965,15 @@
     "fullscreen": "Launch in Fullscreen",
     "fullscreenDesc": "Automatically enter fullscreen mode when launching",
     "runtime": "Runtime Settings",
+    "instanceIsolationPolicy": "Default Instance Isolation",
+    "instanceIsolationPolicyDesc": "Only affects instances without an explicit isolation override",
+    "instanceIsolationPolicyOptions": {
+      "disabled": "No Isolation",
+      "modded_only": "Mod-capable Instances Only",
+      "non_release_only": "Non-release Versions Only",
+      "modded_or_non_release": "Mod-capable + Non-release",
+      "all": "Isolate All"
+    },
     "windowSize": "Window Size",
     "windowSizeDesc": "Initial game window size; ignored when launching in fullscreen",
     "windowWidth": "Window Width",

@@ -23,7 +23,7 @@ describe('instanceSettingsApi', () => {
     await instanceSettingsApi.save(
       { versionId: '1.21.5', path: 'D:\\Games\\.minecraft' },
       {
-        isolated: true,
+        isolationMode: 'enabled',
         customMemory: true,
         memory: 6144,
         customJava: false,
@@ -37,7 +37,7 @@ describe('instanceSettingsApi', () => {
       game_path: 'D:\\Games\\.minecraft',
       version_id: '1.21.5',
       data: expect.objectContaining({
-        isolated: true,
+        isolationMode: 'enabled',
         memory: 6144,
         jvmArgs: '-XX:+UseG1GC',
       }),
@@ -64,7 +64,7 @@ describe('instanceSettingsApi', () => {
       game_path: 'D:\\Games\\.minecraft',
       version_id: '1.21.5',
     })
-    expect(result).toMatchObject({ isolated: true, customMemory: true, memory: 6144 })
+    expect(result).toMatchObject({ isolationMode: 'enabled', customMemory: true, memory: 6144 })
   })
 
   it('版本设置文件为空时回退读取旧版 setting.json 配置', async () => {
@@ -85,14 +85,14 @@ describe('instanceSettingsApi', () => {
 
     const result = await instanceSettingsApi.get({ versionId: '1.20.1', path: 'D:\\Games\\.minecraft' })
 
-    expect(result).toMatchObject({ isolated: true, memory: 8192 })
+    expect(result).toMatchObject({ isolationMode: 'enabled', memory: 8192 })
   })
 
   it('读取不存在的版本设置时返回默认值', async () => {
     const result = await instanceSettingsApi.get({ versionId: '1.20.1', path: 'Showcase/.minecraft' })
 
     expect(result).toMatchObject({
-      isolated: false,
+      isolationMode: 'inherit',
       customMemory: false,
       memory: 4096,
       customJava: false,
@@ -104,7 +104,7 @@ describe('instanceSettingsApi', () => {
       success: true,
       data: {
         'd:/games/.minecraft::1.20.1': {
-          isolated: false,
+          isolationMode: 'disabled',
           customMemory: false,
           memory: 4096,
           customJava: false,
@@ -118,7 +118,7 @@ describe('instanceSettingsApi', () => {
     await instanceSettingsApi.save(
       { versionId: '1.20.1', path: 'D:\\Games\\.minecraft' },
       {
-        isolated: true,
+        isolationMode: 'enabled',
         customMemory: true,
         memory: 8192,
         customJava: false,

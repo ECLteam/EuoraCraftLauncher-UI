@@ -97,7 +97,7 @@ describe('InstanceDetailModal', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.getSettings.mockResolvedValue({
-      isolated: false,
+      isolationMode: 'inherit',
       customMemory: false,
       memory: 4096,
       customJava: false,
@@ -131,7 +131,7 @@ describe('InstanceDetailModal', () => {
 
     expect(wrapper.find('.vdm-tabs').exists()).toBe(true)
     expect(wrapper.find('.version-settings-page').exists()).toBe(true)
-    expect(wrapper.findAll('.n-switch')).toHaveLength(3)
+    expect(wrapper.findAll('.n-switch')).toHaveLength(2)
     expect(mocks.getSettings).toHaveBeenCalledWith({
       versionId: '1.21.5',
       path: 'D:/Games/.minecraft',
@@ -208,7 +208,7 @@ describe('InstanceDetailModal', () => {
     expect(mocks.saveSettings).toHaveBeenCalledTimes(1)
     expect(mocks.saveSettings).toHaveBeenCalledWith(
       { versionId: '1.21.5', path: 'D:/Games/.minecraft' },
-      expect.objectContaining({ isolated: true })
+      expect.objectContaining({ customMemory: true })
     )
     vi.useRealTimers()
   })

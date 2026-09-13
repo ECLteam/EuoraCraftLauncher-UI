@@ -463,7 +463,12 @@
       "available": "正常",
       "broken": "损坏",
       "isolated": "实例隔离",
-      "isolatedDesc": "为此实例使用独立的目录",
+      "isolatedDesc": "可继承全局策略，或为当前实例强制指定隔离状态",
+      "isolationModes": {
+        "inherit": "跟随默认策略",
+        "enabled": "强制隔离",
+        "disabled": "强制不隔离"
+      },
       "customMemory": "自定义内存",
       "customMemoryDesc": "为此实例单独设置内存大小",
       "memorySize": "内存大小",
@@ -960,6 +965,15 @@
     "fullscreen": "全屏启动",
     "fullscreenDesc": "启动时自动进入全屏模式",
     "runtime": "运行设置",
+    "instanceIsolationPolicy": "默认实例隔离",
+    "instanceIsolationPolicyDesc": "仅影响未在实例设置中强制指定隔离状态的实例",
+    "instanceIsolationPolicyOptions": {
+      "disabled": "不隔离",
+      "modded_only": "仅可安装 Mod 的实例",
+      "non_release_only": "仅非正式版",
+      "modded_or_non_release": "可安装 Mod 的实例 + 非正式版",
+      "all": "全部隔离"
+    },
     "windowSize": "窗口尺寸",
     "windowSizeDesc": "游戏窗口的初始大小，全屏启动时不生效",
     "windowWidth": "窗口宽度",

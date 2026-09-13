@@ -78,7 +78,7 @@ export const MEMORY_MAX_RATIO = 0.8
 // ---- 版本设置默认值 ----
 
 export const DEFAULT_VERSION_SETTINGS = {
-  isolated: false,
+  isolationMode: 'inherit',
   customMemory: false,
   memory: 4096,
   customJava: false,

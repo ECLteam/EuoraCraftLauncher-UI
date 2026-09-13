@@ -40,6 +40,7 @@ export interface BackgroundConfig {
 }
 
 export type MinecraftPathEntry = string | { name: string; path: string; protected?: boolean }
+export type InstanceIsolationPolicy = 'disabled' | 'modded_only' | 'non_release_only' | 'modded_or_non_release' | 'all'
 
 export interface GameConfig {
   minecraft_paths: MinecraftPathEntry[]
@@ -55,6 +56,8 @@ export interface GameConfig {
   game_height?: number
   jvm_args?: string[]
   fullscreen?: boolean
+  /** 实例未设置覆盖时使用的游戏目录隔离策略。 */
+  instance_isolation_policy?: InstanceIsolationPolicy
   last_install_path?: string
   last_manage_path?: string
   /** 当前激活的游戏路径（用于确定启动哪个路径下的实例） */

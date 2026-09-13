@@ -463,7 +463,12 @@
       "available": "正常",
       "broken": "破損",
       "isolated": "インスタンスの分離",
-      "isolatedDesc": "このインスタンスに専用のディレクトリを使用",
+      "isolatedDesc": "既定ポリシーに従うか、このインスタンスの分離状態を強制します",
+      "isolationModes": {
+        "inherit": "既定ポリシーに従う",
+        "enabled": "分離を強制",
+        "disabled": "分離しないことを強制"
+      },
       "customMemory": "メモリーのカスタマイズ",
       "customMemoryDesc": "このインスタンスに個別のメモリーサイズを設定",
       "memorySize": "メモリーサイズ",
@@ -960,6 +965,15 @@
     "fullscreen": "フルスクリーン起動",
     "fullscreenDesc": "起動時に自動的にフルスクリーンモードに切り替え",
     "runtime": "実行設定",
+    "instanceIsolationPolicy": "既定のインスタンス分離",
+    "instanceIsolationPolicyDesc": "明示的な分離設定がないインスタンスにのみ影響します",
+    "instanceIsolationPolicyOptions": {
+      "disabled": "分離しない",
+      "modded_only": "Mod 対応インスタンスのみ",
+      "non_release_only": "非正式版のみ",
+      "modded_or_non_release": "Mod 対応 + 非正式版",
+      "all": "すべて分離"
+    },
     "windowSize": "ウィンドウサイズ",
     "windowSizeDesc": "ゲームウィンドウの初期サイズ。フルスクリーン起動時は無効",
     "windowWidth": "ウィンドウの幅",

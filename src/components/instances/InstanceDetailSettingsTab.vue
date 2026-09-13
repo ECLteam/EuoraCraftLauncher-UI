@@ -26,7 +26,7 @@
       <div class="settings-subgroup">
         <div class="settings-subgroup__title">{{ t('versions.detail.launchOptions') }}</div>
         <SettingRow :label="t('versions.detail.isolated')" :description="t('versions.detail.isolatedDesc')">
-          <NSwitch v-model:value="versionSettings.isolated" />
+          <NSelect v-model:value="versionSettings.isolationMode" :options="isolationModeOptions" />
         </SettingRow>
       </div>
 
@@ -188,6 +188,12 @@ const props = defineProps<{
 
 const { t } = useI18n()
 const message = useLauncherMessage()
+
+const isolationModeOptions = [
+  { value: 'inherit', label: t('versions.detail.isolationModes.inherit') },
+  { value: 'enabled', label: t('versions.detail.isolationModes.enabled') },
+  { value: 'disabled', label: t('versions.detail.isolationModes.disabled') },
+]
 
 const versionSettings = reactive(createDefaultVersionSettings())
 const settingsLoading = ref(false)

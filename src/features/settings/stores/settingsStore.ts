@@ -15,6 +15,7 @@ const DEFAULT_GAME_CONFIG: GameConfig = {
   game_width: 854,
   game_height: 480,
   fullscreen: false,
+  instance_isolation_policy: 'modded_only',
   active_path: '',
 }
 
