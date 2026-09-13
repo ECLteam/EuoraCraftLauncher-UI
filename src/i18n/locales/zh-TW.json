@@ -1511,8 +1511,6 @@
     "skinDownloaded": "帳戶皮膚已下載到衣櫃",
     "showElytra": "渲染鞘翅",
     "showNameTag": "顯示玩家標籤",
-    "show3dSkinLayer": "渲染 3D 皮膚層",
-    "threeDimensionalLayerUnavailable": "3D 皮膚層僅支援標準 64×64 皮膚",
     "skinRendering": "皮膚渲染",
     "animationIdle": "待機",
     "animationWalk": "走路",

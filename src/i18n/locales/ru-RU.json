@@ -1601,8 +1601,6 @@
     "skinDownloaded": "Скин аккаунта скачан в гардероб",
     "showElytra": "Показывать элитры",
     "showNameTag": "Показывать никнейм игрока",
-    "show3dSkinLayer": "Отображать 3D-слой скина",
-    "threeDimensionalLayerUnavailable": "Для 3D-слоя нужен стандартный скин 64×64",
     "skinRendering": "Рендеринг скина",
     "animationIdle": "Ожидание",
     "animationWalk": "Шаг",

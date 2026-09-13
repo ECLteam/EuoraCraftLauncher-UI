@@ -218,14 +218,6 @@
             <div class="wardrobe-preview-toggles">
               <NCheckbox v-model:checked="showElytra" size="small">{{ t('wardrobe.showElytra') }}</NCheckbox>
               <NCheckbox v-model:checked="showNameTag" size="small">{{ t('wardrobe.showNameTag') }}</NCheckbox>
-              <NCheckbox
-                v-model:checked="show3dSkinLayer"
-                size="small"
-                :disabled="!canRender3dSkinLayer"
-                :title="canRender3dSkinLayer ? '' : t('wardrobe.threeDimensionalLayerUnavailable')"
-              >
-                {{ t('wardrobe.show3dSkinLayer') }}
-              </NCheckbox>
             </div>
           </div>
           <SkinViewer3D
@@ -234,7 +226,6 @@
             :model="previewModel"
             :elytra="showElytra"
             :nameTag="showNameTag ? (targetAccount?.alias ?? '') : ''"
-            :render3dSkinLayer="show3dSkinLayer && canRender3dSkinLayer"
           />
         </section>
       </main>
@@ -367,7 +358,6 @@ const editName = ref('')
 const editModel = ref<SkinModel>('classic')
 const showElytra = ref(false)
 const showNameTag = ref(false)
-const show3dSkinLayer = ref(false)
 const loading = ref(false)
 const importing = ref(false)
 const saving = ref(false)
@@ -395,9 +385,6 @@ const isStandardSkin = computed(
 )
 const canApplySkin = computed(() => targetAccount.value?.type === 'microsoft' && isStandardSkin.value)
 const canDownloadSkin = computed(() => Boolean(targetAccountId.value))
-const canRender3dSkinLayer = computed(
-  () => selectedLocal.value?.kind !== 'skin' || (selectedLocal.value.width === 64 && selectedLocal.value.height === 64)
-)
 const modelOptions = computed(() => [
   { label: t('wardrobe.classic'), value: 'classic' },
   { label: t('wardrobe.slim'), value: 'slim' },

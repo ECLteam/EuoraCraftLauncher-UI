@@ -1598,8 +1598,6 @@
     "skinDownloaded": "Account skin downloaded to wardrobe",
     "showElytra": "Render elytra",
     "showNameTag": "Show name tag",
-    "show3dSkinLayer": "Render 3D outer skin layer",
-    "threeDimensionalLayerUnavailable": "3D skin layers require a standard 64×64 skin",
     "skinRendering": "Skin Rendering",
     "animationIdle": "Idle",
     "animationWalk": "Walk",
