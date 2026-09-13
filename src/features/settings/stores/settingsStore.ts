@@ -14,6 +14,8 @@ const DEFAULT_GAME_CONFIG: GameConfig = {
   process_priority: 'normal',
   game_width: 854,
   game_height: 480,
+  jvm_args: [],
+  renderer: 'default',
   fullscreen: false,
   instance_isolation_policy: 'all',
   game_args_tail: '',

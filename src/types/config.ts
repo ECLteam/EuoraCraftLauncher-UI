@@ -41,6 +41,7 @@ export interface BackgroundConfig {
 
 export type MinecraftPathEntry = string | { name: string; path: string; protected?: boolean }
 export type InstanceIsolationPolicy = 'disabled' | 'modded_only' | 'non_release_only' | 'modded_or_non_release' | 'all'
+export type GameRenderer = 'default' | 'software' | 'directx12' | 'vulkan'
 
 export interface GameConfig {
   minecraft_paths: MinecraftPathEntry[]
@@ -55,6 +56,8 @@ export interface GameConfig {
   game_width?: number
   game_height?: number
   jvm_args?: string[]
+  /** Windows 下使用的 Mesa 兼容渲染后端。 */
+  renderer?: GameRenderer
   fullscreen?: boolean
   /** 实例未设置覆盖时使用的游戏目录隔离策略。 */
   instance_isolation_policy?: InstanceIsolationPolicy

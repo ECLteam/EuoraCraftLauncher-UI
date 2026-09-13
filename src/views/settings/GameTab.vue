@@ -177,13 +177,34 @@
     </SettingSection>
 
     <SettingSection :title="t('settings.launchAdvanced')">
+      <SettingRow :label="t('settings.jvmArgs')" :description="t('settings.jvmArgsDesc')">
+        <NInput
+          v-model:value="globalJvmArgsText"
+          class="advanced-argument-input"
+          type="textarea"
+          :autosize="{ minRows: 3, maxRows: 6 }"
+          :placeholder="t('settings.jvmArgsPlaceholder')"
+          @blur="saveConfig"
+        />
+      </SettingRow>
+
       <SettingRow :label="t('settings.gameArgsTail')" :description="t('settings.gameArgsTailDesc')">
         <NInput
           v-model:value="localSettings.game_args_tail"
+          class="advanced-argument-input"
           type="textarea"
-          :autosize="{ minRows: 2, maxRows: 4 }"
+          :autosize="{ minRows: 3, maxRows: 6 }"
           :placeholder="t('settings.gameArgsTailPlaceholder')"
           @blur="saveConfig"
+        />
+      </SettingRow>
+
+      <SettingRow v-if="isWindows" :label="t('settings.renderer')" :description="t('settings.rendererDesc')">
+        <NSelect
+          :value="localSettings.renderer || 'default'"
+          :options="rendererOptions"
+          class="process-priority-select"
+          @update:value="handleRendererChange"
         />
       </SettingRow>
 
@@ -222,12 +243,13 @@ import { computed, onMounted, ref, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
+import { parseLaunchArguments } from '@/features/instances/model/instanceSettings'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { settingsApi } from '@/features/settings/api/settingsApi'
 import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
-import type { InstanceIsolationPolicy, SystemMemoryInfo } from '@/types/config'
+import type { GameRenderer, InstanceIsolationPolicy, SystemMemoryInfo } from '@/types/config'
 import type { JavaInstallation } from '@/types/instances'
 
 type JavaInfo = JavaInstallation
@@ -237,6 +259,7 @@ const message = useLauncherMessage()
 const { run } = useAsyncAction({ showSuccess: false, showError: true, errorMessage: t('common.error') })
 const settingsStore = useSettingsStore()
 const { game: localSettings } = storeToRefs(settingsStore)
+const isWindows = window.navigator.userAgent.toLowerCase().includes('windows')
 
 const systemMemory = ref<SystemMemoryInfo>({
   totalMb: 16384,
@@ -355,6 +378,24 @@ const isolationPolicyOptions = ISOLATION_POLICIES.map((value) => ({
   label: t(`settings.instanceIsolationPolicyOptions.${value}`),
 }))
 
+const RENDERERS: GameRenderer[] = ['default', 'software', 'directx12', 'vulkan']
+const rendererOptions = RENDERERS.map((value) => ({
+  value,
+  label: t(`settings.rendererOptions.${value}`),
+}))
+
+const formatLaunchArgument = (value: string): string => {
+  if (!/[\s"']/.test(value)) return value
+  return JSON.stringify(value)
+}
+
+const globalJvmArgsText = computed({
+  get: () => (localSettings.value.jvm_args || []).map(formatLaunchArgument).join(' '),
+  set: (value: string) => {
+    localSettings.value.jvm_args = parseLaunchArguments(value)
+  },
+})
+
 const loadJavaList = async () => {
   const result = await run(async () => settingsApi.listJava())
   if (result) javaList.value = result
@@ -392,6 +433,8 @@ const saveConfig = async () => {
     process_priority: localSettings.value.process_priority || 'normal',
     game_width: localSettings.value.game_width,
     game_height: localSettings.value.game_height,
+    jvm_args: localSettings.value.jvm_args || [],
+    renderer: localSettings.value.renderer || 'default',
     fullscreen: localSettings.value.fullscreen,
     instance_isolation_policy: localSettings.value.instance_isolation_policy || 'all',
     game_args_tail: localSettings.value.game_args_tail || '',
@@ -446,6 +489,11 @@ const handleFullscreenToggle = (value: boolean) => {
 
 const handleIsolationPolicyChange = (value: InstanceIsolationPolicy) => {
   localSettings.value.instance_isolation_policy = value
+  saveConfig()
+}
+
+const handleRendererChange = (value: GameRenderer) => {
+  localSettings.value.renderer = value
   saveConfig()
 }
 
