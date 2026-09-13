@@ -64,6 +64,15 @@ describe('RunningInstancesTab', () => {
     expect(wrapper.get('.running-version-icon img').attributes('src')).toBe('/img/item/fabric.png')
     expect(wrapper.find('.running-instance-row').exists()).toBe(true)
     expect(wrapper.find('.running-instance-card').exists()).toBe(false)
+    expect(wrapper.get('.running-instances-count').classes()).not.toContain('inactive')
+  })
+
+  it('uses an inactive status badge when no instance is running', async () => {
+    mocks.list.mockResolvedValue([])
+    const wrapper = mountTab()
+    await flushPromises()
+
+    expect(wrapper.get('.running-instances-count').classes()).toContain('inactive')
   })
 
   it('confirms and stops a selected instance', async () => {

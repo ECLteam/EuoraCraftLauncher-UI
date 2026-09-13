@@ -7,7 +7,7 @@
           <strong>{{ t('versions.running.title') }}</strong>
         </div>
         <div class="running-instances-toolbar-actions">
-          <span class="running-instances-count">
+          <span :class="['running-instances-count', { inactive: instances.length === 0 }]">
             <i></i>
             {{ t('versions.running.count', { count: instances.length }) }}
           </span>
@@ -289,6 +289,15 @@ async function handleConfirm() {
   background: currentcolor;
   border-radius: 50%;
   box-shadow: 0 0 7px currentcolor;
+}
+
+.running-instances-count.inactive {
+  background: var(--control-bg);
+  color: var(--text-tertiary);
+}
+
+.running-instances-count.inactive i {
+  box-shadow: none;
 }
 
 .running-refresh {
