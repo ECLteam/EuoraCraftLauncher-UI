@@ -207,6 +207,9 @@ export function useInstanceManager(t: (key: string, ...args: unknown[]) => strin
       memory: versionSettings.customMemory ? versionSettings.memory : undefined,
       lock_memory: settingsStore.game.lock_memory,
       process_priority: settingsStore.game.process_priority || 'normal',
+      width: settingsStore.game.game_width,
+      height: settingsStore.game.game_height,
+      fullscreen: settingsStore.game.fullscreen,
       jvm_args: versionSettings.jvmArgs ? parseLaunchArguments(versionSettings.jvmArgs) : undefined,
       game_args: versionSettings.gameArgs ? parseLaunchArguments(versionSettings.gameArgs) : undefined,
       version_isolation:
