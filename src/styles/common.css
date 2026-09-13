@@ -11,7 +11,7 @@
 }
 
 /* Naive UI 选择框：展开时翻转默认下拉箭头，便于反馈菜单状态。 */
-.n-select .n-base-suffix__arrow {
+.n-select .n-base-suffix .n-base-suffix__arrow {
   transform-origin: center;
   transition:
     color 0.3s var(--n-bezier),

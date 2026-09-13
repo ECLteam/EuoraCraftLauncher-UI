@@ -16,10 +16,15 @@
           </span>
         </button>
         <span class="split-divider"></span>
-        <NPopover trigger="click" placement="top-end" :showArrow="false" raw>
+        <NPopover v-model:show="isRecentInstancesOpen" trigger="click" placement="top-end" :showArrow="false" raw>
           <template #trigger>
             <button class="split-arrow" :disabled="launching" :title="t('game.recentInstances')">
-              <UiIcon name="chevron-up" :size="14" />
+              <UiIcon
+                name="chevron-up"
+                :size="14"
+                class="split-arrow-icon"
+                :class="{ rotated: isRecentInstancesOpen }"
+              />
             </button>
           </template>
           <div class="recent-instances-popover" :class="{ wide: recentInstances.length > 5 }">
@@ -117,7 +122,7 @@
 
 <script setup lang="ts">
 import { NButton, NPopover } from 'naive-ui'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
 import { MAX_PINNED_ITEMS, type RecentInstance } from '@/composables/useRecentInstances'
@@ -147,6 +152,7 @@ const emit = defineEmits<{
 
 const instanceStore = useInstanceStore()
 const settingsStore = useSettingsStore()
+const isRecentInstancesOpen = ref(false)
 
 const pinCapReached = computed(() => props.recentInstances.filter((item) => item.pinned).length >= MAX_PINNED_ITEMS)
 
@@ -321,6 +327,15 @@ const { t } = useI18n()
 .split-arrow:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.split-arrow-icon {
+  transform-origin: center;
+  transition: transform var(--duration-normal) var(--ease-emphasized);
+}
+
+.split-arrow-icon.rotated {
+  transform: rotate(180deg);
 }
 
 /* ========== 最近实例 Popover ========== */

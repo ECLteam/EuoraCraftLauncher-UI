@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import { NPopover } from 'naive-ui'
 import { createPinia } from 'pinia'
 import { describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
@@ -98,6 +99,19 @@ describe('GameLaunchBar', () => {
     const wrapper = mountLaunchBar({ hasAccount: false })
 
     expect(wrapper.get<HTMLButtonElement>('.split-main').element.disabled).toBe(true)
+  })
+
+  it('打开最近实例菜单时旋转箭头', async () => {
+    const wrapper = mountLaunchBar()
+    const popover = wrapper.findComponent(NPopover)
+
+    popover.vm.$emit('update:show', true)
+    await nextTick()
+    expect(wrapper.get('.split-arrow-icon').classes()).toContain('rotated')
+
+    popover.vm.$emit('update:show', false)
+    await nextTick()
+    expect(wrapper.get('.split-arrow-icon').classes()).not.toContain('rotated')
   })
 
   it('最近实例不超过 5 个时单列展示', async () => {

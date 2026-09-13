@@ -24,6 +24,7 @@
       <div class="account-actions">
         <NButton size="small" @click="emit('manage')">{{ t('game.manage') }}</NButton>
         <NDropdown
+          v-model:show="isAccountMenuOpen"
           trigger="click"
           placement="bottom-end"
           :showArrow="true"
@@ -32,7 +33,13 @@
           @select="selectAccount"
         >
           <NButton quaternary circle size="small" :title="t('game.switch')" :disabled="loading || !accounts.length">
-            <template #icon><UiIcon name="chevron-down" :size="15" /></template>
+            <template #icon
+              ><UiIcon
+                name="chevron-down"
+                :size="15"
+                class="account-switch-icon"
+                :class="{ rotated: isAccountMenuOpen }"
+            /></template>
           </NButton>
         </NDropdown>
       </div>
@@ -42,7 +49,7 @@
 
 <script setup lang="ts">
 import { NButton, NCard, NDropdown } from 'naive-ui'
-import { computed, h } from 'vue'
+import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AvatarRenderer from '@/components/game/AvatarRenderer.vue'
 import UiIcon from '@/components/ui/Icon.vue'
@@ -61,6 +68,7 @@ const emit = defineEmits<{
   switch: [accountId: string]
 }>()
 const { t } = useI18n()
+const isAccountMenuOpen = ref(false)
 
 const accountOptions = computed(() =>
   props.accounts.map((savedAccount) => ({
@@ -159,5 +167,14 @@ function selectAccount(accountId: string | number) {
   flex-shrink: 0;
   align-items: center;
   gap: 2px;
+}
+
+.account-switch-icon {
+  transform-origin: center;
+  transition: transform var(--duration-normal) var(--ease-emphasized);
+}
+
+.account-switch-icon.rotated {
+  transform: rotate(180deg);
 }
 </style>
