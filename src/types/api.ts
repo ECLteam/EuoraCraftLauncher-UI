@@ -1130,6 +1130,7 @@ export interface SchematicAssetsBundle {
   blockstates: Record<string, unknown>
   models: Record<string, unknown>
   textures: Record<string, string>
+  animated: string[]
   missingBlocks: string[]
 }
 
