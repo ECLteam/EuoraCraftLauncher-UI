@@ -10,6 +10,18 @@
   display: none;
 }
 
+/* Naive UI 选择框：展开时翻转默认下拉箭头，便于反馈菜单状态。 */
+.n-select .n-base-suffix__arrow {
+  transform-origin: center;
+  transition:
+    color 0.3s var(--n-bezier),
+    transform var(--duration-normal) var(--ease-emphasized);
+}
+
+.n-select .n-base-selection--active .n-base-suffix__arrow {
+  transform: rotate(180deg);
+}
+
 /* ============================================================
    选项卡面板
    ============================================================ */
