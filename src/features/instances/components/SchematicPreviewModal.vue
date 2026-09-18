@@ -6,12 +6,6 @@
     @update:visible="emit('update:visible', $event)"
   >
     <section class="schematic-preview-layout">
-      <header class="schematic-preview-header">
-        <div>
-          <strong>{{ title }}</strong
-          ><span v-if="data">{{ t('schematic.size', { x: data.size[0], y: data.size[1], z: data.size[2] }) }}</span>
-        </div>
-      </header>
       <main class="schematic-preview-content">
         <NSpin :show="loading" class="schematic-preview-stage">
           <div v-if="loading" class="schematic-preview-hint">{{ loadingText }}</div>
@@ -215,20 +209,6 @@ onBeforeUnmount(resetPreview)
   flex-direction: column;
   background: var(--ecl-surface);
 }
-.schematic-preview-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 56px;
-  padding: 0 20px;
-  border-bottom: 1px solid var(--border-color);
-}
-.schematic-preview-header div {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-}
-.schematic-preview-header span,
 .schematic-preview-sidebar p {
   color: var(--ecl-text-secondary);
   font-size: 12px;
