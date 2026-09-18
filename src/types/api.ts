@@ -194,6 +194,8 @@ export type BackendEventName = keyof BackendEvents
 //  命令参数映射
 // ═══════════════════════════════════════════════════════════════════
 
+export type SchematicLocale = 'zh-CN' | 'zh-TW' | 'en-US' | 'ja-JP' | 'ru-RU' | 'de-DE'
+
 export interface CommandPayloadMap {
   system_ping: undefined
   launcher_errors_pending: undefined
@@ -335,6 +337,7 @@ export interface CommandPayloadMap {
       | 'world-export'
       | 'instance-export'
       | 'resource-manifest'
+      | 'schematic-material-manifest'
       | 'screenshot'
       | 'mod-file'
       | 'theme-preset'
@@ -448,6 +451,13 @@ export interface CommandPayloadMap {
     output_format: 'json' | 'csv'
     world_id?: string
   }
+  game_schematic_material_manifest_export: InstanceTargetPayload & {
+    session_id: string
+    output_path: string
+    output_format: 'json' | 'csv'
+    locale: SchematicLocale
+    missing_blocks: string[]
+  }
   game_resource_search: {
     query: string
     game_version: string
@@ -469,7 +479,7 @@ export interface CommandPayloadMap {
     world_id?: string
   }
   game_schematic_preview: InstanceTargetPayload & { resource_type: GameResourceType; resource_id: string }
-  game_schematic_assets: InstanceTargetPayload & { blocks: string[] }
+  game_schematic_assets: InstanceTargetPayload & { blocks: string[]; locale: SchematicLocale }
   game_schematic_session_open: InstanceTargetPayload & { resource_type: 'schematic'; resource_id: string }
   game_schematic_session_chunks: { session_id: string; coords: [number, number, number][] }
   game_schematic_session_close: { session_id: string }
@@ -775,6 +785,7 @@ export const COMMAND_NAMES = {
   game_resource_toggle: 'game_resource_toggle',
   game_resource_delete: 'game_resource_delete',
   game_resource_manifest_export: 'game_resource_manifest_export',
+  game_schematic_material_manifest_export: 'game_schematic_material_manifest_export',
   game_resource_search: 'game_resource_search',
   game_resource_identify: 'game_resource_identify',
   game_resource_update_check: 'game_resource_update_check',
@@ -1032,6 +1043,7 @@ export interface CommandResponseMap {
   game_resource_toggle: { id: string; enabled: boolean }
   game_resource_delete: void
   game_resource_manifest_export: { path: string }
+  game_schematic_material_manifest_export: { path: string }
   game_resource_search: { source: string; items: unknown[] }
   game_resource_identify: {
     matched: boolean

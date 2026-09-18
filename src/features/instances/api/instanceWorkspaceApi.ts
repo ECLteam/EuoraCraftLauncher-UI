@@ -1,5 +1,6 @@
 import backend from '@/api/client'
 import { unwrapResponse } from '@/app/runtime/errorPresentation'
+import { getCurrentLocale } from '@/i18n'
 import type {
   SchematicAssetsBundle,
   SchematicChunkBatch,
@@ -211,7 +212,30 @@ export const instanceWorkspaceApi = {
       '预览原理图'
     ),
   schematicAssets: (target: InstanceTargetPayload, blocks: string[]) =>
-    call<SchematicAssetsBundle>('game_schematic_assets', { ...target, blocks }, '读取原理图方块纹理'),
+    call<SchematicAssetsBundle>(
+      'game_schematic_assets',
+      { ...target, blocks, locale: getCurrentLocale() },
+      '读取原理图方块纹理'
+    ),
+  exportSchematicMaterialManifest: (
+    target: InstanceTargetPayload,
+    sessionId: string,
+    outputPath: string,
+    outputFormat: 'json' | 'csv',
+    missingBlocks: string[]
+  ) =>
+    call<{ path: string }>(
+      'game_schematic_material_manifest_export',
+      {
+        ...target,
+        session_id: sessionId,
+        output_path: outputPath,
+        output_format: outputFormat,
+        locale: getCurrentLocale(),
+        missing_blocks: missingBlocks,
+      },
+      '导出原理图材料清单'
+    ),
   schematicSessionOpen: (target: InstanceTargetPayload, resourceId: string) =>
     call<SchematicSessionData>(
       'game_schematic_session_open',

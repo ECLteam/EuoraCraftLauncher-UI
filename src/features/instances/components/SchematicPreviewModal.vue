@@ -4,7 +4,6 @@
     :title="title"
     wrapperClass="schematic-preview-fullscreen"
     @update:visible="emit('update:visible', $event)"
-    @closed="onClosed"
   >
     <section class="schematic-preview-layout">
       <header class="schematic-preview-header">
@@ -29,7 +28,13 @@
               <h4>方块清单</h4>
               <p>{{ materialCount }} 种方块 · {{ blockCount }} 个方块</p>
             </div>
-            <span>数量</span>
+            <div class="schematic-material-actions">
+              <NButton quaternary size="tiny" :disabled="!assets" @click="auditVisible = true">
+                <template #icon><UiIcon name="list" :size="15" /></template>
+                材料审计
+              </NButton>
+              <span>数量</span>
+            </div>
           </div>
           <div v-if="assets?.missingBlocks.length" class="schematic-missing">
             {{ assets.missingBlocks.length }} 种方块没有可用纹理，将以回退颜色显示。
@@ -56,20 +61,29 @@
       </main>
     </section>
   </FullscreenModal>
+  <SchematicMaterialAuditModal
+    v-model:visible="auditVisible"
+    :version="version"
+    :sourceTitle="title"
+    :sessionId="data?.sessionId ?? ''"
+    :materials="materials"
+  />
 </template>
 
 <script setup lang="ts">
 import { NButton, NScrollbar, NSpin } from 'naive-ui'
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
 import { SchematicMaterialThumbnailRenderer } from '@/features/instances/lib/schematicMaterialThumbnailRenderer'
+import { buildSchematicMaterials } from '@/features/instances/model/schematicMaterials'
 import type { SchematicAssetsBundle, SchematicSessionData } from '@/types/api'
 import type { ScannedVersion } from '@/types/instances'
 import { getErrorMessage } from '@/utils/error'
+import SchematicMaterialAuditModal from './SchematicMaterialAuditModal.vue'
 import SchematicViewer3D from './SchematicViewer3D.vue'
 
 interface Props {
@@ -80,7 +94,7 @@ interface Props {
 }
 const props = withDefaults(defineProps<Props>(), { version: undefined, resourceId: '', resourceName: '' })
 const emit = defineEmits<{ (e: 'update:visible', value: boolean): void }>()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const message = useLauncherMessage()
 const loading = ref(false)
 const loadingText = ref('')
@@ -88,20 +102,13 @@ const error = ref('')
 const data = ref<SchematicSessionData | null>(null)
 const assets = ref<SchematicAssetsBundle | null>(null)
 const thumbnailSources = ref<Record<string, string>>({})
+const auditVisible = ref(false)
 const title = computed(() => props.resourceName || t('schematic.title'))
-const materials = computed(() => {
-  const palette = new Map(data.value?.palette.map((entry) => [entry.name, entry.color]) ?? [])
-  return Object.entries(data.value?.materialCounts ?? {})
-    .map(([name, count]) => {
-      return {
-        name,
-        count,
-        color: `rgb(${(palette.get(name) ?? [140, 140, 140]).join(',')})`,
-        thumbnail: thumbnailSources.value[name] ?? null,
-      }
-    })
-    .sort((left, right) => right.count - left.count)
-})
+const materials = computed(() =>
+  buildSchematicMaterials(data.value, assets.value, thumbnailSources.value).sort(
+    (left, right) => right.count - left.count || left.label.localeCompare(right.label, undefined, { numeric: true })
+  )
+)
 const materialCount = computed(() => materials.value.length)
 const blockCount = computed(() => materials.value.reduce((total, item) => total + item.count, 0))
 let loadEpoch = 0
@@ -174,11 +181,21 @@ async function load(): Promise<void> {
 watch(
   () => props.visible,
   (open) => {
-    if (open) void load()
+    if (open) {
+      void load()
+    } else {
+      resetPreview()
+    }
   }
 )
-function onClosed(): void {
+watch(locale, () => {
+  if (!props.visible) return
+  auditVisible.value = false
+  void load()
+})
+function resetPreview(): void {
   loadEpoch += 1
+  auditVisible.value = false
   disposeThumbnails()
   const sessionId = data.value?.sessionId
   if (sessionId) void instanceWorkspaceApi.schematicSessionClose(sessionId)
@@ -186,6 +203,7 @@ function onClosed(): void {
   assets.value = null
   error.value = ''
 }
+onBeforeUnmount(resetPreview)
 </script>
 
 <style scoped>
@@ -217,7 +235,7 @@ function onClosed(): void {
   display: grid;
   min-height: 0;
   flex: 1;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: minmax(0, 1fr) 340px;
 }
 .schematic-preview-stage {
   min-width: 0;
@@ -260,6 +278,16 @@ function onClosed(): void {
   color: var(--ecl-text-secondary);
   font-size: 12px;
 }
+.schematic-material-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.schematic-material-actions > span {
+  padding-bottom: 1px;
+  color: var(--ecl-text-secondary);
+  font-size: 12px;
+}
 .schematic-missing {
   margin: 14px 0;
   color: var(--warning);
@@ -281,7 +309,7 @@ function onClosed(): void {
 }
 .schematic-material-list li {
   display: flex;
-  min-height: 48px;
+  min-height: 60px;
   align-items: center;
   gap: 10px;
   padding: 6px 8px;
@@ -292,9 +320,9 @@ function onClosed(): void {
   background: var(--ecl-surface-hover);
 }
 .material-color {
-  width: 28px;
-  height: 28px;
-  flex: 0 0 28px;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
   border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
   border-radius: 5px;
   background-position: center;

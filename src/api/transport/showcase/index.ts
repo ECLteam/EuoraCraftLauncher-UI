@@ -992,6 +992,8 @@ export function createShowcaseTransport(): BackendTransport {
         return success(demoOperation('resource_update'))
       case 'game_resource_manifest_export':
         return success({ path: String(payload.output_path ?? 'Showcase/manifest.json') })
+      case 'game_schematic_material_manifest_export':
+        return success({ path: String(payload.output_path ?? 'Showcase/schematic-materials.json') })
       case 'game_resource_identify':
         return success({ matched: false })
       case 'game_schematic_preview':
