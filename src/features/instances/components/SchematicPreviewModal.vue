@@ -33,8 +33,9 @@
             {{ assets.missingBlocks.length }} 种方块没有可用纹理，将以回退颜色显示。
           </div>
           <div class="schematic-material-list">
-            <div v-for="material in materials" :key="material.name">
-              <span class="material-color" :style="{ background: material.color }" />{{ material.name
+            <div v-for="material in materials" :key="material.name" :title="material.name">
+              <span class="material-color" :style="{ background: material.color }" />{{
+                assets?.blockNames?.[material.name] ?? material.name
               }}<b>{{ material.count }}</b>
             </div>
           </div>
@@ -52,7 +53,7 @@ import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
-import type { SchematicAssetsBundle, SchematicPreviewData } from '@/types/api'
+import type { SchematicAssetsBundle, SchematicSessionData } from '@/types/api'
 import type { ScannedVersion } from '@/types/instances'
 import { getErrorMessage } from '@/utils/error'
 import SchematicViewer3D from './SchematicViewer3D.vue'
@@ -70,26 +71,24 @@ const message = useLauncherMessage()
 const loading = ref(false)
 const loadingText = ref('')
 const error = ref('')
-const data = ref<SchematicPreviewData | null>(null)
+const data = ref<SchematicSessionData | null>(null)
 const assets = ref<SchematicAssetsBundle | null>(null)
 const title = computed(() => props.resourceName || t('schematic.title'))
 const materials = computed(() => {
-  const counts = new Map<string, { name: string; count: number; color: string }>()
-  for (const region of data.value?.regions ?? [])
-    for (const index of region.indices) {
-      const entry = region.palette[index]
-      if (!entry || entry.name.endsWith(':air')) continue
-      const current = counts.get(entry.name) ?? { name: entry.name, count: 0, color: `rgb(${entry.color.join(',')})` }
-      current.count += 1
-      counts.set(entry.name, current)
-    }
-  return [...counts.values()].sort((left, right) => right.count - left.count)
+  const palette = new Map(data.value?.palette.map((entry) => [entry.name, entry.color]) ?? [])
+  return Object.entries(data.value?.materialCounts ?? {})
+    .map(([name, count]) => ({ name, count, color: `rgb(${(palette.get(name) ?? [140, 140, 140]).join(',')})` }))
+    .sort((left, right) => right.count - left.count)
 })
 const materialCount = computed(() => materials.value.length)
 const blockCount = computed(() => materials.value.reduce((total, item) => total + item.count, 0))
+let loadEpoch = 0
 
 async function load(): Promise<void> {
   if (!props.version || !props.resourceId) return
+  const epoch = ++loadEpoch
+  const previousSessionId = data.value?.sessionId
+  if (previousSessionId) void instanceWorkspaceApi.schematicSessionClose(previousSessionId)
   loading.value = true
   loadingText.value = t('schematic.loading')
   error.value = ''
@@ -97,21 +96,27 @@ async function load(): Promise<void> {
   assets.value = null
   try {
     const target = workspaceTarget(props.version)
-    data.value = await instanceWorkspaceApi.schematicPreview(target, props.resourceId)
+    const opened = await instanceWorkspaceApi.schematicSessionOpen(target, props.resourceId)
+    if (epoch !== loadEpoch) {
+      void instanceWorkspaceApi.schematicSessionClose(opened.sessionId)
+      return
+    }
+    data.value = opened
     loadingText.value = '正在读取游戏方块纹理…'
     const blocks = [
       ...new Set(
-        data.value.regions.flatMap((region) =>
-          region.palette.map((item) => item.name).filter((name) => !name.endsWith(':air'))
-        )
+        opened.palette
+          .map((item) => item.name)
+          .filter((name) => !['air', 'cave_air', 'void_air'].includes(name.split(':').at(-1) ?? ''))
       ),
     ]
     if (blocks.length) assets.value = await instanceWorkspaceApi.schematicAssets(target, blocks)
   } catch (cause) {
+    if (epoch !== loadEpoch) return
     error.value = getErrorMessage(cause, t('schematic.parseFailed'))
     message.error(error.value)
   } finally {
-    loading.value = false
+    if (epoch === loadEpoch) loading.value = false
   }
 }
 watch(
@@ -121,6 +126,9 @@ watch(
   }
 )
 function onClosed(): void {
+  loadEpoch += 1
+  const sessionId = data.value?.sessionId
+  if (sessionId) void instanceWorkspaceApi.schematicSessionClose(sessionId)
   data.value = null
   assets.value = null
   error.value = ''

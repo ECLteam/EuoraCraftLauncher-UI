@@ -470,6 +470,9 @@ export interface CommandPayloadMap {
   }
   game_schematic_preview: InstanceTargetPayload & { resource_type: GameResourceType; resource_id: string }
   game_schematic_assets: InstanceTargetPayload & { blocks: string[] }
+  game_schematic_session_open: InstanceTargetPayload & { resource_type: 'schematic'; resource_id: string }
+  game_schematic_session_chunks: { session_id: string; coords: [number, number, number][] }
+  game_schematic_session_close: { session_id: string }
   game_launch: {
     version_id: string
     game_path: string
@@ -778,6 +781,9 @@ export const COMMAND_NAMES = {
   game_resource_update: 'game_resource_update',
   game_schematic_preview: 'game_schematic_preview',
   game_schematic_assets: 'game_schematic_assets',
+  game_schematic_session_open: 'game_schematic_session_open',
+  game_schematic_session_chunks: 'game_schematic_session_chunks',
+  game_schematic_session_close: 'game_schematic_session_close',
   game_launch: 'game_launch',
   game_launch_cancel: 'game_launch_cancel',
   game_instance_stop: 'game_instance_stop',
@@ -1038,6 +1044,9 @@ export interface CommandResponseMap {
   game_resource_update: GameOperation
   game_schematic_preview: SchematicPreviewData
   game_schematic_assets: SchematicAssetsBundle
+  game_schematic_session_open: SchematicSessionData
+  game_schematic_session_chunks: SchematicChunkBatch
+  game_schematic_session_close: { closed: boolean }
   game_launch: LaunchInstanceResult
   game_launch_cancel: void
   export_logs: { path: string }
@@ -1132,6 +1141,21 @@ export interface SchematicAssetsBundle {
   textures: Record<string, string>
   animated: string[]
   missingBlocks: string[]
+  blockNames?: Record<string, string>
+}
+
+export interface SchematicSessionData {
+  sessionId: string
+  type: 'litematic' | 'schem'
+  size: [number, number, number]
+  chunkSize: number
+  palette: SchematicPaletteEntry[]
+  materialCounts: Record<string, number>
+  chunks: [number, number, number][]
+}
+
+export interface SchematicChunkBatch {
+  chunks: Array<{ coord: [number, number, number]; indices: string }>
 }
 
 export interface SchematicPreviewData {

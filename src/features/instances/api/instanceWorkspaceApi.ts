@@ -1,6 +1,11 @@
 import backend from '@/api/client'
 import { unwrapResponse } from '@/app/runtime/errorPresentation'
-import type { SchematicAssetsBundle, SchematicPreviewData } from '@/types/api'
+import type {
+  SchematicAssetsBundle,
+  SchematicChunkBatch,
+  SchematicPreviewData,
+  SchematicSessionData,
+} from '@/types/api'
 import type {
   GameOperation,
   GameResource,
@@ -207,6 +212,16 @@ export const instanceWorkspaceApi = {
     ),
   schematicAssets: (target: InstanceTargetPayload, blocks: string[]) =>
     call<SchematicAssetsBundle>('game_schematic_assets', { ...target, blocks }, '读取原理图方块纹理'),
+  schematicSessionOpen: (target: InstanceTargetPayload, resourceId: string) =>
+    call<SchematicSessionData>(
+      'game_schematic_session_open',
+      { ...target, resource_type: 'schematic', resource_id: resourceId },
+      '打开原理图分块预览'
+    ),
+  schematicSessionChunks: (sessionId: string, coords: [number, number, number][]) =>
+    call<SchematicChunkBatch>('game_schematic_session_chunks', { session_id: sessionId, coords }, '读取原理图区块'),
+  schematicSessionClose: (sessionId: string) =>
+    call<{ closed: boolean }>('game_schematic_session_close', { session_id: sessionId }, '关闭原理图分块预览'),
 }
 
 export interface GameOptionEntry {

@@ -1,0 +1,29 @@
+import { describe, expect, it } from 'vitest'
+import { reactive } from 'vue'
+import type { SchematicAssetsBundle, SchematicSessionData } from '@/types/api'
+import { schematicWorkerInitPayload } from './schematicSessionViewer'
+
+describe('schematicWorkerInitPayload', () => {
+  it('从 Vue 响应式状态创建可发送给 Worker 的数据', () => {
+    const session = reactive<SchematicSessionData>({
+      sessionId: 'test-session',
+      type: 'litematic',
+      size: [16, 16, 16],
+      chunkSize: 16,
+      palette: [{ name: 'minecraft:stone', properties: {}, color: [128, 128, 128] }],
+      materialCounts: { 'minecraft:stone': 1 },
+      chunks: [[0, 0, 0]],
+    })
+    const assets = reactive<SchematicAssetsBundle>({
+      blockstates: { 'minecraft:stone': { variants: {} } },
+      models: { 'minecraft:block/stone': { textures: { all: 'minecraft:block/stone' } } },
+      textures: {},
+      animated: [],
+      missingBlocks: [],
+    })
+    const payload = schematicWorkerInitPayload(session, assets, {})
+
+    expect(() => structuredClone(payload)).not.toThrow()
+    expect(() => structuredClone(payload.chunks[0])).not.toThrow()
+  })
+})

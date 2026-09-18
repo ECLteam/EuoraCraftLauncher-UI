@@ -1,11 +1,11 @@
 import {
   BlockDefinition,
   BlockModel,
+  Identifier,
   Structure,
   StructureRenderer,
   TextureAtlas,
   type BlockFlags,
-  type Identifier,
   type Resources,
 } from 'deepslate'
 import { mat4, vec3 } from 'gl-matrix'
@@ -177,6 +177,17 @@ async function buildTextureAtlas(bundle: SchematicAssetsBundle): Promise<Texture
     rowHeight = Math.max(rowHeight, entry.cellsY)
   }
   return new TextureAtlas(context.getImageData(0, 0, pixels, pixels), uvById)
+}
+
+export async function buildSchematicAtlas(bundle: SchematicAssetsBundle): Promise<{
+  image: ImageData
+  uvById: Record<string, [number, number, number, number]>
+}> {
+  const atlas = await buildTextureAtlas(bundle)
+  const uvById: Record<string, [number, number, number, number]> = {}
+  for (const id of Object.keys(bundle.textures)) uvById[id] = atlas.getTextureUV(Identifier.parse(id))
+  uvById['minecraft:missingno'] = atlas.getTextureUV(Identifier.parse('minecraft:missingno'))
+  return { image: atlas.getTextureAtlas(), uvById }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
