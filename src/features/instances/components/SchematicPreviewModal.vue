@@ -37,18 +37,20 @@
             </div>
           </div>
           <div v-if="assets?.missingBlocks.length" class="schematic-missing">
-            {{ assets.missingBlocks.length }} 种方块没有可用纹理，将以回退颜色显示。
+            {{ assets.missingBlocks.length }} 种方块没有可用纹理，将显示缺失标记。
           </div>
           <NScrollbar class="schematic-material-scroll">
             <ul class="schematic-material-list">
               <li v-for="material in materials" :key="material.name" :title="material.name">
                 <span
                   class="material-color"
+                  :class="{ 'is-missing': !material.hasTexture }"
                   :style="{
-                    backgroundColor: material.color,
                     backgroundImage: material.thumbnail ? `url('${material.thumbnail}')` : undefined,
                   }"
-                />
+                >
+                  <UiIcon v-if="!material.hasTexture" name="warning" :size="18" className="material-missing-icon" />
+                </span>
                 <span class="material-detail">
                   <strong>{{ assets?.blockNames?.[material.name] ?? material.name }}</strong>
                   <code>{{ material.name }}</code>
@@ -309,7 +311,7 @@ onBeforeUnmount(resetPreview)
 }
 .schematic-material-list li {
   display: flex;
-  min-height: 60px;
+  min-height: 72px;
   align-items: center;
   gap: 10px;
   padding: 6px 8px;
@@ -320,18 +322,23 @@ onBeforeUnmount(resetPreview)
   background: var(--ecl-surface-hover);
 }
 .material-color {
-  width: 40px;
-  height: 40px;
-  flex: 0 0 40px;
+  position: relative;
+  display: grid;
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  place-items: center;
   border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
   border-radius: 5px;
+  background-color: transparent;
   background-position: center;
   background-repeat: no-repeat;
-  background-size: contain;
-  box-shadow:
-    inset 3px 3px color-mix(in srgb, white 18%, transparent),
-    inset -3px -3px rgb(0 0 0 / 12%);
+  background-size: 112%;
   image-rendering: pixelated;
+}
+.material-color.is-missing {
+  border-style: dashed;
+  color: var(--ecl-text-secondary);
 }
 .schematic-material-list b {
   min-width: 46px;

@@ -43,11 +43,13 @@
           <li v-for="material in filteredMaterials" :key="material.name">
             <span
               class="schematic-audit-thumbnail"
+              :class="{ 'is-missing': !material.hasTexture }"
               :style="{
-                backgroundColor: material.color,
                 backgroundImage: material.thumbnail ? `url('${material.thumbnail}')` : undefined,
               }"
-            />
+            >
+              <UiIcon v-if="!material.hasTexture" name="warning" :size="20" className="audit-missing-icon" />
+            </span>
             <span class="schematic-audit-material">
               <strong>{{ material.label }}</strong
               ><code>{{ material.name }}</code>
@@ -199,7 +201,7 @@ async function exportManifest(): Promise<void> {
   gap: 16px;
 }
 .schematic-audit-table-head {
-  padding: 8px 14px 8px 76px;
+  padding: 8px 14px 8px 94px;
   color: var(--ecl-text-secondary);
   font-size: 12px;
 }
@@ -218,7 +220,7 @@ async function exportManifest(): Promise<void> {
   list-style: none;
 }
 .schematic-audit-list li {
-  min-height: 66px;
+  min-height: 82px;
   padding: 8px 12px;
   border-radius: 7px;
 }
@@ -226,18 +228,23 @@ async function exportManifest(): Promise<void> {
   background: var(--ecl-surface-hover);
 }
 .schematic-audit-thumbnail {
-  width: 46px;
-  height: 46px;
+  position: relative;
+  display: grid;
+  width: 64px;
+  height: 64px;
   grid-row: 1;
+  place-items: center;
   border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
   border-radius: 6px;
+  background-color: transparent;
   background-position: center;
   background-repeat: no-repeat;
-  background-size: contain;
-  box-shadow:
-    inset 4px 4px color-mix(in srgb, white 18%, transparent),
-    inset -4px -4px rgb(0 0 0 / 12%);
+  background-size: 112%;
   image-rendering: pixelated;
+}
+.schematic-audit-thumbnail.is-missing {
+  border-style: dashed;
+  color: var(--ecl-text-secondary);
 }
 .schematic-audit-material {
   display: flex;
@@ -245,7 +252,7 @@ async function exportManifest(): Promise<void> {
   flex-direction: column;
   gap: 3px;
   grid-column: 1;
-  padding-left: 58px;
+  padding-left: 76px;
 }
 .schematic-audit-material strong,
 .schematic-audit-material code {
