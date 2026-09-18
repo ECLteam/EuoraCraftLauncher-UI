@@ -147,7 +147,7 @@ const technologies = {
 } satisfies Record<string, AboutEntry>
 
 const backendRuntimeEntries: AboutEntry[] = [
-  createGithubEntry('python', 'Python 3.11+', 'PY', 'pythonDesc', 'https://github.com/python/cpython'),
+  createGithubEntry('python', 'Python 3', 'PY', 'pythonDesc', 'https://github.com/python/cpython'),
   createGithubEntry('aiofiles', 'aiofiles', 'AF', 'aiofilesDesc', 'https://github.com/Tinche/aiofiles'),
   createGithubEntry('anyio', 'AnyIO', 'A', 'anyioDesc', 'https://github.com/agronholm/anyio'),
   createGithubEntry(
