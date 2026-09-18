@@ -343,7 +343,7 @@ function modelReference(value: unknown): string | null {
   return null
 }
 
-function textureReference(bundle: SchematicAssetsBundle, block: string): string | null {
+export function schematicBlockTextureId(bundle: SchematicAssetsBundle, block: string): string | null {
   const model = modelReference(bundle.blockstates[block])
   if (!model) return null
   let modelId = model.includes(':') ? model : `minecraft:${model}`
@@ -446,7 +446,7 @@ class LightweightCubeRenderer {
   }
 
   private textureForBlock(block: string): Texture | null {
-    const textureId = textureReference(this.bundle, block)
+    const textureId = schematicBlockTextureId(this.bundle, block)
     if (!textureId) return null
     const cached = this.textureById.get(textureId)
     if (cached) return cached

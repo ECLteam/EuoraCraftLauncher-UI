@@ -40,7 +40,13 @@
           <NScrollbar class="schematic-material-scroll">
             <ul class="schematic-material-list">
               <li v-for="material in materials" :key="material.name" :title="material.name">
-                <span class="material-color" :style="{ background: material.color }" />
+                <span
+                  class="material-color"
+                  :style="{
+                    backgroundColor: material.color,
+                    backgroundImage: material.thumbnail ? `url('${material.thumbnail}')` : undefined,
+                  }"
+                />
                 <span class="material-detail">
                   <strong>{{ assets?.blockNames?.[material.name] ?? material.name }}</strong>
                   <code>{{ material.name }}</code>
@@ -63,6 +69,7 @@ import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
+import { SchematicMaterialThumbnailRenderer } from '@/features/instances/lib/schematicMaterialThumbnailRenderer'
 import type { SchematicAssetsBundle, SchematicSessionData } from '@/types/api'
 import type { ScannedVersion } from '@/types/instances'
 import { getErrorMessage } from '@/utils/error'
@@ -83,22 +90,57 @@ const loadingText = ref('')
 const error = ref('')
 const data = ref<SchematicSessionData | null>(null)
 const assets = ref<SchematicAssetsBundle | null>(null)
+const thumbnailSources = ref<Record<string, string>>({})
 const title = computed(() => props.resourceName || t('schematic.title'))
 const materials = computed(() => {
   const palette = new Map(data.value?.palette.map((entry) => [entry.name, entry.color]) ?? [])
   return Object.entries(data.value?.materialCounts ?? {})
-    .map(([name, count]) => ({ name, count, color: `rgb(${(palette.get(name) ?? [140, 140, 140]).join(',')})` }))
+    .map(([name, count]) => {
+      return {
+        name,
+        count,
+        color: `rgb(${(palette.get(name) ?? [140, 140, 140]).join(',')})`,
+        thumbnail: thumbnailSources.value[name] ?? null,
+      }
+    })
     .sort((left, right) => right.count - left.count)
 })
 const materialCount = computed(() => materials.value.length)
 const blockCount = computed(() => materials.value.reduce((total, item) => total + item.count, 0))
 let loadEpoch = 0
+let thumbnailRenderer: SchematicMaterialThumbnailRenderer | null = null
+
+function disposeThumbnails(): void {
+  thumbnailRenderer?.dispose()
+  thumbnailRenderer = null
+  thumbnailSources.value = {}
+}
+
+async function startThumbnails(
+  bundle: SchematicAssetsBundle,
+  entries: SchematicSessionData['palette'],
+  epoch: number
+): Promise<void> {
+  disposeThumbnails()
+  let renderer: SchematicMaterialThumbnailRenderer | null = null
+  try {
+    renderer = new SchematicMaterialThumbnailRenderer(bundle, (name, source) => {
+      if (!source || thumbnailRenderer !== renderer || epoch !== loadEpoch) return
+      thumbnailSources.value = { ...thumbnailSources.value, [name]: source }
+    })
+    thumbnailRenderer = renderer
+    await renderer.start(entries)
+  } catch {
+    if (thumbnailRenderer === renderer) disposeThumbnails()
+  }
+}
 
 async function load(): Promise<void> {
   if (!props.version || !props.resourceId) return
   const epoch = ++loadEpoch
   const previousSessionId = data.value?.sessionId
   if (previousSessionId) void instanceWorkspaceApi.schematicSessionClose(previousSessionId)
+  disposeThumbnails()
   loading.value = true
   loadingText.value = t('schematic.loading')
   error.value = ''
@@ -120,7 +162,10 @@ async function load(): Promise<void> {
           .filter((name) => !['air', 'cave_air', 'void_air'].includes(name.split(':').at(-1) ?? ''))
       ),
     ]
-    if (blocks.length) assets.value = await instanceWorkspaceApi.schematicAssets(target, blocks)
+    if (blocks.length) {
+      assets.value = await instanceWorkspaceApi.schematicAssets(target, blocks)
+      if (epoch === loadEpoch && assets.value) void startThumbnails(assets.value, opened.palette, epoch)
+    }
   } catch (cause) {
     if (epoch !== loadEpoch) return
     error.value = getErrorMessage(cause, t('schematic.parseFailed'))
@@ -137,6 +182,7 @@ watch(
 )
 function onClosed(): void {
   loadEpoch += 1
+  disposeThumbnails()
   const sessionId = data.value?.sessionId
   if (sessionId) void instanceWorkspaceApi.schematicSessionClose(sessionId)
   data.value = null
@@ -254,9 +300,13 @@ function onClosed(): void {
   flex: 0 0 28px;
   border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
   border-radius: 5px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
   box-shadow:
     inset 3px 3px color-mix(in srgb, white 18%, transparent),
     inset -3px -3px rgb(0 0 0 / 12%);
+  image-rendering: pixelated;
 }
 .schematic-material-list b {
   min-width: 46px;

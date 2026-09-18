@@ -2,7 +2,12 @@ import { DirectionalLight, HemisphereLight, Scene } from 'three'
 import { describe, expect, it } from 'vitest'
 import { reactive } from 'vue'
 import type { SchematicAssetsBundle, SchematicSessionData } from '@/types/api'
-import { addSchematicLighting, schematicWorkerInitPayload } from './schematicSessionViewer'
+import {
+  addSchematicLighting,
+  schematicDistanceRange,
+  schematicWorkerInitPayload,
+  schematicZoomDistance,
+} from './schematicSessionViewer'
 
 describe('schematicWorkerInitPayload', () => {
   it('从 Vue 响应式状态创建可发送给 Worker 的数据', () => {
@@ -36,5 +41,15 @@ describe('schematicWorkerInitPayload', () => {
     const keyLight = scene.children.find((child): child is DirectionalLight => child instanceof DirectionalLight)
     expect(keyLight?.intensity).toBe(1.2)
     expect(keyLight?.target.parent).toBe(scene)
+  })
+
+  it('按原理图尺寸限制缩放范围并平滑计算缩放距离', () => {
+    const range = schematicDistanceRange([16, 16, 16])
+
+    expect(range.min).toBeGreaterThanOrEqual(1.5)
+    expect(range.max).toBeGreaterThan(range.min)
+    expect(schematicZoomDistance(range.min, -1000, range.min, range.max)).toBe(range.min)
+    expect(schematicZoomDistance(range.max, 1000, range.min, range.max)).toBe(range.max)
+    expect(schematicZoomDistance(10, 100, range.min, range.max)).toBeGreaterThan(10)
   })
 })

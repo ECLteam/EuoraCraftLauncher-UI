@@ -5,6 +5,7 @@ import {
   computeWorldBox,
   needsDetailedModel,
   normalizeBlockModelTextures,
+  schematicBlockTextureId,
 } from './schematicStructureRenderer'
 
 const assets: SchematicAssetsBundle = {
@@ -64,6 +65,20 @@ describe('schematicStructureRenderer', () => {
         overlay: 'minecraft:block/redstone_dust_overlay',
       },
     })
+  })
+
+  it('沿方块状态与模型继承链定位清单缩略图纹理', () => {
+    const bundle: SchematicAssetsBundle = {
+      ...assets,
+      blockstates: { 'minecraft:stone': { variants: { '': { model: 'block/stone' } } } },
+      models: {
+        'minecraft:block/stone': { parent: 'block/cube_all', textures: { all: 'block/stone' } },
+        'minecraft:block/cube_all': { textures: { all: '#all' } },
+      },
+    }
+
+    expect(schematicBlockTextureId(bundle, 'minecraft:stone')).toBe('minecraft:block/stone')
+    expect(schematicBlockTextureId(bundle, 'minecraft:missing_block')).toBeNull()
   })
 
   it('保留完整方块并仅把非完整方块交给模型层', () => {

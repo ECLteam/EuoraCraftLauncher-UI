@@ -51,6 +51,16 @@ export function addSchematicLighting(scene: Scene, size: Coord): void {
   scene.add(fill, keyLight, keyLight.target)
 }
 
+export function schematicDistanceRange(size: Coord): { min: number; max: number } {
+  const diagonal = new Vector3(...size).length()
+  return { min: Math.max(1.5, diagonal * 0.05), max: Math.max(12, diagonal * 3) }
+}
+
+export function schematicZoomDistance(distance: number, deltaY: number, min: number, max: number): number {
+  const normalizedDelta = Math.max(-120, Math.min(120, deltaY))
+  return Math.max(min, Math.min(max, distance * Math.exp(normalizedDelta * 0.0015)))
+}
+
 export function schematicWorkerInitPayload(
   session: SchematicSessionData,
   assets: SchematicAssetsBundle,
@@ -364,53 +374,64 @@ export class SchematicSessionViewer {
   }
 
   private bindControls(): void {
-    let panStart: [number, number] | null = null
-    let rotateStart: [number, number] | null = null
-    const onDown = (event: MouseEvent): void => {
-      if (event.button === 0) panStart = [event.clientX, event.clientY]
-      if (event.button === 1) {
-        event.preventDefault()
-        rotateStart = [event.clientX, event.clientY]
-      }
+    let interaction: { mode: 'pan' | 'rotate'; point: [number, number]; pointerId: number } | null = null
+    const onDown = (event: PointerEvent): void => {
+      const mode =
+        event.button === 2 || (event.button === 0 && event.shiftKey) ? 'pan' : event.button === 0 ? 'rotate' : null
+      if (!mode) return
+      event.preventDefault()
+      interaction = { mode, point: [event.clientX, event.clientY], pointerId: event.pointerId }
+      this.canvas.setPointerCapture(event.pointerId)
     }
-    const onMove = (event: MouseEvent): void => {
-      if (rotateStart) {
-        this.yaw += (event.clientX - rotateStart[0]) / 200
-        this.pitch = Math.max(-1.5, Math.min(1.5, this.pitch + (rotateStart[1] - event.clientY) / 200))
-        rotateStart = [event.clientX, event.clientY]
-        this.updateCamera()
-      } else if (panStart) {
-        const scale = (this.distance / Math.max(1, this.canvas.clientHeight)) * 1.6
+    const onMove = (event: PointerEvent): void => {
+      if (!interaction || interaction.pointerId !== event.pointerId) return
+      const [startX, startY] = interaction.point
+      const deltaX = event.clientX - startX
+      const deltaY = event.clientY - startY
+      if (interaction.mode === 'rotate') {
+        this.yaw -= (deltaX / Math.max(1, this.canvas.clientWidth)) * Math.PI * 2
+        this.pitch = Math.max(
+          -1.5,
+          Math.min(1.5, this.pitch - (deltaY / Math.max(1, this.canvas.clientHeight)) * Math.PI)
+        )
+      } else {
+        const scale =
+          (2 * this.distance * Math.tan((this.camera.fov * Math.PI) / 360)) / Math.max(1, this.canvas.clientHeight)
         const right = new Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0)
         const up = new Vector3().setFromMatrixColumn(this.camera.matrixWorld, 1)
-        this.target.addScaledVector(right, (panStart[0] - event.clientX) * scale)
-        this.target.addScaledVector(up, (event.clientY - panStart[1]) * scale)
-        panStart = [event.clientX, event.clientY]
-        this.updateCamera()
+        this.target.addScaledVector(right, -deltaX * scale)
+        this.target.addScaledVector(up, deltaY * scale)
       }
+      interaction.point = [event.clientX, event.clientY]
+      this.updateCamera()
     }
-    const onUp = (): void => {
-      panStart = null
-      rotateStart = null
+    const onUp = (event: PointerEvent): void => {
+      if (!interaction || interaction.pointerId !== event.pointerId) return
+      if (this.canvas.hasPointerCapture(event.pointerId)) this.canvas.releasePointerCapture(event.pointerId)
+      interaction = null
     }
     const onWheel = (event: WheelEvent): void => {
       event.preventDefault()
-      this.distance = Math.max(2, Math.min(this.camera.far * 0.6, this.distance * Math.exp(event.deltaY / 600)))
+      const range = schematicDistanceRange(this.session.size)
+      this.distance = schematicZoomDistance(this.distance, event.deltaY, range.min, range.max)
       this.updateCamera()
     }
+    const onDoubleClick = (): void => this.resetView()
     const preventMenu = (event: MouseEvent): void => event.preventDefault()
-    this.canvas.addEventListener('mousedown', onDown)
-    this.canvas.addEventListener('mousemove', onMove)
-    this.canvas.addEventListener('mouseup', onUp)
-    this.canvas.addEventListener('mouseleave', onUp)
+    this.canvas.addEventListener('pointerdown', onDown)
+    this.canvas.addEventListener('pointermove', onMove)
+    this.canvas.addEventListener('pointerup', onUp)
+    this.canvas.addEventListener('pointercancel', onUp)
     this.canvas.addEventListener('wheel', onWheel, { passive: false })
+    this.canvas.addEventListener('dblclick', onDoubleClick)
     this.canvas.addEventListener('contextmenu', preventMenu)
     this.removers.push(
-      () => this.canvas.removeEventListener('mousedown', onDown),
-      () => this.canvas.removeEventListener('mousemove', onMove),
-      () => this.canvas.removeEventListener('mouseup', onUp),
-      () => this.canvas.removeEventListener('mouseleave', onUp),
+      () => this.canvas.removeEventListener('pointerdown', onDown),
+      () => this.canvas.removeEventListener('pointermove', onMove),
+      () => this.canvas.removeEventListener('pointerup', onUp),
+      () => this.canvas.removeEventListener('pointercancel', onUp),
       () => this.canvas.removeEventListener('wheel', onWheel),
+      () => this.canvas.removeEventListener('dblclick', onDoubleClick),
       () => this.canvas.removeEventListener('contextmenu', preventMenu)
     )
   }
