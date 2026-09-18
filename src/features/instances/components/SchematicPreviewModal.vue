@@ -12,9 +12,6 @@
           <strong>{{ title }}</strong
           ><span v-if="data">{{ t('schematic.size', { x: data.size[0], y: data.size[1], z: data.size[2] }) }}</span>
         </div>
-        <NButton quaternary circle :title="t('common.back')" @click="emit('update:visible', false)"
-          ><template #icon><UiIcon name="arrow-left" :size="18" /></template
-        ></NButton>
       </header>
       <main class="schematic-preview-content">
         <NSpin :show="loading" class="schematic-preview-stage">
