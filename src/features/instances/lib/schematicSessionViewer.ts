@@ -3,11 +3,14 @@ import {
   BufferAttribute,
   BufferGeometry,
   DataTexture,
+  DirectionalLight,
   DoubleSide,
   Frustum,
+  HemisphereLight,
   Matrix4,
   Mesh,
   MeshBasicMaterial,
+  MeshLambertMaterial,
   NearestFilter,
   PerspectiveCamera,
   Scene,
@@ -40,6 +43,14 @@ function neighbors(coord: Coord): Coord[] {
   ]
 }
 
+export function addSchematicLighting(scene: Scene, size: Coord): void {
+  const fill = new HemisphereLight(0xe8f1ff, 0x4a4236, 1.35)
+  const keyLight = new DirectionalLight(0xfff0d8, 1.2)
+  keyLight.position.set(size[0] * 0.7 + 12, size[1] * 1.4 + 24, size[2] * 0.45 + 16)
+  keyLight.target.position.set(size[0] / 2, size[1] / 2, size[2] / 2)
+  scene.add(fill, keyLight, keyLight.target)
+}
+
 export function schematicWorkerInitPayload(
   session: SchematicSessionData,
   assets: SchematicAssetsBundle,
@@ -64,7 +75,7 @@ export class SchematicSessionViewer {
   private readonly camera: PerspectiveCamera
   private readonly worker: Worker
   private readonly texture: DataTexture
-  private readonly opaqueMaterial: MeshBasicMaterial
+  private readonly opaqueMaterial: MeshLambertMaterial
   private readonly transparentMaterial: MeshBasicMaterial
   private readonly allChunkCoords = new Map<string, Coord>()
   private readonly requested = new Set<string>()
@@ -101,6 +112,7 @@ export class SchematicSessionViewer {
   ) {
     this.renderer = new WebGLRenderer({ canvas, antialias: false, alpha: true })
     this.renderer.setClearColor(0x000000, 0)
+    this.renderer.outputColorSpace = SRGBColorSpace
     this.renderer.sortObjects = true
     this.camera = new PerspectiveCamera(65, 1, 0.1, Math.max(...session.size) * 10 + 100)
     this.target = new Vector3(session.size[0] / 2, session.size[1] / 2, session.size[2] / 2)
@@ -112,7 +124,7 @@ export class SchematicSessionViewer {
     this.texture.generateMipmaps = false
     this.texture.colorSpace = SRGBColorSpace
     this.texture.needsUpdate = true
-    this.opaqueMaterial = new MeshBasicMaterial({ map: this.texture, vertexColors: true, alphaTest: 0.1 })
+    this.opaqueMaterial = new MeshLambertMaterial({ map: this.texture, vertexColors: true, alphaTest: 0.1 })
     this.transparentMaterial = new MeshBasicMaterial({
       map: this.texture,
       vertexColors: true,
@@ -120,6 +132,7 @@ export class SchematicSessionViewer {
       depthWrite: false,
       side: DoubleSide,
     })
+    addSchematicLighting(this.scene, session.size)
     for (const coord of toRaw(session).chunks) this.allChunkCoords.set(key(coord), coord)
     this.worker = new Worker(new URL('./schematicMesh.worker.ts', import.meta.url), { type: 'module' })
     this.worker.onmessage = (event: MessageEvent<WorkerReply>) => {

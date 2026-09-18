@@ -1,7 +1,8 @@
+import { DirectionalLight, HemisphereLight, Scene } from 'three'
 import { describe, expect, it } from 'vitest'
 import { reactive } from 'vue'
 import type { SchematicAssetsBundle, SchematicSessionData } from '@/types/api'
-import { schematicWorkerInitPayload } from './schematicSessionViewer'
+import { addSchematicLighting, schematicWorkerInitPayload } from './schematicSessionViewer'
 
 describe('schematicWorkerInitPayload', () => {
   it('从 Vue 响应式状态创建可发送给 Worker 的数据', () => {
@@ -25,5 +26,15 @@ describe('schematicWorkerInitPayload', () => {
 
     expect(() => structuredClone(payload)).not.toThrow()
     expect(() => structuredClone(payload.chunks[0])).not.toThrow()
+  })
+
+  it('为原理图场景配置固定的环境光和方向光', () => {
+    const scene = new Scene()
+    addSchematicLighting(scene, [32, 16, 48])
+
+    expect(scene.children.some((child) => child instanceof HemisphereLight)).toBe(true)
+    const keyLight = scene.children.find((child): child is DirectionalLight => child instanceof DirectionalLight)
+    expect(keyLight?.intensity).toBe(1.2)
+    expect(keyLight?.target.parent).toBe(scene)
   })
 })

@@ -27,18 +27,28 @@
           <SchematicViewer3D v-else-if="data" :data="data" :assets="assets" />
         </NSpin>
         <aside v-if="data" class="schematic-preview-sidebar">
-          <h4>方块材质</h4>
-          <p>{{ materialCount }} 种方块 · {{ blockCount }} 个方块</p>
+          <div class="schematic-material-heading">
+            <div>
+              <h4>方块清单</h4>
+              <p>{{ materialCount }} 种方块 · {{ blockCount }} 个方块</p>
+            </div>
+            <span>数量</span>
+          </div>
           <div v-if="assets?.missingBlocks.length" class="schematic-missing">
             {{ assets.missingBlocks.length }} 种方块没有可用纹理，将以回退颜色显示。
           </div>
-          <div class="schematic-material-list">
-            <div v-for="material in materials" :key="material.name" :title="material.name">
-              <span class="material-color" :style="{ background: material.color }" />{{
-                assets?.blockNames?.[material.name] ?? material.name
-              }}<b>{{ material.count }}</b>
-            </div>
-          </div>
+          <NScrollbar class="schematic-material-scroll">
+            <ul class="schematic-material-list">
+              <li v-for="material in materials" :key="material.name" :title="material.name">
+                <span class="material-color" :style="{ background: material.color }" />
+                <span class="material-detail">
+                  <strong>{{ assets?.blockNames?.[material.name] ?? material.name }}</strong>
+                  <code>{{ material.name }}</code>
+                </span>
+                <b>{{ material.count.toLocaleString() }}</b>
+              </li>
+            </ul>
+          </NScrollbar>
         </aside>
       </main>
     </section>
@@ -46,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NSpin } from 'naive-ui'
+import { NButton, NScrollbar, NSpin } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
@@ -186,41 +196,94 @@ function onClosed(): void {
   color: var(--error);
 }
 .schematic-preview-sidebar {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
   overflow: auto;
   padding: 18px;
   border-left: 1px solid var(--border-color);
 }
-.schematic-preview-sidebar h4 {
+.schematic-material-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.schematic-material-heading h4 {
   margin: 0;
+}
+.schematic-material-heading > span {
+  padding-bottom: 1px;
+  color: var(--ecl-text-secondary);
+  font-size: 12px;
 }
 .schematic-missing {
   margin: 14px 0;
   color: var(--warning);
   font-size: 12px;
 }
-.schematic-material-list {
-  display: grid;
-  gap: 4px;
+.schematic-material-scroll {
+  min-height: 0;
+  flex: 1;
+  margin: 12px -8px -8px;
+  padding: 0 8px 8px;
 }
-.schematic-material-list div {
-  display: grid;
-  grid-template-columns: 12px minmax(0, 1fr) auto;
-  gap: 8px;
+.schematic-material-list {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  flex-direction: column;
+  gap: 3px;
+  list-style: none;
+}
+.schematic-material-list li {
+  display: flex;
+  min-height: 48px;
   align-items: center;
-  padding: 5px;
+  gap: 10px;
+  padding: 6px 8px;
   border-radius: 6px;
   font-size: 12px;
 }
-.schematic-material-list div:hover {
+.schematic-material-list li:hover {
   background: var(--ecl-surface-hover);
 }
 .material-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  border-radius: 5px;
+  box-shadow:
+    inset 3px 3px color-mix(in srgb, white 18%, transparent),
+    inset -3px -3px rgb(0 0 0 / 12%);
 }
 .schematic-material-list b {
+  min-width: 46px;
+  color: var(--ecl-text-secondary);
+  text-align: right;
   font-variant-numeric: tabular-nums;
+}
+.material-detail {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+.material-detail strong,
+.material-detail code {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.material-detail strong {
+  font-weight: 600;
+}
+.material-detail code {
+  color: var(--ecl-text-secondary);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
 }
 @media (max-width: 900px) {
   .schematic-preview-content {
