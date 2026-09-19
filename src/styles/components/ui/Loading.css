@@ -1,5 +1,5 @@
 .ui-loading {
-  --ui-loading-color: var(--primary);
+  --ui-loading-color: var(--text-secondary);
   --ui-loading-overlay: color-mix(in srgb, var(--bg-surface) 72%, transparent);
 }
 
@@ -29,6 +29,7 @@
 
 .ui-loading--block {
   display: flex;
+  height: 100%;
   min-height: 96px;
   align-items: center;
   justify-content: center;
@@ -66,4 +67,8 @@
 
 .ui-loading--lg .ui-loading__label {
   font-size: 13px;
+}
+
+.ui-loading--xs .ui-loading__label {
+  font-size: 10px;
 }

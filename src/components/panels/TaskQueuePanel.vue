@@ -96,7 +96,7 @@
 
                 <div v-if="task.subtasks.length > 0" class="tq-subtasks">
                   <div v-for="sub in task.subtasks" :key="sub.id" :class="['tq-subtask', `tq-subtask--${sub.status}`]">
-                    <UiLoading v-if="sub.status === 'running'" mode="inline" size="sm" decorative />
+                    <UiLoading v-if="sub.status === 'running'" mode="inline" size="xs" decorative />
                     <UiIcon v-else-if="sub.status === 'completed'" name="check" :size="12" class="tq-icon-success" />
                     <UiIcon v-else-if="sub.status === 'error'" name="x-mark" :size="12" class="tq-icon-error" />
                     <UiIcon v-else name="circle" :size="8" class="tq-icon-muted" />

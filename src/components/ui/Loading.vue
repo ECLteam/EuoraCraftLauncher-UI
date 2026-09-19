@@ -30,7 +30,7 @@ const props = withDefaults(
   defineProps<{
     show?: boolean
     mode?: 'inline' | 'block' | 'overlay'
-    size?: 'sm' | 'md' | 'lg'
+    size?: 'xs' | 'sm' | 'md' | 'lg'
     label?: string
     decorative?: boolean
   }>(),
@@ -46,7 +46,10 @@ const props = withDefaults(
 const { t } = useI18n()
 
 const rootTag = computed(() => (props.mode === 'inline' ? 'span' : 'div'))
-const iconSize = computed(() => ({ sm: 14, md: 20, lg: 28 })[props.size])
+const iconSize = computed(() => {
+  if (props.size === 'md' && props.mode !== 'inline') return 24
+  return { xs: 12, sm: 16, md: 18, lg: 32 }[props.size]
+})
 </script>
 
 <style scoped src="@/styles/components/ui/Loading.css"></style>
