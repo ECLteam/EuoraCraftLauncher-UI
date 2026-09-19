@@ -26,7 +26,9 @@ import {
 import { resolveNavigationMode } from '@/features/settings/model/navigation'
 import type {
   BackgroundConfig,
+  BackgroundImageConfig,
   BackgroundVideoConfig,
+  BackgroundVideoSource,
   NavigationMode,
   ThemeAppearanceConfig,
   ThemeConfig,
@@ -49,6 +51,30 @@ function normalizeVideoConfig(value: BackgroundVideoConfig | undefined): Require
     volume: clamp(typeof value?.volume === 'number' ? value.volume : 0, 0, 1),
     fit: value?.fit === 'contain' ? 'contain' : 'cover',
     pause_when_inactive: value?.pause_when_inactive !== false,
+  }
+}
+
+function readImageBackground(background: Partial<BackgroundConfig>): BackgroundImageConfig {
+  if (background.image) return background.image
+  return {
+    type: background.type,
+    path: background.path,
+    image_base64: background.image_base64,
+    mode: background.mode,
+    interval: background.interval,
+    urls: background.urls,
+  }
+}
+
+function readVideoBackground(background: Partial<BackgroundConfig>): BackgroundVideoSource {
+  const video = background.video as unknown
+  if (video && typeof video === 'object' && ('path' in video || 'options' in video)) {
+    return video as BackgroundVideoSource
+  }
+  return {
+    path: background.media_type === 'video' ? background.path : undefined,
+    poster_path: background.media_type === 'video' ? background.poster_path : undefined,
+    options: video as BackgroundVideoConfig | undefined,
   }
 }
 
@@ -514,6 +540,8 @@ export const useThemeStore = defineStore('theme', () => {
   const derivedPrimary = ref('')
   /** 从背景图提取出的 Monet 种子色（hex，Material You）。 */
   const derivedMonetSeed = ref('')
+  /** 图片分支当前解析出的显示地址；视频封面不会覆盖它。 */
+  const backgroundImageSourceUrl = ref('')
   const backgroundImage = ref('')
   const backgroundImagePath = ref('')
   /** 图片/视频背景的持久化类型；旧配置缺省时视为图片。 */
@@ -810,11 +838,13 @@ export const useThemeStore = defineStore('theme', () => {
       // eslint-disable-next-line no-console
       console.log('[setBackgroundImage] url.length:', url?.length ?? 0, 'path:', path, 'persist:', persist)
     }
-    backgroundImage.value = resolveImageUrl(url)
+    backgroundImageSourceUrl.value = resolveImageUrl(url)
+    backgroundImage.value = backgroundImageSourceUrl.value
     backgroundMediaType.value = 'image'
     backgroundVideoUrl.value = ''
     if (path !== undefined) backgroundImagePath.value = path
     updateTheme()
+    restartBgRotation()
     if (persist) saveThemeConfig()
     // 开启背景取色时，更换背景图自动重新提取主题色
     if (deriveMode.value !== 'off' && backgroundImage.value) {
@@ -834,9 +864,8 @@ export const useThemeStore = defineStore('theme', () => {
     backgroundVideoPath.value = path
     backgroundVideoPosterPath.value = posterPath
     backgroundVideo.value = normalizeVideoConfig(config)
-    clearBackgroundSource()
-    bgMode.value = 'single'
     updateTheme()
+    restartBgRotation()
     if (persist) saveThemeConfig()
   }
 
@@ -850,6 +879,51 @@ export const useThemeStore = defineStore('theme', () => {
     backgroundVideoPosterPath.value = path
     updateTheme()
     if (persist) saveThemeConfig()
+  }
+
+  /** 切回已保存的图片背景分支，并恢复单张或轮播显示。 */
+  async function activateImageBackground(): Promise<void> {
+    backgroundMediaType.value = 'image'
+    backgroundVideoUrl.value = ''
+    if (isCarouselMode(bgMode.value) && bgSources.value.length) {
+      const source = bgSources.value[bgIndex.value] ?? bgSources.value[0]
+      if (source) {
+        const url = await resolveLocalImageUrl(source)
+        if (url) {
+          backgroundImageSourceUrl.value = resolveImageUrl(url)
+          backgroundImage.value = backgroundImageSourceUrl.value
+        }
+      }
+    } else if (backgroundImageSourceUrl.value) {
+      backgroundImage.value = backgroundImageSourceUrl.value
+    } else if (backgroundImagePath.value) {
+      const url = await resolveLocalImageUrl(backgroundImagePath.value)
+      backgroundImageSourceUrl.value = url ? resolveImageUrl(url) : ''
+      backgroundImage.value = backgroundImageSourceUrl.value
+    } else {
+      backgroundImage.value = ''
+    }
+    updateTheme()
+    restartBgRotation()
+  }
+
+  /** 切回已保存的视频背景分支；流地址始终由后端按已保存配置重新签发。 */
+  async function activateVideoBackground(): Promise<void> {
+    backgroundMediaType.value = 'video'
+    backgroundVideoUrl.value = ''
+    if (backgroundVideoPosterPath.value) {
+      const posterUrl = await resolveLocalImageUrl(backgroundVideoPosterPath.value)
+      backgroundImage.value = posterUrl ? resolveImageUrl(posterUrl) : ''
+    }
+    if (backgroundVideoPath.value) {
+      try {
+        backgroundVideoUrl.value = (await settingsApi.openBackgroundVideo()) ?? ''
+      } catch {
+        /* 视频不可用时保留封面或纯色背景。 */
+      }
+    }
+    updateTheme()
+    restartBgRotation()
   }
 
   function markBackgroundVideoUnavailable(): void {
@@ -894,7 +968,7 @@ export const useThemeStore = defineStore('theme', () => {
       clearInterval(bgRotateTimer)
       bgRotateTimer = null
     }
-    if (bgMode.value === 'single' || bgSources.value.length < 2) return
+    if (backgroundMediaType.value !== 'image' || bgMode.value === 'single' || bgSources.value.length < 2) return
     const intervalMs = clampBackgroundInterval(bgInterval.value) * 1000
     bgRotateTimer = setInterval(() => {
       void advanceBackground()
@@ -1007,6 +1081,9 @@ export const useThemeStore = defineStore('theme', () => {
       if (!settingsApi.isAvailable) return
       try {
         const ui = await settingsApi.getUi()
+        const savedBackground = ui.background ?? {}
+        const savedImage = readImageBackground(savedBackground)
+        const savedVideo = readVideoBackground(savedBackground)
         await settingsApi.saveUi({
           ...ui,
           theme: {
@@ -1023,20 +1100,22 @@ export const useThemeStore = defineStore('theme', () => {
             schedule: schedule.value,
           },
           background: {
-            ...(ui.background || {}),
-            type: backgroundMediaType.value === 'video' ? 'local' : backgroundImage.value ? 'custom' : 'none',
-            path:
-              backgroundMediaType.value === 'video'
-                ? backgroundVideoPath.value
-                : isCarouselMode(bgMode.value)
-                  ? bgFolderPath.value
-                  : backgroundImagePath.value,
+            ...savedBackground,
             opacity: backgroundOpacity.value,
-            mode: backgroundMediaType.value === 'video' ? 'single' : bgMode.value,
-            interval: clampBackgroundInterval(bgInterval.value),
             media_type: backgroundMediaType.value,
-            poster_path: backgroundMediaType.value === 'video' ? backgroundVideoPosterPath.value : undefined,
-            video: backgroundMediaType.value === 'video' ? backgroundVideo.value : undefined,
+            image: {
+              ...savedImage,
+              type: backgroundImagePath.value ? 'custom' : 'none',
+              path: isCarouselMode(bgMode.value) ? bgFolderPath.value : backgroundImagePath.value,
+              mode: bgMode.value,
+              interval: clampBackgroundInterval(bgInterval.value),
+            },
+            video: {
+              ...savedVideo,
+              path: backgroundVideoPath.value,
+              poster_path: backgroundVideoPosterPath.value,
+              options: backgroundVideo.value,
+            },
           },
         })
       } catch (error) {
@@ -1099,59 +1178,55 @@ export const useThemeStore = defineStore('theme', () => {
       if (payload?.background) {
         backgroundChanged = true
         const bgData = payload.background
-        bgMode.value = bgData.mode === 'carousel' || bgData.mode === 'random' ? bgData.mode : 'single'
-        bgInterval.value = clampBackgroundInterval(bgData.interval ?? BACKGROUND_INTERVAL_DEFAULT)
+        const imageData = readImageBackground(bgData)
+        const videoData = readVideoBackground(bgData)
+        bgMode.value = imageData.mode === 'carousel' || imageData.mode === 'random' ? imageData.mode : 'single'
+        bgInterval.value = clampBackgroundInterval(imageData.interval ?? BACKGROUND_INTERVAL_DEFAULT)
         bgSources.value = []
         bgIndex.value = 0
         bgFolderPath.value = ''
         backgroundImagePath.value = ''
+        backgroundImageSourceUrl.value = ''
         backgroundImage.value = ''
         backgroundMediaType.value = bgData.media_type === 'video' ? 'video' : 'image'
         backgroundVideoUrl.value = ''
-        backgroundVideoPath.value = ''
-        backgroundVideoPosterPath.value = ''
-        backgroundVideo.value = normalizeVideoConfig(bgData.video)
+        backgroundVideoPath.value = videoData.path ?? ''
+        backgroundVideoPosterPath.value = videoData.poster_path ?? ''
+        backgroundVideo.value = normalizeVideoConfig(videoData.options)
 
-        if (backgroundMediaType.value === 'video') {
-          bgMode.value = 'single'
-          backgroundVideoPath.value = bgData.path ?? ''
-          backgroundVideoPosterPath.value = bgData.poster_path ?? ''
-          if (bgData.poster_path) {
-            const posterUrl = await resolveLocalImageUrl(bgData.poster_path)
-            backgroundImage.value = posterUrl ? resolveImageUrl(posterUrl) : ''
-          }
-          try {
-            backgroundVideoUrl.value = (await settingsApi.openBackgroundVideo()) ?? ''
-          } catch {
-            /* 视频不可用时保留封面或纯色背景。 */
-          }
-        } else if (bgMode.value === 'carousel' || bgMode.value === 'random') {
-          if (bgData.path) {
-            bgFolderPath.value = bgData.path
+        if (bgMode.value === 'carousel' || bgMode.value === 'random') {
+          if (imageData.path) {
+            bgFolderPath.value = imageData.path
             try {
-              const files = await settingsApi.listBackgroundImages(bgData.path)
+              const files = await settingsApi.listBackgroundImages(imageData.path)
               bgSources.value = files
               const first = files[0]
               if (first) {
                 bgIndex.value = 0
                 const url = await resolveLocalImageUrl(first)
-                if (url) backgroundImage.value = resolveImageUrl(url)
+                if (url) backgroundImageSourceUrl.value = resolveImageUrl(url)
               }
             } catch {
               /* 目录读取失败时保持空来源 */
             }
           }
-        } else if (bgData.image_base64) {
-          backgroundImagePath.value = bgData.path ?? ''
-          backgroundImage.value = resolveImageUrl(bgData.image_base64)
-        } else if (settingsApi.isShowcase && bgData.path?.startsWith('http')) {
-          backgroundImagePath.value = bgData.path ?? ''
-          backgroundImage.value = bgData.path
-        } else if (bgData.path && bgData.type !== 'default') {
+        } else if (imageData.image_base64) {
+          backgroundImagePath.value = imageData.path ?? ''
+          backgroundImageSourceUrl.value = resolveImageUrl(imageData.image_base64)
+        } else if (settingsApi.isShowcase && imageData.path?.startsWith('http')) {
+          backgroundImagePath.value = imageData.path ?? ''
+          backgroundImageSourceUrl.value = imageData.path
+        } else if (imageData.path && imageData.type !== 'default') {
           // 桌面端统一通过后端读取 Base64，并将大图转换为 Blob URL 供 CSS 使用
-          backgroundImagePath.value = bgData.path
-          const imageUrl = await resolveLocalImageUrl(bgData.path)
-          backgroundImage.value = imageUrl ? resolveImageUrl(imageUrl) : ''
+          backgroundImagePath.value = imageData.path
+          const imageUrl = await resolveLocalImageUrl(imageData.path)
+          backgroundImageSourceUrl.value = imageUrl ? resolveImageUrl(imageUrl) : ''
+        }
+
+        if (backgroundMediaType.value === 'video') {
+          await activateVideoBackground()
+        } else {
+          await activateImageBackground()
         }
 
         if (typeof bgData.opacity === 'number') {
@@ -1244,6 +1319,8 @@ export const useThemeStore = defineStore('theme', () => {
     setBackgroundVideo,
     setBackgroundVideoOptions,
     setBackgroundVideoPoster,
+    activateImageBackground,
+    activateVideoBackground,
     markBackgroundVideoUnavailable,
     setBlurAmount,
     setBackgroundOpacity,
@@ -1354,6 +1431,8 @@ export function useTheme() {
     setBackgroundVideo: store.setBackgroundVideo,
     setBackgroundVideoOptions: store.setBackgroundVideoOptions,
     setBackgroundVideoPoster: store.setBackgroundVideoPoster,
+    activateImageBackground: store.activateImageBackground,
+    activateVideoBackground: store.activateVideoBackground,
     markBackgroundVideoUnavailable: store.markBackgroundVideoUnavailable,
     setBlurAmount: store.setBlurAmount,
     setTransparentBg: store.setTransparentBg,

@@ -63,4 +63,18 @@ describe('useTheme 语义色', () => {
     expect(theme.backgroundVideoUrl.value).toContain('/background/token')
     expect(theme.backgroundVideo.value).toMatchObject({ muted: false, volume: 0.35, fit: 'contain' })
   })
+
+  it('切换到视频后仍保留图片分支并可立即恢复', async () => {
+    setActivePinia(createPinia())
+    const theme = useTheme()
+    theme.setBackgroundImage('data:image/png;base64,AA==', 'C:/background.png', false)
+    theme.setBackgroundVideo('http://127.0.0.1:9527/background/token', 'C:/background.mp4', undefined, '', false)
+
+    await theme.activateImageBackground()
+
+    expect(theme.backgroundMediaType.value).toBe('image')
+    expect(theme.backgroundImagePath.value).toBe('C:/background.png')
+    expect(theme.backgroundImage.value).toContain('data:image/png;base64,AA==')
+    expect(theme.backgroundVideoPath.value).toBe('C:/background.mp4')
+  })
 })

@@ -2,7 +2,16 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAsyncState } from '@/composables/useAsyncState'
 import { resolveLocalImageUrl, settingsApi } from '@/features/settings/api/settingsApi'
-import type { DownloadConfig, GameConfig, LauncherConfig, UiConfig } from '@/types/config'
+import type {
+  BackgroundConfig,
+  BackgroundImageConfig,
+  BackgroundVideoConfig,
+  BackgroundVideoSource,
+  DownloadConfig,
+  GameConfig,
+  LauncherConfig,
+  UiConfig,
+} from '@/types/config'
 
 const DEFAULT_GAME_CONFIG: GameConfig = {
   minecraft_paths: [],
@@ -39,6 +48,30 @@ const DEFAULT_LAUNCHER_CONFIG: LauncherConfig = {
   proxy_url: '',
   request_timeout: 15,
   request_retries: 2,
+}
+
+function readImageBackground(background: Partial<BackgroundConfig> | undefined): BackgroundImageConfig {
+  if (background?.image) return background.image
+  return {
+    type: background?.type,
+    path: background?.path,
+    image_base64: background?.image_base64,
+    mode: background?.mode,
+    interval: background?.interval,
+    urls: background?.urls,
+  }
+}
+
+function readVideoBackground(background: Partial<BackgroundConfig> | undefined): BackgroundVideoSource {
+  const video = background?.video as unknown
+  if (video && typeof video === 'object' && ('path' in video || 'options' in video)) {
+    return video as BackgroundVideoSource
+  }
+  return {
+    path: background?.media_type === 'video' ? background.path : undefined,
+    poster_path: background?.media_type === 'video' ? background.poster_path : undefined,
+    options: video as BackgroundVideoConfig | undefined,
+  }
 }
 
 export const useSettingsStore = defineStore('settings', () => {
@@ -124,10 +157,24 @@ export const useSettingsStore = defineStore('settings', () => {
     })
   }
 
-  async function patchUiBackground(patch: NonNullable<UiConfig['background']>): Promise<void> {
+  async function patchUiBackground(patch: Partial<NonNullable<UiConfig['background']>>): Promise<void> {
     await enqueueWrite('ui', async () => {
       await ensureReady()
-      const next = { ...ui.value, background: { ...ui.value.background, ...patch } }
+      const current = ui.value.background
+      const image = patch.image ? { ...readImageBackground(current), ...patch.image } : readImageBackground(current)
+      const video = patch.video
+        ? {
+            ...readVideoBackground(current),
+            ...patch.video,
+            options: patch.video.options
+              ? { ...readVideoBackground(current).options, ...patch.video.options }
+              : readVideoBackground(current).options,
+          }
+        : readVideoBackground(current)
+      const next = {
+        ...ui.value,
+        background: { ...current, ...patch, image, video },
+      }
       await settingsApi.saveUi(next)
       ui.value = next
       configRevision += 1
@@ -167,7 +214,10 @@ export const useSettingsStore = defineStore('settings', () => {
   async function chooseBackgroundImage(): Promise<{ path: string; imageUrl: string | null } | null> {
     const path = await settingsApi.selectImage()
     if (!path) return null
-    await patchUiBackground({ type: 'custom', path, mode: 'single', media_type: 'image' })
+    await patchUiBackground({
+      media_type: 'image',
+      image: { type: 'custom', path, image_base64: '', mode: 'single' },
+    })
     return { path, imageUrl: await resolveLocalImageUrl(path) }
   }
 
@@ -175,11 +225,11 @@ export const useSettingsStore = defineStore('settings', () => {
     const path = await settingsApi.selectBackgroundVideo()
     if (!path) return null
     await patchUiBackground({
-      type: 'local',
-      path,
-      mode: 'single',
       media_type: 'video',
-      video: { muted: true, volume: 0, fit: 'cover', pause_when_inactive: true },
+      video: {
+        path,
+        options: { muted: true, volume: 0, fit: 'cover', pause_when_inactive: true },
+      },
     })
     return { path, videoUrl: await settingsApi.openBackgroundVideo() }
   }
@@ -189,7 +239,10 @@ export const useSettingsStore = defineStore('settings', () => {
     if (!result) return null
     // 后端已将图片落盘到本地数据目录，配置只存路径，不再保存大体积 base64
     const localPath = result.path || result.url
-    await patchUiBackground({ type: 'custom', path: localPath, mode: 'single', image_base64: '' })
+    await patchUiBackground({
+      media_type: 'image',
+      image: { type: 'custom', path: localPath, mode: 'single', image_base64: '' },
+    })
     return { path: localPath, imageUrl: result.dataUrl }
   }
 

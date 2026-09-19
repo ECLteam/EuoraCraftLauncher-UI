@@ -28,20 +28,40 @@ export interface LauncherConfig {
 }
 
 export interface BackgroundConfig {
-  type: 'default' | 'none' | 'custom' | 'local' | 'url' | 'gradient'
-  path: string
-  opacity: number
-  blur: number
+  /** 当前生效的背景分支；缺省时兼容旧版图片配置。 */
+  media_type?: 'image' | 'video'
+  /** 图片与视频共用的显示强度。 */
+  opacity?: number
+  blur?: number
+  /** 图片背景的独立持久化分支。 */
+  image?: BackgroundImageConfig
+  /** 视频背景的独立持久化分支。 */
+  video?: BackgroundVideoSource
+
+  /** 以下扁平字段仅用于读取旧版配置，写入时迁移到 image/video 分支。 */
+  type?: 'default' | 'none' | 'custom' | 'local' | 'url' | 'gradient'
+  path?: string
   image_base64?: string
   mode?: 'single' | 'carousel' | 'random'
   interval?: number
   /** URL 轮播/随机模式下的图片地址列表 */
   urls?: string[]
-  /** 背景载体；缺省时兼容旧版图片配置。 */
-  media_type?: 'image' | 'video'
-  /** 视频加载前与播放失败时显示的可选本地封面图片。 */
   poster_path?: string
-  video?: BackgroundVideoConfig
+}
+
+export interface BackgroundImageConfig {
+  type?: 'default' | 'none' | 'custom' | 'local' | 'url' | 'gradient'
+  path?: string
+  image_base64?: string
+  mode?: 'single' | 'carousel' | 'random'
+  interval?: number
+  urls?: string[]
+}
+
+export interface BackgroundVideoSource {
+  path?: string
+  poster_path?: string
+  options?: BackgroundVideoConfig
 }
 
 export interface BackgroundVideoConfig {

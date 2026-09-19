@@ -99,7 +99,42 @@ describe('settingsStore', () => {
     })
     expect(settingsApi.saveUi).toHaveBeenCalledWith(
       expect.objectContaining({
-        background: expect.objectContaining({ media_type: 'video', path: 'C:/background.mp4' }),
+        background: expect.objectContaining({
+          media_type: 'video',
+          video: expect.objectContaining({ path: 'C:/background.mp4' }),
+        }),
+      })
+    )
+  })
+
+  it('分别更新图片和视频分支时保留另一分支的设置', async () => {
+    vi.mocked(settingsApi.load).mockResolvedValue({
+      ui: {
+        background: {
+          media_type: 'image',
+          image: { type: 'custom', path: 'C:/background.png', mode: 'single' },
+          video: { path: 'C:/background.mp4', options: { muted: false, volume: 0.4 } },
+        },
+      },
+      game: { minecraft_paths: [] },
+      download: { mirror_source: 'official' },
+      launcher: {},
+    })
+    const store = useSettingsStore()
+    await store.load()
+
+    await store.patchUiBackground({ video: { options: { volume: 0.8 } } })
+    await store.patchUiBackground({ image: { mode: 'random' } })
+
+    expect(settingsApi.saveUi).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        background: expect.objectContaining({
+          image: expect.objectContaining({ path: 'C:/background.png', mode: 'random' }),
+          video: expect.objectContaining({
+            path: 'C:/background.mp4',
+            options: expect.objectContaining({ muted: false, volume: 0.8 }),
+          }),
+        }),
       })
     )
   })

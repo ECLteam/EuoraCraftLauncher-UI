@@ -364,6 +364,8 @@ const {
   setBackgroundVideo,
   setBackgroundVideoOptions,
   setBackgroundVideoPoster,
+  activateImageBackground,
+  activateVideoBackground,
   setBlurAmount,
   setBackgroundOpacity,
   setAppearance,
@@ -498,27 +500,33 @@ function handleBgModeChange(value: string | number) {
   setBgMode(mode)
   void run(async () => {
     if (mode === 'single') {
-      await settingsStore.patchUiBackground({ mode, path: backgroundImagePath.value })
+      await settingsStore.patchUiBackground({ image: { mode, path: backgroundImagePath.value } })
     } else {
-      await settingsStore.patchUiBackground({ mode })
+      await settingsStore.patchUiBackground({ image: { mode } })
     }
   })
 }
 
 async function handleBackgroundMediaTypeChange(value: string | number) {
   const mediaType = value === 'video' ? 'video' : 'image'
+  if (mediaType === backgroundMediaType.value) return
   if (mediaType === 'video') {
-    await selectBackgroundVideo()
-    return
+    if (!backgroundVideoPath.value) {
+      await selectBackgroundVideo()
+      return
+    }
+    await run(async () => settingsStore.patchUiBackground({ media_type: mediaType }))
+    await activateVideoBackground()
+  } else {
+    await run(async () => settingsStore.patchUiBackground({ media_type: mediaType }))
+    await activateImageBackground()
+    backgroundInput.value = backgroundImagePath.value
   }
-  setBackgroundImage('', '', false)
-  backgroundInput.value = ''
-  await run(async () => settingsStore.patchUiBackground({ type: 'none', path: '', media_type: 'image' }))
 }
 
 function saveVideoOptions(patch: Partial<BackgroundVideoConfig>): void {
   setBackgroundVideoOptions(patch, false)
-  void run(async () => settingsStore.patchUiBackground({ video: { ...backgroundVideo.value, ...patch } }))
+  void run(async () => settingsStore.patchUiBackground({ video: { options: patch } }))
 }
 
 function handleVideoPlaybackChange(value: boolean): void {
@@ -546,7 +554,7 @@ function handleBgIntervalChange(value: number | null) {
   if (typeof value !== 'number') return
   const seconds = Math.round(value)
   setBgInterval(seconds)
-  void run(async () => settingsStore.patchUiBackground({ interval: seconds }))
+  void run(async () => settingsStore.patchUiBackground({ image: { interval: seconds } }))
 }
 
 async function selectBackgroundFolder() {
@@ -564,7 +572,10 @@ async function selectBackgroundFolder() {
   const mode: BackgroundMode = bgMode.value === 'random' ? 'random' : 'carousel'
   await run(async () => {
     await applyBackgroundFolder(path, files, mode)
-    await settingsStore.patchUiBackground({ type: 'custom', path, mode, interval: Math.round(bgInterval.value) })
+    await settingsStore.patchUiBackground({
+      media_type: 'image',
+      image: { type: 'custom', path, mode, interval: Math.round(bgInterval.value) },
+    })
   })
   message.success(t('common.success'))
 }
@@ -664,7 +675,7 @@ async function selectBackgroundVideoPoster(): Promise<void> {
     return
   }
   setBackgroundVideoPoster(imageUrl, path, false)
-  await run(async () => settingsStore.patchUiBackground({ poster_path: path }))
+  await run(async () => settingsStore.patchUiBackground({ video: { poster_path: path } }))
   message.success(t('common.success'))
 }
 
@@ -689,7 +700,10 @@ async function handleShowcaseImageSelected(event: Event) {
     if (!file.type.startsWith('image/')) throw new Error('请选择图片文件')
     const imageUrl = await readImageFile(file)
     const path = `Showcase/${file.name}`
-    await settingsStore.patchUiBackground({ type: 'custom', path, image_base64: imageUrl })
+    await settingsStore.patchUiBackground({
+      media_type: 'image',
+      image: { type: 'custom', path, mode: 'single', image_base64: imageUrl },
+    })
     return { imageUrl, path }
   })
 
@@ -707,14 +721,19 @@ function handleBgImageInput(value: string) {
   backgroundSaveTimer = setTimeout(async () => {
     if (!value) {
       setBackgroundImage('', '', false)
-      await run(async () => settingsStore.patchUiBackground({ type: 'none', path: '', image_base64: '' }))
+      await run(async () =>
+        settingsStore.patchUiBackground({ media_type: 'image', image: { type: 'none', path: '', image_base64: '' } })
+      )
       return
     }
     if (!value.startsWith('http')) return
 
     if (settingsApi.isShowcase) {
       const saved = await run(async () => {
-        await settingsStore.patchUiBackground({ type: 'custom', path: value, image_base64: '' })
+        await settingsStore.patchUiBackground({
+          media_type: 'image',
+          image: { type: 'custom', path: value, mode: 'single', image_base64: '' },
+        })
         return true
       })
       if (!saved) return
