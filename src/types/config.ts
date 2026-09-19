@@ -37,6 +37,19 @@ export interface BackgroundConfig {
   interval?: number
   /** URL 轮播/随机模式下的图片地址列表 */
   urls?: string[]
+  /** 背景载体；缺省时兼容旧版图片配置。 */
+  media_type?: 'image' | 'video'
+  /** 视频加载前与播放失败时显示的可选本地封面图片。 */
+  poster_path?: string
+  video?: BackgroundVideoConfig
+}
+
+export interface BackgroundVideoConfig {
+  paused?: boolean
+  muted?: boolean
+  volume?: number
+  fit?: 'cover' | 'contain'
+  pause_when_inactive?: boolean
 }
 
 export type MinecraftPathEntry = string | { name: string; path: string; protected?: boolean }

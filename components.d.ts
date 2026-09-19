@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AboutEntryRow: typeof import('./src/components/settings/AboutEntryRow.vue')['default']
+    AppBackground: typeof import('./src/components/layout/AppBackground.vue')['default']
     Avatar: typeof import('./src/components/ui/Avatar.vue')['default']
     AvatarRenderer: typeof import('./src/components/game/AvatarRenderer.vue')['default']
     Button: typeof import('./src/components/ui/Button.vue')['default']

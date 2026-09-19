@@ -141,6 +141,18 @@ export const settingsApi = {
     return result.data?.path ?? null
   },
 
+  async selectBackgroundVideo(): Promise<string | null> {
+    const result = await backend.command('select_background_video')
+    if (!result.success) throw new Error(result.message || '选择背景视频失败')
+    return result.data?.path ?? null
+  },
+
+  async openBackgroundVideo(): Promise<string | null> {
+    const result = await backend.command('background_video_open')
+    if (!result.success) throw new Error(result.message || '加载背景视频失败')
+    return result.data?.url ?? null
+  },
+
   async selectDirectory(): Promise<string | null> {
     const result = await backend.command('select_directory')
     if (!result.success) throw new Error(result.message || '选择文件夹失败')

@@ -26,6 +26,7 @@ import {
 import { resolveNavigationMode } from '@/features/settings/model/navigation'
 import type {
   BackgroundConfig,
+  BackgroundVideoConfig,
   NavigationMode,
   ThemeAppearanceConfig,
   ThemeConfig,
@@ -39,6 +40,16 @@ interface ThemeInitPayload {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
+}
+
+function normalizeVideoConfig(value: BackgroundVideoConfig | undefined): Required<BackgroundVideoConfig> {
+  return {
+    paused: value?.paused === true,
+    muted: value?.muted !== false,
+    volume: clamp(typeof value?.volume === 'number' ? value.volume : 0, 0, 1),
+    fit: value?.fit === 'contain' ? 'contain' : 'cover',
+    pause_when_inactive: value?.pause_when_inactive !== false,
+  }
 }
 
 function normalizeHex(hex: string): string {
@@ -505,6 +516,13 @@ export const useThemeStore = defineStore('theme', () => {
   const derivedMonetSeed = ref('')
   const backgroundImage = ref('')
   const backgroundImagePath = ref('')
+  /** 图片/视频背景的持久化类型；旧配置缺省时视为图片。 */
+  const backgroundMediaType = ref<'image' | 'video'>('image')
+  /** 后端签发的临时视频流 URL，不写入配置。 */
+  const backgroundVideoUrl = ref('')
+  const backgroundVideoPath = ref('')
+  const backgroundVideoPosterPath = ref('')
+  const backgroundVideo = ref<Required<BackgroundVideoConfig>>(normalizeVideoConfig(undefined))
   const backgroundOpacity = ref(1)
   const blurAmount = ref(0)
   /** 背景模式：single=单张 / carousel=顺序轮播 / random=随机切换。 */
@@ -793,6 +811,8 @@ export const useThemeStore = defineStore('theme', () => {
       console.log('[setBackgroundImage] url.length:', url?.length ?? 0, 'path:', path, 'persist:', persist)
     }
     backgroundImage.value = resolveImageUrl(url)
+    backgroundMediaType.value = 'image'
+    backgroundVideoUrl.value = ''
     if (path !== undefined) backgroundImagePath.value = path
     updateTheme()
     if (persist) saveThemeConfig()
@@ -800,6 +820,40 @@ export const useThemeStore = defineStore('theme', () => {
     if (deriveMode.value !== 'off' && backgroundImage.value) {
       void deriveFromBackground()
     }
+  }
+
+  function setBackgroundVideo(
+    url: string,
+    path: string,
+    config: BackgroundVideoConfig | undefined,
+    posterPath = '',
+    persist = true
+  ): void {
+    backgroundMediaType.value = 'video'
+    backgroundVideoUrl.value = url
+    backgroundVideoPath.value = path
+    backgroundVideoPosterPath.value = posterPath
+    backgroundVideo.value = normalizeVideoConfig(config)
+    clearBackgroundSource()
+    bgMode.value = 'single'
+    updateTheme()
+    if (persist) saveThemeConfig()
+  }
+
+  function setBackgroundVideoOptions(patch: Partial<BackgroundVideoConfig>, persist = true): void {
+    backgroundVideo.value = normalizeVideoConfig({ ...backgroundVideo.value, ...patch })
+    if (persist) saveThemeConfig()
+  }
+
+  function setBackgroundVideoPoster(url: string, path: string, persist = true): void {
+    backgroundImage.value = resolveImageUrl(url)
+    backgroundVideoPosterPath.value = path
+    updateTheme()
+    if (persist) saveThemeConfig()
+  }
+
+  function markBackgroundVideoUnavailable(): void {
+    backgroundVideoUrl.value = ''
   }
 
   function setBlurAmount(amount: number, persist = true) {
@@ -970,11 +1024,19 @@ export const useThemeStore = defineStore('theme', () => {
           },
           background: {
             ...(ui.background || {}),
-            type: backgroundImage.value ? 'custom' : 'none',
-            path: isCarouselMode(bgMode.value) ? bgFolderPath.value : backgroundImagePath.value,
+            type: backgroundMediaType.value === 'video' ? 'local' : backgroundImage.value ? 'custom' : 'none',
+            path:
+              backgroundMediaType.value === 'video'
+                ? backgroundVideoPath.value
+                : isCarouselMode(bgMode.value)
+                  ? bgFolderPath.value
+                  : backgroundImagePath.value,
             opacity: backgroundOpacity.value,
-            mode: bgMode.value,
+            mode: backgroundMediaType.value === 'video' ? 'single' : bgMode.value,
             interval: clampBackgroundInterval(bgInterval.value),
+            media_type: backgroundMediaType.value,
+            poster_path: backgroundMediaType.value === 'video' ? backgroundVideoPosterPath.value : undefined,
+            video: backgroundMediaType.value === 'video' ? backgroundVideo.value : undefined,
           },
         })
       } catch (error) {
@@ -1044,8 +1106,26 @@ export const useThemeStore = defineStore('theme', () => {
         bgFolderPath.value = ''
         backgroundImagePath.value = ''
         backgroundImage.value = ''
+        backgroundMediaType.value = bgData.media_type === 'video' ? 'video' : 'image'
+        backgroundVideoUrl.value = ''
+        backgroundVideoPath.value = ''
+        backgroundVideoPosterPath.value = ''
+        backgroundVideo.value = normalizeVideoConfig(bgData.video)
 
-        if (bgMode.value === 'carousel' || bgMode.value === 'random') {
+        if (backgroundMediaType.value === 'video') {
+          bgMode.value = 'single'
+          backgroundVideoPath.value = bgData.path ?? ''
+          backgroundVideoPosterPath.value = bgData.poster_path ?? ''
+          if (bgData.poster_path) {
+            const posterUrl = await resolveLocalImageUrl(bgData.poster_path)
+            backgroundImage.value = posterUrl ? resolveImageUrl(posterUrl) : ''
+          }
+          try {
+            backgroundVideoUrl.value = (await settingsApi.openBackgroundVideo()) ?? ''
+          } catch {
+            /* 视频不可用时保留封面或纯色背景。 */
+          }
+        } else if (bgMode.value === 'carousel' || bgMode.value === 'random') {
           if (bgData.path) {
             bgFolderPath.value = bgData.path
             try {
@@ -1130,6 +1210,11 @@ export const useThemeStore = defineStore('theme', () => {
     derivedMonetSeed,
     backgroundImage,
     backgroundImagePath,
+    backgroundMediaType,
+    backgroundVideoUrl,
+    backgroundVideoPath,
+    backgroundVideoPosterPath,
+    backgroundVideo,
     backgroundOpacity,
     blurAmount,
     transparentBg,
@@ -1156,6 +1241,10 @@ export const useThemeStore = defineStore('theme', () => {
     setAppearance,
     setSchedule,
     setBackgroundImage,
+    setBackgroundVideo,
+    setBackgroundVideoOptions,
+    setBackgroundVideoPoster,
+    markBackgroundVideoUnavailable,
     setBlurAmount,
     setBackgroundOpacity,
     setTransparentBg,
@@ -1200,6 +1289,11 @@ export function useTheme() {
     derivedMonetSeed,
     backgroundImage,
     backgroundImagePath,
+    backgroundMediaType,
+    backgroundVideoUrl,
+    backgroundVideoPath,
+    backgroundVideoPosterPath,
+    backgroundVideo,
     backgroundOpacity,
     blurAmount,
     transparentBg,
@@ -1229,6 +1323,11 @@ export function useTheme() {
     derivedMonetSeed: readonly(derivedMonetSeed),
     backgroundImage: readonly(backgroundImage),
     backgroundImagePath: readonly(backgroundImagePath),
+    backgroundMediaType: readonly(backgroundMediaType),
+    backgroundVideoUrl: readonly(backgroundVideoUrl),
+    backgroundVideoPath: readonly(backgroundVideoPath),
+    backgroundVideoPosterPath: readonly(backgroundVideoPosterPath),
+    backgroundVideo: readonly(backgroundVideo),
     backgroundOpacity: readonly(backgroundOpacity),
     blurAmount: readonly(blurAmount),
     transparentBg: readonly(transparentBg),
@@ -1252,6 +1351,10 @@ export function useTheme() {
     setAppearance: store.setAppearance,
     setSchedule: store.setSchedule,
     setBackgroundImage: store.setBackgroundImage,
+    setBackgroundVideo: store.setBackgroundVideo,
+    setBackgroundVideoOptions: store.setBackgroundVideoOptions,
+    setBackgroundVideoPoster: store.setBackgroundVideoPoster,
+    markBackgroundVideoUnavailable: store.markBackgroundVideoUnavailable,
     setBlurAmount: store.setBlurAmount,
     setTransparentBg: store.setTransparentBg,
     setAuroraEnabled: store.setAuroraEnabled,

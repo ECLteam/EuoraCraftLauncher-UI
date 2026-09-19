@@ -40,4 +40,27 @@ describe('useTheme 语义色', () => {
     expect(overrides.common!.infoColor).toBe(LIGHT_THEME_COLORS.info)
     expect(overrides.common!.warningColor).not.toContain('var(')
   })
+
+  it('视频背景保留独立的临时媒体地址与播放偏好', () => {
+    setActivePinia(createPinia())
+    const theme = useTheme()
+
+    theme.setBackgroundVideo(
+      'http://127.0.0.1:9527/background/token',
+      'C:/background.mp4',
+      {
+        muted: false,
+        volume: 0.35,
+        fit: 'contain',
+        pause_when_inactive: false,
+      },
+      '',
+      false
+    )
+
+    expect(theme.backgroundMediaType.value).toBe('video')
+    expect(theme.backgroundVideoPath.value).toBe('C:/background.mp4')
+    expect(theme.backgroundVideoUrl.value).toContain('/background/token')
+    expect(theme.backgroundVideo.value).toMatchObject({ muted: false, volume: 0.35, fit: 'contain' })
+  })
 })

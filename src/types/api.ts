@@ -323,11 +323,13 @@ export interface CommandPayloadMap {
   image_save_as: ImageSaveAsPayload
   image_read_file: { path: string }
   image_list_files: { path: string }
+  background_video_open: undefined
 
   // 文件选择
   select_directory: undefined
   select_java: undefined
   select_image: { purpose?: 'background' | 'skin' | 'cape' | 'instance_icon' } | undefined
+  select_background_video: undefined
   select_file: { purpose?: 'crash-analysis' | 'modpack' | 'world-import' | 'theme-preset' } | undefined
   select_files: { purpose?: 'resource-files' }
   select_save_file: {
@@ -719,9 +721,11 @@ export const COMMAND_NAMES = {
   image_save_as: 'image_save_as',
   image_read_file: 'image_read_file',
   image_list_files: 'image_list_files',
+  background_video_open: 'background_video_open',
   select_directory: 'select_directory',
   select_java: 'select_java',
   select_image: 'select_image',
+  select_background_video: 'select_background_video',
   select_file: 'select_file',
   select_files: 'select_files',
   select_save_file: 'select_save_file',
@@ -967,10 +971,12 @@ export interface CommandResponseMap {
   image_save_as: SelectResult
   image_read_file: ImageDataUrl
   image_list_files: ImageListResult
+  background_video_open: { url: string }
 
   select_directory: SelectResult
   select_java: SelectResult
   select_image: ImageSelection
+  select_background_video: SelectResult
   select_file: SelectResult
   select_files: { paths: string[] }
   select_save_file: SelectResult

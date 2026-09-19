@@ -10,6 +10,8 @@ vi.mock('@/features/settings/api/settingsApi', () => ({
     saveGame: vi.fn(),
     saveDownload: vi.fn(),
     selectImage: vi.fn(),
+    selectBackgroundVideo: vi.fn(),
+    openBackgroundVideo: vi.fn(),
     saveImageUrl: vi.fn(),
     readImage: vi.fn(),
   },
@@ -83,5 +85,22 @@ describe('settingsStore', () => {
     )
     expect(store.game.fullscreen).toBe(true)
     expect(store.game.memory_size).toBe(8192)
+  })
+
+  it('选择视频背景后保存视频类型并请求受保护的媒体地址', async () => {
+    vi.mocked(settingsApi.selectBackgroundVideo).mockResolvedValue('C:/background.mp4')
+    vi.mocked(settingsApi.openBackgroundVideo).mockResolvedValue('http://127.0.0.1:9527/background/token')
+    const store = useSettingsStore()
+    await store.load()
+
+    await expect(store.chooseBackgroundVideo()).resolves.toEqual({
+      path: 'C:/background.mp4',
+      videoUrl: 'http://127.0.0.1:9527/background/token',
+    })
+    expect(settingsApi.saveUi).toHaveBeenCalledWith(
+      expect.objectContaining({
+        background: expect.objectContaining({ media_type: 'video', path: 'C:/background.mp4' }),
+      })
+    )
   })
 })

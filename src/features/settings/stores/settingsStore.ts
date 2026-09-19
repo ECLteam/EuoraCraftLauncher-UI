@@ -167,8 +167,21 @@ export const useSettingsStore = defineStore('settings', () => {
   async function chooseBackgroundImage(): Promise<{ path: string; imageUrl: string | null } | null> {
     const path = await settingsApi.selectImage()
     if (!path) return null
-    await patchUiBackground({ type: 'custom', path, mode: 'single' })
+    await patchUiBackground({ type: 'custom', path, mode: 'single', media_type: 'image' })
     return { path, imageUrl: await resolveLocalImageUrl(path) }
+  }
+
+  async function chooseBackgroundVideo(): Promise<{ path: string; videoUrl: string | null } | null> {
+    const path = await settingsApi.selectBackgroundVideo()
+    if (!path) return null
+    await patchUiBackground({
+      type: 'local',
+      path,
+      mode: 'single',
+      media_type: 'video',
+      video: { muted: true, volume: 0, fit: 'cover', pause_when_inactive: true },
+    })
+    return { path, videoUrl: await settingsApi.openBackgroundVideo() }
   }
 
   async function saveRemoteBackground(url: string): Promise<{ path: string; imageUrl: string | null } | null> {
@@ -196,6 +209,7 @@ export const useSettingsStore = defineStore('settings', () => {
     patchLauncher,
     patchDownload,
     chooseBackgroundImage,
+    chooseBackgroundVideo,
     saveRemoteBackground,
   }
 })
