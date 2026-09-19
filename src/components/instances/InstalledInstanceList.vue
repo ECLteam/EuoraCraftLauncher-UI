@@ -87,10 +87,7 @@
           <UiIcon name="add" :size="16" />{{ t('common.add') }}
         </button>
       </div>
-      <div v-else-if="loading" class="loading-state">
-        <UiIcon name="spinner" class="spin" :size="24" />
-        <p>{{ t('versions.manage.scanning') }}</p>
-      </div>
+      <UiLoading v-else-if="loading" :label="t('versions.manage.scanning')" />
       <div v-else-if="versions.length === 0" class="empty-state">
         <UiIcon name="cube" :size="48" class="empty-icon" />
         <p class="empty-text">{{ t('versions.manage.noVersionsFound') }}</p>
@@ -262,6 +259,7 @@ import backend from '@/api/client'
 import InstanceCategoryManager from '@/components/instances/InstanceCategoryManager.vue'
 import InstanceIcon from '@/components/instances/InstanceIcon.vue'
 import UiIcon from '@/components/ui/Icon.vue'
+import UiLoading from '@/components/ui/Loading.vue'
 import { getLoaderClass, getLoaderName, getVersionLabelKey } from '@/config/version'
 import { instanceProfileApi, targetFromVersion } from '@/features/instances/api/instanceProfileApi'
 import { hasModLoader } from '@/features/instances/model/instanceCapabilities'

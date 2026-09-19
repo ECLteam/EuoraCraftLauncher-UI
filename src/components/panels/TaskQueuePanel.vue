@@ -34,7 +34,7 @@
             <div class="tq-task-header" @click="toggleExpand(task.id)">
               <div class="tq-task-main">
                 <div class="tq-task-icon">
-                  <UiIcon v-if="task.status === 'running'" name="spinner" :size="18" class="spin" />
+                  <UiLoading v-if="task.status === 'running'" mode="inline" size="md" decorative />
                   <UiIcon v-else-if="task.status === 'completed'" name="check" :size="18" class="tq-icon-success" />
                   <UiIcon v-else-if="task.status === 'error'" name="x-mark" :size="18" class="tq-icon-error" />
                   <UiIcon v-else-if="task.status === 'canceled'" name="x-mark" :size="18" class="tq-icon-muted" />
@@ -52,13 +52,11 @@
               </div>
 
               <div class="tq-task-progress">
-                <div class="tq-progress-bar">
-                  <div
-                    class="tq-progress-fill"
-                    :class="{ 'tq-progress--indeterminate': task.status === 'running' && task.progress <= 0 }"
-                    :style="{ width: task.progress > 0 ? task.progress + '%' : undefined }"
-                  />
-                </div>
+                <UiProgress
+                  :percentage="task.progress"
+                  :processing="task.status === 'running' && task.progress <= 0"
+                  :height="4"
+                />
                 <span class="tq-progress-text">
                   {{ task.status === 'completed' ? '100%' : task.progress > 0 ? task.progress + '%' : '...' }}
                 </span>
@@ -98,7 +96,7 @@
 
                 <div v-if="task.subtasks.length > 0" class="tq-subtasks">
                   <div v-for="sub in task.subtasks" :key="sub.id" :class="['tq-subtask', `tq-subtask--${sub.status}`]">
-                    <UiIcon v-if="sub.status === 'running'" name="spinner" :size="12" class="spin" />
+                    <UiLoading v-if="sub.status === 'running'" mode="inline" size="sm" decorative />
                     <UiIcon v-else-if="sub.status === 'completed'" name="check" :size="12" class="tq-icon-success" />
                     <UiIcon v-else-if="sub.status === 'error'" name="x-mark" :size="12" class="tq-icon-error" />
                     <UiIcon v-else name="circle" :size="8" class="tq-icon-muted" />
@@ -166,13 +164,7 @@
             </div>
 
             <div class="tq-live-progress">
-              <div class="tq-progress-bar tq-live-bar">
-                <div
-                  class="tq-progress-fill"
-                  :class="{ 'tq-progress--indeterminate': livePct <= 0 }"
-                  :style="{ width: livePct > 0 ? livePct + '%' : undefined }"
-                />
-              </div>
+              <UiProgress class="tq-live-bar" :percentage="livePct" :processing="livePct <= 0" :height="6" />
               <span class="tq-live-pct">
                 {{ livePct > 0 ? livePct + '%' : '...' }}
               </span>
@@ -189,6 +181,8 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
+import UiLoading from '@/components/ui/Loading.vue'
+import UiProgress from '@/components/ui/Progress.vue'
 import { globalTaskQueue, type TaskItem } from '@/composables/useTaskQueue'
 import { getLoaderLabel } from '@/config/version'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'

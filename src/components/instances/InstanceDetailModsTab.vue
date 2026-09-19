@@ -55,7 +55,7 @@
         <UiIcon name="puzzle" :size="36" class="empty-icon" />
         <p class="empty-text">{{ t('versions.mods.loaderNotSupported') }}</p>
       </div>
-      <NSpin v-else :show="modsLoading" class="mods-spin">
+      <UiLoading v-else :show="modsLoading" mode="overlay" class="mods-spin">
         <template v-if="filteredMods.length">
           <div class="mods-list">
             <div class="mods-list-header" aria-hidden="true">
@@ -123,7 +123,7 @@
             </NButton>
           </div>
         </div>
-      </NSpin>
+      </UiLoading>
     </div>
   </div>
 
@@ -139,11 +139,12 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NSpin, NSwitch } from 'naive-ui'
+import { NButton, NSwitch } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import UiIcon from '@/components/ui/Icon.vue'
+import UiLoading from '@/components/ui/Loading.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { getLoaderName } from '@/config/version'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'

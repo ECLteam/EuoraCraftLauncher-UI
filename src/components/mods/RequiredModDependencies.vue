@@ -4,7 +4,7 @@
       <UiIcon name="packages" :size="15" />
       {{ t('mods.requiredDependencies') }}
     </div>
-    <NSpin :show="loading" size="small">
+    <UiLoading :show="loading" mode="overlay" size="sm">
       <div class="dependency-mod-list" :class="{ loading }">
         <button
           v-for="dependency in dependencies"
@@ -36,7 +36,7 @@
           <UiIcon name="chevron-right" :size="16" class="dependency-open-icon" />
         </button>
       </div>
-    </NSpin>
+    </UiLoading>
     <p class="required-dependencies-hint">
       {{ t('mods.dependencyOpenHint', { version: gameVersion }) }}
     </p>
@@ -44,9 +44,10 @@
 </template>
 
 <script setup lang="ts">
-import { NSpin, NTag } from 'naive-ui'
+import { NTag } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
+import UiLoading from '@/components/ui/Loading.vue'
 import type { ModInfo } from '@/types/mods'
 
 withDefaults(

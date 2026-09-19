@@ -28,7 +28,7 @@
         </div>
       </header>
 
-      <NSpin :show="loading" class="running-instances-content">
+      <UiLoading :show="loading" mode="overlay" class="running-instances-content">
         <div v-if="instances.length" class="running-instance-table">
           <div class="running-table-header">
             <span class="col-icon"></span>
@@ -72,7 +72,8 @@
                   :disabled="stoppingIds.size > 0"
                   @click="confirmStop(instance)"
                 >
-                  <UiIcon :name="stoppingIds.has(instance.id) ? 'spinner' : 'stop'" :size="14" />
+                  <UiLoading v-if="stoppingIds.has(instance.id)" mode="inline" size="sm" decorative />
+                  <UiIcon v-else name="stop" :size="14" />
                   <span>{{ t('versions.running.stop') }}</span>
                 </button>
               </div>
@@ -91,7 +92,7 @@
             {{ t('versions.running.refresh') }}
           </NButton>
         </div>
-      </NSpin>
+      </UiLoading>
     </section>
     <ConfirmDialog
       v-model:visible="confirmVisible"
@@ -106,11 +107,12 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NSpin } from 'naive-ui'
+import { NButton } from 'naive-ui'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import UiIcon from '@/components/ui/Icon.vue'
+import UiLoading from '@/components/ui/Loading.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { getLoaderImage } from '@/config/version'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
@@ -347,12 +349,9 @@ async function handleConfirm() {
 
 .running-instances-content {
   flex: 1;
+  height: 100%;
   min-height: 0;
   overflow: hidden;
-}
-
-.running-instances-content :deep(.n-spin-content) {
-  height: 100%;
 }
 
 .running-instance-table {

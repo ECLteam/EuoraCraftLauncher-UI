@@ -213,8 +213,7 @@
   overflow: hidden;
 }
 
-.mods-results-spin,
-.mods-results-spin :deep(.n-spin-content) {
+.mods-results-spin {
   height: 100%;
   min-height: 240px;
 }

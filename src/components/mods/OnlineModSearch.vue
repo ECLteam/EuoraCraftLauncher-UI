@@ -107,7 +107,7 @@
 
     <div class="mods-results-panel">
       <div class="mods-results-content">
-        <NSpin :show="loading" :description="t('mods.searching')" class="mods-results-spin">
+        <UiLoading :show="loading" mode="overlay" :label="t('mods.searching')" class="mods-results-spin">
           <NScrollbar v-if="results.length" class="mods-results-scroll">
             <div class="mod-list">
               <div v-for="mod in results" :key="mod.id" class="mod-row" @click="openDetails(mod)">
@@ -203,7 +203,7 @@
           >
             <template #icon><UiIcon name="cloud-download" :size="42" /></template>
           </NEmpty>
-        </NSpin>
+        </UiLoading>
       </div>
     </div>
 
@@ -214,7 +214,7 @@
       bodyClass="mod-detail-body"
     >
       <div class="mod-detail-shell">
-        <NSpin :show="detailLoading">
+        <UiLoading :show="detailLoading" mode="overlay">
           <div v-if="selectedMod" class="mod-detail-content">
             <!-- 顶部：模组信息独占一行，简介全宽紧贴 -->
             <section class="mod-intro-card">
@@ -410,7 +410,7 @@
               <p v-else class="version-hint">{{ t('mods.noCompatibleVersion') }}</p>
             </section>
           </div>
-        </NSpin>
+        </UiLoading>
       </div>
 
       <template v-if="!usesDirectVersionAction" #footer>
@@ -485,7 +485,7 @@
 </template>
 
 <script setup lang="ts">
-import { NAlert, NButton, NEmpty, NInput, NScrollbar, NSelect, NSpin, NTag } from 'naive-ui'
+import { NAlert, NButton, NEmpty, NInput, NScrollbar, NSelect, NTag } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -498,6 +498,7 @@ import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import RequiredModDependencies from '@/components/mods/RequiredModDependencies.vue'
 import ResourceInstanceSelect from '@/components/resources/ResourceInstanceSelect.vue'
 import UiIcon from '@/components/ui/Icon.vue'
+import UiLoading from '@/components/ui/Loading.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceKey, parseInstanceKey, useResourceInstallTarget } from '@/composables/useResourceInstallTarget'

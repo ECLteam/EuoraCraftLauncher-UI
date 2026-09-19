@@ -20,7 +20,7 @@
   <div class="info-card">
     <div class="info-card__header">{{ t('versions.detail.runStats') }}</div>
     <div v-if="statsLoading" class="settings-loading-state">
-      <NSpin size="small" />
+      <UiLoading mode="inline" size="sm" decorative />
       <span>{{ t('versions.detail.loadingStats') }}</span>
     </div>
     <div v-else class="info-grid">
@@ -75,9 +75,10 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NSpin } from 'naive-ui'
+import { NButton } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
+import UiLoading from '@/components/ui/Loading.vue'
 import { getLoaderName } from '@/config/version'
 import { formatRunDuration } from '@/features/instances/model/versionStats'
 import type { ScannedVersion, VersionRunStats } from '@/types/instances'

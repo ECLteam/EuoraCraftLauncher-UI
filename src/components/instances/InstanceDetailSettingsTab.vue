@@ -1,6 +1,6 @@
 <template>
   <div v-if="settingsLoading" class="settings-loading-state">
-    <NSpin size="small" />
+    <UiLoading mode="inline" size="sm" decorative />
     <span>{{ t('versions.detail.loadingSettings') }}</span>
   </div>
   <template v-else>
@@ -167,9 +167,10 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NInput, NSelect, NSpin, NSwitch } from 'naive-ui'
+import { NButton, NInput, NSelect, NSwitch } from 'naive-ui'
 import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import UiLoading from '@/components/ui/Loading.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceSettingsApi } from '@/features/instances/api/instanceSettingsApi'
 import { createDefaultVersionSettings, type VersionSettingsTarget } from '@/features/instances/model/instanceSettings'

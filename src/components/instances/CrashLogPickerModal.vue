@@ -8,7 +8,7 @@
     @update:visible="emit('update:visible', $event)"
   >
     <div v-if="loading" class="crash-picker-loading">
-      <NSpin size="small" />
+      <UiLoading mode="inline" size="sm" decorative />
       <span>{{ t('crashPick.loading') }}</span>
     </div>
 
@@ -46,12 +46,13 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NSelect, NSpin, type SelectOption } from 'naive-ui'
+import { NButton, NSelect, type SelectOption } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import backend from '@/api/client'
 import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
+import UiLoading from '@/components/ui/Loading.vue'
 import { instanceRuntimeApi } from '@/features/instances/api/instanceRuntimeApi'
 import type { CrashCandidateFile, ScannedVersion } from '@/types/instances'
 import { formatFileSize, formatTimestamp } from '@/utils/format'

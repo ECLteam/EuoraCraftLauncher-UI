@@ -43,6 +43,7 @@ declare module 'vue' {
     InstanceWorldsTab: typeof import('./src/components/instances/InstanceWorldsTab.vue')['default']
     LauncherPopupModal: typeof import('./src/components/modals/LauncherPopupModal.vue')['default']
     LaunchProgressCard: typeof import('./src/components/game/LaunchProgressCard.vue')['default']
+    Loading: typeof import('./src/components/ui/Loading.vue')['default']
     MarkdownContent: typeof import('./src/components/ui/MarkdownContent.vue')['default']
     Modal: typeof import('./src/components/modals/Modal.vue')['default']
     ModpackImportModal: typeof import('./src/components/instances/ModpackImportModal.vue')['default']

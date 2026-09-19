@@ -7,15 +7,15 @@
   >
     <section class="schematic-preview-layout">
       <main class="schematic-preview-content">
-        <NSpin :show="loading" class="schematic-preview-stage">
-          <div v-if="loading" class="schematic-preview-hint">{{ loadingText }}</div>
+        <UiLoading :show="loading" mode="overlay" :label="loadingText" class="schematic-preview-stage">
+          <div v-if="loading" class="schematic-preview-hint" aria-hidden="true" />
           <div v-else-if="error" class="schematic-preview-hint schematic-error">
             <UiIcon name="warning" :size="22" />
             <p>{{ error }}</p>
             <NButton size="small" @click="load">重试</NButton>
           </div>
           <SchematicViewer3D v-else-if="data" :data="data" :assets="assets" />
-        </NSpin>
+        </UiLoading>
         <aside v-if="data" class="schematic-preview-sidebar">
           <div class="schematic-material-heading">
             <div>
@@ -67,11 +67,12 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NScrollbar, NSpin } from 'naive-ui'
+import { NButton, NScrollbar } from 'naive-ui'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
+import UiLoading from '@/components/ui/Loading.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
 import { SchematicMaterialThumbnailRenderer } from '@/features/instances/lib/schematicMaterialThumbnailRenderer'
@@ -221,9 +222,6 @@ onBeforeUnmount(resetPreview)
 }
 .schematic-preview-stage {
   min-width: 0;
-  height: 100%;
-}
-.schematic-preview-stage :deep(.n-spin-content) {
   height: 100%;
 }
 .schematic-preview-hint {

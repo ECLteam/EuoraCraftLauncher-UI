@@ -114,6 +114,8 @@
   --duration-slow: 0.35s;
   --duration-slower: 0.5s;
   --duration-slowest: 0.7s;
+  --loading-spin-duration: 0.9s;
+  --loading-progress-duration: 1.5s;
 
   /* 缓动族：Material 3 emphasized 基准
      --ease-emphasized-decelerate 用于进入（快速减速到位），

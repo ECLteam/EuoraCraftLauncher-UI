@@ -12,9 +12,7 @@
     :aria-busy="loading"
     @click="handleClick"
   >
-    <span v-if="loading" class="loading-spinner">
-      <UiIcon name="spinner" :size="16" class="spin" />
-    </span>
+    <UiLoading v-if="loading" mode="inline" size="sm" decorative />
     <span v-else-if="icon" class="btn-icon">
       <UiIcon :name="icon.replace('icon-', '')" :size="16" />
     </span>
@@ -25,6 +23,8 @@
 </template>
 
 <script setup lang="ts">
+import UiLoading from './Loading.vue'
+
 defineOptions({ name: 'UiButton' })
 
 const props = withDefaults(

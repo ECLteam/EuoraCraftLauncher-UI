@@ -205,7 +205,7 @@
                       <p class="connect-help-text">{{ t('connect.create.lanHint') }}</p>
                       <div class="connect-port-scan">
                         <div v-if="displayScanning" class="connect-scan-state">
-                          <UiIcon name="spinner" :size="18" class="spin" />
+                          <UiLoading mode="inline" size="md" decorative />
                           <span>{{
                             scanPhase === 'detecting' ? t('connect.create.detecting') : t('connect.create.searching')
                           }}</span>
@@ -267,7 +267,7 @@
                 <UiButton @click="leave">{{ t('common.confirm') }}</UiButton>
               </div>
               <div v-else class="connect-state-content">
-                <UiIcon name="spinner" :size="32" class="spin connect-state-icon" />
+                <UiLoading mode="inline" size="lg" decorative class="connect-state-icon" />
                 <h2>{{ t('connect.starting.title') }}</h2>
                 <p>{{ t('connect.starting.description') }}</p>
                 <UiProgress processing :height="6" />
@@ -387,6 +387,7 @@ import UiButton from '@/components/ui/Button.vue'
 import UiCard from '@/components/ui/Card.vue'
 import UiIcon from '@/components/ui/Icon.vue'
 import UiInput from '@/components/ui/Input.vue'
+import UiLoading from '@/components/ui/Loading.vue'
 import UiProgress from '@/components/ui/Progress.vue'
 import UiSelect from '@/components/ui/Select.vue'
 import UiTag from '@/components/ui/Tag.vue'

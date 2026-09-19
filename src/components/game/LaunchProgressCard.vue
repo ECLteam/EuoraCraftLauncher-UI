@@ -16,13 +16,7 @@
     </div>
 
     <div class="lp-bar-wrapper">
-      <div class="lp-bar-track">
-        <div
-          class="lp-bar-fill"
-          :class="{ indeterminate: displayPercent < 0 }"
-          :style="{ width: displayPercent >= 0 ? displayPercent + '%' : undefined }"
-        />
-      </div>
+      <UiProgress class="lp-progress" :percentage="displayPercent" :processing="displayPercent < 0" :height="4" />
       <span class="lp-bar-percent">{{ displayPercent >= 0 ? Math.round(displayPercent) + '%' : '...' }}</span>
     </div>
 
@@ -47,6 +41,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
+import UiProgress from '@/components/ui/Progress.vue'
 
 defineProps<{
   title: string
@@ -134,24 +129,10 @@ const { t } = useI18n()
   width: 100%;
 }
 
-.lp-bar-track {
+.lp-progress {
   flex: 1;
-  overflow: hidden;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--bg-base-alt);
-}
-
-.lp-bar-fill {
   min-width: 0;
-  height: 100%;
-  border-radius: 2px;
-  background: linear-gradient(90deg, var(--primary), var(--primary-hover));
-}
-
-.lp-bar-fill.indeterminate {
-  width: 30% !important;
-  animation: indeterminate-bar 1.6s var(--ease-linear) infinite;
+  width: auto;
 }
 
 .lp-bar-percent {

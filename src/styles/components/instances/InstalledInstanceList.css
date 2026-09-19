@@ -438,8 +438,7 @@
   background: var(--primary-alpha) !important;
   color: var(--primary) !important;
 }
-.empty-state,
-.loading-state {
+.empty-state {
   display: flex;
   align-items: center;
   justify-content: center;
