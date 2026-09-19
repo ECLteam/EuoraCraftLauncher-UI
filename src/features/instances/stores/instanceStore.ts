@@ -120,7 +120,7 @@ export const useInstanceStore = defineStore('versions', () => {
       let activeVersionId: string | null = null
       if (activePath && pathVersions.length > 0) {
         try {
-          activeVersionId = await instancePathConfigApi.getActiveVersion(activePath)
+          activeVersionId = await instancePathConfigApi.getActiveVersion(activePath, { force })
         } catch (error) {
           console.warn('[instanceStore] 读取 ecl.json activeVersion 失败:', error)
         }
@@ -170,7 +170,7 @@ export const useInstanceStore = defineStore('versions', () => {
    * 切换到指定游戏路径，并从该路径的 ecl.json 中读取 activeVersion
    * 作为该路径下的选中实例；若没有则选第一个。
    */
-  async function switchPath(gamePath: string): Promise<void> {
+  async function switchPath(gamePath: string, options: { forceConfig?: boolean } = {}): Promise<void> {
     currentGamePath.value = gamePath
     const settingsStore = useSettingsStore()
     // 持久化全局 active_path
@@ -183,7 +183,7 @@ export const useInstanceStore = defineStore('versions', () => {
     // 先尝试从 ecl.json 读取该路径下的选中版本
     let activeVersionId: string | null = null
     try {
-      activeVersionId = await instancePathConfigApi.getActiveVersion(gamePath)
+      activeVersionId = await instancePathConfigApi.getActiveVersion(gamePath, { force: options.forceConfig })
     } catch (error) {
       console.warn('[instanceStore] 读取 ecl.json activeVersion 失败:', error)
     }
@@ -203,6 +203,7 @@ export const useInstanceStore = defineStore('versions', () => {
     const key = normalizeGamePath(path)
     scannedVersions.value = scannedVersions.value.filter((version) => normalizeGamePath(version.path) !== key)
     instanceInstallApi.invalidateScanCache(path)
+    instancePathConfigApi.invalidateActiveVersionCache(path)
     if (normalizeGamePath(currentGamePath.value) === key) {
       const next = versions.value[0]
       selectVersion(next?.id ?? '', next?.gamePath ?? '')

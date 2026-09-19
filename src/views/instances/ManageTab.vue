@@ -142,6 +142,7 @@ import { globalLaunchProgress } from '@/composables/useLaunchProgress'
 import { useRecentInstances } from '@/composables/useRecentInstances'
 import { LAUNCH_PROGRESS, LAUNCH_SUCCESS_HIDE_DELAY, LAUNCH_ERROR_HIDE_DELAY } from '@/config/game'
 import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
+import { instancePathConfigApi } from '@/features/instances/api/instancePathConfigApi'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
 import { findGamePathIndex, type GamePath } from '@/features/instances/model/gamePath'
 import { instanceDisplayName } from '@/features/instances/model/instancePresentation'
@@ -313,6 +314,7 @@ const scanCurrentPath = async (force = false) => {
 const handleRefresh = async () => {
   refreshLoading.value = true
   await scanCurrentPath(true)
+  if (currentPath.value) await instanceStore.switchPath(currentPath.value.path, { forceConfig: true })
   refreshLoading.value = false
 }
 
@@ -400,6 +402,8 @@ const savePath = async () => {
     if (previousPath && previousPath !== pathForm.value.path) {
       instanceInstallApi.invalidateScanCache(previousPath)
       instanceInstallApi.invalidateScanCache(pathForm.value.path)
+      instancePathConfigApi.invalidateActiveVersionCache(previousPath)
+      instancePathConfigApi.invalidateActiveVersionCache(pathForm.value.path)
     }
     message.success(isEditing.value ? t('versions.manage.pathUpdated') : t('versions.manage.pathAdded'), 2000)
     if (!isEditing.value) {
