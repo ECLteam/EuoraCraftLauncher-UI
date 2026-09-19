@@ -140,6 +140,7 @@ export interface BackendEvents {
   'process:instance_log': ProcessLogEntry
   'process:instances_changed': ProcessInstance[]
   'update:progress': UpdateProgressEvent
+  'update:check_completed': UpdateCheckResult
   'game:install_progress': InstallProgress
   'game:launch_progress': LaunchProgress
   'game:operation_progress': GameOperation

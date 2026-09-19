@@ -204,6 +204,10 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
         launcherErrorQueue.enqueue(payload)
       }),
       backend.on('launcher:popup', popupQueue.enqueuePopup),
+      backend.on('update:check_completed', (result) => {
+        updateCheck.setStartupCheckResult(result)
+        if (shouldShowStartupUpdate(result)) updateCheck.updateDialogVisible.value = true
+      }),
       backend.on('config:init', (payload) => {
         if (backend.isShowcaseActive) return
         void applyConfig(payload)
@@ -295,9 +299,6 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
         .load()
         .catch(() => undefined)
       void backend.command('launcher_preload_connector').catch(() => undefined)
-      void updateCheck.checkUpdate().then((result) => {
-        if (shouldShowStartupUpdate(result)) updateCheck.updateDialogVisible.value = true
-      })
     }
     // 启动时同步一次积压错误；此后依赖 launcher:error 事件实时推送，低频轮询仅作兜底
     const pendingErrorTimer = window.setInterval(() => void syncPendingErrors(), 1_000)

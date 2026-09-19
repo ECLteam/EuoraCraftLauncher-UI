@@ -53,6 +53,11 @@ async function checkUpdate(): Promise<UpdateCheckResult | null> {
   }
 }
 
+/** 接收后端进程启动时执行的单次更新检测结果。 */
+function setStartupCheckResult(result: UpdateCheckResult): void {
+  lastResult.value = result
+}
+
 /** 下载当前通道最新版本并落盘替换计划，返回目标版本号。 */
 async function downloadUpdate(): Promise<string | null> {
   if (downloading.value) return null
@@ -84,6 +89,7 @@ export function useUpdateCheck() {
     progress: readonly(progress),
     downloadPercent,
     checkUpdate,
+    setStartupCheckResult,
     downloadUpdate,
     applyUpdate,
   }
