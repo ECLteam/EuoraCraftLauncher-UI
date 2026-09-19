@@ -8,10 +8,22 @@ import type {
   VersionRunStats,
 } from '@/types/instances'
 
+let listRequest: Promise<GameInstance[]> | null = null
+
+function listRunningInstances(): Promise<GameInstance[]> {
+  if (listRequest) return listRequest
+
+  const request = backend.command('game_instances').then((response) => assertSuccess(response, '读取运行实例') ?? [])
+  listRequest = request
+  const removeRequest = () => {
+    if (listRequest === request) listRequest = null
+  }
+  void request.then(removeRequest, removeRequest)
+  return request
+}
+
 export const instanceRuntimeApi = {
-  async list(): Promise<GameInstance[]> {
-    return assertSuccess(await backend.command('game_instances'), '读取运行实例') ?? []
-  },
+  list: listRunningInstances,
 
   async stop(instanceId: string): Promise<void> {
     assertSuccess(await backend.command('game_instance_stop', { instance_id: instanceId }), '停止实例')
