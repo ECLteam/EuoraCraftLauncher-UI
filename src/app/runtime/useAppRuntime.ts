@@ -75,8 +75,6 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
     const launcher = payload.launcher
     if (launcher) {
       isDevMode.value = launcher.debug === true
-      launcherVersion.value = launcher.version || ''
-      launcherVersionType.value = launcher.version_type || 'release'
     }
 
     if (payload.game) gameConfig.value = payload.game
@@ -275,6 +273,18 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
     }
   }
 
+  async function loadRuntimeLauncherInfo(): Promise<void> {
+    const result = await backend.command('launcher_info')
+    if (!result.success || !result.data) return
+
+    launcherVersion.value = result.data.version || ''
+    const versionType = result.data.version_type
+    launcherVersionType.value =
+      versionType === 'alpha' || versionType === 'beta' || versionType === 'rc' || versionType === 'release'
+        ? versionType
+        : 'release'
+  }
+
   async function start(): Promise<void> {
     if (started || !backend.runtime.isAvailable) return
     started = true
@@ -291,6 +301,7 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
     initPluginBridge(options.router)
     await backend.waitForEventListeners()
     await loadInitialConfig()
+    await loadRuntimeLauncherInfo()
     await notifyFrontendReady()
     await syncPendingErrors()
     // 首屏与事件监听已就绪后再预热低优先级数据，任何失败均不影响启动器可用性。
