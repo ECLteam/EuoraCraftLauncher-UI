@@ -52,6 +52,34 @@ describe('accountStore', () => {
     expect(store.status).toBe('ready')
   })
 
+  it('路由重新进入时复用已加载账户，并合并并发首次加载', async () => {
+    const store = useAccountStore()
+    let resolveAccounts: ((value: { accounts: Array<typeof account>; current: typeof account }) => void) | undefined
+    vi.mocked(accountsApi.list).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveAccounts = resolve
+        })
+    )
+
+    const first = store.load()
+    const second = store.load()
+    expect(accountsApi.list).toHaveBeenCalledOnce()
+    resolveAccounts?.({ accounts: [account], current: account })
+    await Promise.all([first, second])
+
+    await store.load()
+    expect(accountsApi.list).toHaveBeenCalledOnce()
+  })
+
+  it('账户变更完成后强制重新同步账户列表', async () => {
+    const store = useAccountStore()
+    await store.load()
+    await store.switchAccount('alex')
+
+    expect(accountsApi.list).toHaveBeenCalledTimes(2)
+  })
+
   it('按账户 UUID 合并重复账户并保留当前账户', async () => {
     const previousAccount = {
       id: 'microsoft-old',

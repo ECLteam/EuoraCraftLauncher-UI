@@ -22,6 +22,9 @@
           <NButton size="small" @click="browseJava">
             {{ t('common.browse') }}
           </NButton>
+          <NButton size="small" :loading="isJavaLoading" @click="refreshJavaList">
+            {{ t('common.refresh') }}
+          </NButton>
         </div>
       </SettingRow>
     </SettingSection>
@@ -250,15 +253,12 @@ import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
 import type { GameRenderer, InstanceIsolationPolicy, SystemMemoryInfo } from '@/types/config'
-import type { JavaInstallation } from '@/types/instances'
-
-type JavaInfo = JavaInstallation
 
 const { t } = useI18n()
 const message = useLauncherMessage()
 const { run } = useAsyncAction({ showSuccess: false, showError: true, errorMessage: t('common.error') })
 const settingsStore = useSettingsStore()
-const { game: localSettings } = storeToRefs(settingsStore)
+const { game: localSettings, javaInstallations: javaList, isJavaLoading } = storeToRefs(settingsStore)
 const isWindows = window.navigator.userAgent.toLowerCase().includes('windows')
 
 const systemMemory = ref<SystemMemoryInfo>({
@@ -268,7 +268,6 @@ const systemMemory = ref<SystemMemoryInfo>({
   percentUsed: 25,
 })
 
-const javaList = ref<JavaInfo[]>([])
 const systemMemoryError = ref(false)
 
 const javaAutoDesc = computed(() => {
@@ -396,9 +395,12 @@ const globalJvmArgsText = computed({
   },
 })
 
-const loadJavaList = async () => {
-  const result = await run(async () => settingsApi.listJava())
-  if (result) javaList.value = result
+const loadJavaList = async (force = false) => {
+  await run(async () => settingsStore.loadJavaInstallations(force))
+}
+
+const refreshJavaList = async () => {
+  await loadJavaList(true)
 }
 
 const loadGameConfig = async () => {
@@ -545,7 +547,7 @@ const browseJava = async () => {
 }
 
 onMounted(() => {
-  loadJavaList()
+  void loadJavaList()
   loadGameConfig().then(() => loadSystemMemory())
 })
 

@@ -12,6 +12,7 @@ import type {
   LauncherConfig,
   UiConfig,
 } from '@/types/config'
+import type { JavaInstallation } from '@/types/instances'
 
 const DEFAULT_GAME_CONFIG: GameConfig = {
   minecraft_paths: [],
@@ -80,8 +81,11 @@ export const useSettingsStore = defineStore('settings', () => {
   const download = ref<DownloadConfig>({ ...DEFAULT_DOWNLOAD_CONFIG })
   const launcher = ref<LauncherConfig>({ ...DEFAULT_LAUNCHER_CONFIG })
   const { status, isLoading } = useAsyncState()
+  const { status: javaStatus, isLoading: isJavaLoading } = useAsyncState()
   const error = ref('')
+  const javaInstallations = ref<JavaInstallation[]>([])
   let loadPromise: Promise<void> | null = null
+  let javaScanPromise: Promise<JavaInstallation[]> | null = null
   let latestLoadId = 0
   let configRevision = 0
   const writeQueues = new Map<string, Promise<void>>()
@@ -115,6 +119,39 @@ export const useSettingsStore = defineStore('settings', () => {
     })()
     loadPromise = request
     return request
+  }
+
+  async function loadJavaInstallations(force = false): Promise<JavaInstallation[]> {
+    if (!force && javaStatus.value === 'ready') return javaInstallations.value
+    if (javaScanPromise) return javaScanPromise
+
+    javaStatus.value = 'loading'
+    const request = settingsApi.listJava().then(
+      (installations) => {
+        javaInstallations.value = installations
+        javaStatus.value = 'ready'
+        return installations
+      },
+      (reason: unknown) => {
+        javaStatus.value = 'error'
+        throw reason
+      }
+    )
+    javaScanPromise = request
+    void request.then(
+      () => {
+        if (javaScanPromise === request) javaScanPromise = null
+      },
+      () => {
+        if (javaScanPromise === request) javaScanPromise = null
+      }
+    )
+    return request
+  }
+
+  function invalidateJavaInstallations(): void {
+    javaStatus.value = 'idle'
+    javaInstallations.value = []
   }
 
   /**
@@ -252,9 +289,14 @@ export const useSettingsStore = defineStore('settings', () => {
     download,
     launcher,
     status,
+    javaStatus,
     error,
     isLoading,
+    isJavaLoading,
+    javaInstallations,
     load,
+    loadJavaInstallations,
+    invalidateJavaInstallations,
     patchUi,
     patchUiTheme,
     patchUiBackground,

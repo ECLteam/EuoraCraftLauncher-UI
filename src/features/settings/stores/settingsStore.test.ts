@@ -9,6 +9,7 @@ vi.mock('@/features/settings/api/settingsApi', () => ({
     saveUi: vi.fn(),
     saveGame: vi.fn(),
     saveDownload: vi.fn(),
+    listJava: vi.fn(),
     selectImage: vi.fn(),
     selectBackgroundVideo: vi.fn(),
     openBackgroundVideo: vi.fn(),
@@ -46,6 +47,47 @@ describe('settingsStore', () => {
     expect(store.game.disable_crash_analysis).toBe(false)
     expect(store.game.minecraft_paths).toEqual([{ name: '主目录', path: 'D:/Minecraft' }])
     expect(store.download.mirror_source).toBe('bmclapi')
+  })
+
+  it('复用 Java 扫描结果，并允许用户强制重新扫描', async () => {
+    vi.mocked(settingsApi.listJava)
+      .mockResolvedValueOnce([
+        {
+          path: 'C:/Java/17/bin/java.exe',
+          version: '17.0.12',
+          major_version: 17,
+          java_type: 'JRE',
+          arch: 'x64',
+          sources: [],
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          path: 'C:/Java/21/bin/java.exe',
+          version: '21.0.4',
+          major_version: 21,
+          java_type: 'JRE',
+          arch: 'x64',
+          sources: [],
+        },
+      ])
+    const store = useSettingsStore()
+
+    await store.loadJavaInstallations()
+    await store.loadJavaInstallations()
+    expect(settingsApi.listJava).toHaveBeenCalledOnce()
+
+    await expect(store.loadJavaInstallations(true)).resolves.toEqual([
+      {
+        path: 'C:/Java/21/bin/java.exe',
+        version: '21.0.4',
+        major_version: 21,
+        java_type: 'JRE',
+        arch: 'x64',
+        sources: [],
+      },
+    ])
+    expect(settingsApi.listJava).toHaveBeenCalledTimes(2)
   })
 
   it('更新局部设置时不覆盖路径与 JVM 参数', async () => {

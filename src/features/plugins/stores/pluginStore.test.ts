@@ -44,6 +44,28 @@ describe('pluginStore', () => {
     expect(pluginManagementApi.list).toHaveBeenCalledOnce()
   })
 
+  it('路由重新进入时复用插件列表，并在状态事件后刷新', async () => {
+    vi.useFakeTimers()
+    const listeners: Array<() => void> = []
+    vi.mocked(pluginManagementApi.onStatusChanged).mockImplementation((handler) => {
+      listeners.push(handler)
+      return vi.fn()
+    })
+    const store = usePluginStore()
+
+    try {
+      await store.start()
+      await store.start()
+      expect(pluginManagementApi.list).toHaveBeenCalledOnce()
+
+      listeners[0]?.()
+      await vi.advanceTimersByTimeAsync(150)
+      expect(pluginManagementApi.list).toHaveBeenCalledTimes(2)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('重载期间暴露插件级操作状态并在结束后清理', async () => {
     let finishReload: (() => void) | undefined
     vi.mocked(pluginManagementApi.reload).mockImplementation(

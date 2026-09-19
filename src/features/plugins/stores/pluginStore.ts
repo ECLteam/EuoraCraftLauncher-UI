@@ -9,25 +9,36 @@ export const usePluginStore = defineStore('plugins', () => {
   const activeOperations = ref<string[]>([])
   const error = ref('')
   const settingsCache = ref<Record<string, PluginSettingsData>>({})
+  const isListStale = ref(true)
   let unlistenStatus: (() => void) | null = null
   let refreshTimer: ReturnType<typeof setTimeout> | null = null
+  let loadPromise: Promise<void> | null = null
 
   const reloadingPlugins = computed(() =>
     activeOperations.value.filter((operation) => operation.startsWith('reload:')).map((operation) => operation.slice(7))
   )
 
-  async function load(): Promise<void> {
+  async function load(force = false): Promise<void> {
+    if (!force && !isListStale.value) return
+    if (loadPromise) return loadPromise
+
     loading.value = true
     error.value = ''
-    try {
-      plugins.value = await pluginManagementApi.list()
-    } catch (reason) {
-      plugins.value = []
-      error.value = reason instanceof Error ? reason.message : '读取插件失败'
-      throw reason
-    } finally {
-      loading.value = false
-    }
+    const request = (async () => {
+      try {
+        plugins.value = await pluginManagementApi.list()
+        isListStale.value = false
+      } catch (reason) {
+        plugins.value = []
+        error.value = reason instanceof Error ? reason.message : '读取插件失败'
+        throw reason
+      } finally {
+        loading.value = false
+        loadPromise = null
+      }
+    })()
+    loadPromise = request
+    return request
   }
 
   async function runOperation(operation: string, action: () => Promise<void>): Promise<void> {
@@ -35,7 +46,8 @@ export const usePluginStore = defineStore('plugins', () => {
     activeOperations.value = [...activeOperations.value, operation]
     try {
       await action()
-      await load()
+      isListStale.value = true
+      await load(true)
     } finally {
       activeOperations.value = activeOperations.value.filter((item) => item !== operation)
     }
@@ -78,6 +90,7 @@ export const usePluginStore = defineStore('plugins', () => {
   }
 
   function scheduleRefresh(): void {
+    isListStale.value = true
     if (refreshTimer) clearTimeout(refreshTimer)
     refreshTimer = setTimeout(() => {
       void load().catch(() => {})
@@ -103,6 +116,7 @@ export const usePluginStore = defineStore('plugins', () => {
     reloadingPlugins,
     error,
     settingsCache,
+    isListStale,
     load,
     toggle,
     reload,

@@ -32,6 +32,7 @@ export const useAccountStore = defineStore('accounts', () => {
   const { status: microsoftLoginConfigStatus, isLoading: isMicrosoftLoginConfigLoading } = useAsyncState()
   const { status: authlibLoginConfigStatus, isLoading: isAuthlibLoginConfigLoading } = useAsyncState()
   const error = ref('')
+  let loadPromise: Promise<void> | null = null
 
   function accountIdentity(account: MinecraftAccount): string {
     const accountUuid = account.uuid?.replaceAll('-', '').trim().toLowerCase()
@@ -59,22 +60,31 @@ export const useAccountStore = defineStore('accounts', () => {
     return [...uniqueAccounts.values()]
   }
 
-  async function load(): Promise<void> {
+  async function load(force = false): Promise<void> {
+    if (!force && status.value === 'ready') return
+    if (loadPromise) return loadPromise
+
     status.value = 'loading'
     error.value = ''
-    try {
-      const result = await accountsApi.list()
-      const loadedAccounts = deduplicateAccounts(result.accounts ?? [], result.current?.id)
-      accounts.value = loadedAccounts
-      currentAccount.value = result.current
-        ? (loadedAccounts.find((account) => account.id === result.current?.id) ?? result.current)
-        : null
-      status.value = 'ready'
-    } catch (reason) {
-      status.value = 'error'
-      error.value = reason instanceof Error ? reason.message : '读取账户失败'
-      throw reason
-    }
+    const request = (async () => {
+      try {
+        const result = await accountsApi.list()
+        const loadedAccounts = deduplicateAccounts(result.accounts ?? [], result.current?.id)
+        accounts.value = loadedAccounts
+        currentAccount.value = result.current
+          ? (loadedAccounts.find((account) => account.id === result.current?.id) ?? result.current)
+          : null
+        status.value = 'ready'
+      } catch (reason) {
+        status.value = 'error'
+        error.value = reason instanceof Error ? reason.message : '读取账户失败'
+        throw reason
+      } finally {
+        loadPromise = null
+      }
+    })()
+    loadPromise = request
+    return request
   }
 
   async function loadCurrent(): Promise<void> {
@@ -85,7 +95,7 @@ export const useAccountStore = defineStore('accounts', () => {
    * 执行变更操作后刷新账户列表。
    * 多个「先调用后端 API、再 load()」的动作共用此模式，避免重复样板代码。
    */
-  async function runAndReload<T>(action: () => Promise<T>, reload: () => Promise<void> = load): Promise<T> {
+  async function runAndReload<T>(action: () => Promise<T>, reload: () => Promise<void> = () => load(true)): Promise<T> {
     const result = await action()
     await reload()
     return result
