@@ -50,8 +50,8 @@ watch(
     localUrl.value = ''
     const currentRequest = ++requestId
     if (!icon || !['local', 'external'].includes(icon.type) || !icon.value) return
-    const response = await backend.command('image_read_file', { path: icon.value })
-    if (currentRequest === requestId && response.success) localUrl.value = response.data?.dataUrl || ''
+    const imageUrl = await backend.file.toUrl(icon.value)
+    if (currentRequest === requestId) localUrl.value = imageUrl || ''
   },
   { immediate: true, deep: true }
 )
