@@ -68,6 +68,7 @@
             v-model:visible="showQuitConfirmModal"
             :title="t('common.confirm')"
             :content="t('agreement.quitConfirm')"
+            :priority="100"
             danger
             @confirm="handleQuitConfirm"
           />
@@ -97,6 +98,7 @@
           <Modal
             :visible="showAgreementModal"
             type="agreement"
+            :priority="95"
             :title="t('agreement.title')"
             :closable="false"
             :showCloseBtn="false"

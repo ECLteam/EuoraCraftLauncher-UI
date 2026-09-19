@@ -6,6 +6,7 @@
     :closable="popup?.dismissible ?? true"
     :showCloseBtn="popup?.dismissible ?? true"
     :maskClosable="popup?.dismissible ?? true"
+    :priority="popup?.priority"
     width="560px"
     wrapperClass="launcher-popup-modal"
     transitionName="launcher-popup"

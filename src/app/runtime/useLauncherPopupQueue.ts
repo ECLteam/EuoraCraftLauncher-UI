@@ -1,9 +1,11 @@
 import { computed, ref } from 'vue'
+import { globalModalStack } from '@/composables/useGlobalModalStack'
 import type { LauncherPopupEvent, LauncherPopupLevel, LauncherPopupSource } from '@/types/system'
 
 const LEGACY_DISMISSED_POPUPS_STORAGE_KEY = 'euoracraft-dismissed-popups'
 export const DISMISSED_POPUPS_STORAGE_KEY = 'euoracraft-dismissed-popups-v2'
 const MAX_DISMISSED_POPUPS = 100
+let popupQueueSeq = 0
 
 /** 插件弹窗可用的最高优先级（含），更高区段保留给启动器。 */
 export const PLUGIN_PRIORITY_MAX = 60
@@ -92,6 +94,7 @@ function normalizePopup(payload: LauncherPopupEvent, seq: number): LauncherPopup
 export function useLauncherPopupQueue(storage: Storage = localStorage) {
   const queue = ref<LauncherPopup[]>([])
   const dismissedPopupIds = readDismissedPopupIds(storage)
+  const transitionBlockerId = `launcher-popup-transition-${++popupQueueSeq}`
   // 过渡期内不显示任何弹窗，避免关闭动画尚未结束就叠出下一个。
   const inTransition = ref(false)
   let transitionTimer: ReturnType<typeof setTimeout> | null = null
@@ -113,15 +116,11 @@ export function useLauncherPopupQueue(storage: Storage = localStorage) {
 
   function scheduleTransition(): void {
     if (transitionTimer) clearTimeout(transitionTimer)
-    if (queue.value.length === 0) {
-      inTransition.value = false
-      transitionTimer = null
-      return
-    }
     inTransition.value = true
     transitionTimer = setTimeout(() => {
       transitionTimer = null
       inTransition.value = false
+      globalModalStack.unregister(transitionBlockerId)
     }, POPUP_TRANSITION_MS)
   }
 
@@ -147,6 +146,7 @@ export function useLauncherPopupQueue(storage: Storage = localStorage) {
     }
     queue.value.shift()
     // 队列还有弹窗时进入过渡期，结束后才显示下一个。
+    globalModalStack.addBlocker(transitionBlockerId, popup.priority)
     scheduleTransition()
   }
 

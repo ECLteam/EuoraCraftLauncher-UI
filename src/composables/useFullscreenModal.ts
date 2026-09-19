@@ -1,57 +1,39 @@
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
+import { GLOBAL_MODAL_PRIORITY, useGlobalModalStack } from './useGlobalModalStack'
 
-interface FullscreenModalState {
-  id: string
-  title: string
-  onClose?: () => void
-}
-
-// 全屏弹窗按栈管理：子弹窗覆盖父弹窗，关闭后恢复原页面状态。
-const modalStack = ref<FullscreenModalState[]>([])
-
+/**
+ * 全屏模态框兼容接口。
+ *
+ * 全屏窗口的状态已纳入全局模态框栈；该接口保留标题栏和既有业务组件所需的
+ * open/unregister/close 语义，避免各调用点继续维护第二套栈。
+ */
 export function useFullscreenModal() {
-  const activeModal = computed(() => modalStack.value.at(-1) ?? null)
-  const isVisible = computed(() => activeModal.value !== null)
-  const title = computed(() => activeModal.value?.title || '')
-  const currentId = computed(() => activeModal.value?.id || null)
+  const globalModalStack = useGlobalModalStack()
+  const isVisible = computed(() => globalModalStack.isFullscreenActive.value)
+  const title = computed(() => globalModalStack.activeTitle.value)
+  const currentId = computed(() => (isVisible.value ? globalModalStack.activeModalId.value : null))
 
-  const open = (id: string, title: string, onClose?: () => void) => {
-    const nextModal = { id, title, onClose }
-    modalStack.value = [...modalStack.value.filter((modal) => modal.id !== id), nextModal]
+  const open = (id: string, modalTitle: string, onClose?: () => void) => {
+    globalModalStack.register({
+      id,
+      title: modalTitle,
+      priority: GLOBAL_MODAL_PRIORITY.interactive,
+      isFullscreen: true,
+      onRequestClose: onClose,
+    })
   }
 
   const unregister = (id: string) => {
-    const modalIndex = modalStack.value.findIndex((modal) => modal.id === id)
-    if (modalIndex < 0) return
-    const removed = modalStack.value.slice(modalIndex)
-    modalStack.value = modalStack.value.slice(0, modalIndex)
-    for (const modal of removed.reverse()) {
-      if (modal.id !== id) {
-        const onClose = modal.onClose
-        modal.onClose = undefined
-        onClose?.()
-      }
-    }
+    globalModalStack.unregisterFullscreen(id)
   }
 
   const close = () => {
-    const modal = activeModal.value
-    if (!modal) return
-
-    modalStack.value = modalStack.value.slice(0, -1)
-    const onClose = modal.onClose
-    modal.onClose = undefined
-    onClose?.()
+    if (!isVisible.value) return
+    globalModalStack.closeActive()
   }
 
   const reset = () => {
-    const modals = [...modalStack.value].reverse()
-    modalStack.value = []
-    for (const modal of modals) {
-      const onClose = modal.onClose
-      modal.onClose = undefined
-      onClose?.()
-    }
+    globalModalStack.resetFullscreen()
   }
 
   return {
