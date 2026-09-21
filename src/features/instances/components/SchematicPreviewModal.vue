@@ -4,57 +4,83 @@
     :title="title"
     wrapperClass="schematic-preview-fullscreen"
     @update:visible="emit('update:visible', $event)"
-    @closed="onClosed"
   >
     <section class="schematic-preview-layout">
-      <header class="schematic-preview-header">
-        <div>
-          <strong>{{ title }}</strong
-          ><span v-if="data">{{ t('schematic.size', { x: data.size[0], y: data.size[1], z: data.size[2] }) }}</span>
-        </div>
-        <NButton quaternary circle :title="t('common.close')" @click="emit('update:visible', false)"
-          ><template #icon><UiIcon name="close" :size="18" /></template
-        ></NButton>
-      </header>
       <main class="schematic-preview-content">
-        <NSpin :show="loading" class="schematic-preview-stage">
-          <div v-if="loading" class="schematic-preview-hint">{{ loadingText }}</div>
+        <UiLoading :show="loading" mode="overlay" :label="loadingText" class="schematic-preview-stage">
+          <div v-if="loading" class="schematic-preview-hint" aria-hidden="true" />
           <div v-else-if="error" class="schematic-preview-hint schematic-error">
             <UiIcon name="warning" :size="22" />
             <p>{{ error }}</p>
             <NButton size="small" @click="load">重试</NButton>
           </div>
           <SchematicViewer3D v-else-if="data" :data="data" :assets="assets" />
-        </NSpin>
+        </UiLoading>
         <aside v-if="data" class="schematic-preview-sidebar">
-          <h4>方块材质</h4>
-          <p>{{ materialCount }} 种方块 · {{ blockCount }} 个方块</p>
-          <div v-if="assets?.missingBlocks.length" class="schematic-missing">
-            {{ assets.missingBlocks.length }} 种方块没有可用纹理，将以回退颜色显示。
-          </div>
-          <div class="schematic-material-list">
-            <div v-for="material in materials" :key="material.name">
-              <span class="material-color" :style="{ background: material.color }" />{{ material.name
-              }}<b>{{ material.count }}</b>
+          <div class="schematic-material-heading">
+            <div>
+              <h4>方块清单</h4>
+              <p>{{ materialCount }} 种方块 · {{ blockCount }} 个方块</p>
+            </div>
+            <div class="schematic-material-actions">
+              <NButton quaternary size="tiny" :disabled="!assets" @click="auditVisible = true">
+                <template #icon><UiIcon name="list" :size="15" /></template>
+                材料审计
+              </NButton>
+              <span>数量</span>
             </div>
           </div>
+          <div v-if="assets?.missingBlocks.length" class="schematic-missing">
+            {{ assets.missingBlocks.length }} 种方块没有可用纹理，将显示缺失标记。
+          </div>
+          <NScrollbar class="schematic-material-scroll">
+            <ul class="schematic-material-list">
+              <li v-for="material in materials" :key="material.name" :title="material.name">
+                <span
+                  class="material-color"
+                  :class="{ 'is-missing': !material.hasTexture }"
+                  :style="{
+                    backgroundImage: material.thumbnail ? `url('${material.thumbnail}')` : undefined,
+                  }"
+                >
+                  <UiIcon v-if="!material.hasTexture" name="warning" :size="18" className="material-missing-icon" />
+                </span>
+                <span class="material-detail">
+                  <strong>{{ assets?.blockNames?.[material.name] ?? material.name }}</strong>
+                  <code>{{ material.name }}</code>
+                </span>
+                <b>{{ material.count.toLocaleString() }}</b>
+              </li>
+            </ul>
+          </NScrollbar>
         </aside>
       </main>
     </section>
   </FullscreenModal>
+  <SchematicMaterialAuditModal
+    v-model:visible="auditVisible"
+    :version="version"
+    :sourceTitle="title"
+    :sessionId="data?.sessionId ?? ''"
+    :materials="materials"
+  />
 </template>
 
 <script setup lang="ts">
-import { NButton, NSpin } from 'naive-ui'
-import { computed, ref, watch } from 'vue'
+import { NButton, NScrollbar } from 'naive-ui'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
+import UiLoading from '@/components/ui/Loading.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
-import type { SchematicAssetsBundle, SchematicPreviewData } from '@/types/api'
+import { SchematicMaterialThumbnailRenderer } from '@/features/instances/lib/schematicMaterialThumbnailRenderer'
+import { buildSchematicMaterials } from '@/features/instances/model/schematicMaterials'
+import type { SchematicAssetsBundle, SchematicSessionData } from '@/types/api'
 import type { ScannedVersion } from '@/types/instances'
 import { getErrorMessage } from '@/utils/error'
+import SchematicMaterialAuditModal from './SchematicMaterialAuditModal.vue'
 import SchematicViewer3D from './SchematicViewer3D.vue'
 
 interface Props {
@@ -65,31 +91,57 @@ interface Props {
 }
 const props = withDefaults(defineProps<Props>(), { version: undefined, resourceId: '', resourceName: '' })
 const emit = defineEmits<{ (e: 'update:visible', value: boolean): void }>()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const message = useLauncherMessage()
 const loading = ref(false)
 const loadingText = ref('')
 const error = ref('')
-const data = ref<SchematicPreviewData | null>(null)
+const data = ref<SchematicSessionData | null>(null)
 const assets = ref<SchematicAssetsBundle | null>(null)
+const thumbnailSources = ref<Record<string, string>>({})
+const auditVisible = ref(false)
 const title = computed(() => props.resourceName || t('schematic.title'))
-const materials = computed(() => {
-  const counts = new Map<string, { name: string; count: number; color: string }>()
-  for (const region of data.value?.regions ?? [])
-    for (const index of region.indices) {
-      const entry = region.palette[index]
-      if (!entry || entry.name.endsWith(':air')) continue
-      const current = counts.get(entry.name) ?? { name: entry.name, count: 0, color: `rgb(${entry.color.join(',')})` }
-      current.count += 1
-      counts.set(entry.name, current)
-    }
-  return [...counts.values()].sort((left, right) => right.count - left.count)
-})
+const materials = computed(() =>
+  buildSchematicMaterials(data.value, assets.value, thumbnailSources.value).sort(
+    (left, right) => right.count - left.count || left.label.localeCompare(right.label, undefined, { numeric: true })
+  )
+)
 const materialCount = computed(() => materials.value.length)
 const blockCount = computed(() => materials.value.reduce((total, item) => total + item.count, 0))
+let loadEpoch = 0
+let thumbnailRenderer: SchematicMaterialThumbnailRenderer | null = null
+
+function disposeThumbnails(): void {
+  thumbnailRenderer?.dispose()
+  thumbnailRenderer = null
+  thumbnailSources.value = {}
+}
+
+async function startThumbnails(
+  bundle: SchematicAssetsBundle,
+  entries: SchematicSessionData['palette'],
+  epoch: number
+): Promise<void> {
+  disposeThumbnails()
+  let renderer: SchematicMaterialThumbnailRenderer | null = null
+  try {
+    renderer = new SchematicMaterialThumbnailRenderer(bundle, (name, source) => {
+      if (!source || thumbnailRenderer !== renderer || epoch !== loadEpoch) return
+      thumbnailSources.value = { ...thumbnailSources.value, [name]: source }
+    })
+    thumbnailRenderer = renderer
+    await renderer.start(entries)
+  } catch {
+    if (thumbnailRenderer === renderer) disposeThumbnails()
+  }
+}
 
 async function load(): Promise<void> {
   if (!props.version || !props.resourceId) return
+  const epoch = ++loadEpoch
+  const previousSessionId = data.value?.sessionId
+  if (previousSessionId) void instanceWorkspaceApi.schematicSessionClose(previousSessionId)
+  disposeThumbnails()
   loading.value = true
   loadingText.value = t('schematic.loading')
   error.value = ''
@@ -97,34 +149,58 @@ async function load(): Promise<void> {
   assets.value = null
   try {
     const target = workspaceTarget(props.version)
-    data.value = await instanceWorkspaceApi.schematicPreview(target, props.resourceId)
+    const opened = await instanceWorkspaceApi.schematicSessionOpen(target, props.resourceId)
+    if (epoch !== loadEpoch) {
+      void instanceWorkspaceApi.schematicSessionClose(opened.sessionId)
+      return
+    }
+    data.value = opened
     loadingText.value = '正在读取游戏方块纹理…'
     const blocks = [
       ...new Set(
-        data.value.regions.flatMap((region) =>
-          region.palette.map((item) => item.name).filter((name) => !name.endsWith(':air'))
-        )
+        opened.palette
+          .map((item) => item.name)
+          .filter((name) => !['air', 'cave_air', 'void_air'].includes(name.split(':').at(-1) ?? ''))
       ),
     ]
-    if (blocks.length) assets.value = await instanceWorkspaceApi.schematicAssets(target, blocks)
+    if (blocks.length) {
+      assets.value = await instanceWorkspaceApi.schematicAssets(target, blocks)
+      if (epoch === loadEpoch && assets.value) void startThumbnails(assets.value, opened.palette, epoch)
+    }
   } catch (cause) {
+    if (epoch !== loadEpoch) return
     error.value = getErrorMessage(cause, t('schematic.parseFailed'))
     message.error(error.value)
   } finally {
-    loading.value = false
+    if (epoch === loadEpoch) loading.value = false
   }
 }
 watch(
   () => props.visible,
   (open) => {
-    if (open) void load()
+    if (open) {
+      void load()
+    } else {
+      resetPreview()
+    }
   }
 )
-function onClosed(): void {
+watch(locale, () => {
+  if (!props.visible) return
+  auditVisible.value = false
+  void load()
+})
+function resetPreview(): void {
+  loadEpoch += 1
+  auditVisible.value = false
+  disposeThumbnails()
+  const sessionId = data.value?.sessionId
+  if (sessionId) void instanceWorkspaceApi.schematicSessionClose(sessionId)
   data.value = null
   assets.value = null
   error.value = ''
 }
+onBeforeUnmount(resetPreview)
 </script>
 
 <style scoped>
@@ -134,20 +210,6 @@ function onClosed(): void {
   flex-direction: column;
   background: var(--ecl-surface);
 }
-.schematic-preview-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 56px;
-  padding: 0 20px;
-  border-bottom: 1px solid var(--border-color);
-}
-.schematic-preview-header div {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-}
-.schematic-preview-header span,
 .schematic-preview-sidebar p {
   color: var(--ecl-text-secondary);
   font-size: 12px;
@@ -156,13 +218,10 @@ function onClosed(): void {
   display: grid;
   min-height: 0;
   flex: 1;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: minmax(0, 1fr) 340px;
 }
 .schematic-preview-stage {
   min-width: 0;
-  height: 100%;
-}
-.schematic-preview-stage :deep(.n-spin-content) {
   height: 100%;
 }
 .schematic-preview-hint {
@@ -178,41 +237,113 @@ function onClosed(): void {
   color: var(--error);
 }
 .schematic-preview-sidebar {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
   overflow: auto;
   padding: 18px;
   border-left: 1px solid var(--border-color);
 }
-.schematic-preview-sidebar h4 {
+.schematic-material-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.schematic-material-heading h4 {
   margin: 0;
+}
+.schematic-material-heading > span {
+  padding-bottom: 1px;
+  color: var(--ecl-text-secondary);
+  font-size: 12px;
+}
+.schematic-material-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.schematic-material-actions > span {
+  padding-bottom: 1px;
+  color: var(--ecl-text-secondary);
+  font-size: 12px;
 }
 .schematic-missing {
   margin: 14px 0;
   color: var(--warning);
   font-size: 12px;
 }
-.schematic-material-list {
-  display: grid;
-  gap: 4px;
+.schematic-material-scroll {
+  min-height: 0;
+  flex: 1;
+  margin: 12px -8px -8px;
+  padding: 0 8px 8px;
 }
-.schematic-material-list div {
-  display: grid;
-  grid-template-columns: 12px minmax(0, 1fr) auto;
-  gap: 8px;
+.schematic-material-list {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  flex-direction: column;
+  gap: 3px;
+  list-style: none;
+}
+.schematic-material-list li {
+  display: flex;
+  min-height: 72px;
   align-items: center;
-  padding: 5px;
+  gap: 10px;
+  padding: 6px 8px;
   border-radius: 6px;
   font-size: 12px;
 }
-.schematic-material-list div:hover {
+.schematic-material-list li:hover {
   background: var(--ecl-surface-hover);
 }
 .material-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
+  position: relative;
+  display: grid;
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  border-radius: 5px;
+  background-color: transparent;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 112%;
+  image-rendering: pixelated;
+}
+.material-color.is-missing {
+  border-style: dashed;
+  color: var(--ecl-text-secondary);
 }
 .schematic-material-list b {
+  min-width: 46px;
+  color: var(--ecl-text-secondary);
+  text-align: right;
   font-variant-numeric: tabular-nums;
+}
+.material-detail {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+.material-detail strong,
+.material-detail code {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.material-detail strong {
+  font-weight: 600;
+}
+.material-detail code {
+  color: var(--ecl-text-secondary);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
 }
 @media (max-width: 900px) {
   .schematic-preview-content {

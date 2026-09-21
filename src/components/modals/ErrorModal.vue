@@ -7,6 +7,7 @@
     bodyClass="error-modal-body"
     width="620px"
     :showCloseBtn="false"
+    :priority="100"
     @update:visible="handleVisibilityUpdate"
     @close="emit('close')"
     @opened="emit('opened')"

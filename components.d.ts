@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AboutEntryRow: typeof import('./src/components/settings/AboutEntryRow.vue')['default']
+    AppBackground: typeof import('./src/components/layout/AppBackground.vue')['default']
     Avatar: typeof import('./src/components/ui/Avatar.vue')['default']
     AvatarRenderer: typeof import('./src/components/game/AvatarRenderer.vue')['default']
     Button: typeof import('./src/components/ui/Button.vue')['default']
@@ -42,6 +43,7 @@ declare module 'vue' {
     InstanceWorldsTab: typeof import('./src/components/instances/InstanceWorldsTab.vue')['default']
     LauncherPopupModal: typeof import('./src/components/modals/LauncherPopupModal.vue')['default']
     LaunchProgressCard: typeof import('./src/components/game/LaunchProgressCard.vue')['default']
+    Loading: typeof import('./src/components/ui/Loading.vue')['default']
     MarkdownContent: typeof import('./src/components/ui/MarkdownContent.vue')['default']
     Modal: typeof import('./src/components/modals/Modal.vue')['default']
     ModpackImportModal: typeof import('./src/components/instances/ModpackImportModal.vue')['default']

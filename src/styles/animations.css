@@ -316,7 +316,7 @@
   animation: fade-out var(--duration-fast) var(--ease-emphasized-accelerate) forwards;
 }
 .spin {
-  animation: spin 1s linear infinite;
+  animation: spin var(--loading-spin-duration) var(--ease-linear) infinite;
 }
 .spin-reverse {
   animation: spin-reverse 1s linear infinite;

@@ -21,23 +21,14 @@
   transition: width var(--duration-normal) var(--ease-emphasized);
 }
 
-.ui-progress--processing .ui-progress__bar {
+.ui-progress__bar--processing {
   position: absolute;
   top: 0;
   left: 0;
   width: 35% !important;
   border-radius: 999px;
   background: linear-gradient(90deg, transparent, var(--ecl-primary), transparent);
-  animation: ui-progress-slide 1.2s var(--ease-linear) infinite;
-}
-
-@keyframes ui-progress-slide {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(300%);
-  }
+  animation: indeterminate-bar var(--loading-progress-duration, 1.5s) var(--ease-linear) infinite;
 }
 
 .ui-progress__indicator {

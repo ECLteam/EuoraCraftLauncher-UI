@@ -6,24 +6,26 @@ describe('useFullscreenModal', () => {
     useFullscreenModal().reset()
   })
 
-  it('打开新弹窗时关闭旧弹窗且只保留新弹窗', () => {
-    const accountClose = vi.fn()
-    const taskClose = vi.fn()
+  it('关闭子弹窗后恢复父弹窗而不丢失其状态', () => {
+    const detailClose = vi.fn()
+    const schematicClose = vi.fn()
     const modal = useFullscreenModal()
 
-    modal.open('account', '账户管理', accountClose)
-    modal.open('tasks', '任务列表', taskClose)
+    modal.open('detail', '实例设置', detailClose)
+    modal.open('schematic', '原理图预览', schematicClose)
 
-    expect(accountClose).toHaveBeenCalledOnce()
+    expect(detailClose).not.toHaveBeenCalled()
     expect(modal.isVisible.value).toBe(true)
-    expect(modal.currentId.value).toBe('tasks')
-    expect(modal.title.value).toBe('任务列表')
+    expect(modal.currentId.value).toBe('schematic')
+    expect(modal.title.value).toBe('原理图预览')
 
-    modal.unregister('account')
-    expect(modal.currentId.value).toBe('tasks')
+    modal.unregister('schematic')
+    expect(schematicClose).not.toHaveBeenCalled()
+    expect(modal.currentId.value).toBe('detail')
+    expect(modal.title.value).toBe('实例设置')
 
     modal.close()
-    expect(taskClose).toHaveBeenCalledOnce()
+    expect(detailClose).toHaveBeenCalledOnce()
     expect(modal.isVisible.value).toBe(false)
   })
 
@@ -40,5 +42,19 @@ describe('useFullscreenModal', () => {
 
     modal.close()
     expect(nextClose).toHaveBeenCalledOnce()
+  })
+
+  it('外部关闭父弹窗时级联关闭其子弹窗', () => {
+    const detailClose = vi.fn()
+    const schematicClose = vi.fn()
+    const modal = useFullscreenModal()
+
+    modal.open('detail', '实例设置', detailClose)
+    modal.open('schematic', '原理图预览', schematicClose)
+    modal.unregister('detail')
+
+    expect(schematicClose).toHaveBeenCalledOnce()
+    expect(detailClose).not.toHaveBeenCalled()
+    expect(modal.isVisible.value).toBe(false)
   })
 })

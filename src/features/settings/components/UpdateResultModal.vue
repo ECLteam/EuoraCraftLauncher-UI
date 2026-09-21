@@ -4,6 +4,7 @@
     :title="modalTitle"
     width="440px"
     :closable="!downloading"
+    :priority="60"
     @update:visible="emit('update:visible', $event)"
     @close="emit('close')"
   >

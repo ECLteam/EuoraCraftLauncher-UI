@@ -8,7 +8,7 @@
       <NButton @click="editOptions">游戏设置</NButton>
       <NButton @click="openFolder">打开存档目录</NButton>
     </header>
-    <NSpin :show="loading">
+    <UiLoading :show="loading" mode="overlay">
       <div v-if="filtered.length" class="world-grid">
         <article v-for="world in filtered" :key="world.id" class="world-card">
           <img v-if="world.iconPath" :src="iconUrls[world.id]" :alt="world.name" class="world-cover" />
@@ -56,7 +56,7 @@
         </article>
       </div>
       <NEmpty v-else description="没有找到存档" />
-    </NSpin>
+    </UiLoading>
     <ConfirmDialog
       v-model:visible="confirmVisible"
       :title="confirmTitle"
@@ -101,7 +101,7 @@
       </div>
     </Modal>
     <Modal v-model:visible="optionsVisible" title="游戏设置" width="560px">
-      <NSpin :show="optionsLoading">
+      <UiLoading :show="optionsLoading" mode="overlay">
         <div v-if="optionsEntries.length" class="options-editor">
           <div v-for="entry in optionsEntries" :key="entry.key" class="options-row">
             <span class="options-label">{{ optionLabel(entry.key) }}</span>
@@ -126,7 +126,7 @@
           </div>
         </div>
         <NEmpty v-else description="没有检测到可编辑的游戏设置" />
-      </NSpin>
+      </UiLoading>
       <template #footer
         ><NButton @click="optionsVisible = false">取消</NButton
         ><NButton type="primary" :loading="savingOptions" :disabled="!optionsEntries.length" @click="saveOptions"
@@ -138,13 +138,14 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NEmpty, NInput, NInputNumber, NSelect, NSpin, NSwitch } from 'naive-ui'
+import { NButton, NEmpty, NInput, NInputNumber, NSelect, NSwitch } from 'naive-ui'
 import { computed, onMounted, reactive, ref } from 'vue'
 import backend from '@/api/client'
 import { unwrapResponse } from '@/app/runtime/errorPresentation'
 import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
+import UiLoading from '@/components/ui/Loading.vue'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import {
   instanceWorkspaceApi,

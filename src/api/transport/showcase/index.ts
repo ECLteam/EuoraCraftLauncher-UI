@@ -769,6 +769,8 @@ export function createShowcaseTransport(): BackendTransport {
         return success({ path: `Showcase/${String(payload.default_name || 'SavedFile')}` })
       case 'select_image':
         return success({ path: 'Showcase/SelectedImage.png', base64: '' })
+      case 'select_background_video':
+        return failure('展示模式暂不支持视频背景', 'BACKGROUND_VIDEO_SHOWCASE_UNSUPPORTED')
       case 'image_fetch_data_url':
         return success({})
       case 'image_save_url':
@@ -992,6 +994,8 @@ export function createShowcaseTransport(): BackendTransport {
         return success(demoOperation('resource_update'))
       case 'game_resource_manifest_export':
         return success({ path: String(payload.output_path ?? 'Showcase/manifest.json') })
+      case 'game_schematic_material_manifest_export':
+        return success({ path: String(payload.output_path ?? 'Showcase/schematic-materials.json') })
       case 'game_resource_identify':
         return success({ matched: false })
       case 'game_schematic_preview':
@@ -1090,6 +1094,8 @@ export function createShowcaseTransport(): BackendTransport {
         })
       case 'image_list_files':
         return success({ files: [] })
+      case 'background_video_open':
+        return failure('展示模式暂不支持视频背景', 'BACKGROUND_VIDEO_SHOWCASE_UNSUPPORTED')
       case 'accounts_auth_providers':
         return success([])
       case 'accounts_default_skins':

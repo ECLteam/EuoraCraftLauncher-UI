@@ -177,13 +177,13 @@
   overflow: hidden auto;
 }
 /* 空态时让图标与文字在卡内水平垂直居中 */
-.vdm-page.workspace-page :deep(.n-spin-container) {
+.vdm-page.workspace-page :deep(.ui-loading--overlay) {
   display: flex;
   flex: 1;
   min-height: 0;
   flex-direction: column;
 }
-.vdm-page.workspace-page :deep(.n-spin-content:has(.n-empty)) {
+.vdm-page.workspace-page :deep(.ui-loading--overlay:has(.n-empty)) {
   display: flex;
   flex: 1;
   min-height: 0;
@@ -609,8 +609,7 @@
   overflow: hidden;
 }
 
-.mods-spin,
-.mods-spin :deep(.n-spin-content) {
+.mods-spin {
   display: flex;
   flex-direction: column;
   height: 100%;

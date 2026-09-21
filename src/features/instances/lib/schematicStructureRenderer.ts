@@ -1,11 +1,11 @@
 import {
   BlockDefinition,
   BlockModel,
+  Identifier,
   Structure,
   StructureRenderer,
   TextureAtlas,
   type BlockFlags,
-  type Identifier,
   type Resources,
 } from 'deepslate'
 import { mat4, vec3 } from 'gl-matrix'
@@ -179,6 +179,17 @@ async function buildTextureAtlas(bundle: SchematicAssetsBundle): Promise<Texture
   return new TextureAtlas(context.getImageData(0, 0, pixels, pixels), uvById)
 }
 
+export async function buildSchematicAtlas(bundle: SchematicAssetsBundle): Promise<{
+  image: ImageData
+  uvById: Record<string, [number, number, number, number]>
+}> {
+  const atlas = await buildTextureAtlas(bundle)
+  const uvById: Record<string, [number, number, number, number]> = {}
+  for (const id of Object.keys(bundle.textures)) uvById[id] = atlas.getTextureUV(Identifier.parse(id))
+  uvById['minecraft:missingno'] = atlas.getTextureUV(Identifier.parse('minecraft:missingno'))
+  return { image: atlas.getTextureAtlas(), uvById }
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
 }
@@ -332,7 +343,7 @@ function modelReference(value: unknown): string | null {
   return null
 }
 
-function textureReference(bundle: SchematicAssetsBundle, block: string): string | null {
+export function schematicBlockTextureId(bundle: SchematicAssetsBundle, block: string): string | null {
   const model = modelReference(bundle.blockstates[block])
   if (!model) return null
   let modelId = model.includes(':') ? model : `minecraft:${model}`
@@ -435,7 +446,7 @@ class LightweightCubeRenderer {
   }
 
   private textureForBlock(block: string): Texture | null {
-    const textureId = textureReference(this.bundle, block)
+    const textureId = schematicBlockTextureId(this.bundle, block)
     if (!textureId) return null
     const cached = this.textureById.get(textureId)
     if (cached) return cached

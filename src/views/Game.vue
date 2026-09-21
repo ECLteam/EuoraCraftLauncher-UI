@@ -121,7 +121,7 @@
             <span></span>
           </div>
 
-          <NSpin :show="account.accountsLoading" class="account-list-spin">
+          <UiLoading :show="account.accountsLoading" mode="overlay" class="account-list-spin">
             <div v-if="account.accounts.length" class="account-list">
               <div v-for="savedAccount in account.accounts" :key="savedAccount.id" class="account-row">
                 <div class="account-identity">
@@ -214,7 +214,7 @@
               </div>
             </div>
             <NEmpty v-else class="account-empty" :description="t('game.noAccounts')" />
-          </NSpin>
+          </UiLoading>
         </section>
 
         <Modal
@@ -529,12 +529,12 @@
             {{ account.copiedUserCode ? t('game.login.copied') : t('game.login.copyCode') }}
           </NButton>
           <div class="ms-login-status">
-            <NSpin size="small" />
+            <UiLoading mode="inline" size="sm" decorative />
             <span>{{ t('game.login.autoDetecting') }}</span>
           </div>
         </div>
         <div v-else-if="account.microsoftLoginStatus === 'loading'" class="ms-login-fetching">
-          <NSpin size="small" />
+          <UiLoading mode="inline" size="sm" decorative />
           <span>{{ t('game.login.fetching') }}</span>
         </div>
         <NAlert v-else-if="account.microsoftLoginStatus === 'error'" type="error">
@@ -570,7 +570,6 @@ import {
   NRadioButton,
   NRadioGroup,
   NSelect,
-  NSpin,
   NTab,
   NTabs,
   NTag,
@@ -590,6 +589,7 @@ import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
+import UiLoading from '@/components/ui/Loading.vue'
 import { useAccountManager } from '@/composables/useAccountManager'
 import { useInstanceManager } from '@/composables/useInstanceManager'
 import { globalLaunchProgress } from '@/composables/useLaunchProgress'

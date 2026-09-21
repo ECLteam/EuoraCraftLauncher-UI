@@ -4,6 +4,7 @@ import { ref, readonly, watch, type DeepReadonly, type Ref } from 'vue'
 import backend from '@/api/client'
 import type { AccountListData } from '@/types/accounts'
 import type { LauncherConfig } from '@/types/config'
+import type { LauncherInfo } from '@/types/system'
 import type { AccountState, LauncherState, SidebarState, ThemeState } from './types'
 
 // ---- 工厂：统一 ref + readonly + watch + refresh 模板 ----
@@ -42,9 +43,18 @@ function syncTheme(state: Ref<ThemeState>, ui: ThemeConfigPayload): void {
 }
 
 function syncLauncher(state: Ref<LauncherState>, launcher: LauncherConfig): void {
-  state.value.version = launcher.version || ''
-  state.value.versionType = launcher.version_type || 'release'
   state.value.devMode = launcher.debug === true
+}
+
+function syncLauncherRuntimeMetadata(state: Ref<LauncherState>, launcherInfo: LauncherInfo): void {
+  state.value.version = launcherInfo.version || ''
+  state.value.versionType =
+    launcherInfo.version_type === 'alpha' ||
+    launcherInfo.version_type === 'beta' ||
+    launcherInfo.version_type === 'rc' ||
+    launcherInfo.version_type === 'release'
+      ? launcherInfo.version_type
+      : 'release'
 }
 
 function syncAccounts(state: Ref<AccountState>, data: AccountListData): void {
@@ -79,10 +89,12 @@ const launcherSlice = createStateSlice<LauncherState>(
     devMode: false,
   },
   (state) => {
-    return backend.config
-      .get<LauncherConfig>('launcher')
-      .then((res) => {
-        if (res.success && res.data) syncLauncher(state, res.data)
+    return Promise.all([backend.config.get<LauncherConfig>('launcher'), backend.command('launcher_info')])
+      .then(([configResult, launcherInfoResult]) => {
+        if (configResult.success && configResult.data) syncLauncher(state, configResult.data)
+        if (launcherInfoResult.success && launcherInfoResult.data) {
+          syncLauncherRuntimeMetadata(state, launcherInfoResult.data)
+        }
       })
       .catch(() => {})
   }

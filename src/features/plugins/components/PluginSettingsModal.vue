@@ -1,7 +1,7 @@
 <template>
   <FullscreenModal :visible="visible" :title="pluginTitle" :showFooter="false" :closable="true" @close="close">
     <div class="plugin-settings">
-      <NSpin :show="loading">
+      <UiLoading :show="loading" mode="overlay">
         <NEmpty v-if="!loading && !schema.length" :description="t('plugins.noSettings')" />
         <NList v-else bordered>
           <NListItem v-for="item in schema" :key="item.key">
@@ -34,7 +34,7 @@
             </template>
           </NListItem>
         </NList>
-      </NSpin>
+      </UiLoading>
 
       <Transition name="fade">
         <NAlert v-if="savedHint" class="saved-hint" type="success" :showIcon="false">
@@ -46,10 +46,11 @@
 </template>
 
 <script setup lang="ts">
-import { NAlert, NEmpty, NInput, NInputNumber, NList, NListItem, NSelect, NSpin, NSwitch, NThing } from 'naive-ui'
+import { NAlert, NEmpty, NInput, NInputNumber, NList, NListItem, NSelect, NSwitch, NThing } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
+import UiLoading from '@/components/ui/Loading.vue'
 import { usePluginStore } from '@/features/plugins/stores/pluginStore'
 import type { PluginInfo, PluginSettingSchema } from '@/types/plugins'
 

@@ -6,6 +6,7 @@
     :danger="danger"
     :closable="!loading"
     :showCloseBtn="!loading"
+    :priority="priority"
     @update:visible="updateVisible"
   >
     <slot>
@@ -44,6 +45,7 @@ const props = withDefaults(
     loading?: boolean
     confirmDisabled?: boolean
     closeOnConfirm?: boolean
+    priority?: number
   }>(),
   {
     content: '',
@@ -53,6 +55,7 @@ const props = withDefaults(
     loading: false,
     confirmDisabled: false,
     closeOnConfirm: true,
+    priority: undefined,
   }
 )
 

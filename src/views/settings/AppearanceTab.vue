@@ -145,52 +145,113 @@
     </SettingSection>
 
     <SettingSection :title="t('settings.background')">
-      <SettingRow :label="t('settings.backgroundMode')" :description="t('settings.backgroundModeDesc')">
-        <NTabs :value="bgMode" type="segment" size="small" @update:value="handleBgModeChange">
-          <NTab v-for="option in bgModeOptions" :key="option.value" :name="option.value">
-            {{ option.label }}
-          </NTab>
+      <SettingRow :label="t('settings.backgroundMediaType')" :description="t('settings.backgroundMediaTypeDesc')">
+        <NTabs :value="backgroundMediaType" type="segment" size="small" @update:value="handleBackgroundMediaTypeChange">
+          <NTab name="image">{{ t('settings.backgroundMediaImage') }}</NTab>
+          <NTab name="video">{{ t('settings.backgroundMediaVideo') }}</NTab>
         </NTabs>
       </SettingRow>
 
-      <SettingRow
-        v-if="bgMode === 'single'"
-        :label="t('settings.background')"
-        :description="t('settings.backgroundDesc')"
-      >
-        <NInputGroup class="background-input-group">
-          <NInput
-            :value="backgroundInput"
-            :placeholder="t('settings.backgroundPlaceholder')"
-            clearable
-            @update:value="handleBgImageInput"
+      <template v-if="backgroundMediaType === 'image'">
+        <SettingRow :label="t('settings.backgroundMode')" :description="t('settings.backgroundModeDesc')">
+          <NTabs :value="bgMode" type="segment" size="small" @update:value="handleBgModeChange">
+            <NTab v-for="option in bgModeOptions" :key="option.value" :name="option.value">
+              {{ option.label }}
+            </NTab>
+          </NTabs>
+        </SettingRow>
+
+        <SettingRow
+          v-if="bgMode === 'single'"
+          :label="t('settings.background')"
+          :description="t('settings.backgroundDesc')"
+        >
+          <NInputGroup class="background-input-group">
+            <NInput
+              :value="backgroundInput"
+              :placeholder="t('settings.backgroundPlaceholder')"
+              clearable
+              @update:value="handleBgImageInput"
+            />
+            <NButton @click="selectLocalImage">{{ t('common.browse') }}</NButton>
+          </NInputGroup>
+          <input
+            ref="showcaseImageInputRef"
+            class="visually-hidden-file-input"
+            type="file"
+            accept="image/*"
+            tabindex="-1"
+            @change="handleShowcaseImageSelected"
           />
-          <NButton @click="selectLocalImage">{{ t('common.browse') }}</NButton>
-        </NInputGroup>
-        <input
-          ref="showcaseImageInputRef"
-          class="visually-hidden-file-input"
-          type="file"
-          accept="image/*"
-          tabindex="-1"
-          @change="handleShowcaseImageSelected"
-        />
-      </SettingRow>
+        </SettingRow>
+
+        <template v-else>
+          <SettingRow :label="t('settings.backgroundSource')">
+            <div class="folder-source-control">
+              <span class="folder-source-path" :title="bgFolderPath">
+                {{ bgFolderPath || t('settings.backgroundSourceEmpty') }}
+              </span>
+              <NButton size="small" @click="selectBackgroundFolder">{{ t('settings.selectFolder') }}</NButton>
+            </div>
+          </SettingRow>
+          <SettingRow :label="t('settings.carouselInterval')" :description="t('settings.carouselIntervalDesc')">
+            <div class="slider-control">
+              <NSlider :value="bgInterval" :min="5" :max="60" :tooltip="false" @update:value="handleBgIntervalChange" />
+              <span>{{ bgInterval }} {{ t('settings.carouselIntervalUnit') }}</span>
+            </div>
+          </SettingRow>
+        </template>
+      </template>
 
       <template v-else>
-        <SettingRow :label="t('settings.backgroundSource')">
-          <div class="folder-source-control">
-            <span class="folder-source-path" :title="bgFolderPath">
-              {{ bgFolderPath || t('settings.backgroundSourceEmpty') }}
-            </span>
-            <NButton size="small" @click="selectBackgroundFolder">{{ t('settings.selectFolder') }}</NButton>
+        <SettingRow :label="t('settings.backgroundVideo')" :description="t('settings.backgroundVideoDesc')">
+          <NInputGroup class="background-input-group">
+            <NInput :value="backgroundVideoPath" readonly :placeholder="t('settings.backgroundVideoEmpty')" />
+            <NButton @click="selectBackgroundVideo">{{ t('common.browse') }}</NButton>
+          </NInputGroup>
+        </SettingRow>
+        <SettingRow :label="t('settings.backgroundVideoPoster')" :description="t('settings.backgroundVideoPosterDesc')">
+          <NInputGroup class="background-input-group">
+            <NInput
+              :value="backgroundVideoPosterPath"
+              readonly
+              :placeholder="t('settings.backgroundVideoPosterEmpty')"
+            />
+            <NButton @click="selectBackgroundVideoPoster">{{ t('common.browse') }}</NButton>
+          </NInputGroup>
+        </SettingRow>
+        <SettingRow :label="t('settings.backgroundVideoPlay')" :description="t('settings.backgroundVideoPlayDesc')">
+          <NSwitch :value="!backgroundVideo.paused" @update:value="handleVideoPlaybackChange" />
+        </SettingRow>
+        <SettingRow :label="t('settings.backgroundVideoMute')">
+          <NSwitch :value="backgroundVideo.muted" @update:value="handleVideoMutedChange" />
+        </SettingRow>
+        <SettingRow :label="t('settings.backgroundVideoVolume')">
+          <div class="slider-control">
+            <NSlider
+              :value="Math.round(backgroundVideo.volume * 100)"
+              :min="0"
+              :max="100"
+              :disabled="backgroundVideo.muted"
+              :tooltip="false"
+              @update:value="handleVideoVolumeChange"
+            />
+            <span>{{ Math.round(backgroundVideo.volume * 100) }}%</span>
           </div>
         </SettingRow>
-        <SettingRow :label="t('settings.carouselInterval')" :description="t('settings.carouselIntervalDesc')">
-          <div class="slider-control">
-            <NSlider :value="bgInterval" :min="5" :max="60" :tooltip="false" @update:value="handleBgIntervalChange" />
-            <span>{{ bgInterval }} {{ t('settings.carouselIntervalUnit') }}</span>
-          </div>
+        <SettingRow :label="t('settings.backgroundVideoFit')">
+          <NSelect
+            class="setting-select"
+            :value="backgroundVideo.fit"
+            :options="videoFitOptions"
+            @update:value="handleVideoFitChange"
+          />
+        </SettingRow>
+        <SettingRow
+          :label="t('settings.backgroundVideoPauseInactive')"
+          :description="t('settings.backgroundVideoPauseInactiveDesc')"
+        >
+          <NSwitch :value="backgroundVideo.pause_when_inactive" @update:value="handleVideoPauseInactiveChange" />
         </SettingRow>
       </template>
 
@@ -262,7 +323,7 @@ import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
 import type { BackgroundMode } from '@/features/settings/model/backgroundMode'
 import { useSettingsStore } from '@/features/settings/stores/settingsStore'
-import type { ThemeAppearanceConfig } from '@/types/config'
+import type { BackgroundVideoConfig, ThemeAppearanceConfig } from '@/types/config'
 
 function debounce<A extends unknown[]>(fn: (...args: A) => void, delay: number) {
   let timer: ReturnType<typeof setTimeout> | null = null
@@ -289,6 +350,10 @@ const {
   blurLayerEnabled,
   deriveMode,
   backgroundImagePath,
+  backgroundMediaType,
+  backgroundVideoPath,
+  backgroundVideoPosterPath,
+  backgroundVideo,
   bgMode,
   bgFolderPath,
   bgInterval,
@@ -296,6 +361,11 @@ const {
   setThemeMode,
   setPrimaryColor,
   setBackgroundImage,
+  setBackgroundVideo,
+  setBackgroundVideoOptions,
+  setBackgroundVideoPoster,
+  activateImageBackground,
+  activateVideoBackground,
   setBlurAmount,
   setBackgroundOpacity,
   setAppearance,
@@ -334,6 +404,11 @@ const bgModeOptions = computed<Array<{ value: BackgroundMode; label: string }>>(
   { value: 'single', label: t('settings.backgroundModeSingle') },
   { value: 'carousel', label: t('settings.backgroundModeCarousel') },
   { value: 'random', label: t('settings.backgroundModeRandom') },
+])
+
+const videoFitOptions = computed(() => [
+  { label: t('settings.backgroundVideoFitCover'), value: 'cover' },
+  { label: t('settings.backgroundVideoFitContain'), value: 'contain' },
 ])
 
 // 从轮播切回单张时，把输入框重置为单张图片路径（避免残留文件夹路径）
@@ -425,18 +500,61 @@ function handleBgModeChange(value: string | number) {
   setBgMode(mode)
   void run(async () => {
     if (mode === 'single') {
-      await settingsStore.patchUiBackground({ mode, path: backgroundImagePath.value })
+      await settingsStore.patchUiBackground({ image: { mode, path: backgroundImagePath.value } })
     } else {
-      await settingsStore.patchUiBackground({ mode })
+      await settingsStore.patchUiBackground({ image: { mode } })
     }
   })
+}
+
+async function handleBackgroundMediaTypeChange(value: string | number) {
+  const mediaType = value === 'video' ? 'video' : 'image'
+  if (mediaType === backgroundMediaType.value) return
+  if (mediaType === 'video') {
+    if (!backgroundVideoPath.value) {
+      await selectBackgroundVideo()
+      return
+    }
+    await run(async () => settingsStore.patchUiBackground({ media_type: mediaType }))
+    await activateVideoBackground()
+  } else {
+    await run(async () => settingsStore.patchUiBackground({ media_type: mediaType }))
+    await activateImageBackground()
+    backgroundInput.value = backgroundImagePath.value
+  }
+}
+
+function saveVideoOptions(patch: Partial<BackgroundVideoConfig>): void {
+  setBackgroundVideoOptions(patch, false)
+  void run(async () => settingsStore.patchUiBackground({ video: { options: patch } }))
+}
+
+function handleVideoPlaybackChange(value: boolean): void {
+  saveVideoOptions({ paused: !value })
+}
+
+function handleVideoMutedChange(value: boolean): void {
+  saveVideoOptions({ muted: value })
+}
+
+function handleVideoVolumeChange(value: number | null): void {
+  if (typeof value !== 'number') return
+  saveVideoOptions({ volume: value / 100 })
+}
+
+function handleVideoFitChange(value: string | number): void {
+  saveVideoOptions({ fit: value === 'contain' ? 'contain' : 'cover' })
+}
+
+function handleVideoPauseInactiveChange(value: boolean): void {
+  saveVideoOptions({ pause_when_inactive: value })
 }
 
 function handleBgIntervalChange(value: number | null) {
   if (typeof value !== 'number') return
   const seconds = Math.round(value)
   setBgInterval(seconds)
-  void run(async () => settingsStore.patchUiBackground({ interval: seconds }))
+  void run(async () => settingsStore.patchUiBackground({ image: { interval: seconds } }))
 }
 
 async function selectBackgroundFolder() {
@@ -454,7 +572,10 @@ async function selectBackgroundFolder() {
   const mode: BackgroundMode = bgMode.value === 'random' ? 'random' : 'carousel'
   await run(async () => {
     await applyBackgroundFolder(path, files, mode)
-    await settingsStore.patchUiBackground({ type: 'custom', path, mode, interval: Math.round(bgInterval.value) })
+    await settingsStore.patchUiBackground({
+      media_type: 'image',
+      image: { type: 'custom', path, mode, interval: Math.round(bgInterval.value) },
+    })
   })
   message.success(t('common.success'))
 }
@@ -528,6 +649,36 @@ async function selectLocalImage() {
   }
 }
 
+async function selectBackgroundVideo(): Promise<void> {
+  if (settingsApi.isShowcase) {
+    message.error(t('settings.backgroundVideoShowcaseNotSupported'))
+    return
+  }
+  const result = await run(async () => settingsStore.chooseBackgroundVideo())
+  if (!result) return
+  setBackgroundVideo(
+    result.videoUrl ?? '',
+    result.path,
+    { muted: true, volume: 0, fit: 'cover', pause_when_inactive: true },
+    '',
+    false
+  )
+  message.success(t('common.success'))
+}
+
+async function selectBackgroundVideoPoster(): Promise<void> {
+  const path = await run(async () => settingsApi.selectImage())
+  if (!path) return
+  const imageUrl = await run(async () => settingsApi.readImage(path))
+  if (!imageUrl) {
+    message.error(t('settings.backgroundLoadFailed'))
+    return
+  }
+  setBackgroundVideoPoster(imageUrl, path, false)
+  await run(async () => settingsStore.patchUiBackground({ video: { poster_path: path } }))
+  message.success(t('common.success'))
+}
+
 function readImageFile(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -549,7 +700,10 @@ async function handleShowcaseImageSelected(event: Event) {
     if (!file.type.startsWith('image/')) throw new Error('请选择图片文件')
     const imageUrl = await readImageFile(file)
     const path = `Showcase/${file.name}`
-    await settingsStore.patchUiBackground({ type: 'custom', path, image_base64: imageUrl })
+    await settingsStore.patchUiBackground({
+      media_type: 'image',
+      image: { type: 'custom', path, mode: 'single', image_base64: imageUrl },
+    })
     return { imageUrl, path }
   })
 
@@ -567,14 +721,19 @@ function handleBgImageInput(value: string) {
   backgroundSaveTimer = setTimeout(async () => {
     if (!value) {
       setBackgroundImage('', '', false)
-      await run(async () => settingsStore.patchUiBackground({ type: 'none', path: '', image_base64: '' }))
+      await run(async () =>
+        settingsStore.patchUiBackground({ media_type: 'image', image: { type: 'none', path: '', image_base64: '' } })
+      )
       return
     }
     if (!value.startsWith('http')) return
 
     if (settingsApi.isShowcase) {
       const saved = await run(async () => {
-        await settingsStore.patchUiBackground({ type: 'custom', path: value, image_base64: '' })
+        await settingsStore.patchUiBackground({
+          media_type: 'image',
+          image: { type: 'custom', path: value, mode: 'single', image_base64: '' },
+        })
         return true
       })
       if (!saved) return

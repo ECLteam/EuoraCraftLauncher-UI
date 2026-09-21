@@ -42,7 +42,7 @@
       </div>
 
       <div class="plugins-list-body">
-        <NSpin :show="loading" class="plugins-spin">
+        <UiLoading :show="loading" mode="overlay" class="plugins-spin">
           <div v-if="filteredPlugins.length" class="plugins-list">
             <article v-for="plugin in filteredPlugins" :key="plugin.name" class="plugin-row">
               <div class="plugin-identity">
@@ -111,7 +111,7 @@
               </NButton>
             </template>
           </NEmpty>
-        </NSpin>
+        </UiLoading>
         <PluginSlotHost slotId="plugin-slot-plugins-list-bottom" class="plugin-slot-container" />
       </div>
     </section>
@@ -125,23 +125,12 @@
 </template>
 
 <script setup lang="ts">
-import {
-  NButton,
-  NEmpty,
-  NInput,
-  NPopconfirm,
-  NRadioButton,
-  NRadioGroup,
-  NSpace,
-  NSpin,
-  NTab,
-  NTabs,
-  NTag,
-} from 'naive-ui'
+import { NButton, NEmpty, NInput, NPopconfirm, NRadioButton, NRadioGroup, NSpace, NTab, NTabs, NTag } from 'naive-ui'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiIcon from '@/components/ui/Icon.vue'
+import UiLoading from '@/components/ui/Loading.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useUiSkin } from '@/composables/useUiSkin'
 import PluginSettingsModal from '@/features/plugins/components/PluginSettingsModal.vue'

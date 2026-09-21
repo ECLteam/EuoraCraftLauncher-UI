@@ -1,52 +1,39 @@
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
+import { GLOBAL_MODAL_PRIORITY, useGlobalModalStack } from './useGlobalModalStack'
 
-interface FullscreenModalState {
-  id: string
-  title: string
-  onClose?: () => void
-}
-
-// 全屏弹窗是互斥页面：新弹窗打开时关闭当前弹窗，避免多个 Teleport 层叠。
-const activeModal = ref<FullscreenModalState | null>(null)
-
+/**
+ * 全屏模态框兼容接口。
+ *
+ * 全屏窗口的状态已纳入全局模态框栈；该接口保留标题栏和既有业务组件所需的
+ * open/unregister/close 语义，避免各调用点继续维护第二套栈。
+ */
 export function useFullscreenModal() {
-  const isVisible = computed(() => activeModal.value !== null)
-  const title = computed(() => activeModal.value?.title || '')
-  const currentId = computed(() => activeModal.value?.id || null)
+  const globalModalStack = useGlobalModalStack()
+  const isVisible = computed(() => globalModalStack.isFullscreenActive.value)
+  const title = computed(() => globalModalStack.activeTitle.value)
+  const currentId = computed(() => (isVisible.value ? globalModalStack.activeModalId.value : null))
 
-  const open = (id: string, title: string, onClose?: () => void) => {
-    const previousModal = activeModal.value
-
-    if (previousModal?.id === id) {
-      activeModal.value = { id, title, onClose }
-      return
-    }
-
-    // 先登记新弹窗，再通知旧弹窗关闭。旧弹窗随后注销自己时不会误关新弹窗。
-    activeModal.value = { id, title, onClose }
-    const previousOnClose = previousModal?.onClose
-    if (previousModal) previousModal.onClose = undefined
-    previousOnClose?.()
+  const open = (id: string, modalTitle: string, onClose?: () => void) => {
+    globalModalStack.register({
+      id,
+      title: modalTitle,
+      priority: GLOBAL_MODAL_PRIORITY.interactive,
+      isFullscreen: true,
+      onRequestClose: onClose,
+    })
   }
 
   const unregister = (id: string) => {
-    if (activeModal.value?.id === id) {
-      activeModal.value = null
-    }
+    globalModalStack.unregisterFullscreen(id)
   }
 
   const close = () => {
-    const modal = activeModal.value
-    if (!modal) return
-
-    activeModal.value = null
-    const onClose = modal.onClose
-    modal.onClose = undefined
-    onClose?.()
+    if (!isVisible.value) return
+    globalModalStack.closeActive()
   }
 
   const reset = () => {
-    close()
+    globalModalStack.resetFullscreen()
   }
 
   return {

@@ -82,7 +82,7 @@
             {{ t('wardrobe.localCapePreviewOnly') }}
           </NAlert>
 
-          <NSpin :show="loading" class="wardrobe-library-content">
+          <UiLoading :show="loading" mode="overlay" class="wardrobe-library-content">
             <div v-if="activeTab !== 'official' && filteredItems.length" class="wardrobe-grid">
               <div
                 v-for="item in filteredItems"
@@ -211,7 +211,7 @@
             <div v-else class="wardrobe-empty-state">
               <NEmpty class="wardrobe-empty" :description="emptyDescription" />
             </div>
-          </NSpin>
+          </UiLoading>
         </section>
 
         <section class="wardrobe-preview ecl-surface">
@@ -303,7 +303,6 @@ import {
   NInput,
   NPopconfirm,
   NSelect,
-  NSpin,
   NTab,
   NTabs,
   NTag,
@@ -314,6 +313,7 @@ import backend from '@/api/client'
 import FullscreenModal from '@/components/modals/FullscreenModal.vue'
 import Modal from '@/components/modals/Modal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
+import UiLoading from '@/components/ui/Loading.vue'
 import { clearAvatarCache, fetchTextureDataUrl } from '@/composables/useAvatarRenderer'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { useUiSkin } from '@/composables/useUiSkin'
@@ -788,14 +788,13 @@ html[data-theme='dark'] .wardrobe-category-row :deep(.n-button.n-button--primary
   flex: 1 1 220px;
 }
 
-.wardrobe-library-content,
-.wardrobe-library-content :deep(.n-spin-content) {
+.wardrobe-library-content {
   display: flex;
   min-height: 0;
   flex: 1;
 }
 
-.wardrobe-library-content :deep(.n-spin-content) > .wardrobe-grid {
+.wardrobe-library-content > .wardrobe-grid {
   min-height: 0;
   flex: 1;
 }

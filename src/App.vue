@@ -7,7 +7,7 @@
     @drop="handleGlobalDrop"
   >
     <!-- 背景层 -->
-    <div class="app-background"></div>
+    <AppBackground />
     <div class="aurora-bg" aria-hidden="true"></div>
     <div class="app-background-overlay"></div>
 
@@ -68,6 +68,7 @@
             v-model:visible="showQuitConfirmModal"
             :title="t('common.confirm')"
             :content="t('agreement.quitConfirm')"
+            :priority="100"
             danger
             @confirm="handleQuitConfirm"
           />
@@ -97,6 +98,7 @@
           <Modal
             :visible="showAgreementModal"
             type="agreement"
+            :priority="95"
             :title="t('agreement.title')"
             :closable="false"
             :showCloseBtn="false"
@@ -145,6 +147,7 @@ import { setErrorNotifier } from '@/app/runtime/errorPresentation'
 import { useAppRuntime } from '@/app/runtime/useAppRuntime'
 import { notifyLauncherPopup } from '@/app/runtime/useLauncherPopupQueue'
 import ModpackImportModal from '@/components/instances/ModpackImportModal.vue'
+import AppBackground from '@/components/layout/AppBackground.vue'
 import SideBar from '@/components/layout/SideBar.vue'
 import TitleBar from '@/components/layout/TitleBar.vue'
 import ConfirmDialog from '@/components/modals/ConfirmDialog.vue'

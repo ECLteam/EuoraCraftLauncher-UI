@@ -75,8 +75,6 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
     const launcher = payload.launcher
     if (launcher) {
       isDevMode.value = launcher.debug === true
-      launcherVersion.value = launcher.version || ''
-      launcherVersionType.value = launcher.version_type || 'release'
     }
 
     if (payload.game) gameConfig.value = payload.game
@@ -204,6 +202,10 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
         launcherErrorQueue.enqueue(payload)
       }),
       backend.on('launcher:popup', popupQueue.enqueuePopup),
+      backend.on('update:check_completed', (result) => {
+        updateCheck.setStartupCheckResult(result)
+        if (shouldShowStartupUpdate(result)) updateCheck.updateDialogVisible.value = true
+      }),
       backend.on('config:init', (payload) => {
         if (backend.isShowcaseActive) return
         void applyConfig(payload)
@@ -271,6 +273,18 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
     }
   }
 
+  async function loadRuntimeLauncherInfo(): Promise<void> {
+    const result = await backend.command('launcher_info')
+    if (!result.success || !result.data) return
+
+    launcherVersion.value = result.data.version || ''
+    const versionType = result.data.version_type
+    launcherVersionType.value =
+      versionType === 'alpha' || versionType === 'beta' || versionType === 'rc' || versionType === 'release'
+        ? versionType
+        : 'release'
+  }
+
   async function start(): Promise<void> {
     if (started || !backend.runtime.isAvailable) return
     started = true
@@ -287,6 +301,7 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
     initPluginBridge(options.router)
     await backend.waitForEventListeners()
     await loadInitialConfig()
+    await loadRuntimeLauncherInfo()
     await notifyFrontendReady()
     await syncPendingErrors()
     // 首屏与事件监听已就绪后再预热低优先级数据，任何失败均不影响启动器可用性。
@@ -295,9 +310,6 @@ export function useAppRuntime(options: UseAppRuntimeOptions) {
         .load()
         .catch(() => undefined)
       void backend.command('launcher_preload_connector').catch(() => undefined)
-      void updateCheck.checkUpdate().then((result) => {
-        if (shouldShowStartupUpdate(result)) updateCheck.updateDialogVisible.value = true
-      })
     }
     // 启动时同步一次积压错误；此后依赖 launcher:error 事件实时推送，低频轮询仅作兜底
     const pendingErrorTimer = window.setInterval(() => void syncPendingErrors(), 1_000)

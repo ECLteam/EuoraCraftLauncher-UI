@@ -5,8 +5,6 @@ import type { InstanceSortKey } from '@/types/instances'
  */
 
 export interface LauncherConfig {
-  version?: string
-  version_type?: 'alpha' | 'beta' | 'rc' | 'release'
   debug?: boolean
   /** 控制台日志最低级别，与 debug 模式相互独立 */
   debug_log_level?: 'debug' | 'info' | 'warning' | 'error'
@@ -28,15 +26,48 @@ export interface LauncherConfig {
 }
 
 export interface BackgroundConfig {
-  type: 'default' | 'none' | 'custom' | 'local' | 'url' | 'gradient'
-  path: string
-  opacity: number
-  blur: number
+  /** 当前生效的背景分支；缺省时兼容旧版图片配置。 */
+  media_type?: 'image' | 'video'
+  /** 图片与视频共用的显示强度。 */
+  opacity?: number
+  blur?: number
+  /** 图片背景的独立持久化分支。 */
+  image?: BackgroundImageConfig
+  /** 视频背景的独立持久化分支。 */
+  video?: BackgroundVideoSource
+
+  /** 以下扁平字段仅用于读取旧版配置，写入时迁移到 image/video 分支。 */
+  type?: 'default' | 'none' | 'custom' | 'local' | 'url' | 'gradient'
+  path?: string
   image_base64?: string
   mode?: 'single' | 'carousel' | 'random'
   interval?: number
   /** URL 轮播/随机模式下的图片地址列表 */
   urls?: string[]
+  poster_path?: string
+}
+
+export interface BackgroundImageConfig {
+  type?: 'default' | 'none' | 'custom' | 'local' | 'url' | 'gradient'
+  path?: string
+  image_base64?: string
+  mode?: 'single' | 'carousel' | 'random'
+  interval?: number
+  urls?: string[]
+}
+
+export interface BackgroundVideoSource {
+  path?: string
+  poster_path?: string
+  options?: BackgroundVideoConfig
+}
+
+export interface BackgroundVideoConfig {
+  paused?: boolean
+  muted?: boolean
+  volume?: number
+  fit?: 'cover' | 'contain'
+  pause_when_inactive?: boolean
 }
 
 export type MinecraftPathEntry = string | { name: string; path: string; protected?: boolean }

@@ -158,13 +158,11 @@
   gap: 8px;
 }
 
-.account-list-spin,
-.account-list-spin :deep(.n-spin-content) {
+.account-list-spin {
   min-height: 0;
 }
 
 .account-list-spin {
-  min-height: 0;
   flex: 0 0 auto;
 }
 

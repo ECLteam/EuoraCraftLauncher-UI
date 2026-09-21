@@ -1,0 +1,74 @@
+.ui-loading {
+  --ui-loading-color: var(--text-secondary);
+  --ui-loading-overlay: color-mix(in srgb, var(--bg-surface) 72%, transparent);
+}
+
+.ui-loading__indicator {
+  align-items: center;
+  color: var(--ui-loading-color);
+}
+
+.ui-loading__icon {
+  animation-duration: var(--loading-spin-duration, 900ms);
+}
+
+.ui-loading__label {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.ui-loading--inline {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.ui-loading--inline .ui-loading__indicator {
+  display: inline-flex;
+  gap: var(--s-xs);
+}
+
+.ui-loading--block {
+  display: flex;
+  height: 100%;
+  min-height: 96px;
+  align-items: center;
+  justify-content: center;
+}
+
+.ui-loading--block .ui-loading__indicator {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--s-sm);
+  text-align: center;
+}
+
+.ui-loading--overlay {
+  position: relative;
+}
+
+.ui-loading--overlay .ui-loading__indicator {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-sm);
+  border-radius: inherit;
+  background: var(--ui-loading-overlay);
+  backdrop-filter: blur(1px);
+  pointer-events: none;
+}
+
+.ui-loading--sm .ui-loading__label {
+  font-size: 11px;
+}
+
+.ui-loading--lg .ui-loading__label {
+  font-size: 13px;
+}
+
+.ui-loading--xs .ui-loading__label {
+  font-size: 10px;
+}

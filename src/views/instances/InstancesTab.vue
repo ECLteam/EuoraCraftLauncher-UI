@@ -32,10 +32,7 @@
     <div class="version-panel">
       <div class="version-content">
         <!-- 加载中 -->
-        <div v-if="loading" class="loading-state">
-          <UiIcon name="spinner" class="spin" :size="24" />
-          <p>{{ t('versions.download.fetchingList') }}</p>
-        </div>
+        <UiLoading v-if="loading" :label="t('versions.download.fetchingList')" />
 
         <!-- 空状态 -->
         <div v-else-if="filteredVersions.length === 0" class="empty-state">
@@ -137,6 +134,7 @@ import { useI18n } from 'vue-i18n'
 import { useAutoRefreshCache, CACHE_KEYS, CACHE_GROUPS } from '@/cache/composable'
 import InstanceInstallModal from '@/components/instances/InstanceInstallModal.vue'
 import UiIcon from '@/components/ui/Icon.vue'
+import UiLoading from '@/components/ui/Loading.vue'
 import UiSelect from '@/components/ui/Select.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'

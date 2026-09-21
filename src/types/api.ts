@@ -140,6 +140,7 @@ export interface BackendEvents {
   'process:instance_log': ProcessLogEntry
   'process:instances_changed': ProcessInstance[]
   'update:progress': UpdateProgressEvent
+  'update:check_completed': UpdateCheckResult
   'game:install_progress': InstallProgress
   'game:launch_progress': LaunchProgress
   'game:operation_progress': GameOperation
@@ -193,6 +194,8 @@ export type BackendEventName = keyof BackendEvents
 // ═══════════════════════════════════════════════════════════════════
 //  命令参数映射
 // ═══════════════════════════════════════════════════════════════════
+
+export type SchematicLocale = 'zh-CN' | 'zh-TW' | 'en-US' | 'ja-JP' | 'ru-RU' | 'de-DE'
 
 export interface CommandPayloadMap {
   system_ping: undefined
@@ -321,11 +324,13 @@ export interface CommandPayloadMap {
   image_save_as: ImageSaveAsPayload
   image_read_file: { path: string }
   image_list_files: { path: string }
+  background_video_open: undefined
 
   // 文件选择
   select_directory: undefined
   select_java: undefined
   select_image: { purpose?: 'background' | 'skin' | 'cape' | 'instance_icon' } | undefined
+  select_background_video: undefined
   select_file: { purpose?: 'crash-analysis' | 'modpack' | 'world-import' | 'theme-preset' } | undefined
   select_files: { purpose?: 'resource-files' }
   select_save_file: {
@@ -335,6 +340,7 @@ export interface CommandPayloadMap {
       | 'world-export'
       | 'instance-export'
       | 'resource-manifest'
+      | 'schematic-material-manifest'
       | 'screenshot'
       | 'mod-file'
       | 'theme-preset'
@@ -448,6 +454,13 @@ export interface CommandPayloadMap {
     output_format: 'json' | 'csv'
     world_id?: string
   }
+  game_schematic_material_manifest_export: InstanceTargetPayload & {
+    session_id: string
+    output_path: string
+    output_format: 'json' | 'csv'
+    locale: SchematicLocale
+    missing_blocks: string[]
+  }
   game_resource_search: {
     query: string
     game_version: string
@@ -469,7 +482,10 @@ export interface CommandPayloadMap {
     world_id?: string
   }
   game_schematic_preview: InstanceTargetPayload & { resource_type: GameResourceType; resource_id: string }
-  game_schematic_assets: InstanceTargetPayload & { blocks: string[] }
+  game_schematic_assets: InstanceTargetPayload & { blocks: string[]; locale: SchematicLocale }
+  game_schematic_session_open: InstanceTargetPayload & { resource_type: 'schematic'; resource_id: string }
+  game_schematic_session_chunks: { session_id: string; coords: [number, number, number][] }
+  game_schematic_session_close: { session_id: string }
   game_launch: {
     version_id: string
     game_path: string
@@ -706,9 +722,11 @@ export const COMMAND_NAMES = {
   image_save_as: 'image_save_as',
   image_read_file: 'image_read_file',
   image_list_files: 'image_list_files',
+  background_video_open: 'background_video_open',
   select_directory: 'select_directory',
   select_java: 'select_java',
   select_image: 'select_image',
+  select_background_video: 'select_background_video',
   select_file: 'select_file',
   select_files: 'select_files',
   select_save_file: 'select_save_file',
@@ -772,12 +790,16 @@ export const COMMAND_NAMES = {
   game_resource_toggle: 'game_resource_toggle',
   game_resource_delete: 'game_resource_delete',
   game_resource_manifest_export: 'game_resource_manifest_export',
+  game_schematic_material_manifest_export: 'game_schematic_material_manifest_export',
   game_resource_search: 'game_resource_search',
   game_resource_identify: 'game_resource_identify',
   game_resource_update_check: 'game_resource_update_check',
   game_resource_update: 'game_resource_update',
   game_schematic_preview: 'game_schematic_preview',
   game_schematic_assets: 'game_schematic_assets',
+  game_schematic_session_open: 'game_schematic_session_open',
+  game_schematic_session_chunks: 'game_schematic_session_chunks',
+  game_schematic_session_close: 'game_schematic_session_close',
   game_launch: 'game_launch',
   game_launch_cancel: 'game_launch_cancel',
   game_instance_stop: 'game_instance_stop',
@@ -950,10 +972,12 @@ export interface CommandResponseMap {
   image_save_as: SelectResult
   image_read_file: ImageDataUrl
   image_list_files: ImageListResult
+  background_video_open: { url: string }
 
   select_directory: SelectResult
   select_java: SelectResult
   select_image: ImageSelection
+  select_background_video: SelectResult
   select_file: SelectResult
   select_files: { paths: string[] }
   select_save_file: SelectResult
@@ -1026,6 +1050,7 @@ export interface CommandResponseMap {
   game_resource_toggle: { id: string; enabled: boolean }
   game_resource_delete: void
   game_resource_manifest_export: { path: string }
+  game_schematic_material_manifest_export: { path: string }
   game_resource_search: { source: string; items: unknown[] }
   game_resource_identify: {
     matched: boolean
@@ -1038,6 +1063,9 @@ export interface CommandResponseMap {
   game_resource_update: GameOperation
   game_schematic_preview: SchematicPreviewData
   game_schematic_assets: SchematicAssetsBundle
+  game_schematic_session_open: SchematicSessionData
+  game_schematic_session_chunks: SchematicChunkBatch
+  game_schematic_session_close: { closed: boolean }
   game_launch: LaunchInstanceResult
   game_launch_cancel: void
   export_logs: { path: string }
@@ -1132,6 +1160,21 @@ export interface SchematicAssetsBundle {
   textures: Record<string, string>
   animated: string[]
   missingBlocks: string[]
+  blockNames?: Record<string, string>
+}
+
+export interface SchematicSessionData {
+  sessionId: string
+  type: 'litematic' | 'schem'
+  size: [number, number, number]
+  chunkSize: number
+  palette: SchematicPaletteEntry[]
+  materialCounts: Record<string, number>
+  chunks: [number, number, number][]
+}
+
+export interface SchematicChunkBatch {
+  chunks: Array<{ coord: [number, number, number]; indices: string }>
 }
 
 export interface SchematicPreviewData {

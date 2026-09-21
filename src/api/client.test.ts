@@ -32,6 +32,7 @@ describe('backend IPC client', () => {
     vi.useFakeTimers()
     transportMocks.invoke.mockReset()
     transportMocks.listen.mockReset()
+    backend.file.invalidateUrl()
     while (launcherErrorQueue.activeError.value) launcherErrorQueue.dismissActive()
   })
 
@@ -96,6 +97,38 @@ describe('backend IPC client', () => {
     expect(transportMocks.invoke).toHaveBeenCalledWith('image_read_file', {
       path: 'E:\\ECL_data\\cache\\screenshots\\thumb.webp',
     })
+  })
+
+  it('caches normalized image paths and coalesces concurrent reads', async () => {
+    let resolveImage: ((value: unknown) => void) | undefined
+    transportMocks.invoke.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveImage = resolve
+        })
+    )
+
+    const first = backend.file.toUrl('E:\\ECL_data\\cache\\logo.png')
+    const second = backend.file.toUrl('e:/ecl_data/cache/logo.png/')
+    expect(transportMocks.invoke).toHaveBeenCalledOnce()
+
+    resolveImage?.({ success: true, data: { dataUrl: 'data:image/png;base64,AAAA' } })
+    await expect(Promise.all([first, second])).resolves.toEqual([
+      'data:image/png;base64,AAAA',
+      'data:image/png;base64,AAAA',
+    ])
+
+    await expect(backend.file.toUrl('E:/ECL_data/cache/logo.png')).resolves.toBe('data:image/png;base64,AAAA')
+    expect(transportMocks.invoke).toHaveBeenCalledOnce()
+  })
+
+  it('does not cache image failures and retries the next read', async () => {
+    transportMocks.invoke.mockResolvedValueOnce({ success: false, message: 'not found' })
+    transportMocks.invoke.mockResolvedValueOnce({ success: true, data: { dataUrl: 'data:image/png;base64,BBBB' } })
+
+    await expect(backend.file.toUrl('E:/ECL_data/cache/missing.png')).resolves.toBeNull()
+    await expect(backend.file.toUrl('E:/ECL_data/cache/missing.png')).resolves.toBe('data:image/png;base64,BBBB')
+    expect(transportMocks.invoke).toHaveBeenCalledTimes(2)
   })
 
   it('off 会清理同一回调的所有重复订阅', async () => {

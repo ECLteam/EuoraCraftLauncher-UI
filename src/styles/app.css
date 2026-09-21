@@ -7,7 +7,6 @@
   overflow: hidden;
   border-radius: var(--ecl-radius-window, var(--window-radius));
   clip-path: inset(0 round var(--ecl-radius-window, var(--window-radius)));
-  box-shadow: inset 0 0 0 1px var(--window-border);
   isolation: isolate;
 }
 
@@ -35,6 +34,12 @@
   z-index: 0;
   opacity: var(--bg-opacity, 1);
   filter: blur(var(--bg-blur, 0px));
+}
+
+.app-background-video {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
 .app-background-overlay {

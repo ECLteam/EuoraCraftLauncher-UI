@@ -1,6 +1,26 @@
 import type { FileContent, FsEntry, PathInfo } from '@/types/system'
 import { call } from './commands'
 
+const imageUrlCache = new Map<string, string>()
+const pendingImageUrlRequests = new Map<string, { promise: Promise<string | null>; revision: number }>()
+const imageUrlRevisions = new Map<string, number>()
+
+function imagePathKey(path: string): string {
+  const normalizedPath = path
+    .trim()
+    .replace(/[\\/]+$/, '')
+    .replace(/\\/g, '/')
+  return /^[a-zA-Z]:\//.test(normalizedPath) ? normalizedPath.toLowerCase() : normalizedPath
+}
+
+function nextImageUrlRevision(key: string): number {
+  const revision = (imageUrlRevisions.get(key) ?? 0) + 1
+  imageUrlRevisions.set(key, revision)
+  imageUrlCache.delete(key)
+  pendingImageUrlRequests.delete(key)
+  return revision
+}
+
 /**
  * 通过后端读取本地图片并转换为可在 DOM 中直接使用的 Data URL。
  *
@@ -11,8 +31,35 @@ import { call } from './commands'
  * @returns 图片 Data URL，读取失败时返回 null
  */
 async function resolveFileUrl(path: string): Promise<string | null> {
-  const res = await call<{ dataUrl: string }>('image_read_file', { path })
-  return res.success && res.data?.dataUrl ? res.data.dataUrl : null
+  const key = imagePathKey(path)
+  const cached = imageUrlCache.get(key)
+  if (cached) return cached
+
+  let pending = pendingImageUrlRequests.get(key)
+  if (!pending) {
+    const revision = imageUrlRevisions.get(key) ?? 0
+    const promise = call<{ dataUrl: string }>('image_read_file', { path }).then((res) => {
+      const dataUrl = res.success ? res.data?.dataUrl : null
+      if (dataUrl && (imageUrlRevisions.get(key) ?? 0) === revision) imageUrlCache.set(key, dataUrl)
+      return dataUrl || null
+    })
+    pending = { promise, revision }
+    pendingImageUrlRequests.set(key, pending)
+    const removeRequest = () => {
+      if (pendingImageUrlRequests.get(key) === pending) pendingImageUrlRequests.delete(key)
+    }
+    void promise.then(removeRequest, removeRequest)
+  }
+  return pending.promise
+}
+
+function invalidateImageUrl(path?: string): void {
+  if (path) {
+    nextImageUrlRevision(imagePathKey(path))
+    return
+  }
+  const keys = new Set([...imageUrlCache.keys(), ...pendingImageUrlRequests.keys(), ...imageUrlRevisions.keys()])
+  for (const key of keys) nextImageUrlRevision(key)
 }
 
 export function createFs() {
@@ -34,6 +81,11 @@ export function createFile() {
     /** 将本地图片路径转为可在 <img> 中直接使用的 Data URL */
     async toUrl(path: string): Promise<string | null> {
       return resolveFileUrl(path)
+    },
+
+    /** 图片文件被替换、删除或用户明确刷新时，使会话缓存失效。 */
+    invalidateUrl(path?: string): void {
+      invalidateImageUrl(path)
     },
 
     /** 路径规整与存在性校验 */

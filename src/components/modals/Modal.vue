@@ -2,10 +2,10 @@
   <Teleport to="body">
     <Transition :name="transitionName" @afterEnter="onAfterEnter" @afterLeave="onAfterLeave">
       <div
-        v-show="visible"
+        v-show="isVisible"
         class="modal-overlay"
         role="dialog"
-        :aria-modal="true"
+        :aria-modal="isVisible"
         :aria-labelledby="titleId"
         @click.self="handleOverlayClick"
       >
@@ -87,11 +87,12 @@
 
 <script setup lang="ts">
 import { NButton } from 'naive-ui'
-import { ref, computed, watch, nextTick, useId } from 'vue'
+import { ref, computed, watch, nextTick, onUnmounted, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { pinia } from '@/app/stores'
 import { useLayoutStore } from '@/app/stores/layoutStore'
 import UiIcon from '@/components/ui/Icon.vue'
+import { GLOBAL_MODAL_PRIORITY, useGlobalModalStack } from '@/composables/useGlobalModalStack'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 
 defineOptions({ name: 'Modal' })
@@ -113,6 +114,7 @@ const props = withDefaults(defineProps<Props>(), {
   width: '',
   transitionName: 'modal',
   icon: '',
+  priority: GLOBAL_MODAL_PRIORITY.interactive,
 })
 
 const emit = defineEmits<Emits>()
@@ -126,6 +128,7 @@ const slots = defineSlots<{
 
 const { t } = useI18n()
 const layoutStore = useLayoutStore(pinia)
+const globalModalStack = useGlobalModalStack()
 
 export type ModalType = 'content' | 'agreement' | 'confirm' | 'alert' | 'warning'
 
@@ -147,6 +150,8 @@ interface Props {
   width?: string
   transitionName?: string
   icon?: string
+  /** 由全局模态框栈仲裁；数值越大越优先。 */
+  priority?: number
 }
 
 interface Emits {
@@ -177,16 +182,19 @@ const iconType = computed(() => {
 
 const modalRef = ref<HTMLElement | null>(null)
 const titleId = computed(() => `modal-title-${useId()}`)
+const modalId = `modal-${useId()}`
+const isVisible = computed(() => props.visible && globalModalStack.activeModalId.value === modalId)
 
 const showHeader = computed(() => props.title || props.closable || slots.header)
 
 const keydownHandler = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && props.visible && props.closable) {
+  if (e.key === 'Escape' && isVisible.value && props.closable) {
     close()
   }
 }
 
 const close = () => {
+  globalModalStack.unregister(modalId)
   emit('update:visible', false)
   emit('close')
 }
@@ -225,25 +233,49 @@ const onAfterLeave = () => {
 }
 
 watch(
-  () => props.visible,
-  (val) => {
-    if (val) {
-      nextTick(() => {
-        modalRef.value?.focus()
+  [() => props.visible, () => props.priority, () => props.title],
+  ([visible, priority, title]) => {
+    if (visible) {
+      globalModalStack.register({
+        id: modalId,
+        title,
+        priority,
+        lockScroll: props.lockScroll,
       })
-      document.addEventListener('keydown', keydownHandler)
-      if (props.lockScroll) {
-        layoutStore.setMainContentScrollLocked(true)
-      }
     } else {
-      document.removeEventListener('keydown', keydownHandler)
-      if (props.lockScroll) {
-        layoutStore.setMainContentScrollLocked(false)
-      }
+      globalModalStack.unregister(modalId)
     }
   },
   { immediate: true }
 )
+
+watch(
+  isVisible,
+  (visible) => {
+    if (visible) {
+      nextTick(() => {
+        modalRef.value?.focus()
+      })
+      document.addEventListener('keydown', keydownHandler)
+    } else {
+      document.removeEventListener('keydown', keydownHandler)
+    }
+  },
+  { immediate: true }
+)
+
+watch(
+  globalModalStack.isScrollLocked,
+  (locked) => {
+    layoutStore.setMainContentScrollLocked(locked)
+  },
+  { immediate: true }
+)
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', keydownHandler)
+  globalModalStack.unregister(modalId)
+})
 
 defineExpose({ close, open })
 </script>

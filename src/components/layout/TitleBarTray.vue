@@ -141,7 +141,7 @@ function onDocClick(e: MouseEvent) {
 .tray-menu-item {
   display: flex;
   align-items: center;
-  gap: 9px;
+
   width: 100%;
   padding: 7px 11px;
   border: none;

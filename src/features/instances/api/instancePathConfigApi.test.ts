@@ -14,7 +14,65 @@ const { mocks } = mock.state!
 describe('instancePathConfigApi', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    instancePathConfigApi.invalidateActiveVersionCache()
     mocks.command.mockResolvedValue({ success: true, data: { activeVersion: '26.2-Forge' } })
+  })
+
+  it('caches a successful active version read for the normalized path', async () => {
+    await expect(instancePathConfigApi.getActiveVersion('D:\\mc\\PCL2\\.minecraft')).resolves.toBe('26.2-Forge')
+    await expect(instancePathConfigApi.getActiveVersion('d:/mc/PCL2/.minecraft/')).resolves.toBe('26.2-Forge')
+
+    expect(mocks.command).toHaveBeenCalledTimes(1)
+    expect(mocks.command).toHaveBeenCalledWith('game_config_get', { game_path: 'D:\\mc\\PCL2\\.minecraft' })
+  })
+
+  it('coalesces concurrent reads and allows a failed read to retry', async () => {
+    let resolveRead: ((value: unknown) => void) | undefined
+    mocks.command.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveRead = resolve
+        })
+    )
+
+    const first = instancePathConfigApi.getActiveVersion('D:/mc/PCL2/.minecraft')
+    const second = instancePathConfigApi.getActiveVersion('d:\\mc\\PCL2\\.minecraft\\')
+    await Promise.resolve()
+
+    expect(mocks.command).toHaveBeenCalledTimes(1)
+    resolveRead?.({ success: true, data: { activeVersion: '26.2-Fabric' } })
+    await expect(Promise.all([first, second])).resolves.toEqual(['26.2-Fabric', '26.2-Fabric'])
+
+    mocks.command.mockRejectedValueOnce(new Error('IPC unavailable'))
+    instancePathConfigApi.invalidateActiveVersionCache('D:/mc/PCL2/.minecraft')
+    await expect(instancePathConfigApi.getActiveVersion('D:/mc/PCL2/.minecraft')).rejects.toThrow('IPC unavailable')
+
+    mocks.command.mockResolvedValueOnce({ success: true, data: { activeVersion: '26.2-NeoForge' } })
+    await expect(instancePathConfigApi.getActiveVersion('D:/mc/PCL2/.minecraft')).resolves.toBe('26.2-NeoForge')
+  })
+
+  it('caches an empty active version and refreshes it only when forced', async () => {
+    mocks.command.mockResolvedValueOnce({ success: true, data: {} })
+    mocks.command.mockResolvedValueOnce({ success: true, data: { activeVersion: '26.2-Quilt' } })
+
+    await expect(instancePathConfigApi.getActiveVersion('D:/mc/Empty/.minecraft')).resolves.toBeNull()
+    await expect(instancePathConfigApi.getActiveVersion('D:/mc/Empty/.minecraft')).resolves.toBeNull()
+    expect(mocks.command).toHaveBeenCalledTimes(1)
+
+    await expect(instancePathConfigApi.getActiveVersion('D:/mc/Empty/.minecraft', { force: true })).resolves.toBe(
+      '26.2-Quilt'
+    )
+    expect(mocks.command).toHaveBeenCalledTimes(2)
+  })
+
+  it('updates the read cache after a successful configuration write', async () => {
+    await instancePathConfigApi.getActiveVersion('D:/mc/Other/.minecraft')
+    mocks.command.mockResolvedValueOnce({ success: true, data: { activeVersion: '26.2-Fabric' } })
+
+    await instancePathConfigApi.patchConfig('D:/mc/Other/.minecraft', { activeVersion: '26.2-Fabric' })
+    await expect(instancePathConfigApi.getActiveVersion('D:/mc/Other/.minecraft')).resolves.toBe('26.2-Fabric')
+
+    expect(mocks.command).toHaveBeenCalledTimes(2)
   })
 
   it('coalesces duplicate active version writes for the same normalized path', async () => {

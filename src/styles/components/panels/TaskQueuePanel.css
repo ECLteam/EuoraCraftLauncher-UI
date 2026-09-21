@@ -155,27 +155,6 @@
   min-width: 120px;
 }
 
-.tq-progress-bar {
-  flex: 1;
-  height: 4px;
-  background: var(--bg-base);
-  border-radius: var(--r-xs);
-  overflow: hidden;
-}
-
-.tq-progress-fill {
-  height: 100%;
-  background: var(--primary);
-  border-radius: var(--r-xs);
-  transition: width var(--duration-normal) var(--ease-emphasized);
-  min-width: 0;
-}
-
-.tq-progress-fill.tq-progress--indeterminate {
-  width: 30% !important;
-  animation: indeterminate-bar 1.5s var(--ease-linear) infinite;
-}
-
 .tq-progress-text {
   font-size: 10px;
   color: var(--text-tertiary);
@@ -490,7 +469,7 @@
 }
 
 .tq-live-bar {
-  height: 6px;
+  flex: 1;
 }
 
 .tq-live-pct {

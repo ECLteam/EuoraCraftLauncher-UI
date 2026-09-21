@@ -50,8 +50,7 @@
   contain: layout;
 }
 
-.plugins-spin,
-.plugins-spin :deep(.n-spin-content) {
+.plugins-spin {
   height: 100%;
   min-height: 0;
 }

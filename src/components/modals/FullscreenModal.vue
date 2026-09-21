@@ -1,13 +1,7 @@
 <template>
   <Teleport to="body">
     <Transition name="fullscreen-modal" @afterEnter="onAfterEnter" @afterLeave="onAfterLeave">
-      <div
-        v-show="visible && isActive"
-        class="fullscreen-modal"
-        role="dialog"
-        :aria-modal="true"
-        :aria-labelledby="titleId"
-      >
+      <div v-show="isVisible" class="fullscreen-modal" role="dialog" :aria-modal="isVisible" :aria-labelledby="titleId">
         <div
           ref="modalRef"
           class="fullscreen-modal-wrapper"
@@ -29,6 +23,7 @@ import { computed, nextTick, onUnmounted, ref, useId, watch } from 'vue'
 import { pinia } from '@/app/stores'
 import { useLayoutStore } from '@/app/stores/layoutStore'
 import { useFullscreenModal } from '@/composables/useFullscreenModal'
+import { useGlobalModalStack } from '@/composables/useGlobalModalStack'
 
 defineOptions({ name: 'FullscreenModal' })
 
@@ -62,15 +57,17 @@ interface Emits {
 }
 
 const fullscreenModal = useFullscreenModal()
+const globalModalStack = useGlobalModalStack()
 const layoutStore = useLayoutStore(pinia)
 const modalRef = ref<HTMLElement | null>(null)
 const instanceId = useId()
 const modalId = `fullscreen-modal-${instanceId}`
 const titleId = `fullscreen-modal-title-${instanceId}`
 const isActive = computed(() => fullscreenModal.currentId.value === modalId)
+const isVisible = computed(() => props.visible && isActive.value)
 
 const keydownHandler = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && props.visible && isActive.value && props.closable) {
+  if (e.key === 'Escape' && isVisible.value && props.closable) {
     close()
   }
 }
@@ -116,18 +113,41 @@ watch(
   () => props.visible,
   (val) => {
     if (val) {
+      fullscreenModal.open(modalId, props.title, requestClose)
+    } else {
+      fullscreenModal.unregister(modalId)
+    }
+  },
+  { immediate: true }
+)
+
+watch(
+  isVisible,
+  (visible) => {
+    if (visible) {
       nextTick(() => {
         modalRef.value?.focus()
       })
       document.addEventListener('keydown', keydownHandler)
-      toggleScrollLock(true)
-      togglePageContent(true)
-      fullscreenModal.open(modalId, props.title, requestClose)
     } else {
       document.removeEventListener('keydown', keydownHandler)
-      fullscreenModal.unregister(modalId)
-      releasePageLockIfUnused()
     }
+  },
+  { immediate: true }
+)
+
+watch(
+  globalModalStack.isScrollLocked,
+  (locked) => {
+    toggleScrollLock(locked)
+  },
+  { immediate: true }
+)
+
+watch(
+  globalModalStack.isFullscreenActive,
+  (visible) => {
+    togglePageContent(visible)
   },
   { immediate: true }
 )

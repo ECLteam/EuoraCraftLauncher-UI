@@ -9,7 +9,10 @@ vi.mock('@/features/settings/api/settingsApi', () => ({
     saveUi: vi.fn(),
     saveGame: vi.fn(),
     saveDownload: vi.fn(),
+    listJava: vi.fn(),
     selectImage: vi.fn(),
+    selectBackgroundVideo: vi.fn(),
+    openBackgroundVideo: vi.fn(),
     saveImageUrl: vi.fn(),
     readImage: vi.fn(),
   },
@@ -44,6 +47,47 @@ describe('settingsStore', () => {
     expect(store.game.disable_crash_analysis).toBe(false)
     expect(store.game.minecraft_paths).toEqual([{ name: '主目录', path: 'D:/Minecraft' }])
     expect(store.download.mirror_source).toBe('bmclapi')
+  })
+
+  it('复用 Java 扫描结果，并允许用户强制重新扫描', async () => {
+    vi.mocked(settingsApi.listJava)
+      .mockResolvedValueOnce([
+        {
+          path: 'C:/Java/17/bin/java.exe',
+          version: '17.0.12',
+          major_version: 17,
+          java_type: 'JRE',
+          arch: 'x64',
+          sources: [],
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          path: 'C:/Java/21/bin/java.exe',
+          version: '21.0.4',
+          major_version: 21,
+          java_type: 'JRE',
+          arch: 'x64',
+          sources: [],
+        },
+      ])
+    const store = useSettingsStore()
+
+    await store.loadJavaInstallations()
+    await store.loadJavaInstallations()
+    expect(settingsApi.listJava).toHaveBeenCalledOnce()
+
+    await expect(store.loadJavaInstallations(true)).resolves.toEqual([
+      {
+        path: 'C:/Java/21/bin/java.exe',
+        version: '21.0.4',
+        major_version: 21,
+        java_type: 'JRE',
+        arch: 'x64',
+        sources: [],
+      },
+    ])
+    expect(settingsApi.listJava).toHaveBeenCalledTimes(2)
   })
 
   it('更新局部设置时不覆盖路径与 JVM 参数', async () => {
@@ -83,5 +127,57 @@ describe('settingsStore', () => {
     )
     expect(store.game.fullscreen).toBe(true)
     expect(store.game.memory_size).toBe(8192)
+  })
+
+  it('选择视频背景后保存视频类型并请求受保护的媒体地址', async () => {
+    vi.mocked(settingsApi.selectBackgroundVideo).mockResolvedValue('C:/background.mp4')
+    vi.mocked(settingsApi.openBackgroundVideo).mockResolvedValue('http://127.0.0.1:9527/background/token')
+    const store = useSettingsStore()
+    await store.load()
+
+    await expect(store.chooseBackgroundVideo()).resolves.toEqual({
+      path: 'C:/background.mp4',
+      videoUrl: 'http://127.0.0.1:9527/background/token',
+    })
+    expect(settingsApi.saveUi).toHaveBeenCalledWith(
+      expect.objectContaining({
+        background: expect.objectContaining({
+          media_type: 'video',
+          video: expect.objectContaining({ path: 'C:/background.mp4' }),
+        }),
+      })
+    )
+  })
+
+  it('分别更新图片和视频分支时保留另一分支的设置', async () => {
+    vi.mocked(settingsApi.load).mockResolvedValue({
+      ui: {
+        background: {
+          media_type: 'image',
+          image: { type: 'custom', path: 'C:/background.png', mode: 'single' },
+          video: { path: 'C:/background.mp4', options: { muted: false, volume: 0.4 } },
+        },
+      },
+      game: { minecraft_paths: [] },
+      download: { mirror_source: 'official' },
+      launcher: {},
+    })
+    const store = useSettingsStore()
+    await store.load()
+
+    await store.patchUiBackground({ video: { options: { volume: 0.8 } } })
+    await store.patchUiBackground({ image: { mode: 'random' } })
+
+    expect(settingsApi.saveUi).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        background: expect.objectContaining({
+          image: expect.objectContaining({ path: 'C:/background.png', mode: 'random' }),
+          video: expect.objectContaining({
+            path: 'C:/background.mp4',
+            options: expect.objectContaining({ muted: false, volume: 0.8 }),
+          }),
+        }),
+      })
+    )
   })
 })

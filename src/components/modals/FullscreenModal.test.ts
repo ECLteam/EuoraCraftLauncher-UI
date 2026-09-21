@@ -10,7 +10,7 @@ describe('FullscreenModal', () => {
     document.body.innerHTML = ''
   })
 
-  it('打开任务列表时关闭已经显示的账户管理弹窗', async () => {
+  it('关闭子弹窗后恢复已经打开的父弹窗', async () => {
     const accountVisible = ref(true)
     const taskVisible = ref(false)
     const host = defineComponent({
@@ -31,7 +31,7 @@ describe('FullscreenModal', () => {
     taskVisible.value = true
     await nextTick()
 
-    expect(accountVisible.value).toBe(false)
+    expect(accountVisible.value).toBe(true)
     expect(taskVisible.value).toBe(true)
     expect(useFullscreenModal().title.value).toBe('任务列表')
 
@@ -40,6 +40,12 @@ describe('FullscreenModal', () => {
     )
     expect(visibleModals).toHaveLength(1)
     expect(visibleModals[0]?.textContent).toContain('任务内容')
+
+    taskVisible.value = false
+    await nextTick()
+
+    expect(accountVisible.value).toBe(true)
+    expect(useFullscreenModal().title.value).toBe('账户管理')
 
     wrapper.unmount()
   })
