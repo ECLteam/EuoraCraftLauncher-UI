@@ -140,8 +140,14 @@ export interface ThemeAppearanceConfig {
   radius_dialog?: number
   /** 卡片不透明度（0-100） */
   card_opacity?: number
-  /** 界面字体族（CSS font-family 值） */
+  /** 界面字体族（预设 CSS 字体栈或本机字体名称） */
   font_family?: string
+  /** 侧边栏字体，空值表示跟随界面 */
+  sidebar_font_family?: string
+  /** 实例终端字体，空值表示原有等宽字体栈 */
+  terminal_font_family?: string
+  /** 启动器日志字体，空值表示原有等宽字体栈 */
+  log_font_family?: string
 }
 
 export interface ThemeScheduleConfig {

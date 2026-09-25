@@ -255,7 +255,7 @@ body {
   height: 100%;
   width: 100%;
   overflow: hidden;
-  font-family: var(--font-body);
+  font-family: var(--ecl-font-body, var(--font-body));
   font-size: 13px;
   font-weight: 450;
   line-height: 1.6;
@@ -315,7 +315,7 @@ p {
   letter-spacing: -0.01em;
 }
 .data-number .unit {
-  font-family: var(--font-body);
+  font-family: var(--ecl-font-body, var(--font-body));
   font-size: 12px;
   font-weight: 500;
   color: var(--text-secondary);

@@ -283,7 +283,7 @@ onUnmounted(() => {
   min-height: 0;
   overflow: auto;
   padding: 8px 10px;
-  font-family: var(--font-mono);
+  font-family: var(--ecl-font-log, var(--font-mono));
   font-size: 12px;
   line-height: 1.55;
 }
@@ -296,7 +296,7 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 8px;
   color: var(--ecl-text-tertiary);
-  font-family: var(--font-body);
+  font-family: var(--ecl-font-body, var(--font-body));
 }
 
 .ll-empty p {

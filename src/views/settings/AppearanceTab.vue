@@ -147,16 +147,60 @@
           <span>{{ cardOpacity }}%</span>
         </div>
       </SettingRow>
-      <SettingRow label="界面字体" description="覆盖界面默认字体（系统默认 / 预设字体栈）">
-        <NSelect
-          class="wide-control"
-          :value="fontFamilyValue"
-          :options="fontOptions"
-          size="small"
-          placeholder="系统默认"
-          @update:value="handleFontFamilyChange"
+      <SettingRow
+        class="font-setting-row"
+        :label="t('settings.fontInterface')"
+        :description="t('settings.fontInterfaceDesc')"
+      >
+        <FontFamilySelect
+          :modelValue="appearance.font_family ?? ''"
+          :defaultLabel="t('settings.fontDefaultUi')"
+          defaultFont="var(--font-body)"
+          fallbackFont="var(--font-body)"
+          @update:modelValue="handleFontFamilyChange('font_family', $event)"
         />
       </SettingRow>
+      <details class="font-advanced">
+        <summary>
+          {{ t('settings.fontAdvanced') }}
+          <span v-if="fontOverrideCount">{{ t('settings.fontAdvancedCount', { count: fontOverrideCount }) }}</span>
+        </summary>
+        <SettingRow
+          class="font-setting-row"
+          :label="t('settings.fontSidebar')"
+          :description="t('settings.fontSidebarDesc')"
+        >
+          <FontFamilySelect
+            :modelValue="appearance.sidebar_font_family ?? ''"
+            :defaultLabel="t('settings.fontFollowInterface')"
+            defaultFont="var(--ecl-font-body, var(--font-body))"
+            fallbackFont="var(--ecl-font-body, var(--font-body))"
+            @update:modelValue="handleFontFamilyChange('sidebar_font_family', $event)"
+          />
+        </SettingRow>
+        <SettingRow
+          class="font-setting-row"
+          :label="t('settings.fontTerminal')"
+          :description="t('settings.fontTerminalDesc')"
+        >
+          <FontFamilySelect
+            :modelValue="appearance.terminal_font_family ?? ''"
+            :defaultLabel="t('settings.fontDefaultMono')"
+            defaultFont="var(--font-mono)"
+            fallbackFont="var(--font-mono)"
+            @update:modelValue="handleFontFamilyChange('terminal_font_family', $event)"
+          />
+        </SettingRow>
+        <SettingRow class="font-setting-row" :label="t('settings.fontLog')" :description="t('settings.fontLogDesc')">
+          <FontFamilySelect
+            :modelValue="appearance.log_font_family ?? ''"
+            :defaultLabel="t('settings.fontDefaultMono')"
+            defaultFont="var(--font-mono)"
+            fallbackFont="var(--font-mono)"
+            @update:modelValue="handleFontFamilyChange('log_font_family', $event)"
+          />
+        </SettingRow>
+      </details>
     </SettingSection>
 
     <SettingSection :title="t('settings.background')">
@@ -330,11 +374,11 @@ import {
   CARD_OPACITY_MAX,
   CARD_OPACITY_MIN,
   DEFAULT_PRIMARY_COLOR,
-  FONT_FAMILY_OPTIONS,
   THEME_MODE_OPTIONS,
 } from '@/config/theme'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { settingsApi } from '@/features/settings/api/settingsApi'
+import FontFamilySelect from '@/features/settings/components/FontFamilySelect.vue'
 import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
 import type { BackgroundMode } from '@/features/settings/model/backgroundMode'
@@ -520,13 +564,14 @@ const radiusCard = computed(() => appearance.value.radius_card ?? 8)
 const radiusControl = computed(() => appearance.value.radius_control ?? 6)
 const radiusDialog = computed(() => appearance.value.radius_dialog ?? 10)
 const cardOpacity = computed(() => appearance.value.card_opacity ?? CARD_OPACITY_DEFAULT)
-const fontFamilyValue = computed(() => appearance.value.font_family ?? '')
-const fontOptions = computed(() => [
-  ...FONT_FAMILY_OPTIONS.map((option) => ({ label: option.name, value: option.value })),
-  ...(fontFamilyValue.value && !FONT_FAMILY_OPTIONS.some((option) => option.value === fontFamilyValue.value)
-    ? [{ label: `自定义 (${fontFamilyValue.value})`, value: fontFamilyValue.value }]
-    : []),
-])
+const fontOverrideCount = computed(
+  () =>
+    [
+      appearance.value.sidebar_font_family,
+      appearance.value.terminal_font_family,
+      appearance.value.log_font_family,
+    ].filter(Boolean).length
+)
 
 function handleRadiusChange(key: keyof ThemeAppearanceConfig, value: number | null) {
   if (typeof value !== 'number') return
@@ -538,8 +583,11 @@ function handleCardOpacityChange(value: number | null) {
   setAppearance({ card_opacity: Math.round(value) }, true)
 }
 
-function handleFontFamilyChange(value: string) {
-  setAppearance({ font_family: value || undefined }, true)
+function handleFontFamilyChange(
+  key: 'font_family' | 'sidebar_font_family' | 'terminal_font_family' | 'log_font_family',
+  value: string
+) {
+  setAppearance({ [key]: value || undefined }, true)
 }
 
 function handleBgModeChange(value: string | number) {

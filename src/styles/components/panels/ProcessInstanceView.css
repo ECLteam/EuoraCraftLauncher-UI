@@ -137,7 +137,7 @@
   padding: 8px 10px;
   background: rgba(127, 127, 127, 0.06);
   color: var(--ecl-text);
-  font-family: 'MapleMono', 'JetBrains Mono', 'HarmonyOS Sans SC', sans-serif;
+  font-family: var(--ecl-font-terminal, 'MapleMono', 'JetBrains Mono', 'HarmonyOS Sans SC', sans-serif);
   font-size: 12px;
   font-variation-settings: 'wght' 500;
   line-height: 1.55;
@@ -161,7 +161,7 @@
 .piv-empty-output {
   padding: 8px 4px;
   color: var(--ecl-text-tertiary);
-  font-family: 'HarmonyOS Sans SC', var(--font-mono);
+  font-family: var(--ecl-font-terminal, 'HarmonyOS Sans SC', var(--font-mono));
 }
 
 .piv-footer {
@@ -221,7 +221,7 @@
   border-radius: 6px;
   background: var(--ecl-surface-muted);
   color: var(--ecl-text);
-  font-family: var(--font-mono);
+  font-family: var(--ecl-font-terminal, var(--font-mono));
   font-size: 12px;
   outline: none;
 }

@@ -34,6 +34,7 @@ import type {
   ThemeConfig,
   ThemeScheduleConfig,
 } from '@/types/config'
+import { resolveFontFamily } from '@/utils/fontFamily'
 
 interface ThemeInitPayload {
   theme?: Partial<ThemeConfig>
@@ -655,7 +656,16 @@ export const useThemeStore = defineStore('theme', () => {
       el.style.setProperty('--ecl-radius-control', `${conf.radius_control}px`)
     if (typeof conf.radius_card === 'number') el.style.setProperty('--ecl-radius-card', `${conf.radius_card}px`)
     if (typeof conf.radius_dialog === 'number') el.style.setProperty('--ecl-radius-dialog', `${conf.radius_dialog}px`)
-    if (conf.font_family) el.style.setProperty('--ecl-font-body', conf.font_family)
+    const fontVariables = [
+      ['--ecl-font-body', conf.font_family, 'var(--font-body)'],
+      ['--ecl-font-sidebar', conf.sidebar_font_family, 'var(--ecl-font-body, var(--font-body))'],
+      ['--ecl-font-terminal', conf.terminal_font_family, 'var(--font-mono)'],
+      ['--ecl-font-log', conf.log_font_family, 'var(--font-mono)'],
+    ] as const
+    for (const [variable, value, fallback] of fontVariables) {
+      if (value) el.style.setProperty(variable, resolveFontFamily(value, fallback))
+      else el.style.removeProperty(variable)
+    }
     el.style.setProperty('--card-opacity', String((conf.card_opacity ?? CARD_OPACITY_DEFAULT) / 100))
   }
 

@@ -1,5 +1,6 @@
 .sidebar {
   display: flex;
+  font-family: var(--ecl-font-sidebar, var(--ecl-font-body, var(--font-body)));
   flex-direction: column;
   width: var(--sidebar-w-expanded);
   min-width: var(--sidebar-w-expanded);

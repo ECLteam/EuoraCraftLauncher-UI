@@ -4,6 +4,35 @@ import { useTheme } from '@/composables/useTheme'
 import { LIGHT_THEME_COLORS } from '@/config/theme'
 
 describe('useTheme 语义色', () => {
+  it('字体覆盖只作用于对应区域，清空后立即移除旧变量', () => {
+    setActivePinia(createPinia())
+    const theme = useTheme()
+    const style = document.documentElement.style
+
+    theme.setAppearance({ font_family: 'Microsoft YaHei', sidebar_font_family: 'SimSun' }, false)
+    expect(style.getPropertyValue('--ecl-font-body')).toBe('"Microsoft YaHei", var(--font-body)')
+    expect(style.getPropertyValue('--ecl-font-sidebar')).toBe('"SimSun", var(--ecl-font-body, var(--font-body))')
+    expect(style.getPropertyValue('--ecl-font-terminal')).toBe('')
+    expect(style.getPropertyValue('--ecl-font-log')).toBe('')
+
+    theme.setAppearance({ terminal_font_family: 'Consolas', log_font_family: 'Cascadia Code' }, false)
+    expect(style.getPropertyValue('--ecl-font-terminal')).toBe('"Consolas", var(--font-mono)')
+    expect(style.getPropertyValue('--ecl-font-log')).toBe('"Cascadia Code", var(--font-mono)')
+
+    theme.setAppearance(
+      {
+        font_family: undefined,
+        sidebar_font_family: undefined,
+        terminal_font_family: undefined,
+        log_font_family: undefined,
+      },
+      false
+    )
+    for (const name of ['--ecl-font-body', '--ecl-font-sidebar', '--ecl-font-terminal', '--ecl-font-log']) {
+      expect(style.getPropertyValue(name)).toBe('')
+    }
+  })
+
   it('配置外观后语义色仍回退到主题默认色而非自定义值', () => {
     setActivePinia(createPinia())
     const theme = useTheme()
