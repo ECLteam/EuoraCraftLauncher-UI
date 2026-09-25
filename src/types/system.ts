@@ -17,6 +17,8 @@ export interface LauncherInfo {
   version: string
   version_type: string
   debug: boolean
+  active_window_chrome?: 'custom' | 'system_shadow' | 'native'
+  system_shadow_supported?: boolean
 }
 
 /** 版本检测结果：status 为 disabled=通道禁用 / up_to_date=已最新 / update_available=有新版本 / error=检测失败 */

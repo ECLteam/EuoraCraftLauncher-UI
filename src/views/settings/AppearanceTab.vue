@@ -58,10 +58,13 @@
 
     <SettingSection :title="t('settings.appearanceSectionLayout')">
       <SettingRow :label="t('settings.windowChrome')" :description="t(windowChromeDescriptionKey)">
-        <NTabs :value="windowChromePreference" type="segment" size="small" @update:value="handleWindowChromeChange">
-          <NTab name="custom">{{ t('settings.windowChromeCustom') }}</NTab>
-          <NTab name="native">{{ t('settings.windowChromeNative') }}</NTab>
-        </NTabs>
+        <NSelect
+          class="wide-control"
+          :value="windowChromePreference"
+          :options="windowChromeOptions"
+          size="small"
+          @update:value="handleWindowChromeChange"
+        />
       </SettingRow>
       <SettingRow :label="t('settings.topNav')" :description="t('settings.topNavDesc')">
         <NSwitch :value="topNavEnabled" @update:value="toggleTopNav" />
@@ -84,6 +87,7 @@
             :value="radiusWindow"
             :min="0"
             :max="32"
+            :disabled="windowChromePreference !== 'custom'"
             :tooltip="false"
             @update:value="handleRadiusChange('radius_window', $event)"
           />
@@ -309,7 +313,7 @@
 import { NButton, NInput, NInputGroup, NSelect, NSlider, NSwitch, NTab, NTabs, NTimePicker } from 'naive-ui'
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useActiveWindowChrome } from '@/app/runtime/windowChrome'
+import { useActiveWindowChrome, useSystemShadowSupported } from '@/app/runtime/windowChrome'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
@@ -349,17 +353,34 @@ const { run } = useAsyncAction({
 })
 const settingsStore = useSettingsStore()
 const activeWindowChrome = useActiveWindowChrome()
+const systemShadowSupported = useSystemShadowSupported()
 const windowChromePreference = computed(() =>
-  settingsStore.ui.theme?.window_chrome === 'native' ? 'native' : 'custom'
+  settingsStore.ui.theme?.window_chrome === 'native'
+    ? 'native'
+    : settingsStore.ui.theme?.window_chrome === 'system_shadow'
+      ? 'system_shadow'
+      : 'custom'
 )
+const windowChromeOptions = computed(() => [
+  { label: t('settings.windowChromeCustom'), value: 'custom' },
+  {
+    label: t('settings.windowChromeSystemShadow'),
+    value: 'system_shadow',
+    disabled: !systemShadowSupported.value,
+  },
+  { label: t('settings.windowChromeNative'), value: 'native' },
+])
 const windowChromeDescriptionKey = computed(() =>
-  windowChromePreference.value === activeWindowChrome.value
-    ? 'settings.windowChromeDesc'
-    : 'settings.windowChromeRestartRequired'
+  windowChromePreference.value === 'system_shadow' && !systemShadowSupported.value
+    ? 'settings.windowChromeWindowsOnly'
+    : windowChromePreference.value === activeWindowChrome.value
+      ? 'settings.windowChromeDesc'
+      : 'settings.windowChromeRestartRequired'
 )
 
-function handleWindowChromeChange(value: string | number): void {
-  if (value !== 'custom' && value !== 'native') return
+function handleWindowChromeChange(value: string | number | null): void {
+  if (value !== 'custom' && value !== 'system_shadow' && value !== 'native') return
+  if (value === 'system_shadow' && !systemShadowSupported.value) return
   void run(async () => settingsStore.patchUiTheme({ window_chrome: value }))
 }
 

@@ -10,7 +10,8 @@
   isolation: isolate;
 }
 
-#app[data-window-chrome='native'] {
+#app[data-window-chrome='native'],
+#app[data-window-chrome='system_shadow'] {
   border-radius: 0;
   clip-path: none;
 }

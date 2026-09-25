@@ -1050,7 +1050,13 @@ export function createShowcaseTransport(): BackendTransport {
 
       /* ── 启动器信息 / 更新 / 进程 ── */
       case 'launcher_info':
-        return success({ version: '1.4.2-alpha.3+20260906', version_type: 'alpha', debug: true })
+        return success({
+          version: '1.4.2-alpha.3+20260906',
+          version_type: 'alpha',
+          debug: true,
+          active_window_chrome: 'custom',
+          system_shadow_supported: false,
+        })
       case 'launcher_check_update':
         return success({
           status: 'up_to_date',

@@ -1,19 +1,33 @@
 import { readonly, ref } from 'vue'
+import backend from '@/api/client'
 import { desktopWindow } from './desktopWindow'
 
-export type ActiveWindowChrome = 'custom' | 'native'
+export type ActiveWindowChrome = 'custom' | 'system_shadow' | 'native'
 
 const activeWindowChrome = ref<ActiveWindowChrome>('custom')
+const systemShadowSupported = ref(false)
 
-/** 在首次渲染前读取主窗口的实际装饰状态，避免待重启设置提前改变当前布局。 */
+/** 在首次渲染前读取主窗口的实际装饰和启动快照，避免待重启设置提前改变当前布局。 */
 export async function detectActiveWindowChrome(): Promise<void> {
+  let isDecorated = false
   try {
-    activeWindowChrome.value = (await desktopWindow.isDecorated()) ? 'native' : 'custom'
+    isDecorated = await desktopWindow.isDecorated()
   } catch {
-    activeWindowChrome.value = 'custom'
+    // 宿主窗口 API 不可用时仍尝试读取启动快照。
   }
+  const result = backend.runtime.isAvailable ? await backend.command('launcher_info', undefined, 3000) : null
+  systemShadowSupported.value = result?.success === true && result.data?.system_shadow_supported === true
+  activeWindowChrome.value = isDecorated
+    ? 'native'
+    : result?.success && result.data?.active_window_chrome === 'system_shadow'
+      ? 'system_shadow'
+      : 'custom'
 }
 
 export function useActiveWindowChrome() {
   return readonly(activeWindowChrome)
+}
+
+export function useSystemShadowSupported() {
+  return readonly(systemShadowSupported)
 }
