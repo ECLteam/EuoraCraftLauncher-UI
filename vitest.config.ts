@@ -2,11 +2,13 @@ import { resolve } from 'node:path'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vitest/config'
 
+const configDirectory = import.meta.dirname
+
 export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
-      '@': resolve(__dirname, './src'),
+      '@': resolve(configDirectory, './src'),
       vue: 'vue/dist/vue.esm-bundler.js',
     },
   },

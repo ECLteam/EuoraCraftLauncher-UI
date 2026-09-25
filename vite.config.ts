@@ -9,8 +9,10 @@ import checker from 'vite-plugin-checker'
 import inspect from 'vite-plugin-inspect'
 import Components from 'unplugin-vue-components/vite'
 
+const configDirectory = import.meta.dirname
+
 const packageVersion = (
-  JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf8')) as {
+  JSON.parse(readFileSync(resolve(configDirectory, 'package.json'), 'utf8')) as {
     version?: string
   }
 ).version
@@ -39,7 +41,7 @@ export default defineConfig(({ mode }) => {
       // 自动导入 Vue / Router / Pinia / i18n / VueUse 的组合式 API，避免重复手写 import
       AutoImport({
         imports: ['vue', 'vue-router', 'pinia', 'vue-i18n', '@vueuse/core'],
-        dts: resolve(__dirname, 'src/auto-imports.d.ts'),
+        dts: resolve(configDirectory, 'src/auto-imports.d.ts'),
       }),
       ...(isDev ? [vueDevTools()] : []),
       Components(),
@@ -58,7 +60,7 @@ export default defineConfig(({ mode }) => {
     publicDir: 'public',
     resolve: {
       alias: {
-        '@': resolve(__dirname, './src'),
+        '@': resolve(configDirectory, './src'),
         vue: 'vue/dist/vue.esm-bundler.js',
       },
     },
