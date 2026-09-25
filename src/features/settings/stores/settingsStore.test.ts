@@ -104,6 +104,21 @@ describe('settingsStore', () => {
     )
   })
 
+  it('保存主窗口标题栏模式并在写入失败时保留已保存值', async () => {
+    const store = useSettingsStore()
+    await store.load()
+    await store.patchUiTheme({ window_chrome: 'native' })
+
+    expect(settingsApi.saveUi).toHaveBeenCalledWith(
+      expect.objectContaining({ theme: expect.objectContaining({ window_chrome: 'native' }) })
+    )
+    expect(store.ui.theme?.window_chrome).toBe('native')
+
+    vi.mocked(settingsApi.saveUi).mockRejectedValueOnce(new Error('write failed'))
+    await expect(store.patchUiTheme({ window_chrome: 'custom' })).rejects.toThrow('write failed')
+    expect(store.ui.theme?.window_chrome).toBe('native')
+  })
+
   it('串行化同一区域的并发局部更新，避免后一次覆盖前一次字段', async () => {
     const store = useSettingsStore()
     await store.load()

@@ -3,6 +3,7 @@ import { create as createNaiveUI } from 'naive-ui'
 import { createApp } from 'vue'
 import AppProviders from '@/app/AppProviders.vue'
 import { queryClient } from '@/app/queryClient'
+import { detectActiveWindowChrome } from '@/app/runtime/windowChrome'
 import { pinia } from '@/app/stores'
 import { initTheme } from '@/composables/useTheme'
 import { i18n, getCurrentLocale, loadLocaleFromBackend } from '@/i18n'
@@ -31,4 +32,4 @@ app.use(router)
 app.use(naive)
 app.use(i18n)
 app.component('UiIcon', UiIcon)
-app.mount('#app')
+void detectActiveWindowChrome().then(() => app.mount('#app'))

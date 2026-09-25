@@ -10,6 +10,11 @@
   isolation: isolate;
 }
 
+#app[data-window-chrome='native'] {
+  border-radius: 0;
+  clip-path: none;
+}
+
 #app:not(.is-dev) {
   user-select: none;
   -webkit-user-select: none;

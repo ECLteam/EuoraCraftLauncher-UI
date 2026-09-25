@@ -57,6 +57,12 @@
     </SettingSection>
 
     <SettingSection :title="t('settings.appearanceSectionLayout')">
+      <SettingRow :label="t('settings.windowChrome')" :description="t(windowChromeDescriptionKey)">
+        <NTabs :value="windowChromePreference" type="segment" size="small" @update:value="handleWindowChromeChange">
+          <NTab name="custom">{{ t('settings.windowChromeCustom') }}</NTab>
+          <NTab name="native">{{ t('settings.windowChromeNative') }}</NTab>
+        </NTabs>
+      </SettingRow>
       <SettingRow :label="t('settings.topNav')" :description="t('settings.topNavDesc')">
         <NSwitch :value="topNavEnabled" @update:value="toggleTopNav" />
       </SettingRow>
@@ -303,6 +309,7 @@
 import { NButton, NInput, NInputGroup, NSelect, NSlider, NSwitch, NTab, NTabs, NTimePicker } from 'naive-ui'
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useActiveWindowChrome } from '@/app/runtime/windowChrome'
 import UiIcon from '@/components/ui/Icon.vue'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useLauncherMessage } from '@/composables/useLauncherMessage'
@@ -341,6 +348,20 @@ const { run } = useAsyncAction({
   errorMessage: t('common.error'),
 })
 const settingsStore = useSettingsStore()
+const activeWindowChrome = useActiveWindowChrome()
+const windowChromePreference = computed(() =>
+  settingsStore.ui.theme?.window_chrome === 'native' ? 'native' : 'custom'
+)
+const windowChromeDescriptionKey = computed(() =>
+  windowChromePreference.value === activeWindowChrome.value
+    ? 'settings.windowChromeDesc'
+    : 'settings.windowChromeRestartRequired'
+)
+
+function handleWindowChromeChange(value: string | number): void {
+  if (value !== 'custom' && value !== 'native') return
+  void run(async () => settingsStore.patchUiTheme({ window_chrome: value }))
+}
 
 const {
   themeId,

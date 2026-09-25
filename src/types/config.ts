@@ -160,6 +160,8 @@ export interface ThemeConfig {
   blur_amount: number
   sidebar_collapsed: boolean
   navigation_mode?: NavigationMode
+  /** 主窗口装饰模式，保存后下次启动生效。 */
+  window_chrome?: 'custom' | 'native'
   /** @deprecated 兼容旧配置；true 对应 sidebar，false 对应 top。 */
   titlebar_hidden: boolean
   transparent_bg: boolean

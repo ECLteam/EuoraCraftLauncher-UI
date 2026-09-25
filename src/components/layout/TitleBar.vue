@@ -1,6 +1,7 @@
 <template>
   <header
     class="titlebar"
+    :class="{ 'titlebar--native': nativeChrome }"
     data-theme-component="titlebar"
     data-theme-node="shell.titlebar"
     @mousedown="handleDragStart"
@@ -15,8 +16,10 @@
       </template>
       <template v-else>
         <div class="titlebar-brand">
-          <img src="/favicon.ico" alt="Logo" class="titlebar-logo" />
-          <span class="titlebar-app-name">{{ topNavEnabled ? 'ECL' : 'EuoraCraft Launcher' }}</span>
+          <img v-if="!nativeChrome" src="/favicon.ico" alt="Logo" class="titlebar-logo" />
+          <span v-if="!nativeChrome" class="titlebar-app-name">{{
+            topNavEnabled ? 'ECL' : 'EuoraCraft Launcher'
+          }}</span>
           <span
             v-if="isDevMode"
             class="titlebar-mode-badge titlebar-mode-badge--dev"
@@ -83,10 +86,20 @@
       >
         <UiIcon :name="isDark ? 'moon' : 'sun'" :size="16" />
       </button>
-      <button v-if="isDesktopMode" class="titlebar-btn" :title="t('common.minimize')" @click="minimize">
+      <button
+        v-if="isDesktopMode && !nativeChrome"
+        class="titlebar-btn"
+        :title="t('common.minimize')"
+        @click="minimize"
+      >
         <UiIcon name="minimize" :size="16" />
       </button>
-      <button v-if="isDesktopMode" class="titlebar-btn titlebar-btn-close" :title="t('common.close')" @click="close">
+      <button
+        v-if="isDesktopMode && !nativeChrome"
+        class="titlebar-btn titlebar-btn-close"
+        :title="t('common.close')"
+        @click="close"
+      >
         <UiIcon name="close" :size="16" />
       </button>
     </div>
@@ -111,6 +124,7 @@ import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import { titlebarVersionChannelLabel } from './titlebarVersionChannel'
 
 defineOptions({ name: 'TitleBar' })
+const { nativeChrome = false } = defineProps<{ nativeChrome?: boolean }>()
 
 const { t } = useI18n()
 const { isDark, toggleTheme } = useTheme()
@@ -162,6 +176,7 @@ const handleClose = () => fullscreenModal.close()
 
 /** 仅使用 Tauri 原生 startDragging API，避免平台特定的 CSS 拖拽区域冲突。 */
 const handleDragStart = (e: MouseEvent) => {
+  if (nativeChrome) return
   if (e.button !== 0) return
   const target = e.target as HTMLElement
   if (

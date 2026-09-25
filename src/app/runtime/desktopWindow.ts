@@ -2,6 +2,7 @@ interface TauriWindow {
   minimize: () => Promise<void>
   close: () => Promise<void>
   startDragging: () => Promise<void>
+  isDecorated: () => Promise<boolean>
 }
 
 function getCurrentWindow(): TauriWindow | null {
@@ -20,6 +21,9 @@ function getCurrentWindow(): TauriWindow | null {
 }
 
 export const desktopWindow = {
+  async isDecorated(): Promise<boolean> {
+    return (await getCurrentWindow()?.isDecorated()) ?? false
+  },
   async minimize(): Promise<void> {
     await getCurrentWindow()?.minimize()
   },

@@ -1087,6 +1087,7 @@ export const useThemeStore = defineStore('theme', () => {
         await settingsApi.saveUi({
           ...ui,
           theme: {
+            window_chrome: ui.theme?.window_chrome,
             mode: themeMode.value,
             theme_id: themeId.value,
             primary_color: primaryColor.value,

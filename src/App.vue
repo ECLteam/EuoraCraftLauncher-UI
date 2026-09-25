@@ -1,6 +1,7 @@
 <template>
   <div
     id="app"
+    :data-window-chrome="activeWindowChrome"
     @dragenter.prevent="handleDragEnter"
     @dragover.prevent="handleDragOver"
     @dragleave="handleDragLeave"
@@ -15,7 +16,11 @@
     <!--<a href="#main-content" class="skip-link">跳到主要内容</a>-->
     <div class="app-layout">
       <!-- 顶部栏 - 始终可交互 -->
-      <TitleBar class="app-titlebar" :class="{ 'titlebar-disabled': !isAgreementAccepted && !agreementLoading }" />
+      <TitleBar
+        class="app-titlebar"
+        :class="{ 'titlebar-disabled': !isAgreementAccepted && !agreementLoading }"
+        :nativeChrome="activeWindowChrome === 'native'"
+      />
 
       <!-- 主体区域：侧边栏 + 内容区 -->
       <div class="app-body" :class="{ 'app-body-disabled': !isAgreementAccepted && !agreementLoading }">
@@ -146,6 +151,7 @@ import { desktopWindow } from '@/app/runtime/desktopWindow'
 import { setErrorNotifier } from '@/app/runtime/errorPresentation'
 import { useAppRuntime } from '@/app/runtime/useAppRuntime'
 import { notifyLauncherPopup } from '@/app/runtime/useLauncherPopupQueue'
+import { useActiveWindowChrome } from '@/app/runtime/windowChrome'
 import ModpackImportModal from '@/components/instances/ModpackImportModal.vue'
 import AppBackground from '@/components/layout/AppBackground.vue'
 import SideBar from '@/components/layout/SideBar.vue'
@@ -169,6 +175,7 @@ import { getErrorMessage } from '@/utils/error'
 import { openExternalUrl } from '@/utils/openExternal'
 
 const router = useRouter()
+const activeWindowChrome = useActiveWindowChrome()
 const route = useRoute()
 const { t } = useI18n()
 const {
