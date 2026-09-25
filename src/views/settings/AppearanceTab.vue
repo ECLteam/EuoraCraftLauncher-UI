@@ -57,11 +57,16 @@
     </SettingSection>
 
     <SettingSection :title="t('settings.appearanceSectionLayout')">
-      <SettingRow :label="t('settings.windowChrome')" :description="t(windowChromeDescriptionKey)">
+      <SettingRow
+        class="window-chrome-row"
+        :label="t('settings.windowChrome')"
+        :description="t(windowChromeDescriptionKey)"
+      >
         <NSelect
-          class="wide-control"
+          class="window-chrome-select"
           :value="windowChromePreference"
           :options="windowChromeOptions"
+          to="#app"
           size="small"
           @update:value="handleWindowChromeChange"
         />

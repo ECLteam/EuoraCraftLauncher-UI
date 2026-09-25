@@ -16,6 +16,11 @@
   clip-path: none;
 }
 
+/* 弹出层可能挂在 body 下；纯自绘模式的裁剪也须覆盖这些窗口内元素。 */
+body:has(#app[data-window-chrome='custom']) {
+  clip-path: inset(0 round var(--ecl-radius-window, var(--window-radius)));
+}
+
 #app:not(.is-dev) {
   user-select: none;
   -webkit-user-select: none;

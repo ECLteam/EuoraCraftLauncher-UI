@@ -90,6 +90,15 @@
   width: min(320px, 100%);
 }
 
+.appearance-settings :deep(.window-chrome-row .setting-control) {
+  flex: 0 1 340px;
+  min-width: 0;
+}
+
+.window-chrome-select {
+  width: 100%;
+}
+
 .folder-source-control {
   display: flex;
   align-items: center;
