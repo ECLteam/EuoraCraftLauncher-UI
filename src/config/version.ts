@@ -130,19 +130,6 @@ for (const l of LOADERS) {
 /** 安装页面可选的加载器列表（排除 OptiFine 和 LiteLoader） */
 export const INSTALLABLE_LOADERS = LOADERS.filter((l) => !['optifine', 'liteloader'].includes(l.value))
 
-// ---- 下载源 ----
-
-export interface MirrorOption {
-  value: string
-  label: string
-  desc: string
-}
-
-export const MIRROR_OPTIONS: MirrorOption[] = [
-  { value: 'official', label: '官方源', desc: 'Minecraft Official' },
-  { value: 'bmclapi', label: 'BMCLAPI', desc: 'BMCLAPI 镜像加速' },
-]
-
 // ---- 工具函数 ----
 
 function normalizeLoaderKey(loader: string | null | undefined): string {

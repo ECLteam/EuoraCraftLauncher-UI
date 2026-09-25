@@ -118,7 +118,6 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAsyncAction } from '@/composables/useAsyncAction'
 import { useDebugMode } from '@/composables/useDebugMode'
-import { MIRROR_OPTIONS } from '@/config/version'
 import PluginSlotHost from '@/features/plugins/slots/PluginSlotHost.vue'
 import SettingRow from '@/features/settings/components/SettingRow.vue'
 import SettingSection from '@/features/settings/components/SettingSection.vue'
@@ -166,13 +165,10 @@ const languageOptions = computed(() =>
   }))
 )
 
-const downloadSourceOptions = computed(() =>
-  MIRROR_OPTIONS.map((option) => ({
-    value: option.value as 'official' | 'bmclapi',
-    label: option.label,
-    desc: option.desc,
-  }))
-)
+const downloadSourceOptions = computed(() => [
+  { value: 'official', label: t('settings.downloadSourceOfficialFirst') },
+  { value: 'bmclapi', label: t('settings.downloadSourceBmclapiFirst') },
+])
 
 const logLevelOptions = computed(() => [
   { label: t('settings.logLevelDebug'), value: 'debug' },
