@@ -1,35 +1,45 @@
 <template>
   <div class="font-family-control">
-    <NSelect
-      :value="modelValue"
-      :options="options"
-      :renderLabel="renderLabel"
-      :menuProps="{ style: { maxWidth: 'calc(100vw - 32px)', maxHeight: 'calc(100vh - 32px)' } }"
+    <NPopover
+      :show="editing"
+      trigger="manual"
+      placement="bottom-end"
+      :showArrow="false"
       to="#app"
-      size="small"
-      @update:value="handleSelect"
-    />
-    <div v-if="editing" class="font-family-editor">
-      <NInput
-        v-model:value="draft"
-        size="small"
-        :maxlength="80"
-        :placeholder="t('settings.fontCustomPlaceholder')"
-        @keydown.enter="applyCustom"
-        @keydown.esc="cancelCustom"
-      />
-      <div class="font-family-actions">
-        <NButton size="tiny" type="primary" @click="applyCustom">{{ t('settings.fontApply') }}</NButton>
-        <NButton size="tiny" @click="cancelCustom">{{ t('settings.fontCancel') }}</NButton>
+      @clickoutside="cancelCustom"
+    >
+      <template #trigger>
+        <NSelect
+          :value="modelValue"
+          :options="options"
+          :renderLabel="renderLabel"
+          :menuProps="{ style: { maxWidth: 'calc(100vw - 32px)', maxHeight: 'calc(100vh - 32px)' } }"
+          to="#app"
+          size="small"
+          @update:value="handleSelect"
+        />
+      </template>
+      <div class="font-family-editor">
+        <NInput
+          v-model:value="draft"
+          size="small"
+          :maxlength="80"
+          :placeholder="t('settings.fontCustomPlaceholder')"
+          @keydown="handleEditorKeydown"
+        />
+        <div class="font-family-actions">
+          <NButton size="tiny" type="primary" @click="applyCustom">{{ t('settings.fontApply') }}</NButton>
+          <NButton size="tiny" @click="cancelCustom">{{ t('settings.fontCancel') }}</NButton>
+        </div>
+        <span v-if="invalid" class="font-family-error">{{ t('settings.fontCustomInvalid') }}</span>
+        <span class="font-family-sample" :style="{ fontFamily: previewFont }">{{ t('settings.fontPreview') }}</span>
       </div>
-      <span v-if="invalid" class="font-family-error">{{ t('settings.fontCustomInvalid') }}</span>
-      <span class="font-family-sample" :style="{ fontFamily: previewFont }">{{ t('settings.fontPreview') }}</span>
-    </div>
+    </NPopover>
   </div>
 </template>
 
 <script setup lang="ts">
-import { NButton, NInput, NSelect, type SelectOption } from 'naive-ui'
+import { NButton, NInput, NPopover, NSelect, type SelectOption } from 'naive-ui'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { FONT_FAMILY_OPTIONS } from '@/config/theme'
@@ -113,6 +123,16 @@ function cancelCustom() {
   editing.value = false
   invalid.value = false
 }
+
+function handleEditorKeydown(event: KeyboardEvent) {
+  if (event.key === 'Enter') {
+    event.preventDefault()
+    applyCustom()
+  } else if (event.key === 'Escape') {
+    event.preventDefault()
+    cancelCustom()
+  }
+}
 </script>
 
 <style scoped>
@@ -129,9 +149,8 @@ function cancelCustom() {
 
 .font-family-editor {
   display: grid;
-  min-width: 0;
+  width: min(300px, calc(100vw - 64px));
   gap: 8px;
-  padding-top: 8px;
 }
 
 .font-family-actions {
