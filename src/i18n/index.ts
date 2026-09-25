@@ -10,12 +10,12 @@ import zhTW from './locales/zh-TW.json'
 
 // 支持的语言列表
 export const supportedLocales = [
-  { code: 'zh-CN', name: '简体中文', shortLabel: '简' },
-  { code: 'zh-TW', name: '繁體中文', shortLabel: '繁' },
-  { code: 'en-US', name: 'English', shortLabel: 'EN' },
-  { code: 'ja-JP', name: '日本語', shortLabel: 'JA' },
-  { code: 'ru-RU', name: 'Русский', shortLabel: 'RU' },
-  { code: 'de-DE', name: 'Deutsch', shortLabel: 'DE' },
+  { code: 'zh-CN', name: '简体中文' },
+  { code: 'zh-TW', name: '繁體中文' },
+  { code: 'en-US', name: 'English' },
+  { code: 'ja-JP', name: '日本語' },
+  { code: 'ru-RU', name: 'Русский' },
+  { code: 'de-DE', name: 'Deutsch' },
 ] as const
 
 export type LocaleCode = (typeof supportedLocales)[number]['code']

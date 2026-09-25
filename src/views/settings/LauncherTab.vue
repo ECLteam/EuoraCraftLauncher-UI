@@ -161,7 +161,7 @@ const proxyModeOptions = computed(() => [
 
 const languageOptions = computed(() =>
   supportedLocales.map((language) => ({
-    label: `${language.shortLabel}  ${language.name}`,
+    label: language.name,
     value: language.code,
   }))
 )
