@@ -11,6 +11,7 @@ export type InstallableLoader = 'fabric' | 'forge' | 'neoforge' | 'quilt'
 export type VersionsChangedHandler = (payload: { gamePath: string }) => void
 
 const scanCache = new Map<string, ScannedVersion[]>()
+let catalogRequest: Promise<MinecraftVersionCatalog> | null = null
 const versionsChangedHandlers = new Set<VersionsChangedHandler>()
 let isListeningForVersionChanges = false
 
@@ -36,11 +37,22 @@ function ensureVersionChangeListener(): void {
 }
 
 export const instanceInstallApi = {
-  async getCatalog(): Promise<MinecraftVersionCatalog> {
-    return assertSuccess(
-      await backend.command('game_versions', { classified: true }),
-      '获取实例列表'
-    ) as MinecraftVersionCatalog
+  getCatalog(options: { silent?: boolean } = {}): Promise<MinecraftVersionCatalog> {
+    if (catalogRequest) return catalogRequest
+    const request = backend
+      .command('game_versions', { classified: true })
+      .then((response) => {
+        if (options.silent) {
+          if (!response.success) throw new Error(response.message || '获取实例列表失败')
+          return response.data as MinecraftVersionCatalog
+        }
+        return assertSuccess(response, '获取实例列表') as MinecraftVersionCatalog
+      })
+      .finally(() => {
+        if (catalogRequest === request) catalogRequest = null
+      })
+    catalogRequest = request
+    return request
   },
 
   async getLoaderVersions(loader: InstallableLoader, gameVersion: string): Promise<string[]> {

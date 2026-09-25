@@ -20,6 +20,8 @@ export const useInstanceStore = defineStore('versions', () => {
   const currentGamePath = ref('')
   const loadingCount = ref(0)
   const scanRequests = new Map<string, Promise<ScannedVersion[]>>()
+  let loadAllRequest: Promise<void> | null = null
+  let hasLoaded = false
   let stopWatching: (() => void) | null = null
   let latestLoadId = 0
 
@@ -78,7 +80,7 @@ export const useInstanceStore = defineStore('versions', () => {
     return pathMatch?.[1] || fallback
   }
 
-  async function loadAll(force = false): Promise<void> {
+  async function loadAllImpl(force: boolean): Promise<void> {
     const loadId = ++latestLoadId
     startWatching()
     await settingsStore.load()
@@ -88,6 +90,7 @@ export const useInstanceStore = defineStore('versions', () => {
       scannedVersions.value = []
       selectedVersion.value = ''
       currentGamePath.value = ''
+      hasLoaded = true
       return
     }
 
@@ -140,9 +143,27 @@ export const useInstanceStore = defineStore('versions', () => {
         selectedVersion.value = ''
         currentGamePath.value = ''
       }
+      hasLoaded = true
     } finally {
       loadingCount.value = Math.max(0, loadingCount.value - 1)
     }
+  }
+
+  async function loadAll(force = false): Promise<void> {
+    if (!force && loadAllRequest) return loadAllRequest
+    if (force && loadAllRequest) await loadAllRequest.catch(() => undefined)
+    const request = loadAllImpl(force)
+    loadAllRequest = request
+    try {
+      await request
+    } finally {
+      if (loadAllRequest === request) loadAllRequest = null
+    }
+  }
+
+  async function ensureLoaded(): Promise<void> {
+    if (hasLoaded) return
+    await loadAll()
   }
 
   function selectVersion(versionId: string, gamePath?: string): void {
@@ -217,6 +238,7 @@ export const useInstanceStore = defineStore('versions', () => {
     currentGamePath,
     loading,
     loadAll,
+    ensureLoaded,
     scanPath,
     selectVersion,
     setGamePath,

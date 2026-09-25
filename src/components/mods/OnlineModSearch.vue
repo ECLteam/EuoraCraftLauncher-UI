@@ -504,6 +504,11 @@ import { useLauncherMessage } from '@/composables/useLauncherMessage'
 import { instanceKey, parseInstanceKey, useResourceInstallTarget } from '@/composables/useResourceInstallTarget'
 import { globalTaskQueue } from '@/composables/useTaskQueue'
 import { LOADERS } from '@/config/version'
+import {
+  getPopularPage,
+  getResourceSourceConfig,
+  type DownloadResourceType,
+} from '@/features/download/model/downloadPrefetch'
 import { instanceInstallApi } from '@/features/instances/api/instanceInstallApi'
 import { instanceWorkspaceApi, workspaceTarget } from '@/features/instances/api/instanceWorkspaceApi'
 import { modApi } from '@/features/mods/api/modApi'
@@ -529,7 +534,7 @@ import { getErrorMessage } from '@/utils/error'
 
 const props = withDefaults(
   defineProps<{
-    resourceType?: GameResourceType | 'world'
+    resourceType?: DownloadResourceType
     fixedSource?: 'modrinth' | 'curseforge'
   }>(),
   { resourceType: 'mod', fixedSource: undefined }
@@ -756,6 +761,7 @@ function pageCacheKey(targetPage: number): string {
   const loader = props.resourceType === 'mod' ? loaderFilter.value || inst?.primaryLoader || '' : ''
   const gameVersion = versionFilter.value || inst?.vanillaName || ''
   return [
+    target.selectedKey.value,
     props.resourceType,
     query.value.trim(),
     props.fixedSource || sourceFilter.value,
@@ -788,6 +794,17 @@ function saveState(): void {
 function restoreState(): boolean {
   const cached = globalCache.get<ModSearchCacheState>(stateCacheKey())
   if (!cached || cached.instanceKey !== target.selectedKey.value) return false
+  // 默认热门列表使用共享缓存的 10 分钟时效；搜索和翻页继续恢复原有视图。
+  const defaultSource = props.resourceType === 'world' ? 'curseforge' : 'modrinth'
+  if (
+    cached.page === 1 &&
+    !cached.query &&
+    !cached.version &&
+    !cached.loader &&
+    !cached.sort &&
+    (!cached.source || cached.source === defaultSource)
+  )
+    return false
   query.value = cached.query
   sourceFilter.value = props.fixedSource ?? cached.source
   versionFilter.value = cached.version
@@ -853,8 +870,7 @@ watch(
   (readyVal) => {
     if (!readyVal) return
     void fetchVersionCatalog()
-    void modApi
-      .sourceConfig()
+    void getResourceSourceConfig()
       .then((config) => {
         curseforgeAvailable.value = config.curseforge?.available ?? true
         if (!props.fixedSource && !curseforgeAvailable.value && sourceFilter.value === 'curseforge') {
@@ -1197,8 +1213,18 @@ watch(
 )
 
 async function fetchPage(targetPage: number, force = false) {
+  const inst = instance.value
+  const loader = props.resourceType === 'mod' ? loaderFilter.value || inst?.primaryLoader || '' : ''
+  const source = props.fixedSource || sourceFilter.value || 'modrinth'
+  const isDefaultPopular =
+    targetPage === 1 &&
+    !query.value.trim() &&
+    !versionFilter.value &&
+    !loaderFilter.value &&
+    !sortFilter.value &&
+    source === (props.resourceType === 'world' ? 'curseforge' : 'modrinth')
   const key = pageCacheKey(targetPage)
-  if (!force) {
+  if (!force && !isDefaultPopular) {
     const cached = pageCache.get(key)
     if (cached) {
       // 命中缓存同样要作废在途请求，避免慢响应稍后覆盖缓存结果
@@ -1211,19 +1237,19 @@ async function fetchPage(targetPage: number, force = false) {
     }
   }
   const requestId = ++searchRequestId
-  const inst = instance.value
-  const loader = props.resourceType === 'mod' ? loaderFilter.value || inst?.primaryLoader || '' : ''
   const response = await run(() =>
-    modApi.search({
-      query: query.value.trim(),
-      source: props.fixedSource || sourceFilter.value || 'modrinth',
-      game_version: versionFilter.value || inst?.vanillaName || '',
-      loader_type: loader,
-      resource_type: props.resourceType,
-      limit: PAGE_SIZE,
-      offset: (targetPage - 1) * PAGE_SIZE,
-      sort: sortFilter.value,
-    })
+    isDefaultPopular
+      ? getPopularPage(props.resourceType, inst, target.selectedKey.value, force)
+      : modApi.search({
+          query: query.value.trim(),
+          source,
+          game_version: versionFilter.value || inst?.vanillaName || '',
+          loader_type: loader,
+          resource_type: props.resourceType,
+          limit: PAGE_SIZE,
+          offset: (targetPage - 1) * PAGE_SIZE,
+          sort: sortFilter.value,
+        })
   ).catch((error) => {
     message.error(getErrorMessage(error))
     return undefined

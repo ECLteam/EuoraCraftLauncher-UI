@@ -17,6 +17,30 @@ export function parseInstanceKey(key: string): { path: string; versionId: string
   return { path, versionId }
 }
 
+/** 启动预取与分类页共用安装目标选择规则，显式的“无实例”优先于自动选择。 */
+export function resolveInitialResourceTarget(
+  versions: ScannedVersion[],
+  cached: { gamePath: string; versionId: string } | undefined,
+  selectedVersion: string,
+  currentGamePath: string,
+  autoSelect = true
+): ScannedVersion | null {
+  const installable = versions.filter((version) => !version.isBroken)
+  if (cached) {
+    if (!cached.gamePath || !cached.versionId) return null
+    const hit = installable.find(
+      (version) => version.path === cached.gamePath && version.versionId === cached.versionId
+    )
+    if (hit) return hit
+  }
+  if (!autoSelect) return null
+  return (
+    installable.find((version) => version.versionId === selectedVersion && version.path === currentGamePath) ??
+    installable[0] ??
+    null
+  )
+}
+
 export function useResourceInstallTarget(resourceType: InstallTargetKey, autoSelect = true) {
   const instanceStore = useInstanceStore()
   const selectedKey = ref('')
@@ -47,33 +71,15 @@ export function useResourceInstallTarget(resourceType: InstallTargetKey, autoSel
     await instanceStore.loadAll()
     const config = unwrapResponse(await backend.config.get('download'), '读取下载设置')
     const cfg = config as { resourceInstallCache?: Record<string, { gamePath: string; versionId: string }> }
-    const cached = cfg?.resourceInstallCache?.[resourceType]
-    if (cached) {
-      if (cached.gamePath && cached.versionId) {
-        const hit = installableInstances.value.find(
-          (version) => version.path === cached.gamePath && version.versionId === cached.versionId
-        )
-        if (hit) {
-          selectedKey.value = instanceKey(hit)
-          ready.value = true
-          return
-        }
-      } else {
-        // 用户曾显式选择"无"，恢复为无实例
-        selectedKey.value = ''
-        ready.value = true
-        return
-      }
-    }
-    if (autoSelect) {
-      const preferred =
-        installableInstances.value.find(
-          (version) =>
-            version.versionId === instanceStore.selectedVersion && version.path === instanceStore.currentGamePath
-        ) ?? installableInstances.value[0]
-      selectedKey.value = preferred ? instanceKey(preferred) : ''
-      // 自动选中不写入缓存，只有用户显式选择才会被记住
-    }
+    const chosen = resolveInitialResourceTarget(
+      installableInstances.value,
+      cfg?.resourceInstallCache?.[resourceType],
+      instanceStore.selectedVersion,
+      instanceStore.currentGamePath,
+      autoSelect
+    )
+    selectedKey.value = chosen ? instanceKey(chosen) : ''
+    // 自动选中不写入缓存，只有用户显式选择才会被记住
     ready.value = true
   }
 

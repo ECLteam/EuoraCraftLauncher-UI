@@ -116,8 +116,15 @@ export function useAutoRefreshCache<T = unknown>(
 
   // 自动获取数据
   const fetchData = async (forceRefresh = false): Promise<T | null> => {
-    if (!forceRefresh && isValid.value) {
-      return data.value
+    if (!forceRefresh) {
+      // 启动预取可能在组件创建后、首次 fetchData 前完成；再次读取共享缓存避免重复请求。
+      const latestCached = globalCache.get<T>(key)
+      if (latestCached !== null) {
+        data.value = latestCached
+        isValid.value = true
+        error.value = false
+        return latestCached
+      }
     }
 
     loading.value = true

@@ -47,3 +47,35 @@ describe('instanceInstallApi scan cache', () => {
     stop()
   })
 })
+
+describe('instanceInstallApi 版本目录请求', () => {
+  beforeEach(() => mocks.command.mockReset())
+
+  it('启动预取和页面请求共用在途 IPC，完成后仍允许手动刷新', async () => {
+    let finish!: (value: { success: boolean; data: { all: never[] } }) => void
+    mocks.command.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve
+        })
+    )
+    const prefetch = instanceInstallApi.getCatalog({ silent: true })
+    const page = instanceInstallApi.getCatalog()
+    expect(mocks.command).toHaveBeenCalledTimes(1)
+    finish({ success: true, data: { all: [] } })
+    expect(await prefetch).toEqual({ all: [] })
+    expect(await page).toEqual({ all: [] })
+
+    mocks.command.mockResolvedValueOnce({ success: true, data: { all: [] } })
+    await instanceInstallApi.getCatalog()
+    expect(mocks.command).toHaveBeenCalledTimes(2)
+  })
+
+  it('静默预取失败后允许页面重新请求', async () => {
+    mocks.command.mockResolvedValueOnce({ success: false, message: '网络暂不可用' })
+    await expect(instanceInstallApi.getCatalog({ silent: true })).rejects.toThrow('网络暂不可用')
+    mocks.command.mockResolvedValueOnce({ success: true, data: { all: [] } })
+    await expect(instanceInstallApi.getCatalog()).resolves.toEqual({ all: [] })
+    expect(mocks.command).toHaveBeenCalledTimes(2)
+  })
+})

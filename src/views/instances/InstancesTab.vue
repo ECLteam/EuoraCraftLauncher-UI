@@ -8,7 +8,7 @@
         <span v-if="filteredVersions.length > 0" class="version-count-badge">
           {{ t('versions.download.versionCount', { count: filteredVersions.length }) }}
         </span>
-        <button class="btn-refresh" @click="fetchVersions">
+        <button class="btn-refresh" @click="fetchVersions(true)">
           <UiIcon name="refresh" :size="14" />
           {{ t('versions.download.refreshList') }}
         </button>
@@ -43,7 +43,7 @@
           <p class="empty-hint">
             {{ t('versions.download.checkNetwork') }}
           </p>
-          <button class="btn-primary" @click="fetchVersions">
+          <button class="btn-primary" @click="fetchVersions(true)">
             <UiIcon name="refresh" :size="16" />
             {{ t('versions.download.refreshList') }}
           </button>
@@ -329,8 +329,8 @@ const visibleVersions = computed(() => {
 const totalHeight = computed(() => (filteredVersions.value || []).length * itemHeight)
 const topOffset = computed(() => visibleRange.value.start * itemHeight)
 
-async function fetchVersions() {
-  await fetchVersionsData()
+async function fetchVersions(force = false) {
+  await fetchVersionsData(force)
   if (versionsError.value) {
     launcherMessage.error(t('versions.download.fetchFailed'))
   }
