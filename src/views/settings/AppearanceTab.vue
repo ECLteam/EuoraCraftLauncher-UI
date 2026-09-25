@@ -2,14 +2,14 @@
   <div class="tab-pane appearance-settings">
     <SettingSection :title="t('settings.appearanceSectionTheme')">
       <SettingRow :label="t('settings.themeStyle')" :description="t('settings.themeDesc')">
-        <NTabs :value="themeId" type="segment" size="small" @update:value="handleThemeIdChange">
-          <NTab v-for="option in builtinThemeOptions" :key="option.id" :name="option.id">
-            <span class="theme-option-label">
-              <UiIcon :name="option.icon" :size="14" />
-              {{ option.label }}
-            </span>
-          </NTab>
-        </NTabs>
+        <NSelect
+          class="setting-select"
+          :value="themeId"
+          :options="builtinThemeOptions"
+          to="#app"
+          size="small"
+          @update:value="handleThemeIdChange"
+        />
       </SettingRow>
 
       <SettingRow label="亮暗模式" description="选择亮暗显示模式（跟随系统时按系统偏好自动切换）">
@@ -517,8 +517,7 @@ const themeOptions = computed(() =>
 
 const builtinThemeOptions = computed(() =>
   BUILTIN_THEMES.map((option) => ({
-    id: option.id,
-    icon: option.icon,
+    value: option.id,
     label: t(`settings.theme${option.id.charAt(0).toUpperCase() + option.id.slice(1)}`),
   }))
 )
@@ -539,8 +538,7 @@ async function handleThemeChange(mode: ThemeMode) {
   await updateUiConfig({ mode })
 }
 
-function handleThemeIdChange(id: string | number) {
-  const value = String(id)
+function handleThemeIdChange(value: string | number | null) {
   if (value !== 'classic' && value !== 'folia') return
   setThemeId(value, false)
   void run(async () => settingsStore.patchUiTheme({ theme_id: value }))
